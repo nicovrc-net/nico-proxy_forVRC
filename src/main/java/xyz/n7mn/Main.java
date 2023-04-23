@@ -41,19 +41,28 @@ public class Main {
                         System.out.println("「"+new String(data, StandardCharsets.UTF_8)+"」を受信しました。");
                         String text = new String(data, StandardCharsets.UTF_8);
                         Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.1").matcher(text);
+                        String httpResponse;
+
                         if (matcher1.find()){
                             // "https://www.nicovideo.jp/watch/sm10759623"
                             String videoUrl = getVideo(matcher1.group(1));
-                            String t = "HTTP/1.1 302 Found\r\nLocation: "+videoUrl;
 
-                            out.write(t.getBytes(StandardCharsets.UTF_8));
-                            out.flush();
+                            if (videoUrl == null || !videoUrl.startsWith("http://")){
+                                httpResponse = "HTTP/1.1 403 Forbidden\r\n" +
+                                        "date: Sun, 23 Apr 2023 12:09:26 GMT\r\n" +
+                                        "content-type: text/plain\r\n\r\n" +
+                                        "403\r\n";
+                            } else {
+                                httpResponse = "HTTP/1.1 302 Found\r\nLocation: " + videoUrl;
+                            }
                         } else {
-                            String t = "HTTP/1.1 403 Forbidden\r\n";
-                            out.write(t.getBytes(StandardCharsets.UTF_8));
-                            out.flush();
+                            httpResponse = "HTTP/1.1 403 Forbidden\r\n" +
+                                    "date: Sun, 23 Apr 2023 12:09:26 GMT\r\n" +
+                                    "content-type: text/plain\r\n\r\n" +
+                                    "403\r\n";
                         }
-
+                        out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
+                        out.flush();
 
                         in.close();
                         out.close();
