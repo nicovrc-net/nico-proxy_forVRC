@@ -1,6 +1,7 @@
 package xyz.n7mn;
 
 import okhttp3.*;
+import xyz.n7mn.data.VideoInfo;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +48,10 @@ public class Main {
 
                             out.write(t.getBytes(StandardCharsets.UTF_8));
                             out.flush();
+                        } else {
+                            String t = "HTTP/1.1 403 Forbidden\r\n";
+                            out.write(t.getBytes(StandardCharsets.UTF_8));
+                            out.flush();
                         }
 
 
@@ -75,6 +80,7 @@ public class Main {
 
     private static String getVideo(String url){
 
+        System.gc();
         String resUrl = null;
 
         if (url.startsWith("nicovideo.jp") || url.startsWith("www.nicovideo.jp") || url.startsWith("nico.ms")){
@@ -85,28 +91,26 @@ public class Main {
 
         // 送られてきたURLを一旦IDだけにする
         String id = url.replaceAll("http://nicovideo.jp/watch/","").replaceAll("https://nicovideo.jp/watch/","").replaceAll("http://www.nicovideo.jp/watch/","").replaceAll("https://www.nicovideo.jp/watch/","").replaceAll("http://nico.ms/","").replaceAll("https://nico.ms/","");
+        id = id.split("\\?")[0];
+
         System.out.println("[Debug] ID: " + id + " "+sdf.format(new Date()));
 
         // 動画情報取得 (無駄にハートビート信号送らないようにするため)
         long time = -1;
 
         try {
-
             Request request = new Request.Builder()
                     .url("https://ext.nicovideo.jp/api/getthumbinfo/"+id)
                     .build();
             Response response = client.newCall(request).execute();
-            String XmlText = response.body().string();
+            VideoInfo videoInfo = VideoInfo.newInstance(response.body().string());
 
-            Matcher matcher = Pattern.compile("<length>(.*)</length>").matcher(XmlText);
-            if (matcher.find()){
-                String[] split = matcher.group(1).split(":");
-                time = (Long.parseLong(split[0]) * 60) + Long.parseLong(split[1]);
-
-                System.out.println("[Debug] 時間 : "+matcher.group(1)+"("+time+") "+sdf.format(new Date()));
+            time = videoInfo.getVideoLengthBySec();
+            if (videoInfo.getVideoId() == null){
+                throw new Exception("取得失敗");
             }
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             System.out.println("[Debug] 動画情報 取得失敗 "+sdf.format(new Date()));
             e.printStackTrace();
             return resUrl;
@@ -274,6 +278,7 @@ public class Main {
             return resUrl;
         }
         System.out.println("[Debug] 動画情報 取得成功\n動画URL : "+VideoURL+" \n"+ sdf.format(new Date()));
+        System.gc();
 
         // 最低限動画の長さ分だけハートビート信号投げつける (40秒起き)
         long finalTime = time;
@@ -301,7 +306,7 @@ public class Main {
                     return;
                 }
 
-
+                System.gc();
                 try {
                     Thread.sleep(40000);
                 } catch (InterruptedException e) {
