@@ -245,6 +245,82 @@ public class Main {
                 "\t\t\"priority\": 0\n" +
                 "\t}\n" +
                 "}";
+
+        if (id.startsWith("so")){
+            json = "{\n" +
+                    "    \"session\": {\n" +
+                    "        \"recipe_id\": \"nicovideo-"+id+"\",\n" +
+                    "        \"content_id\": \"out1\",\n" +
+                    "        \"content_type\": \"movie\",\n" +
+                    "        \"content_src_id_sets\": [\n" +
+                    "            {\n" +
+                    "                \"content_src_ids\": [\n" +
+                    "                    {\n" +
+                    "                        \"src_id_to_mux\": {\n" +
+                    "                            \"video_src_ids\": [\n" +
+                    "                                \"archive_h264_360p\",\n" +
+                    "                                \"archive_h264_360p_low\"\n" +
+                    "                            ],\n" +
+                    "                            \"audio_src_ids\": [\n" +
+                    "                                \"archive_aac_64kbps\"\n" +
+                    "                            ]\n" +
+                    "                        }\n" +
+                    "                    },\n" +
+                    "                    {\n" +
+                    "                        \"src_id_to_mux\": {\n" +
+                    "                            \"video_src_ids\": [\n" +
+                    "                                \"archive_h264_360p_low\"\n" +
+                    "                            ],\n" +
+                    "                            \"audio_src_ids\": [\n" +
+                    "                                \"archive_aac_64kbps\"\n" +
+                    "                            ]\n" +
+                    "                        }\n" +
+                    "                    }\n" +
+                    "                ]\n" +
+                    "            }\n" +
+                    "        ],\n" +
+                    "        \"timing_constraint\": \"unlimited\",\n" +
+                    "        \"keep_method\": {\n" +
+                    "            \"heartbeat\": {\n" +
+                    "                \"lifetime\": 120000\n" +
+                    "            }\n" +
+                    "        },\n" +
+                    "        \"protocol\": {\n" +
+                    "            \"name\": \"http\",\n" +
+                    "            \"parameters\": {\n" +
+                    "                \"http_parameters\": {\n" +
+                    "                    \"parameters\": {\n" +
+                    "                        \"hls_parameters\": {\n" +
+                    "                            \"use_well_known_port\": \"yes\",\n" +
+                    "                            \"use_ssl\": \"yes\",\n" +
+                    "                            \"transfer_preset\": \"\",\n" +
+                    "                            \"segment_duration\": 6000\n" +
+                    "                        }\n" +
+                    "                    }\n" +
+                    "                }\n" +
+                    "            }\n" +
+                    "        },\n" +
+                    "        \"content_uri\": \"\",\n" +
+                    "        \"session_operation_auth\": {\n" +
+                    "            \"session_operation_auth_by_signature\": {\n" +
+                    "                \"token\": \""+Token+"\",\n" +
+                    "                \"signature\": \""+Signature+"\"\n" +
+                    "            }\n" +
+                    "        },\n" +
+                    "        \"content_auth\": {\n" +
+                    "            \"auth_type\": \"ht2\",\n" +
+                    "            \"content_key_timeout\": 600000,\n" +
+                    "            \"service_id\": \"nicovideo\",\n" +
+                    "            \"service_user_id\": \""+SessionId+"\"\n" +
+                    "        },\n" +
+                    "        \"client_info\": {\n" +
+                    "            \"player_id\": \"nicovideo-"+SessionId+"\"\n" +
+                    "        },\n" +
+                    "        \"priority\": 0.2\n" +
+                    "    }\n" +
+                    "}";
+        }
+
         System.out.println("[Debug] JSON生成完了 "+ sdf.format(new Date()));
 
         System.out.println("[Debug] 鯖へPost開始 "+ sdf.format(new Date()));
