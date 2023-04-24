@@ -22,9 +22,6 @@ public class Main {
     private static OkHttpClient client = new OkHttpClient();
 
     public static void main(String[] args) {
-        // TODO: HTTPレスポンスを受け取る
-
-        //String videoUrl = getVideo("https://www.nicovideo.jp/watch/sm10759623");
         ServerSocket svSock = null;
         try {
             svSock = new ServerSocket(25252);
@@ -38,7 +35,8 @@ public class Main {
 
                         int readSize = in.read(data);
                         data = Arrays.copyOf(data, readSize);
-                        System.out.println("「"+new String(data, StandardCharsets.UTF_8)+"」を受信しました。");
+                        String RequestHttp = new String(data, StandardCharsets.UTF_8);
+                        System.out.println("「"+RequestHttp+"」を受信しました。");
                         String text = new String(data, StandardCharsets.UTF_8);
                         Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.1").matcher(text);
                         String httpResponse;
@@ -49,15 +47,28 @@ public class Main {
 
                             if (videoUrl == null || !videoUrl.startsWith("http")){
                                 httpResponse = "HTTP/1.1 403 Forbidden\r\n" +
-                                        "date: Sun, 23 Apr 2023 12:09:26 GMT\r\n" +
+                                        "date: "+ new Date() +"\r\n" +
                                         "content-type: text/plain\r\n\r\n" +
                                         "403\r\n";
                             } else {
-                                httpResponse = "HTTP/1.1 302 Found\r\nLocation: " + videoUrl;
+
+                                Matcher matcher = Pattern.compile("Host: (.*)\r\n").matcher(RequestHttp);
+                                String host = "localhost:25252";
+                                if (matcher.find()){
+                                    host = matcher.group(1);
+                                }
+
+                                httpResponse = "HTTP/1.1 302 Found\n" +
+                                        "Host: "+host+"\n" +
+                                        "Date: "+new Date()+"\r\n" +
+                                        "Connection: close\r\n" +
+                                        "X-Powered-By: Java/8\r\n" +
+                                        "Location: " + videoUrl + "\r\n" +
+                                        "Content-type: text/html; charset=UTF-8\r\n\r\n";
                             }
                         } else {
                             httpResponse = "HTTP/1.1 403 Forbidden\r\n" +
-                                    "date: Sun, 23 Apr 2023 12:09:26 GMT\r\n" +
+                                    "date: "+new Date()+"\r\n" +
                                     "content-type: text/plain\r\n\r\n" +
                                     "403\r\n";
                         }
