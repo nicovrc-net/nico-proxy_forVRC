@@ -47,7 +47,7 @@ public class Main {
                             // "https://www.nicovideo.jp/watch/sm10759623"
                             String videoUrl = getVideo(matcher1.group(1));
 
-                            if (videoUrl == null || !videoUrl.startsWith("http://")){
+                            if (videoUrl == null || !videoUrl.startsWith("http")){
                                 httpResponse = "HTTP/1.1 403 Forbidden\r\n" +
                                         "date: Sun, 23 Apr 2023 12:09:26 GMT\r\n" +
                                         "content-type: text/plain\r\n\r\n" +
