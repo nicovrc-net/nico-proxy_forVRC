@@ -64,7 +64,7 @@ public class Main {
                         String RequestHttp = new String(data, StandardCharsets.UTF_8);
                         System.out.println("「"+RequestHttp+"」を受信しました。");
                         String text = new String(data, StandardCharsets.UTF_8);
-                        Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.1").matcher(text);
+                        Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.([01])").matcher(text);
                         String httpResponse;
 
                         if (matcher1.find()){
@@ -84,7 +84,7 @@ public class Main {
                                     host = matcher.group(1);
                                 }
 
-                                httpResponse = "HTTP/1.1 302 Found\n" +
+                                httpResponse = "HTTP/1."+matcher1.group(2)+" 302 Found\n" +
                                         "Host: "+host+"\n" +
                                         "Date: "+new Date()+"\r\n" +
                                         "Connection: close\r\n" +
@@ -93,7 +93,7 @@ public class Main {
                                         "Content-type: text/html; charset=UTF-8\r\n\r\n";
                             }
                         } else {
-                            httpResponse = "HTTP/1.1 403 Forbidden\r\n" +
+                            httpResponse = "HTTP/1."+matcher1.group(2)+" 403 Forbidden\r\n" +
                                     "date: "+new Date()+"\r\n" +
                                     "content-type: text/plain\r\n\r\n" +
                                     "403\r\n";
