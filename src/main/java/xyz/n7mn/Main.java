@@ -1,19 +1,21 @@
 package xyz.n7mn;
 
+import com.amihaiemil.eoyaml.*;
 import okhttp3.*;
 import xyz.n7mn.data.VideoInfo;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
-import java.util.Date;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 
 public class Main {
@@ -22,6 +24,30 @@ public class Main {
     private static OkHttpClient client = new OkHttpClient();
 
     public static void main(String[] args) {
+
+        // Proxy読み込み
+        List<String> ProxyList = new ArrayList<>();
+        File config = new File("./config.yml");
+        YamlMapping ConfigYaml = null;
+
+        if (!config.exists()){
+            YamlMappingBuilder add = Yaml.createYamlMappingBuilder().add("Proxy", Yaml.createYamlSequenceBuilder().add("localhost:3128").add("\"127.0.0.1:3128\"").build());
+            ConfigYaml = add.build();
+
+            try {
+                config.createNewFile();
+                PrintWriter writer = new PrintWriter(config);
+                writer.print(ConfigYaml.toString());
+                writer.close();
+
+                System.out.println("[Error] ProxyList is Empty!!");
+                return;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
+
         ServerSocket svSock = null;
         try {
             svSock = new ServerSocket(25252);
@@ -99,6 +125,35 @@ public class Main {
 
 
     private static String getVideo(String url){
+
+        // Proxy読み込み
+        List<String> ProxyList = new ArrayList<>();
+        File config = new File("./config.yml");
+        YamlMapping ConfigYaml = null;
+        try {
+            if (config.exists()){
+                ConfigYaml = Yaml.createYamlInput(config).readYamlMapping();
+            } else {
+
+                System.out.println("ProxyList is Empty!!!");
+                return null;
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        YamlSequence list = ConfigYaml.yamlSequence("Proxy");
+        for (int i = 0; i < list.size(); i++){
+            ProxyList.add(list.string(i));
+        }
+
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        String[] split = ProxyList.get(new SecureRandom().nextInt(0, ProxyList.size())).split(":");
+        String ProxyIP = split[0];
+        int ProxyPort = Integer.parseInt(split[1]);
+        client = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyIP, ProxyPort))).build();
 
         System.gc();
         String resUrl = null;

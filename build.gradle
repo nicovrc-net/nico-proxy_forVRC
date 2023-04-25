@@ -15,6 +15,7 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.1'
 
     implementation "com.squareup.okhttp3:okhttp:4.10.0"
+    implementation 'com.amihaiemil.web:eo-yaml:7.0.6'
 }
 
 tasks.test {
