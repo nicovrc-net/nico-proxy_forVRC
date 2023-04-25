@@ -31,7 +31,7 @@ public class Main {
         YamlMapping ConfigYaml = null;
 
         if (!config.exists()){
-            YamlMappingBuilder add = Yaml.createYamlMappingBuilder().add("Proxy", Yaml.createYamlSequenceBuilder().add("localhost:3128").add("\"127.0.0.1:3128\"").build());
+            YamlMappingBuilder add = Yaml.createYamlMappingBuilder().add("Proxy", Yaml.createYamlSequenceBuilder().add("localhost:3128").add("127.0.0.1:3128").build());
             ConfigYaml = add.build();
 
             try {
