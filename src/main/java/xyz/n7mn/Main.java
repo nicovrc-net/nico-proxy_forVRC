@@ -64,7 +64,7 @@ public class Main {
                         String RequestHttp = new String(data, StandardCharsets.UTF_8);
                         System.out.println("「"+RequestHttp+"」を受信しました。");
                         String text = new String(data, StandardCharsets.UTF_8);
-                        Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.([01])").matcher(text);
+                        Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.(\\d)").matcher(text);
                         String httpResponse;
 
                         if (matcher1.find()){
@@ -194,17 +194,31 @@ public class Main {
         // HTML取得
         System.out.println("[Debug] HTML取得開始 "+sdf.format(new Date()));
         final String HtmlText;
-        Request request = new Request.Builder()
-                .url("https://nico.ms/"+id)
-                .build();
+        Request request;
+        if (!id.startsWith("so")){
+            request = new Request.Builder()
+                    .url("https://nico.ms/"+id)
+                    .build();
+        } else {
+            request = new Request.Builder()
+                    .url("https://www.nicovideo.jp/watch/"+id)
+                    .build();
+
+
+        }
         try {
             Response response = client.newCall(request).execute();
             HtmlText = response.body().string();
+            if (id.startsWith("so")){
+                System.out.println(HtmlText);
+            }
         } catch (IOException e) {
             e.printStackTrace();
             return resUrl;
         }
         System.out.println("[Debug] HTML取得完了 "+sdf.format(new Date()));
+
+
 
         // いろいろ必要なものを取ってくる
         String SessionId = null;
@@ -212,7 +226,8 @@ public class Main {
         String Signature = null;
 
         // セッションID
-        Matcher matcher1 = Pattern.compile("playerId&quot;:&quot;nicovideo-(.*)&quot;,&quot;videos").matcher(HtmlText);
+        Matcher matcher1   = Pattern.compile("playerId&quot;:&quot;nicovideo-(.*)&quot;,&quot;videos").matcher(HtmlText);
+        Matcher matcher1_2 = Pattern.compile("playerId&quot;:&quot;nicovideo-(.*)&quot;,&quot;videos").matcher(HtmlText);
         if (matcher1.find()){
 
             SessionId = matcher1.group(1);
