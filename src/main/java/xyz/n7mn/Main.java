@@ -164,7 +164,7 @@ public class Main {
 
         System.out.println("[Debug] 処理するURL: " + url + " "+sdf.format(new Date()));
 
-        if (new File("./log/").exists()){
+        if (!new File("./log/").exists()){
             new File("./log/").mkdir();
         }
 
@@ -180,7 +180,7 @@ public class Main {
 
             FileWriter file = new FileWriter("./log/log-"+sdf1.format(new Date())+".txt", true);
             PrintWriter pw = new PrintWriter(new BufferedWriter(file));
-            pw.println("["+ sdf2.format(new Date())+"]処理URL : "+url);
+            pw.println("["+ sdf2.format(new Date())+"] 処理URL : "+url);
             pw.close();
         } catch (IOException e) {
             e.printStackTrace();
