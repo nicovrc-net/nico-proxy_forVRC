@@ -164,6 +164,28 @@ public class Main {
 
         System.out.println("[Debug] 処理するURL: " + url + " "+sdf.format(new Date()));
 
+        if (new File("./log/").exists()){
+            new File("./log/").mkdir();
+        }
+
+        try {
+
+
+            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM");
+            SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+            if (!new File("./log/log-"+sdf1.format(new Date())+".txt").exists()){
+                new File("./log/log-"+sdf1.format(new Date())+".txt").createNewFile();
+            }
+
+            FileWriter file = new FileWriter("./log/log-"+sdf1.format(new Date())+".txt", true);
+            PrintWriter pw = new PrintWriter(new BufferedWriter(file));
+            pw.println("["+ sdf2.format(new Date())+"]処理URL : "+url);
+            pw.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         // 送られてきたURLを一旦IDだけにする
         String id = url.replaceAll("http://nicovideo.jp/watch/","").replaceAll("https://nicovideo.jp/watch/","").replaceAll("http://www.nicovideo.jp/watch/","").replaceAll("https://www.nicovideo.jp/watch/","").replaceAll("http://nico.ms/","").replaceAll("https://nico.ms/","");
         id = id.split("\\?")[0];
