@@ -472,36 +472,47 @@ public class Main {
         long finalTime = time;
         String finalHeartBeatSession = HeartBeatSession;
         String finalHeartBeatSessionId = HeartBeatSessionId;
+
+        String finalId = id;
         new Thread(()->{
+            Timer timer = new Timer();
 
-            for (int i = 0; i < (int)(finalTime / 40L); i++){
+            Integer[] i = {0};
+            int maxCount = (int)(finalTime / 40L);
 
-                System.out.println("ハートビート信号 送信 ("+(i+1)+"回目)");
+            TimerTask task = new TimerTask() {
+                @Override
+                public void run() {
+                    System.out.println(finalId +" でのハートビート信号 送信 ("+(i[0]+1)+"回目)");
 
-                RequestBody body2 = RequestBody.create(finalHeartBeatSession, JSON);
-                Request request3 = new Request.Builder()
-                        .url("https://api.dmc.nico/api/sessions/"+finalHeartBeatSessionId+"?_format=json&_method=PUT")
-                        .post(body2)
-                        .build();
-                try {
-                    Response response3 = client.newCall(request3).execute();
-                    String ResponseJson2 = response3.body().string();
-                    System.out.println(ResponseJson2);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    System.out.println("[Debug] 鯖へPost失敗 "+ sdf.format(new Date()));
+                    RequestBody body2 = RequestBody.create(finalHeartBeatSession, JSON);
+                    Request request3 = new Request.Builder()
+                            .url("https://api.dmc.nico/api/sessions/"+finalHeartBeatSessionId+"?_format=json&_method=PUT")
+                            .post(body2)
+                            .build();
+                    try {
+                        Response response3 = client.newCall(request3).execute();
+                        String ResponseJson2 = response3.body().string();
+                        //System.out.println(ResponseJson2);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        System.out.println("[Debug] 鯖へPost失敗 "+ sdf.format(new Date()));
 
-                    return;
+                        System.gc();
+                        return;
+                    }
+
+                    System.gc();
+
+                    if (i[0] >= maxCount){
+                        timer.cancel();
+                    }
+
+                    i[0]++;
                 }
+            };
 
-                System.gc();
-                try {
-                    Thread.sleep(40000);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
+            timer.scheduleAtFixedRate(task, 0L, 40000L);
         }).start();
 
 
