@@ -2,6 +2,9 @@ package xyz.n7mn;
 
 import com.amihaiemil.eoyaml.*;
 import okhttp3.*;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.Protocol;
 import xyz.n7mn.data.VideoInfo;
 
 import java.io.*;
@@ -24,11 +27,11 @@ public class Main {
     private static OkHttpClient client = new OkHttpClient();
 
     public static void main(String[] args) {
-
         // Proxy読み込み
         List<String> ProxyList = new ArrayList<>();
         File config = new File("./config.yml");
-        YamlMapping ConfigYaml = null;
+        final YamlMapping ConfigYaml;
+        final YamlMapping ConfigYml;
 
         if (!config.exists()){
             YamlMappingBuilder add = Yaml.createYamlMappingBuilder().add("Proxy", Yaml.createYamlSequenceBuilder().add("localhost:3128").add("127.0.0.1:3128").build());
@@ -48,10 +51,47 @@ public class Main {
             }
         }
 
+        // Redis設定読み込み
+        File config2 = new File("./config-redis.yml");
+
+        try {
+            if (!config2.exists()){
+                config2.createNewFile();
+
+                YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
+                ConfigYml = builder.add(
+                        "RedisServer", "127.0.0.1"
+                ).add(
+                        "RedisPort", String.valueOf(Protocol.DEFAULT_PORT)
+                ).add(
+                        "RedisPass", ""
+                ).build();
+
+                try {
+                    PrintWriter writer = new PrintWriter(config2);
+                    writer.print(ConfigYml.toString());
+                    writer.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+            } else {
+                ConfigYml = Yaml.createYamlInput(config2).readYamlMapping();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.gc();
+            return;
+        }
+
         ServerSocket svSock = null;
         try {
+            final String AccessCode = UUID.randomUUID().toString()+"-" + new Date().getTime();
+
             svSock = new ServerSocket(25252);
             while (true){
+                System.gc();
                 Socket sock = svSock.accept();
                 new Thread(()->{
                     try {
@@ -62,14 +102,23 @@ public class Main {
                         int readSize = in.read(data);
                         data = Arrays.copyOf(data, readSize);
                         String RequestHttp = new String(data, StandardCharsets.UTF_8);
-                        System.out.println("「"+RequestHttp+"」を受信しました。");
+                        // System.out.println("「"+RequestHttp+"」を受信しました。");
+                        new Thread(()->{
+                            JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+                            Jedis jedis = jedisPool.getResource();
+                            jedis.auth(ConfigYml.string("RedisPass"));
+                            jedis.set("nico-proxy:log:access:"+AccessCode, RequestHttp);
+                            jedis.set("nico-proxy:log:access-ip:"+AccessCode, sock.getInetAddress().getHostAddress());
+                            jedis.close();
+                            jedisPool.close();
+                        }).start();
                         String text = new String(data, StandardCharsets.UTF_8);
                         Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.(\\d)").matcher(text);
                         String httpResponse;
 
                         if (matcher1.find()){
                             // "https://www.nicovideo.jp/watch/sm10759623"
-                            String videoUrl = getVideo(matcher1.group(1));
+                            String videoUrl = getVideo(matcher1.group(1), AccessCode);
 
                             if (videoUrl == null || !videoUrl.startsWith("http")){
                                 httpResponse = "HTTP/1.1 403 Forbidden\r\n" +
@@ -124,8 +173,7 @@ public class Main {
 
 
 
-    private static String getVideo(String url){
-
+    private static String getVideo(String url, String AccessCode){
         // Proxy読み込み
         List<String> ProxyList = new ArrayList<>();
         File config = new File("./config.yml");
@@ -149,6 +197,39 @@ public class Main {
             ProxyList.add(list.string(i));
         }
 
+        // Redis 読み込み
+        final File config2 = new File("./config-redis.yml");
+        final YamlMapping ConfigYml;
+        try {
+            if (!config2.exists()){
+                config2.createNewFile();
+
+                YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
+                ConfigYml = builder.add(
+                        "RedisServer", "127.0.0.1"
+                ).add(
+                        "RedisPort", String.valueOf(Protocol.DEFAULT_PORT)
+                ).add(
+                        "RedisPass", ""
+                ).build();
+
+                try {
+                    PrintWriter writer = new PrintWriter(config2);
+                    writer.print(ConfigYml.toString());
+                    writer.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+            } else {
+                ConfigYml = Yaml.createYamlInput(config2).readYamlMapping();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.gc();
+            return null;
+        }
+
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         String[] split = ProxyList.get(new SecureRandom().nextInt(0, ProxyList.size())).split(":");
         String ProxyIP = split[0];
@@ -162,35 +243,21 @@ public class Main {
             url = "https://"+url;
         }
 
-        System.out.println("[Debug] 処理するURL: " + url + " "+sdf.format(new Date()));
-
-        if (!new File("./log/").exists()){
-            new File("./log/").mkdir();
-        }
-
-        try {
-
-
-            SimpleDateFormat sdf1 = new SimpleDateFormat("yyyy-MM");
-            SimpleDateFormat sdf2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-            if (!new File("./log/log-"+sdf1.format(new Date())+".txt").exists()){
-                new File("./log/log-"+sdf1.format(new Date())+".txt").createNewFile();
-            }
-
-            FileWriter file = new FileWriter("./log/log-"+sdf1.format(new Date())+".txt", true);
-            PrintWriter pw = new PrintWriter(new BufferedWriter(file));
-            pw.println("["+ sdf2.format(new Date())+"] 処理URL : "+url);
-            pw.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        String finalUrl = url;
+        new Thread(()->{
+            JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+            Jedis jedis = jedisPool.getResource();
+            jedis.auth(ConfigYml.string("RedisPass"));
+            jedis.set("nico-proxy:log:getURL:request:"+AccessCode, finalUrl);
+            jedis.close();
+            jedisPool.close();
+        }).start();
 
         // 送られてきたURLを一旦IDだけにする
         String id = url.replaceAll("http://nicovideo.jp/watch/","").replaceAll("https://nicovideo.jp/watch/","").replaceAll("http://www.nicovideo.jp/watch/","").replaceAll("https://www.nicovideo.jp/watch/","").replaceAll("http://nico.ms/","").replaceAll("https://nico.ms/","");
         id = id.split("\\?")[0];
 
-        System.out.println("[Debug] ID: " + id + " "+sdf.format(new Date()));
+        //System.out.println("[Debug] ID: " + id + " "+sdf.format(new Date()));
 
         // 動画情報取得 (無駄にハートビート信号送らないようにするため)
         long time = -1;
@@ -208,13 +275,21 @@ public class Main {
             }
 
         } catch (Exception e) {
-            System.out.println("[Debug] 動画情報 取得失敗 "+sdf.format(new Date()));
+            //System.out.println("[Debug] 動画情報 取得失敗 "+sdf.format(new Date()));
             e.printStackTrace();
+            new Thread(()->{
+                JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+                Jedis jedis = jedisPool.getResource();
+                jedis.auth(ConfigYml.string("RedisPass"));
+                jedis.set("nico-proxy:log::getURL:error:"+AccessCode, "ext.nicovideo.jp error");
+                jedis.close();
+                jedisPool.close();
+            }).start();
             return resUrl;
         }
 
         // HTML取得
-        System.out.println("[Debug] HTML取得開始 "+sdf.format(new Date()));
+        //System.out.println("[Debug] HTML取得開始 "+sdf.format(new Date()));
         final String HtmlText;
         Request request;
         if (!id.startsWith("so")){
@@ -238,7 +313,7 @@ public class Main {
             e.printStackTrace();
             return resUrl;
         }
-        System.out.println("[Debug] HTML取得完了 "+sdf.format(new Date()));
+        //System.out.println("[Debug] HTML取得完了 "+sdf.format(new Date()));
 
 
 
@@ -253,29 +328,37 @@ public class Main {
         if (matcher1.find()){
 
             SessionId = matcher1.group(1);
-            System.out.println("[Debug] セッションID : "+SessionId+" "+sdf.format(new Date()));
+            //System.out.println("[Debug] セッションID : "+SessionId+" "+sdf.format(new Date()));
         }
 
         // Tokenデータ
         Matcher matcher2 = Pattern.compile("\\{\\\\&quot;service_id\\\\&quot;:\\\\&quot;nicovideo\\\\&quot;(.*)\\\\&quot;transfer_presets\\\\&quot;:\\[\\]\\}").matcher(HtmlText);
         if (matcher2.find()){
             Token = matcher2.group().replaceAll("\\\\","").replaceAll("&quot;","\"").replaceAll("\"","\\\\\"");
-            System.out.println("[Debug] TokenData : \n"+Token+"\n"+ sdf.format(new Date()));
+            //System.out.println("[Debug] TokenData : \n"+Token+"\n"+ sdf.format(new Date()));
         }
 
         // signature
         Matcher matcher3 = Pattern.compile("signature&quot;:&quot;(.*)&quot;,&quot;contentId").matcher(HtmlText);
         if (matcher3.find()){
             Signature = matcher3.group(1);
-            System.out.println("[Debug] signature : "+Signature+" "+ sdf.format(new Date()));
+            //System.out.println("[Debug] signature : "+Signature+" "+ sdf.format(new Date()));
         }
 
         if (SessionId == null || Token == null || Signature == null){
             System.out.println("[Debug] 情報取得失敗 "+ sdf.format(new Date()));
+            new Thread(()->{
+                JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+                Jedis jedis = jedisPool.getResource();
+                jedis.auth(ConfigYml.string("RedisPass"));
+                jedis.set("nico-proxy:log:getURL:error:"+AccessCode, "www.nicovideo.jp");
+                jedis.close();
+                jedisPool.close();
+            }).start();
             return resUrl;
         }
 
-        System.out.println("[Debug] JSON生成開始 "+ sdf.format(new Date()));
+        //System.out.println("[Debug] JSON生成開始 "+ sdf.format(new Date()));
         String json = "{\n" +
                 "\t\"session\": {\n" +
                 "\t\t\"recipe_id\": \"nicovideo-"+id+"\",\n" +
@@ -413,9 +496,9 @@ public class Main {
                     "}";
         }
 
-        System.out.println("[Debug] JSON生成完了 "+ sdf.format(new Date()));
+        //System.out.println("[Debug] JSON生成完了 "+ sdf.format(new Date()));
 
-        System.out.println("[Debug] 鯖へPost開始 "+ sdf.format(new Date()));
+        //System.out.println("[Debug] 鯖へPost開始 "+ sdf.format(new Date()));
         String ResponseJson;
         RequestBody body = RequestBody.create(json, JSON);
         Request request2 = new Request.Builder()
@@ -428,13 +511,20 @@ public class Main {
             //System.out.println(response2.body().string());
         } catch (IOException e) {
             e.printStackTrace();
-            System.out.println("[Debug] 鯖へPost失敗 "+ sdf.format(new Date()));
-
+            //System.out.println("[Debug] 鯖へPost失敗 "+ sdf.format(new Date()));
+            new Thread(()->{
+                JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+                Jedis jedis = jedisPool.getResource();
+                jedis.auth(ConfigYml.string("RedisPass"));
+                jedis.set("nico-proxy:log:getURL:error:"+AccessCode, "api.dmc.nico post");
+                jedis.close();
+                jedisPool.close();
+            }).start();
             return resUrl;
         }
 
-        System.out.println("[Debug] 鯖へPost成功 "+ sdf.format(new Date()));
-        System.out.println(ResponseJson);
+        //System.out.println("[Debug] 鯖へPost成功 "+ sdf.format(new Date()));
+        //System.out.println(ResponseJson);
 
         // 送られてきたJSONから動画ファイルのURLとハートビート信号用のセッションを取得する
         String VideoURL = null;
@@ -445,27 +535,44 @@ public class Main {
         Matcher video_matcher = Pattern.compile("\"content_uri\":\"(.*)\",\"session_operation_auth").matcher(ResponseJson);
         if (video_matcher.find()){
             VideoURL = video_matcher.group(1).replaceAll("\\\\","");
-            System.out.println("[Debug] 動画URL : "+VideoURL+" "+sdf.format(new Date()));
+            //System.out.println("[Debug] 動画URL : "+VideoURL+" "+sdf.format(new Date()));
         }
 
         // ハートビート信号用 セッション
         Matcher heart_session_matcher = Pattern.compile("\\{\"meta\":\\{\"status\":201,\"message\":\"created\"},\"data\":\\{(.*)\\}").matcher(ResponseJson);
         if (heart_session_matcher.find()){
             HeartBeatSession = "{"+heart_session_matcher.group(1); //.replaceAll("\\\\","");
-            System.out.println("[Debug] ハートビート信号用 セッション : \n"+HeartBeatSession+"\n"+sdf.format(new Date()));
+            //System.out.println("[Debug] ハートビート信号用 セッション : \n"+HeartBeatSession+"\n"+sdf.format(new Date()));
         }
         // IDだけ抽出
         Matcher heart_session_matcher2 = Pattern.compile("\"data\":\\{\"session\":\\{\"id\":\"(.*)\",\"recipe_id\"").matcher(ResponseJson);
         if (heart_session_matcher2.find()){
             HeartBeatSessionId = heart_session_matcher2.group(1).replaceAll("\\\\","");
-            System.out.println("[Debug] ハートビート信号用 セッションID : \n"+HeartBeatSessionId+"\n"+sdf.format(new Date()));
+            //System.out.println("[Debug] ハートビート信号用 セッションID : \n"+HeartBeatSessionId+"\n"+sdf.format(new Date()));
         }
 
         if (VideoURL == null || HeartBeatSession == null || HeartBeatSessionId == null){
-            System.out.println("[Debug] 動画情報 取得失敗 "+ sdf.format(new Date()));
+            //System.out.println("[Debug] 動画情報 取得失敗 "+ sdf.format(new Date()));
+            new Thread(()->{
+                JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+                Jedis jedis = jedisPool.getResource();
+                jedis.auth(ConfigYml.string("RedisPass"));
+                jedis.set("nico-proxy:log:getURL:error:"+AccessCode, "PostData");
+                jedis.close();
+                jedisPool.close();
+            }).start();
             return resUrl;
         }
-        System.out.println("[Debug] 動画情報 取得成功\n動画URL : "+VideoURL+" \n"+ sdf.format(new Date()));
+        //System.out.println("[Debug] 動画情報 取得成功\n動画URL : "+VideoURL+" \n"+ sdf.format(new Date()));
+        final String vURL = VideoURL;
+        new Thread(()->{
+            JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+            Jedis jedis = jedisPool.getResource();
+            jedis.auth(ConfigYml.string("RedisPass"));
+            jedis.set("nico-proxy:log:getURL:success:"+AccessCode, vURL);
+            jedis.close();
+            jedisPool.close();
+        }).start();
         System.gc();
 
         // 最低限動画の長さ分だけハートビート信号投げつける (40秒起き)
@@ -483,7 +590,7 @@ public class Main {
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
-                    System.out.println(finalId +" でのハートビート信号 送信 ("+(i[0]+1)+"回目)");
+                    //System.out.println(finalId +" でのハートビート信号 送信 ("+(i[0]+1)+"回目)");
 
                     RequestBody body2 = RequestBody.create(finalHeartBeatSession, JSON);
                     Request request3 = new Request.Builder()
@@ -496,7 +603,7 @@ public class Main {
                         //System.out.println(ResponseJson2);
                     } catch (IOException e) {
                         e.printStackTrace();
-                        System.out.println("[Debug] 鯖へPost失敗 "+ sdf.format(new Date()));
+                        //System.out.println("[Debug] 鯖へPost失敗 "+ sdf.format(new Date()));
 
                         System.gc();
                         return;
