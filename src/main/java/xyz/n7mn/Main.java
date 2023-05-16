@@ -8,10 +8,7 @@ import redis.clients.jedis.Protocol;
 import xyz.n7mn.data.VideoInfo;
 
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
@@ -113,10 +110,11 @@ public class Main {
                             jedisPool.close();
                         }).start();
                         String text = new String(data, StandardCharsets.UTF_8);
-                        Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.(\\d)").matcher(text);
+                        Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.1").matcher(text);
+                        Matcher matcher2 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.(\\d)").matcher(text);
                         String httpResponse;
 
-                        if (matcher1.find()){
+                        if (matcher1.find() && matcher2.find()){
                             // "https://www.nicovideo.jp/watch/sm10759623"
                             String videoUrl = getVideo(matcher1.group(1), AccessCode);
 
@@ -133,7 +131,7 @@ public class Main {
                                     host = matcher.group(1);
                                 }
 
-                                httpResponse = "HTTP/1."+matcher1.group(2)+" 302 Found\n" +
+                                httpResponse = "HTTP/1."+matcher2.group(1)+" 302 Found\n" +
                                         "Host: "+host+"\n" +
                                         "Date: "+new Date()+"\r\n" +
                                         "Connection: close\r\n" +
@@ -142,7 +140,7 @@ public class Main {
                                         "Content-type: text/html; charset=UTF-8\r\n\r\n";
                             }
                         } else {
-                            httpResponse = "HTTP/1."+matcher1.group(2)+" 403 Forbidden\r\n" +
+                            httpResponse = "HTTP/1."+matcher2.group(1)+" 403 Forbidden\r\n" +
                                     "date: "+new Date()+"\r\n" +
                                     "content-type: text/plain\r\n\r\n" +
                                     "403\r\n";
@@ -192,9 +190,31 @@ public class Main {
             return null;
         }
 
+        List<String> ProxyList1 = new ArrayList<>();
+        File config1 = new File("./config-so-proxy.yml");
+        YamlMapping ConfigYaml1 = null;
+        try {
+            if (config1.exists()){
+                ConfigYaml1 = Yaml.createYamlInput(config1).readYamlMapping();
+            } else {
+
+                System.out.println("ProxyList is Empty!!!");
+                return null;
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
         YamlSequence list = ConfigYaml.yamlSequence("Proxy");
         for (int i = 0; i < list.size(); i++){
             ProxyList.add(list.string(i));
+        }
+
+        YamlSequence list_so = ConfigYaml1.yamlSequence("Proxy");
+        for (int i = 0; i < list_so.size(); i++){
+            ProxyList1.add(list_so.string(i));
         }
 
         // Redis 読み込み
@@ -230,16 +250,10 @@ public class Main {
             return null;
         }
 
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        String[] split = ProxyList.get(new SecureRandom().nextInt(0, ProxyList.size())).split(":");
-        String ProxyIP = split[0];
-        int ProxyPort = Integer.parseInt(split[1]);
-        client = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyIP, ProxyPort))).build();
-
         System.gc();
         String resUrl = null;
 
-        if (url.startsWith("nicovideo.jp") || url.startsWith("www.nicovideo.jp") || url.startsWith("nico.ms")){
+        if (url.startsWith("sp.nicovideo.jp") || url.startsWith("nicovideo.jp") || url.startsWith("www.nicovideo.jp") || url.startsWith("nico.ms")){
             url = "https://"+url;
         }
 
@@ -254,10 +268,24 @@ public class Main {
         }).start();
 
         // 送られてきたURLを一旦IDだけにする
-        String id = url.replaceAll("http://nicovideo.jp/watch/","").replaceAll("https://nicovideo.jp/watch/","").replaceAll("http://www.nicovideo.jp/watch/","").replaceAll("https://www.nicovideo.jp/watch/","").replaceAll("http://nico.ms/","").replaceAll("https://nico.ms/","");
+        String id = url.replaceAll("http://sp.nicovideo.jp/watch/","").replaceAll("https://sp.nicovideo.jp/watch/","").replaceAll("http://nicovideo.jp/watch/","").replaceAll("https://nicovideo.jp/watch/","").replaceAll("http://www.nicovideo.jp/watch/","").replaceAll("https://www.nicovideo.jp/watch/","").replaceAll("http://nico.ms/","").replaceAll("https://nico.ms/","");
         id = id.split("\\?")[0];
 
         //System.out.println("[Debug] ID: " + id + " "+sdf.format(new Date()));
+
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        String[] split = ProxyList.get(new SecureRandom().nextInt(0, ProxyList.size())).split(":");
+        String[] split2 = ProxyList1.get(new SecureRandom().nextInt(0, ProxyList1.size())).split(":");
+        String ProxyIP = split[0];
+        int ProxyPort = Integer.parseInt(split[1]);
+
+        if(id.startsWith("so")){
+            ProxyIP = split2[0];
+            ProxyPort = Integer.parseInt(split2[1]);
+        }
+
+        client = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyIP, ProxyPort))).build();
+        //client = new OkHttpClient();
 
         // 動画情報取得 (無駄にハートビート信号送らないようにするため)
         long time = -1;
@@ -281,7 +309,7 @@ public class Main {
                 JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
                 Jedis jedis = jedisPool.getResource();
                 jedis.auth(ConfigYml.string("RedisPass"));
-                jedis.set("nico-proxy:log::getURL:error:"+AccessCode, "ext.nicovideo.jp error");
+                jedis.set("nico-proxy:log:getURL:error:"+AccessCode, "ext.nicovideo.jp error");
                 jedis.close();
                 jedisPool.close();
             }).start();
@@ -291,30 +319,19 @@ public class Main {
         // HTML取得
         //System.out.println("[Debug] HTML取得開始 "+sdf.format(new Date()));
         final String HtmlText;
-        Request request;
-        if (!id.startsWith("so")){
-            request = new Request.Builder()
-                    .url("https://nico.ms/"+id)
-                    .build();
-        } else {
-            request = new Request.Builder()
-                    .url("https://www.nicovideo.jp/watch/"+id)
-                    .build();
+        Request request = new Request.Builder()
+                .url("https://www.nicovideo.jp/watch/"+id)
+                .build();
 
-
-        }
         try {
             Response response = client.newCall(request).execute();
             HtmlText = response.body().string();
-            if (id.startsWith("so")){
-                System.out.println(HtmlText);
-            }
         } catch (IOException e) {
             e.printStackTrace();
             return resUrl;
         }
         //System.out.println("[Debug] HTML取得完了 "+sdf.format(new Date()));
-
+        //System.out.println(HtmlText);
 
 
         // いろいろ必要なものを取ってくる
@@ -323,30 +340,29 @@ public class Main {
         String Signature = null;
 
         // セッションID
-        Matcher matcher1   = Pattern.compile("playerId&quot;:&quot;nicovideo-(.*)&quot;,&quot;videos").matcher(HtmlText);
-        Matcher matcher1_2 = Pattern.compile("playerId&quot;:&quot;nicovideo-(.*)&quot;,&quot;videos").matcher(HtmlText);
-        if (matcher1.find()){
+        Matcher matcher1 = Pattern.compile("player_id\\\\&quot;:\\\\&quot;nicovideo-(.*)\\\\&quot;,\\\\&quot;recipe_id").matcher(HtmlText);
 
+        if (matcher1.find()){
             SessionId = matcher1.group(1);
-            //System.out.println("[Debug] セッションID : "+SessionId+" "+sdf.format(new Date()));
+            System.out.println("[Debug] セッションID : "+SessionId+" "+sdf.format(new Date()));
         }
 
         // Tokenデータ
         Matcher matcher2 = Pattern.compile("\\{\\\\&quot;service_id\\\\&quot;:\\\\&quot;nicovideo\\\\&quot;(.*)\\\\&quot;transfer_presets\\\\&quot;:\\[\\]\\}").matcher(HtmlText);
         if (matcher2.find()){
             Token = matcher2.group().replaceAll("\\\\","").replaceAll("&quot;","\"").replaceAll("\"","\\\\\"");
-            //System.out.println("[Debug] TokenData : \n"+Token+"\n"+ sdf.format(new Date()));
+            System.out.println("[Debug] TokenData : \n"+Token+"\n"+ sdf.format(new Date()));
         }
 
         // signature
         Matcher matcher3 = Pattern.compile("signature&quot;:&quot;(.*)&quot;,&quot;contentId").matcher(HtmlText);
         if (matcher3.find()){
             Signature = matcher3.group(1);
-            //System.out.println("[Debug] signature : "+Signature+" "+ sdf.format(new Date()));
+            System.out.println("[Debug] signature : "+Signature+" "+ sdf.format(new Date()));
         }
 
-        if (SessionId == null || Token == null || Signature == null){
-            System.out.println("[Debug] 情報取得失敗 "+ sdf.format(new Date()));
+        if (SessionId == null && Token == null && Signature == null){
+            //System.out.println("[Debug] 情報取得失敗 "+ sdf.format(new Date()));
             new Thread(()->{
                 JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
                 Jedis jedis = jedisPool.getResource();
@@ -359,148 +375,16 @@ public class Main {
         }
 
         //System.out.println("[Debug] JSON生成開始 "+ sdf.format(new Date()));
-        String json = "{\n" +
-                "\t\"session\": {\n" +
-                "\t\t\"recipe_id\": \"nicovideo-"+id+"\",\n" +
-                "\t\t\"content_id\": \"out1\",\n" +
-                "\t\t\"content_type\": \"movie\",\n" +
-                "\t\t\"content_src_id_sets\": [\n" +
-                "\t\t\t{\n" +
-                "\t\t\t\t\"content_src_ids\": [\n" +
-                "\t\t\t\t\t{\n" +
-                "\t\t\t\t\t\t\"src_id_to_mux\": {\n" +
-                "\t\t\t\t\t\t\t\"video_src_ids\": [\n" +
-                "\t\t\t\t\t\t\t\t\"archive_h264_360p\",\n" +
-                "\t\t\t\t\t\t\t\t\"archive_h264_360p_low\"\n" +
-                "\t\t\t\t\t\t\t],\n" +
-                "\t\t\t\t\t\t\t\"audio_src_ids\": [\n" +
-                "\t\t\t\t\t\t\t\t\"archive_aac_64kbps\"\n" +
-                "\t\t\t\t\t\t\t]\n" +
-                "\t\t\t\t\t\t}\n" +
-                "\t\t\t\t\t}\n" +
-                "\t\t\t\t]\n" +
-                "\t\t\t}\n" +
-                "\t\t],\n" +
-                "\t\t\"timing_constraint\": \"unlimited\",\n" +
-                "\t\t\"keep_method\": {\n" +
-                "\t\t\t\"heartbeat\": {\n" +
-                "\t\t\t\t\"lifetime\": 120000\n" +
-                "\t\t\t}\n" +
-                "\t\t},\n" +
-                "\t\t\"protocol\": {\n" +
-                "\t\t\t\"name\": \"http\",\n" +
-                "\t\t\t\"parameters\": {\n" +
-                "\t\t\t\t\"http_parameters\": {\n" +
-                "\t\t\t\t\t\"parameters\": {\n" +
-                "\t\t\t\t\t\t\"http_output_download_parameters\": {\n" +
-                "\t\t\t\t\t\t\t\"use_well_known_port\": \"yes\",\n" +
-                "\t\t\t\t\t\t\t\"use_ssl\": \"yes\",\n" +
-                "\t\t\t\t\t\t\t\"transfer_preset\": \"\"\n" +
-                "\t\t\t\t\t\t}\n" +
-                "\t\t\t\t\t}\n" +
-                "\t\t\t\t}\n" +
-                "\t\t\t}\n" +
-                "\t\t},\n" +
-                "\t\t\"content_uri\": \"\",\n" +
-                "\t\t\"session_operation_auth\": {\n" +
-                "\t\t\t\"session_operation_auth_by_signature\": {\n" +
-                "\t\t\t\t\"token\": \""+Token+"\",\n" +
-                "\t\t\t\t\"signature\": \""+Signature+"\"\n" +
-                "\t\t\t}\n" +
-                "\t\t},\n" +
-                "\t\t\"content_auth\": {\n" +
-                "\t\t\t\"auth_type\": \"ht2\",\n" +
-                "\t\t\t\"content_key_timeout\": 600000,\n" +
-                "\t\t\t\"service_id\": \"nicovideo\",\n" +
-                "\t\t\t\"service_user_id\": \""+SessionId+"\"\n" +
-                "\t\t},\n" +
-                "\t\t\"client_info\": {\n" +
-                "\t\t\t\"player_id\": \"nicovideo-"+SessionId+"\"\n" +
-                "\t\t},\n" +
-                "\t\t\"priority\": 0\n" +
-                "\t}\n" +
-                "}";
+        String json = "{\"session\":{\"recipe_id\":\"nicovideo-"+id+"\",\"content_id\":\"out1\",\"content_type\":\"movie\",\"content_src_id_sets\":[{\"content_src_ids\":[{\"src_id_to_mux\":{\"video_src_ids\":[\"archive_h264_360p\",\"archive_h264_360p_low\"],\"audio_src_ids\":[\"archive_aac_64kbps\"]}}]}],\"timing_constraint\":\"unlimited\",\"keep_method\":{\"heartbeat\":{\"lifetime\":120000}},\"protocol\":{\"name\":\"http\",\"parameters\":{\"http_parameters\":{\"parameters\":{\"http_output_download_parameters\":{\"use_well_known_port\":\"yes\",\"use_ssl\":\"yes\",\"transfer_preset\":\"\"}}}}},\"content_uri\":\"\",\"session_operation_auth\":{\"session_operation_auth_by_signature\":{\"token\":\""+Token+"\",\"signature\":\""+Signature+"\"}},\"content_auth\":{\"auth_type\":\"ht2\",\"content_key_timeout\":600000,\"service_id\":\"nicovideo\",\"service_user_id\":\""+SessionId+"\"},\"client_info\":{\"player_id\":\"nicovideo-"+SessionId+"\"},\"priority\":0"+(id.startsWith("so") ? ".2" : "")+"}}";
 
-        if (id.startsWith("so")){
-            json = "{\n" +
-                    "    \"session\": {\n" +
-                    "        \"recipe_id\": \"nicovideo-"+id+"\",\n" +
-                    "        \"content_id\": \"out1\",\n" +
-                    "        \"content_type\": \"movie\",\n" +
-                    "        \"content_src_id_sets\": [\n" +
-                    "            {\n" +
-                    "                \"content_src_ids\": [\n" +
-                    "                    {\n" +
-                    "                        \"src_id_to_mux\": {\n" +
-                    "                            \"video_src_ids\": [\n" +
-                    "                                \"archive_h264_360p\",\n" +
-                    "                                \"archive_h264_360p_low\"\n" +
-                    "                            ],\n" +
-                    "                            \"audio_src_ids\": [\n" +
-                    "                                \"archive_aac_64kbps\"\n" +
-                    "                            ]\n" +
-                    "                        }\n" +
-                    "                    },\n" +
-                    "                    {\n" +
-                    "                        \"src_id_to_mux\": {\n" +
-                    "                            \"video_src_ids\": [\n" +
-                    "                                \"archive_h264_360p_low\"\n" +
-                    "                            ],\n" +
-                    "                            \"audio_src_ids\": [\n" +
-                    "                                \"archive_aac_64kbps\"\n" +
-                    "                            ]\n" +
-                    "                        }\n" +
-                    "                    }\n" +
-                    "                ]\n" +
-                    "            }\n" +
-                    "        ],\n" +
-                    "        \"timing_constraint\": \"unlimited\",\n" +
-                    "        \"keep_method\": {\n" +
-                    "            \"heartbeat\": {\n" +
-                    "                \"lifetime\": 120000\n" +
-                    "            }\n" +
-                    "        },\n" +
-                    "        \"protocol\": {\n" +
-                    "            \"name\": \"http\",\n" +
-                    "            \"parameters\": {\n" +
-                    "                \"http_parameters\": {\n" +
-                    "                    \"parameters\": {\n" +
-                    "                        \"hls_parameters\": {\n" +
-                    "                            \"use_well_known_port\": \"yes\",\n" +
-                    "                            \"use_ssl\": \"yes\",\n" +
-                    "                            \"transfer_preset\": \"\",\n" +
-                    "                            \"segment_duration\": 6000\n" +
-                    "                        }\n" +
-                    "                    }\n" +
-                    "                }\n" +
-                    "            }\n" +
-                    "        },\n" +
-                    "        \"content_uri\": \"\",\n" +
-                    "        \"session_operation_auth\": {\n" +
-                    "            \"session_operation_auth_by_signature\": {\n" +
-                    "                \"token\": \""+Token+"\",\n" +
-                    "                \"signature\": \""+Signature+"\"\n" +
-                    "            }\n" +
-                    "        },\n" +
-                    "        \"content_auth\": {\n" +
-                    "            \"auth_type\": \"ht2\",\n" +
-                    "            \"content_key_timeout\": 600000,\n" +
-                    "            \"service_id\": \"nicovideo\",\n" +
-                    "            \"service_user_id\": \""+SessionId+"\"\n" +
-                    "        },\n" +
-                    "        \"client_info\": {\n" +
-                    "            \"player_id\": \"nicovideo-"+SessionId+"\"\n" +
-                    "        },\n" +
-                    "        \"priority\": 0.2\n" +
-                    "    }\n" +
-                    "}";
-        }
 
+        //System.out.println(json);
         //System.out.println("[Debug] JSON生成完了 "+ sdf.format(new Date()));
 
-        //System.out.println("[Debug] 鯖へPost開始 "+ sdf.format(new Date()));
+        System.out.println("[Debug] 鯖へPost開始 "+ sdf.format(new Date()));
         String ResponseJson;
         RequestBody body = RequestBody.create(json, JSON);
+
         Request request2 = new Request.Builder()
                 .url("https://api.dmc.nico/api/sessions?_format=json")
                 .post(body)
@@ -508,7 +392,7 @@ public class Main {
         try {
             Response response2 = client.newCall(request2).execute();
             ResponseJson = response2.body().string();
-            //System.out.println(response2.body().string());
+            System.out.println(ResponseJson);
         } catch (IOException e) {
             e.printStackTrace();
             //System.out.println("[Debug] 鯖へPost失敗 "+ sdf.format(new Date()));
@@ -621,6 +505,8 @@ public class Main {
 
             timer.scheduleAtFixedRate(task, 0L, 40000L);
         }).start();
+
+
 
 
         return VideoURL;
