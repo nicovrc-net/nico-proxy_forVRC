@@ -111,7 +111,7 @@ public class Main {
                         }).start();
                         String text = new String(data, StandardCharsets.UTF_8);
                         Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.1").matcher(text);
-                        Matcher matcher2 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.(\\d)").matcher(text);
+                        Matcher matcher2 = Pattern.compile("HTTP/1.(\\d)").matcher(text);
                         String httpResponse;
 
                         if (matcher1.find() && matcher2.find()){
@@ -344,21 +344,21 @@ public class Main {
 
         if (matcher1.find()){
             SessionId = matcher1.group(1);
-            System.out.println("[Debug] セッションID : "+SessionId+" "+sdf.format(new Date()));
+            //System.out.println("[Debug] セッションID : "+SessionId+" "+sdf.format(new Date()));
         }
 
         // Tokenデータ
         Matcher matcher2 = Pattern.compile("\\{\\\\&quot;service_id\\\\&quot;:\\\\&quot;nicovideo\\\\&quot;(.*)\\\\&quot;transfer_presets\\\\&quot;:\\[\\]\\}").matcher(HtmlText);
         if (matcher2.find()){
             Token = matcher2.group().replaceAll("\\\\","").replaceAll("&quot;","\"").replaceAll("\"","\\\\\"");
-            System.out.println("[Debug] TokenData : \n"+Token+"\n"+ sdf.format(new Date()));
+            //System.out.println("[Debug] TokenData : \n"+Token+"\n"+ sdf.format(new Date()));
         }
 
         // signature
         Matcher matcher3 = Pattern.compile("signature&quot;:&quot;(.*)&quot;,&quot;contentId").matcher(HtmlText);
         if (matcher3.find()){
             Signature = matcher3.group(1);
-            System.out.println("[Debug] signature : "+Signature+" "+ sdf.format(new Date()));
+            //System.out.println("[Debug] signature : "+Signature+" "+ sdf.format(new Date()));
         }
 
         if (SessionId == null && Token == null && Signature == null){
