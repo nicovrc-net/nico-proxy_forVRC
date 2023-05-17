@@ -101,6 +101,7 @@ public class Main {
                         // System.out.println("「"+RequestHttp+"」を受信しました。");
                         new Thread(()->{
                             JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+                            //System.out.println(ConfigYml.string("RedisServer") + " / " + ConfigYml.integer("RedisPort"));
                             Jedis jedis = jedisPool.getResource();
                             jedis.auth(ConfigYml.string("RedisPass"));
                             jedis.set("nico-proxy:log:access:"+AccessCode, RequestHttp);
@@ -146,6 +147,8 @@ public class Main {
                         }
                         out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
                         out.flush();
+
+
 
                         in.close();
                         out.close();
@@ -391,7 +394,7 @@ public class Main {
         try {
             Response response2 = client.newCall(request2).execute();
             ResponseJson = response2.body().string();
-            System.out.println(ResponseJson);
+            //System.out.println(ResponseJson);
         } catch (IOException e) {
             e.printStackTrace();
             //System.out.println("[Debug] 鯖へPost失敗 "+ sdf.format(new Date()));
