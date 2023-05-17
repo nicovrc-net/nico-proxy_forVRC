@@ -83,13 +83,13 @@ public class Main {
 
         ServerSocket svSock = null;
         try {
-            final String AccessCode = UUID.randomUUID().toString()+"-" + new Date().getTime();
 
             svSock = new ServerSocket(25252);
             while (true){
                 System.gc();
                 Socket sock = svSock.accept();
                 new Thread(()->{
+                    final String AccessCode = UUID.randomUUID().toString()+"-" + new Date().getTime();
                     try {
                         byte[] data = new byte[100000000];
                         InputStream in = sock.getInputStream();
@@ -383,7 +383,7 @@ public class Main {
         //System.out.println(json);
         //System.out.println("[Debug] JSON生成完了 "+ sdf.format(new Date()));
 
-        System.out.println("[Debug] 鯖へPost開始 "+ sdf.format(new Date()));
+        //System.out.println("[Debug] 鯖へPost開始 "+ sdf.format(new Date()));
         String ResponseJson;
         RequestBody body = RequestBody.create(json, JSON);
 
@@ -478,14 +478,14 @@ public class Main {
                 public void run() {
                     //System.out.println(finalId +" でのハートビート信号 送信 ("+(i[0]+1)+"回目)");
 
-                    RequestBody body2 = RequestBody.create(finalHeartBeatSession, JSON);
-                    Request request3 = new Request.Builder()
+                    RequestBody body = RequestBody.create(finalHeartBeatSession, JSON);
+                    Request request = new Request.Builder()
                             .url("https://api.dmc.nico/api/sessions/"+finalHeartBeatSessionId+"?_format=json&_method=PUT")
-                            .post(body2)
+                            .post(body)
                             .build();
                     try {
-                        Response response3 = client.newCall(request3).execute();
-                        String ResponseJson2 = response3.body().string();
+                        Response response = client.newCall(request).execute();
+                        String ResponseJson2 = response.body().string();
                         //System.out.println(ResponseJson2);
                     } catch (IOException e) {
                         e.printStackTrace();
