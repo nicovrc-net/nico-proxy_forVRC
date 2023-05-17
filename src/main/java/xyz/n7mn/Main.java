@@ -25,7 +25,6 @@ public class Main {
 
     public static void main(String[] args) {
         // Proxy読み込み
-        List<String> ProxyList = new ArrayList<>();
         File config = new File("./config.yml");
         final YamlMapping ConfigYaml;
         final YamlMapping ConfigYml;
@@ -110,8 +109,8 @@ public class Main {
                             jedisPool.close();
                         }).start();
                         String text = new String(data, StandardCharsets.UTF_8);
-                        Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1.1").matcher(text);
-                        Matcher matcher2 = Pattern.compile("HTTP/1.(\\d)").matcher(text);
+                        Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1\\.(\\d+)").matcher(text);
+                        Matcher matcher2 = Pattern.compile("HTTP/1\\.(\\d)").matcher(text);
                         String httpResponse;
 
                         if (matcher1.find() && matcher2.find()){
@@ -119,7 +118,7 @@ public class Main {
                             String videoUrl = getVideo(matcher1.group(1), AccessCode);
 
                             if (videoUrl == null || !videoUrl.startsWith("http")){
-                                httpResponse = "HTTP/1.1 403 Forbidden\r\n" +
+                                httpResponse = "HTTP/1."+matcher2.group(1)+" 403 Forbidden\r\n" +
                                         "date: "+ new Date() +"\r\n" +
                                         "content-type: text/plain\r\n\r\n" +
                                         "403\r\n";
