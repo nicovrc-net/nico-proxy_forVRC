@@ -270,8 +270,8 @@ public class Main {
         }).start();
 
         // 余計なものは削除
-        url = url.replaceAll("http://nextnex.com/?url=","").replaceAll("https://nextnex.com/?url=","").replaceAll("nextnex.com/?url=","");
-        url = url.replaceAll("http://nico.7mi.site/proxy/?","").replaceAll("https://nico.7mi.site/proxy/?","").replaceAll("nico.7mi.site/proxy/?","");
+        url = url.replaceAll("http://nextnex.com/\\?url=","").replaceAll("https://nextnex.com/\\?url=","").replaceAll("nextnex.com/\\?url=","");
+        url = url.replaceAll("http://nico.7mi.site/proxy/\\?","").replaceAll("https://nico.7mi.site/proxy/\\?","").replaceAll("nico.7mi.site/proxy/\\?","");
 
         // 送られてきたURLを一旦IDだけにする
         String id = url.replaceAll("http://sp.nicovideo.jp/watch/","").replaceAll("https://sp.nicovideo.jp/watch/","").replaceAll("http://nicovideo.jp/watch/","").replaceAll("https://nicovideo.jp/watch/","").replaceAll("http://www.nicovideo.jp/watch/","").replaceAll("https://www.nicovideo.jp/watch/","").replaceAll("http://nico.ms/","").replaceAll("https://nico.ms/","");
