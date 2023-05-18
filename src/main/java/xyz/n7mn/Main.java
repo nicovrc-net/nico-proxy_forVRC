@@ -2,6 +2,9 @@ package xyz.n7mn;
 
 import com.amihaiemil.eoyaml.*;
 import okhttp3.*;
+import okio.ByteString;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;
@@ -13,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,13 +70,26 @@ public class Main {
                         LogRedisWrite(AccessCode, "access-ip", sock.getInetAddress().getHostAddress());
 
                         String text = new String(data, StandardCharsets.UTF_8);
-                        Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1\\.(\\d+)").matcher(text);
+                        Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP").matcher(text);
                         Matcher matcher2 = Pattern.compile("HTTP/1\\.(\\d)").matcher(text);
                         String httpResponse;
 
-                        if (matcher1.find() && matcher2.find()){
+                        String httpVersion = matcher2.find() ? matcher2.group(1) : "1";
+                        if (matcher1.find()){
+
                             // "https://www.nicovideo.jp/watch/sm10759623"
-                            String videoUrl = getVideo(matcher1.group(1), AccessCode);
+                            String url = matcher1.group(1);
+                            String videoUrl = null;
+                            Matcher matcher_VideoURL = Pattern.compile(".*(www\\.nicovideo\\.jp|nicovideo\\.jp/watch/(sm|nm|so)|sp\\.nicovideo\\.jp/watch/|nico\\.ms/(sm|nm|so)).*").matcher(url);
+                            if (matcher_VideoURL.find()){
+                                //System.out.println("video");
+                                videoUrl = getVideo(url, AccessCode);
+                            } else {
+                                //System.out.println(url);
+                                //System.out.println("live");
+                                videoUrl = getLive(url, AccessCode);
+                            }
+
 
                             if (videoUrl == null || !videoUrl.startsWith("http")){
                                 httpResponse = "HTTP/1."+matcher2.group(1)+" 403 Forbidden\r\n" +
@@ -87,7 +104,7 @@ public class Main {
                                     host = matcher.group(1);
                                 }
 
-                                httpResponse = "HTTP/1."+matcher2.group(1)+" 302 Found\n" +
+                                httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
                                         "Host: "+host+"\n" +
                                         "Date: "+new Date()+"\r\n" +
                                         "Connection: close\r\n" +
@@ -96,7 +113,7 @@ public class Main {
                                         "Content-type: text/html; charset=UTF-8\r\n\r\n";
                             }
                         } else {
-                            httpResponse = "HTTP/1."+matcher2.group(1)+" 403 Forbidden\r\n" +
+                            httpResponse = "HTTP/1."+httpVersion+" 403 Forbidden\r\n" +
                                     "date: "+new Date()+"\r\n" +
                                     "content-type: text/plain\r\n\r\n" +
                                     "403\r\n";
@@ -394,10 +411,213 @@ public class Main {
             timer.scheduleAtFixedRate(task, 0L, 40000L);
         }).start();
 
-
-
-
         return VideoURL;
+    }
+
+    private static String getLive(String url, String AccessCode) {
+        //System.out.println("aa");
+        // Proxy読み込み
+        List<String> ProxyList = new ArrayList<>();
+        File config = new File("./config.yml");
+        YamlMapping ConfigYaml = null;
+        try {
+            if (config.exists()) {
+                ConfigYaml = Yaml.createYamlInput(config).readYamlMapping();
+            } else {
+
+                System.out.println("ProxyList is Empty!!!");
+                return null;
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        List<String> ProxyList1 = new ArrayList<>();
+        File config1 = new File("./config-so-proxy.yml");
+        YamlMapping ConfigYaml1 = null;
+        try {
+            if (config1.exists()) {
+                ConfigYaml1 = Yaml.createYamlInput(config1).readYamlMapping();
+            } else {
+
+                System.out.println("ProxyList is Empty!!!");
+                return null;
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+
+        YamlSequence list = ConfigYaml.yamlSequence("Proxy");
+        for (int i = 0; i < list.size(); i++) {
+            ProxyList.add(list.string(i));
+        }
+
+        YamlSequence list_so = ConfigYaml1.yamlSequence("Proxy");
+        for (int i = 0; i < list_so.size(); i++) {
+            ProxyList1.add(list_so.string(i));
+        }
+
+        System.gc();
+
+        if (!url.startsWith("http")){
+            url = "https://";
+        }
+        // 余計なものは削除
+
+        url = url.replaceAll("http://nextnex.com/\\?url=","").replaceAll("https://nextnex.com/\\?url=","").replaceAll("nextnex.com/\\?url=","");
+        url = url.replaceAll("http://nico.7mi.site/proxy/\\?","").replaceAll("https://nico.7mi.site/proxy/\\?","").replaceAll("nico.7mi.site/proxy/\\?","");
+
+
+        LogRedisWrite(AccessCode, "getURL:request",url);
+
+        // 送られてきたURLを一旦IDだけにする
+        String id = url.replaceAll("http://sp.live.nicovideo.jp/watch/","").replaceAll("https://sp.live.nicovideo.jp/watch/","").replaceAll("http://live.nicovideo.jp/watch/","").replaceAll("https://live.nicovideo.jp/watch/","").replaceAll("http://nico.ms/","").replaceAll("https://nico.ms/","");
+        id = id.split("\\?")[0];
+
+        //System.out.println("[Debug] ID: " + id + " "+sdf.format(new Date()));
+
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        String[] split = ProxyList1.get(new SecureRandom().nextInt(0, ProxyList1.size())).split(":");
+        //String[] split2 = ProxyList1.get(new SecureRandom().nextInt(0, ProxyList1.size())).split(":");
+        String ProxyIP = split[0];
+        int ProxyPort = Integer.parseInt(split[1]);
+/*
+        if(id.startsWith("so")){
+            ProxyIP = split2[0];
+            ProxyPort = Integer.parseInt(split2[1]);
+        }
+*/
+        client = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyIP, ProxyPort))).build();
+        //client = new OkHttpClient();
+
+        String htmlText = null;
+        try {
+            Request request = new Request.Builder()
+                    .url("https://live.nicovideo.jp/watch/"+id)
+                    .build();
+            Response response = client.newCall(request).execute();
+            htmlText = response.body().string();
+
+        } catch (Exception e) {
+            //System.out.println("[Debug] 動画情報 取得失敗 "+sdf.format(new Date()));
+            e.printStackTrace();
+            LogRedisWrite(AccessCode, "getURL:error","live.nicovideo.jp");
+            //System.out.println("live.nicovideo.jp html error");
+            return null;
+        }
+
+        final String[] resUrl = {null};
+
+        Matcher matcher  = Pattern.compile("webSocketUrl&quot;:&quot;wss://(.*)&quot;,&quot;csrfToken").matcher(htmlText);
+        //Matcher matcher2  = Pattern.compile("webSocketUrl&quot;:&quot;wss://(.*)&quot;,&quot;csrfToken").matcher(htmlText);
+        //Matcher matcher1 = Pattern.compile("webSocketUrl&quot;:&quot;wss://(.*)&quot;,").matcher(htmlText);
+        Matcher matcher_quality = Pattern.compile("\"stream_quality\":\"(.*)\"}}").matcher(htmlText);
+
+        if (!matcher.find()){
+            LogRedisWrite(AccessCode, "getURL:error","live.nicovideo.jp");
+            //System.out.println("live.nicovideo.jp html error");
+            System.out.println(htmlText);
+
+            return null;
+        }
+
+        final String quality = matcher_quality.find() ? matcher_quality.group(1) : null;
+
+        Request request = new Request.Builder()
+                .url("wss://"+matcher.group(1))
+                .build();
+
+
+        resUrl[0] = "loading...";
+
+        client.newWebSocket(request, new WebSocketListener() {
+            @Override
+            public void onClosed(@NotNull WebSocket webSocket, int code, @NotNull String reason) {
+                super.onClosed(webSocket, code, reason);
+            }
+
+            @Override
+            public void onClosing(@NotNull WebSocket webSocket, int code, @NotNull String reason) {
+                super.onClosing(webSocket, code, reason);
+            }
+
+            @Override
+            public void onFailure(@NotNull WebSocket webSocket, @NotNull Throwable t, @Nullable Response response) {
+                super.onFailure(webSocket, t, response);
+            }
+
+            @Override
+            public void onMessage(@NotNull WebSocket webSocket, @NotNull String text) {
+                System.out.println("---- result text ----");
+                System.out.println(text);
+                System.out.println("---- result text ----");
+
+                if (text.startsWith("{\"type\":\"serverTime\",\"data\":{")){
+                    webSocket.send("{\"type\":\"getEventState\",\"data\":{}}");
+                    //System.out.println("{\"type\":\"getEventState\",\"data\":{}}");
+                }
+                if (text.startsWith("{\"type\":\"eventState\",\"data\":{\"commentState\":{\"locked\":false,\"layout\":\"normal\"}}}")){
+                    webSocket.send("{\"type\":\"getAkashic\",\"data\":{\"chasePlay\":false}}");
+                    //System.out.println("{\"type\":\"getAkashic\",\"data\":{\"chasePlay\":false}}");
+                }
+
+                if (text.equals("{\"type\":\"ping\"}")){
+                    webSocket.send("{\"type\":\"pong\"}");
+                }
+
+                if (text.startsWith("{\"type\":\"statistics\",\"data\":{")){
+                    webSocket.send("{\"type\":\"keepSeat\"}");
+                    //System.out.println("{\"type\":\"keepSeat\"}");
+                }
+
+                Matcher matcherData = Pattern.compile("\\{\"type\":\"stream\",\"data\":\\{\"uri\":\"https://").matcher(text);
+
+                if (matcherData.find()) {
+                    Matcher matcher = Pattern.compile("\"uri\":\"(.*)\",\"syncUri\":\"").matcher(text);
+                    System.out.println("url get");
+                    if (matcher.find()){
+                        System.out.println("url get ok");
+                        resUrl[0] = matcher.group(1);
+                        //System.out.println(resUrl[0]);
+                    } else {
+                        resUrl[0] = "not";
+                        LogRedisWrite(AccessCode, "getURL:error","Live Websocket Error");
+                        webSocket.cancel();
+                    }
+
+                }
+            }
+
+            @Override
+            public void onMessage(@NotNull WebSocket webSocket, @NotNull ByteString bytes) {
+
+            }
+
+            @Override
+            public void onOpen(@NotNull WebSocket webSocket, @NotNull Response response) {
+               //System.out.println("websocket open");
+                if (quality == null){
+                    webSocket.send("{\"type\":\"startWatching\",\"data\":{\"stream\":{\"quality\":\"abr\",\"protocol\":\"hls\",\"latency\":\"low\",\"chasePlay\":false},\"room\":{\"protocol\":\"webSocket\",\"commentable\":true},\"reconnect\":false}}");
+                } else {
+                    webSocket.send("{\"type\":\"startWatching\",\"data\":{\"stream\":{\"quality\":\""+quality+"\",\"protocol\":\"hls\",\"latency\":\"low\",\"chasePlay\":false},\"room\":{\"protocol\":\"webSocket\",\"commentable\":true},\"reconnect\":false}}");
+                }
+
+            }
+        });
+
+        boolean isFound = false;
+        while (!isFound){
+            isFound = !resUrl[0].startsWith("loading...");
+        }
+        //System.out.println("成功 : "+ resUrl[0]);
+        LogRedisWrite(AccessCode, "getURL:success", resUrl[0]);
+
+        System.gc();
+        return resUrl[0];
     }
 
     private static void LogRedisWrite(String AccessCode, String Category, String Value){
