@@ -16,8 +16,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
-
 public class Main {
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -27,7 +25,6 @@ public class Main {
         // Proxy読み込み
         File config = new File("./config.yml");
         final YamlMapping ConfigYaml;
-        final YamlMapping ConfigYml;
 
         if (!config.exists()){
             YamlMappingBuilder add = Yaml.createYamlMappingBuilder().add("Proxy", Yaml.createYamlSequenceBuilder().add("localhost:3128").add("127.0.0.1:3128").build());
@@ -47,40 +44,6 @@ public class Main {
             }
         }
 
-        // Redis設定読み込み
-        File config2 = new File("./config-redis.yml");
-
-        try {
-            if (!config2.exists()){
-                config2.createNewFile();
-
-                YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
-                ConfigYml = builder.add(
-                        "RedisServer", "127.0.0.1"
-                ).add(
-                        "RedisPort", String.valueOf(Protocol.DEFAULT_PORT)
-                ).add(
-                        "RedisPass", ""
-                ).build();
-
-                try {
-                    PrintWriter writer = new PrintWriter(config2);
-                    writer.print(ConfigYml.toString());
-                    writer.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-
-            } else {
-                ConfigYml = Yaml.createYamlInput(config2).readYamlMapping();
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.gc();
-            return;
-        }
-
         ServerSocket svSock = null;
         try {
 
@@ -98,17 +61,10 @@ public class Main {
                         int readSize = in.read(data);
                         data = Arrays.copyOf(data, readSize);
                         String RequestHttp = new String(data, StandardCharsets.UTF_8);
-                        // System.out.println("「"+RequestHttp+"」を受信しました。");
-                        new Thread(()->{
-                            JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
-                            //System.out.println(ConfigYml.string("RedisServer") + " / " + ConfigYml.integer("RedisPort"));
-                            Jedis jedis = jedisPool.getResource();
-                            jedis.auth(ConfigYml.string("RedisPass"));
-                            jedis.set("nico-proxy:log:access:"+AccessCode, RequestHttp);
-                            jedis.set("nico-proxy:log:access-ip:"+AccessCode, sock.getInetAddress().getHostAddress());
-                            jedis.close();
-                            jedisPool.close();
-                        }).start();
+
+                        LogRedisWrite(AccessCode, "access", RequestHttp);
+                        LogRedisWrite(AccessCode, "access-ip", sock.getInetAddress().getHostAddress());
+
                         String text = new String(data, StandardCharsets.UTF_8);
                         Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP/1\\.(\\d+)").matcher(text);
                         Matcher matcher2 = Pattern.compile("HTTP/1\\.(\\d)").matcher(text);
@@ -219,39 +175,6 @@ public class Main {
             ProxyList1.add(list_so.string(i));
         }
 
-        // Redis 読み込み
-        final File config2 = new File("./config-redis.yml");
-        final YamlMapping ConfigYml;
-        try {
-            if (!config2.exists()){
-                config2.createNewFile();
-
-                YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
-                ConfigYml = builder.add(
-                        "RedisServer", "127.0.0.1"
-                ).add(
-                        "RedisPort", String.valueOf(Protocol.DEFAULT_PORT)
-                ).add(
-                        "RedisPass", ""
-                ).build();
-
-                try {
-                    PrintWriter writer = new PrintWriter(config2);
-                    writer.print(ConfigYml.toString());
-                    writer.close();
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-
-            } else {
-                ConfigYml = Yaml.createYamlInput(config2).readYamlMapping();
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-            System.gc();
-            return null;
-        }
-
         System.gc();
         String resUrl = null;
 
@@ -259,15 +182,7 @@ public class Main {
             url = "https://"+url;
         }
 
-        String finalUrl = url;
-        new Thread(()->{
-            JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
-            Jedis jedis = jedisPool.getResource();
-            jedis.auth(ConfigYml.string("RedisPass"));
-            jedis.set("nico-proxy:log:getURL:request:"+AccessCode, finalUrl);
-            jedis.close();
-            jedisPool.close();
-        }).start();
+        LogRedisWrite(AccessCode, "getURL:request",url);
 
         // 余計なものは削除
         url = url.replaceAll("http://nextnex.com/\\?url=","").replaceAll("https://nextnex.com/\\?url=","").replaceAll("nextnex.com/\\?url=","");
@@ -310,15 +225,8 @@ public class Main {
 
         } catch (Exception e) {
             //System.out.println("[Debug] 動画情報 取得失敗 "+sdf.format(new Date()));
-            e.printStackTrace();
-            new Thread(()->{
-                JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
-                Jedis jedis = jedisPool.getResource();
-                jedis.auth(ConfigYml.string("RedisPass"));
-                jedis.set("nico-proxy:log:getURL:error:"+AccessCode, "ext.nicovideo.jp error");
-                jedis.close();
-                jedisPool.close();
-            }).start();
+            //e.printStackTrace();
+            LogRedisWrite(AccessCode, "getURL:error","ext.nicovideo.jp");
             return resUrl;
         }
 
@@ -369,14 +277,7 @@ public class Main {
 
         if (SessionId == null && Token == null && Signature == null){
             //System.out.println("[Debug] 情報取得失敗 "+ sdf.format(new Date()));
-            new Thread(()->{
-                JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
-                Jedis jedis = jedisPool.getResource();
-                jedis.auth(ConfigYml.string("RedisPass"));
-                jedis.set("nico-proxy:log:getURL:error:"+AccessCode, "www.nicovideo.jp");
-                jedis.close();
-                jedisPool.close();
-            }).start();
+            LogRedisWrite(AccessCode, "getURL:error","www.nicovideo.jp");
             return resUrl;
         }
 
@@ -407,14 +308,7 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
             //System.out.println("[Debug] 鯖へPost失敗 "+ sdf.format(new Date()));
-            new Thread(()->{
-                JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
-                Jedis jedis = jedisPool.getResource();
-                jedis.auth(ConfigYml.string("RedisPass"));
-                jedis.set("nico-proxy:log:getURL:error:"+AccessCode, "api.dmc.nico post");
-                jedis.close();
-                jedisPool.close();
-            }).start();
+            LogRedisWrite(AccessCode, "getURL:error","api.dmc.nico post");
             return resUrl;
         }
 
@@ -448,26 +342,11 @@ public class Main {
 
         if (VideoURL == null || HeartBeatSession == null || HeartBeatSessionId == null){
             //System.out.println("[Debug] 動画情報 取得失敗 "+ sdf.format(new Date()));
-            new Thread(()->{
-                JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
-                Jedis jedis = jedisPool.getResource();
-                jedis.auth(ConfigYml.string("RedisPass"));
-                jedis.set("nico-proxy:log:getURL:error:"+AccessCode, "PostData");
-                jedis.close();
-                jedisPool.close();
-            }).start();
+            LogRedisWrite(AccessCode, "getURL:error","PostData");
             return resUrl;
         }
         //System.out.println("[Debug] 動画情報 取得成功\n動画URL : "+VideoURL+" \n"+ sdf.format(new Date()));
-        final String vURL = VideoURL;
-        new Thread(()->{
-            JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
-            Jedis jedis = jedisPool.getResource();
-            jedis.auth(ConfigYml.string("RedisPass"));
-            jedis.set("nico-proxy:log:getURL:success:"+AccessCode, vURL);
-            jedis.close();
-            jedisPool.close();
-        }).start();
+        LogRedisWrite(AccessCode, "getURL:success",VideoURL);
         System.gc();
 
         // 最低限動画の長さ分だけハートビート信号投げつける (40秒起き)
@@ -475,7 +354,6 @@ public class Main {
         String finalHeartBeatSession = HeartBeatSession;
         String finalHeartBeatSessionId = HeartBeatSessionId;
 
-        String finalId = id;
         new Thread(()->{
             Timer timer = new Timer();
 
@@ -499,11 +377,10 @@ public class Main {
                     } catch (IOException e) {
                         e.printStackTrace();
                         //System.out.println("[Debug] 鯖へPost失敗 "+ sdf.format(new Date()));
-
+                        LogRedisWrite(AccessCode, "getURL:error","Send HeartBeat");
                         System.gc();
                         return;
                     }
-
                     System.gc();
 
                     if (i[0] >= maxCount){
@@ -521,6 +398,52 @@ public class Main {
 
 
         return VideoURL;
+    }
+
+    private static void LogRedisWrite(String AccessCode, String Category, String Value){
+        new Thread(()->{
+            // Redis 読み込み
+            final File config = new File("./config-redis.yml");
+            final YamlMapping ConfigYml;
+            try {
+                if (!config.exists()){
+                    config.createNewFile();
+
+                    YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
+                    ConfigYml = builder.add(
+                            "RedisServer", "127.0.0.1"
+                    ).add(
+                            "RedisPort", String.valueOf(Protocol.DEFAULT_PORT)
+                    ).add(
+                            "RedisPass", ""
+                    ).build();
+
+                    try {
+                        PrintWriter writer = new PrintWriter(config);
+                        writer.print(ConfigYml.toString());
+                        writer.close();
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+
+                } else {
+                    ConfigYml = Yaml.createYamlInput(config).readYamlMapping();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                System.gc();
+                return;
+            }
+
+            // 書き出し
+            JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+            Jedis jedis = jedisPool.getResource();
+            jedis.auth(ConfigYml.string("RedisPass"));
+            jedis.set("nico-proxy:log:"+Category+":"+AccessCode, Value);
+            jedis.close();
+            jedisPool.close();
+        }).start();
+        System.gc();
     }
 
 }
