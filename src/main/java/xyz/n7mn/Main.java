@@ -92,7 +92,7 @@ public class Main {
 
 
                             if (videoUrl == null || !videoUrl.startsWith("http")){
-                                httpResponse = "HTTP/1."+matcher2.group(1)+" 403 Forbidden\r\n" +
+                                httpResponse = "HTTP/1."+httpVersion+" 403 Forbidden\r\n" +
                                         "date: "+ new Date() +"\r\n" +
                                         "content-type: text/plain\r\n\r\n" +
                                         "403\r\n";
