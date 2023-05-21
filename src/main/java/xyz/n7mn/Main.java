@@ -24,14 +24,15 @@ public class Main {
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static OkHttpClient client = new OkHttpClient();
+    private static int ResponsePort = 25252;
 
     public static void main(String[] args) {
         // Proxy読み込み
         File config = new File("./config.yml");
-        final YamlMapping ConfigYaml;
+        YamlMapping ConfigYaml;
 
         if (!config.exists()){
-            YamlMappingBuilder add = Yaml.createYamlMappingBuilder().add("Proxy", Yaml.createYamlSequenceBuilder().add("localhost:3128").add("127.0.0.1:3128").build());
+            YamlMappingBuilder add = Yaml.createYamlMappingBuilder().add("Proxy", Yaml.createYamlSequenceBuilder().add("localhost:3128").add("127.0.0.1:3128").build()).add("Port", String.valueOf(ResponsePort));
             ConfigYaml = add.build();
 
             try {
@@ -46,12 +47,20 @@ public class Main {
                 e.printStackTrace();
                 return;
             }
+        } else {
+            try {
+                ConfigYaml = Yaml.createYamlInput(config).readYamlMapping();
+                ResponsePort = ConfigYaml.integer("Port");
+            } catch (Exception e){
+                e.printStackTrace();
+                return;
+            }
         }
 
         ServerSocket svSock = null;
         try {
 
-            svSock = new ServerSocket(25252);
+            svSock = new ServerSocket(ResponsePort);
             while (true){
                 System.gc();
                 Socket sock = svSock.accept();
@@ -70,6 +79,8 @@ public class Main {
                         LogRedisWrite(AccessCode, "access-ip", sock.getInetAddress().getHostAddress());
 
                         String text = new String(data, StandardCharsets.UTF_8);
+                        data = null;
+
                         Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP").matcher(text);
                         Matcher matcher2 = Pattern.compile("HTTP/1\\.(\\d)").matcher(text);
                         String httpResponse;
@@ -99,7 +110,7 @@ public class Main {
                             } else {
 
                                 Matcher matcher = Pattern.compile("Host: (.*)\r\n").matcher(RequestHttp);
-                                String host = "localhost:25252";
+                                String host = "localhost:"+ResponsePort;
                                 if (matcher.find()){
                                     host = matcher.group(1);
                                 }
