@@ -25,6 +25,8 @@ public class Main {
     private static SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static OkHttpClient client = new OkHttpClient();
     private static int ResponsePort = 25252;
+    private static int PingPort = 25253;
+    private static int PingHTTPPort = 25280;
 
     public static void main(String[] args) {
         // Proxy読み込み
@@ -37,7 +39,7 @@ public class Main {
         YamlMapping ConfigYaml3 = null;
 
         if (!config1.exists()){
-            YamlMappingBuilder add = Yaml.createYamlMappingBuilder().add("Port", String.valueOf(ResponsePort));
+            YamlMappingBuilder add = Yaml.createYamlMappingBuilder().add("Port", String.valueOf(ResponsePort)).add("PingPort", String.valueOf(PingPort)).add("PingHTTPPort", String.valueOf(PingHTTPPort));
             ConfigYaml1 = add.build();
 
             try {
@@ -56,6 +58,8 @@ public class Main {
             try {
                 ConfigYaml1 = Yaml.createYamlInput(config1).readYamlMapping();
                 ResponsePort = ConfigYaml1.integer("Port");
+                PingPort = ConfigYaml1.integer("PingPort");
+                PingHTTPPort = ConfigYaml1.integer("PingHTTPPort");
             } catch (Exception e){
                 e.printStackTrace();
                 return;
@@ -104,6 +108,74 @@ public class Main {
         // 受付サーバー
         ServerSocket svSock = null;
         try {
+
+            new Thread(()->{
+                while (true){
+                    try {
+                        ServerSocket svSock1 = new ServerSocket(PingPort);
+
+                        Socket socket = svSock1.accept();
+                        OutputStream stream = socket.getOutputStream();
+
+                        stream.write("{status: \"OK\"}".getBytes(StandardCharsets.UTF_8));
+                        stream.flush();
+
+                        stream.close();
+                        System.gc();
+
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
+            new Thread(()->{
+                while (true){
+                    try {
+                        ServerSocket svSock2 = new ServerSocket(PingHTTPPort);
+
+                        Socket socket = svSock2.accept();
+                        InputStream inputStream = socket.getInputStream();
+                        OutputStream outputStream = socket.getOutputStream();
+
+                        byte[] data = new byte[100000000];
+                        int readSize = inputStream.read(data);
+                        if (readSize > 0){
+                            data = Arrays.copyOf(data, readSize);
+                        }
+
+                        String text = new String(data, StandardCharsets.UTF_8);
+                        Matcher matcher1 = Pattern.compile("GET / HTTP").matcher(text);
+                        Matcher matcher2 = Pattern.compile("HTTP/1\\.(\\d)").matcher(text);
+
+                        String httpVersion = "1." + (matcher2.find() ? matcher2.group(1) : "1");
+
+                        String response;
+                        if (!matcher1.find()){
+                            response = "HTTP/1."+httpVersion+" 400 Bad Request\r\n" +
+                                    "date: "+ new Date() +"\r\n" +
+                                    "content-type: text/plain\r\n\r\n" +
+                                    "400\r\n";
+
+                        } else {
+                            response = "HTTP/1."+httpVersion+" 200 OK\r\n" +
+                                    "date: "+ new Date() +"\r\n" +
+                                    "Content-type: text/plain; charset=UTF-8\r\n\r\n" +
+                                    "ok";
+                        }
+
+                        outputStream.write(response.getBytes(StandardCharsets.UTF_8));
+                        outputStream.flush();
+
+                        inputStream.close();
+                        outputStream.close();
+
+                        System.gc();
+                    } catch (Exception e){
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
 
             svSock = new ServerSocket(ResponsePort);
             while (true){
