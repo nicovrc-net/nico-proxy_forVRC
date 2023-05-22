@@ -8,7 +8,6 @@ import org.jetbrains.annotations.Nullable;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;
-import xyz.n7mn.data.VideoInfo;
 
 import java.io.*;
 import java.net.*;
@@ -362,41 +361,32 @@ public class Main {
         //client = new OkHttpClient();
 
         // 動画情報取得 (無駄にハートビート信号送らないようにするため)
-        long time = -1;
 
-        try {
-            Request request = new Request.Builder()
-                    .url("https://ext.nicovideo.jp/api/getthumbinfo/"+id)
-                    .build();
-            Response response = client.newCall(request).execute();
-            VideoInfo videoInfo = VideoInfo.newInstance(response.body().string());
-
-            time = videoInfo.getVideoLengthBySec();
-            if (videoInfo.getVideoId() == null){
-                throw new Exception("取得失敗");
-            }
-
-        } catch (Exception e) {
-            //System.out.println("[Debug] 動画情報 取得失敗 "+sdf.format(new Date()));
-            //e.printStackTrace();
-            LogRedisWrite(AccessCode, "getURL:error","ext.nicovideo.jp");
-            return resUrl;
-        }
 
         // HTML取得
         //System.out.println("[Debug] HTML取得開始 "+sdf.format(new Date()));
         final String HtmlText;
-        Request request = new Request.Builder()
+        Request request_html = new Request.Builder()
                 .url("https://www.nicovideo.jp/watch/"+id)
                 .build();
 
         try {
-            Response response = client.newCall(request).execute();
+            Response response = client.newCall(request_html).execute();
             HtmlText = response.body().string();
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
+            LogRedisWrite(AccessCode, "getURL:error","www.nicovideo.jp");
             return resUrl;
         }
+
+        Matcher matcher = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">").matcher(HtmlText);
+        if (!matcher.find()){
+            LogRedisWrite(AccessCode, "getURL:error","not found");
+            return null;
+        }
+
+        long time = Long.parseLong(matcher.group(1));
+
         //System.out.println("[Debug] HTML取得完了 "+sdf.format(new Date()));
         //System.out.println(HtmlText);
 
