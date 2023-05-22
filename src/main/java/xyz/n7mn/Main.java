@@ -28,17 +28,22 @@ public class Main {
 
     public static void main(String[] args) {
         // Proxy読み込み
-        File config = new File("./config.yml");
-        YamlMapping ConfigYaml;
+        File config1 = new File("./config.yml");
+        File config2 = new File("./config-proxy.yml");
+        File config3 = new File("./config-redis.yml");
 
-        if (!config.exists()){
-            YamlMappingBuilder add = Yaml.createYamlMappingBuilder().add("Proxy", Yaml.createYamlSequenceBuilder().add("localhost:3128").add("127.0.0.1:3128").build()).add("Port", String.valueOf(ResponsePort));
-            ConfigYaml = add.build();
+        YamlMapping ConfigYaml1 = null;
+        YamlMapping ConfigYaml2 = null;
+        YamlMapping ConfigYaml3 = null;
+
+        if (!config1.exists()){
+            YamlMappingBuilder add = Yaml.createYamlMappingBuilder().add("Port", String.valueOf(ResponsePort));
+            ConfigYaml1 = add.build();
 
             try {
-                config.createNewFile();
-                PrintWriter writer = new PrintWriter(config);
-                writer.print(ConfigYaml.toString());
+                config1.createNewFile();
+                PrintWriter writer = new PrintWriter(config1);
+                writer.print(ConfigYaml1.toString());
                 writer.close();
 
                 System.out.println("[Error] ProxyList is Empty!!");
@@ -49,14 +54,54 @@ public class Main {
             }
         } else {
             try {
-                ConfigYaml = Yaml.createYamlInput(config).readYamlMapping();
-                ResponsePort = ConfigYaml.integer("Port");
+                ConfigYaml1 = Yaml.createYamlInput(config1).readYamlMapping();
+                ResponsePort = ConfigYaml1.integer("Port");
             } catch (Exception e){
                 e.printStackTrace();
                 return;
             }
         }
 
+        if (!config2.exists()){
+            YamlMappingBuilder add = Yaml.createYamlMappingBuilder()
+                    .add("VideoProxy", Yaml.createYamlSequenceBuilder().add("localhost:3128").add("127.0.0.1:3128").build())
+                    .add("OfficialProxy", Yaml.createYamlSequenceBuilder().add("localhost:3128").add("127.0.0.1:3128").build());
+            ConfigYaml2 = add.build();
+            
+            try {
+                config2.createNewFile();
+                PrintWriter writer = new PrintWriter(config2);
+                writer.print(ConfigYaml2.toString());
+                writer.close();
+
+                System.out.println("[Error] ProxyList is Empty!!");
+                return;
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
+
+        if (!config3.exists()){
+            YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
+            ConfigYaml3 = builder.add(
+                    "RedisServer", "127.0.0.1"
+            ).add(
+                    "RedisPort", String.valueOf(Protocol.DEFAULT_PORT)
+            ).add(
+                    "RedisPass", ""
+            ).build();
+
+            try {
+                PrintWriter writer = new PrintWriter(config3);
+                writer.print(ConfigYaml3.toString());
+                writer.close();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // 受付サーバー
         ServerSocket svSock = null;
         try {
 
@@ -158,15 +203,18 @@ public class Main {
 
 
     private static String getVideo(String url, String AccessCode){
+        System.gc();
+        
         // Proxy読み込み
-        List<String> ProxyList = new ArrayList<>();
-        File config = new File("./config.yml");
+        List<String> ProxyList_video = new ArrayList<>();
+        List<String> ProxyList_official = new ArrayList<>();
+        
+        File config = new File("./config-proxy.yml");
         YamlMapping ConfigYaml = null;
         try {
             if (config.exists()){
                 ConfigYaml = Yaml.createYamlInput(config).readYamlMapping();
             } else {
-
                 System.out.println("ProxyList is Empty!!!");
                 return null;
             }
@@ -175,33 +223,29 @@ public class Main {
             e.printStackTrace();
             return null;
         }
-
-        List<String> ProxyList1 = new ArrayList<>();
-        File config1 = new File("./config-so-proxy.yml");
-        YamlMapping ConfigYaml1 = null;
-        try {
-            if (config1.exists()){
-                ConfigYaml1 = Yaml.createYamlInput(config1).readYamlMapping();
-            } else {
-
-                System.out.println("ProxyList is Empty!!!");
-                return null;
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        YamlSequence list = ConfigYaml.yamlSequence("Proxy");
+        
+        YamlSequence list = ConfigYaml.yamlSequence("VideoProxy");
         for (int i = 0; i < list.size(); i++){
-            ProxyList.add(list.string(i));
+            ProxyList_video.add(list.string(i));
         }
 
-        YamlSequence list_so = ConfigYaml1.yamlSequence("Proxy");
+        YamlSequence list_so = ConfigYaml.yamlSequence("OfficialProxy");
         for (int i = 0; i < list_so.size(); i++){
-            ProxyList1.add(list_so.string(i));
+            ProxyList_official.add(list_so.string(i));
         }
+        
+        if (ProxyList_video.size() == 0 || ProxyList_official.size() == 0){
+            list = null;
+            list_so = null;
+
+            System.gc();
+            
+            System.out.println("ProxyList is Empty!!!");
+            return null;
+        }
+        
+        list = null;
+        list_so = null;        
 
         System.gc();
         String resUrl = null;
@@ -223,15 +267,15 @@ public class Main {
         //System.out.println("[Debug] ID: " + id + " "+sdf.format(new Date()));
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        String[] split = ProxyList.get(new SecureRandom().nextInt(0, ProxyList.size())).split(":");
-        String[] split2 = ProxyList1.get(new SecureRandom().nextInt(0, ProxyList1.size())).split(":");
+        String[] split;
+        if (!id.startsWith("so")){
+            split = ProxyList_video.get(new SecureRandom().nextInt(0, ProxyList_video.size())).split(":");
+        } else {
+            split = ProxyList_official.get(new SecureRandom().nextInt(0, ProxyList_official.size())).split(":");
+        }
         String ProxyIP = split[0];
         int ProxyPort = Integer.parseInt(split[1]);
 
-        if(id.startsWith("so")){
-            ProxyIP = split2[0];
-            ProxyPort = Integer.parseInt(split2[1]);
-        }
 
         client = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyIP, ProxyPort))).build();
         //client = new OkHttpClient();
@@ -454,13 +498,12 @@ public class Main {
         //System.out.println("aa");
         // Proxy読み込み
         List<String> ProxyList = new ArrayList<>();
-        File config = new File("./config.yml");
+        File config = new File("./config-proxy.yml");
         YamlMapping ConfigYaml = null;
         try {
             if (config.exists()) {
                 ConfigYaml = Yaml.createYamlInput(config).readYamlMapping();
             } else {
-
                 System.out.println("ProxyList is Empty!!!");
                 return null;
             }
@@ -470,31 +513,9 @@ public class Main {
             return null;
         }
 
-        List<String> ProxyList1 = new ArrayList<>();
-        File config1 = new File("./config-so-proxy.yml");
-        YamlMapping ConfigYaml1 = null;
-        try {
-            if (config1.exists()) {
-                ConfigYaml1 = Yaml.createYamlInput(config1).readYamlMapping();
-            } else {
-
-                System.out.println("ProxyList is Empty!!!");
-                return null;
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
-
-        YamlSequence list = ConfigYaml.yamlSequence("Proxy");
+        YamlSequence list = ConfigYaml.yamlSequence("OfficialProxy");
         for (int i = 0; i < list.size(); i++) {
             ProxyList.add(list.string(i));
-        }
-
-        YamlSequence list_so = ConfigYaml1.yamlSequence("Proxy");
-        for (int i = 0; i < list_so.size(); i++) {
-            ProxyList1.add(list_so.string(i));
         }
 
         System.gc();
@@ -502,8 +523,8 @@ public class Main {
         if (!url.startsWith("http")){
             url = "https://";
         }
-        // 余計なものは削除
 
+        // 余計なものは削除
         url = url.replaceAll("http://nextnex.com/\\?url=","").replaceAll("https://nextnex.com/\\?url=","").replaceAll("nextnex.com/\\?url=","");
         url = url.replaceAll("http://nico.7mi.site/proxy/\\?","").replaceAll("https://nico.7mi.site/proxy/\\?","").replaceAll("nico.7mi.site/proxy/\\?","");
 
@@ -517,16 +538,10 @@ public class Main {
         //System.out.println("[Debug] ID: " + id + " "+sdf.format(new Date()));
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        String[] split = ProxyList1.get(new SecureRandom().nextInt(0, ProxyList1.size())).split(":");
-        //String[] split2 = ProxyList1.get(new SecureRandom().nextInt(0, ProxyList1.size())).split(":");
+        String[] split = ProxyList.get(new SecureRandom().nextInt(0, ProxyList.size())).split(":");
         String ProxyIP = split[0];
         int ProxyPort = Integer.parseInt(split[1]);
-/*
-        if(id.startsWith("so")){
-            ProxyIP = split2[0];
-            ProxyPort = Integer.parseInt(split2[1]);
-        }
-*/
+
         client = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyIP, ProxyPort))).build();
         //client = new OkHttpClient();
 
@@ -663,25 +678,7 @@ public class Main {
             final YamlMapping ConfigYml;
             try {
                 if (!config.exists()){
-                    config.createNewFile();
-
-                    YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
-                    ConfigYml = builder.add(
-                            "RedisServer", "127.0.0.1"
-                    ).add(
-                            "RedisPort", String.valueOf(Protocol.DEFAULT_PORT)
-                    ).add(
-                            "RedisPass", ""
-                    ).build();
-
-                    try {
-                        PrintWriter writer = new PrintWriter(config);
-                        writer.print(ConfigYml.toString());
-                        writer.close();
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-
+                    return;
                 } else {
                     ConfigYml = Yaml.createYamlInput(config).readYamlMapping();
                 }
