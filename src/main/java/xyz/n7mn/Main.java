@@ -110,10 +110,15 @@ public class Main {
         try {
 
             new Thread(()->{
+                ServerSocket svSock1 = null;
+                try {
+                    svSock1 = new ServerSocket(PingPort);
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+
                 while (true){
                     try {
-                        ServerSocket svSock1 = new ServerSocket(PingPort);
-
                         Socket socket = svSock1.accept();
                         OutputStream stream = socket.getOutputStream();
 
@@ -130,10 +135,14 @@ public class Main {
             }).start();
 
             new Thread(()->{
+                ServerSocket svSock2 = null;
+                try {
+                    svSock2 = new ServerSocket(PingHTTPPort);
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
                 while (true){
                     try {
-                        ServerSocket svSock2 = new ServerSocket(PingHTTPPort);
-
                         Socket socket = svSock2.accept();
                         InputStream inputStream = socket.getInputStream();
                         OutputStream outputStream = socket.getOutputStream();
