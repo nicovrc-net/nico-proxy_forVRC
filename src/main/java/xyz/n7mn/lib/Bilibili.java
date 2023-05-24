@@ -72,7 +72,7 @@ public class Bilibili {
             id = strings[strings.length - 2];
         }
 
-        System.out.println("debug id : "+id);
+        //System.out.println("debug id : "+id);
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         String[] split = ProxyList_video.get(new SecureRandom().nextInt(0, ProxyList_video.size())).split(":");
@@ -105,7 +105,7 @@ public class Bilibili {
 
         String cid = matcher.group(1);
 
-        System.out.println(cid);
+        //System.out.println(cid);
 
         final String ResultText;
         Request request_api = new Request.Builder()
@@ -126,7 +126,7 @@ public class Bilibili {
             VideoURL = matcher2.group(1).replaceAll("\\\\u0026","&");
         }
 
-        System.out.println(VideoURL);
+        //System.out.println(VideoURL);
         return VideoURL;
 
     }
