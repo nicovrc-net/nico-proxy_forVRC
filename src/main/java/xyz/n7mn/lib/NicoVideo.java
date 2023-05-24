@@ -351,7 +351,7 @@ public class NicoVideo {
         //System.out.println("[Debug] ID: " + id + " "+sdf.format(new Date()));
         // 無駄にアクセスしないようにすでに接続されてたらそれを返す
         String s = LogRedisRead("nico-proxy:log:live-nico:" + id);
-        if (s != null){
+        if (s != null && s.length() > 0){
             System.out.println("Cache : "+s);
             LogRedisWrite(AccessCode, "getURL:success", s);
             return s;
