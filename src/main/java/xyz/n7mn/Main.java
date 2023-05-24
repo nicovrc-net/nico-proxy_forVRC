@@ -182,7 +182,6 @@ public class Main {
             }).start();
 
             svSock = new ServerSocket(ResponsePort);
-            HashMap<String, String> map = new HashMap<>();
             while (true){
                 System.gc();
                 Socket sock = svSock.accept();
@@ -222,7 +221,7 @@ public class Main {
                             } else if (matcher_NicoLiveURL.find()) {
                                 //System.out.println(url);
                                 //System.out.println("live");
-                                videoUrl = NicoVideo.getLive(url, AccessCode, map);
+                                videoUrl = NicoVideo.getLive(url, AccessCode);
                             } else if (matcher_bilibiliURL.find()) {
                                 videoUrl = Bilibili.getVideo(url, AccessCode);
                             } else {

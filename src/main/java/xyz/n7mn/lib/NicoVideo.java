@@ -17,7 +17,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static xyz.n7mn.lib.Redis.LogRedisWrite;
+import static xyz.n7mn.lib.Redis.*;
 
 public class NicoVideo {
 
@@ -308,7 +308,7 @@ public class NicoVideo {
         return VideoURL;
     }
 
-    public static String getLive(String url, String AccessCode, Map<String, String> LiveList) {
+    public static String getLive(String url, String AccessCode) {
         //System.out.println("aa");
         // Proxy読み込み
         List<String> ProxyList = new ArrayList<>();
@@ -346,15 +346,15 @@ public class NicoVideo {
         LogRedisWrite(AccessCode, "getURL:request",url);
 
         // 送られてきたURLを一旦IDだけにする
-        String id = url.replaceAll("http://sp.live.nicovideo.jp/watch/","").replaceAll("https://sp.live.nicovideo.jp/watch/","").replaceAll("http://live.nicovideo.jp/watch/","").replaceAll("https://live.nicovideo.jp/watch/","").replaceAll("http://nico.ms/","").replaceAll("https://nico.ms/","");
-        id = id.split("\\?")[0];
+        final String id = url.replaceAll("http://sp.live.nicovideo.jp/watch/","").replaceAll("https://sp.live.nicovideo.jp/watch/","").replaceAll("http://live.nicovideo.jp/watch/","").replaceAll("https://live.nicovideo.jp/watch/","").replaceAll("http://nico.ms/","").replaceAll("https://nico.ms/","").split("\\?")[0];
 
         //System.out.println("[Debug] ID: " + id + " "+sdf.format(new Date()));
         // 無駄にアクセスしないようにすでに接続されてたらそれを返す
-        if (LiveList.get(id) != null){
-            System.out.println("Cache : "+LiveList.get(id));
-            LogRedisWrite(AccessCode, "getURL:success", LiveList.get(id));
-            return LiveList.get(id);
+        String s = LogRedisRead("nico-proxy:log:live-nico:" + id);
+        if (s != null){
+            System.out.println("Cache : "+s);
+            LogRedisWrite(AccessCode, "getURL:success", s);
+            return s;
         }
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -384,9 +384,6 @@ public class NicoVideo {
         final String[] resUrl = {null};
 
         Matcher matcher  = Pattern.compile("webSocketUrl&quot;:&quot;wss://(.*)&quot;,&quot;csrfToken").matcher(htmlText);
-        //Matcher matcher2  = Pattern.compile("webSocketUrl&quot;:&quot;wss://(.*)&quot;,&quot;csrfToken").matcher(htmlText);
-        //Matcher matcher1 = Pattern.compile("webSocketUrl&quot;:&quot;wss://(.*)&quot;,").matcher(htmlText);
-        Matcher matcher_quality = Pattern.compile("\"stream_quality\":\"(.*)\"}}").matcher(htmlText);
 
         if (!matcher.find()){
             LogRedisWrite(AccessCode, "getURL:error","live.nicovideo.jp");
@@ -396,8 +393,9 @@ public class NicoVideo {
             return null;
         }
 
+        String websocketURL = "wss://"+matcher.group(1);
         Request request = new Request.Builder()
-                .url("wss://"+matcher.group(1))
+                .url(websocketURL)
                 .build();
 
 
@@ -407,6 +405,13 @@ public class NicoVideo {
             @Override
             public void onClosed(@NotNull WebSocket webSocket, int code, @NotNull String reason) {
                 super.onClosed(webSocket, code, reason);
+                //System.out.println("---- reason text ----");
+                //System.out.println(reason);
+                //System.out.println("---- reason text ----");
+                String s = LogRedisRead("nico-proxy:log:live-nico:" + id);
+                if (s != null){
+                    LogRedisDelete("nico-proxy:log:live-nico:" + id);
+                }
             }
 
             @Override
@@ -447,11 +452,14 @@ public class NicoVideo {
 
                 if (matcherData.find()) {
                     Matcher matcher = Pattern.compile("\"uri\":\"(.*)\",\"syncUri\":\"").matcher(text);
-                    System.out.println("url get");
+                    //System.out.println("url get");
                     if (matcher.find()){
-                        System.out.println("url get ok");
+                        //System.out.println("url get ok");
                         resUrl[0] = matcher.group(1);
                         System.out.println(resUrl[0]);
+                        //LiveList.put(id, resUrl[0]);
+                        LogRedisWrite(id, "live-nico", resUrl[0]);
+
                     } else {
                         resUrl[0] = "not";
                         LogRedisWrite(AccessCode, "getURL:error","Live Websocket Error");
@@ -478,7 +486,6 @@ public class NicoVideo {
             isFound = !resUrl[0].startsWith("loading...");
         }
 
-        LiveList.put(id, resUrl[0]);
         //System.out.println("成功 : "+ resUrl[0]);
         LogRedisWrite(AccessCode, "getURL:success", resUrl[0]);
 
