@@ -44,7 +44,7 @@ public class NicoVideo {
             }
 
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
 
@@ -109,6 +109,7 @@ public class NicoVideo {
 
         // HTML取得
         //System.out.println("[Debug] HTML取得開始 "+sdf.format(new Date()));
+        //System.out.println("取得開始");
         final String HtmlText;
         Request request_html = new Request.Builder()
                 .url("https://www.nicovideo.jp/watch/"+id)
@@ -119,7 +120,7 @@ public class NicoVideo {
             HtmlText = response.body().string();
         } catch (IOException e) {
             //e.printStackTrace();
-            LogRedisWrite(AccessCode, "getURL:error","www.nicovideo.jp");
+            LogRedisWrite(AccessCode, "getURL:error","www.nicovideo.jp " + e.getMessage());
             return resUrl;
         }
 
@@ -132,6 +133,7 @@ public class NicoVideo {
         long time = Long.parseLong(matcher.group(1));
 
         //System.out.println("[Debug] HTML取得完了 "+sdf.format(new Date()));
+        //System.out.println("HTML取得完了");
         //System.out.println(HtmlText);
 
 

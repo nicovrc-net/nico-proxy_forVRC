@@ -225,8 +225,10 @@ public class Main {
                                 videoUrl = getLive(url, AccessCode);
                             } else if (matcher_bilibiliURL.find()) {
                                 videoUrl = Bilibili.getVideo(url, AccessCode);
+                            } else {
+                                System.out.println("Unk url "+url);
                             }
-                            System.out.println("Unk url "+url);
+
 
 
                             if (videoUrl == null || !videoUrl.startsWith("http")){
