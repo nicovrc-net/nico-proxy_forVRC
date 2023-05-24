@@ -120,7 +120,7 @@ public class NicoVideo {
             HtmlText = response.body().string();
         } catch (IOException e) {
             //e.printStackTrace();
-            LogRedisWrite(AccessCode, "getURL:error","www.nicovideo.jp " + e.getMessage());
+            LogRedisWrite(AccessCode, "getURL:error","www.nicovideo.jp " + e.getMessage() + " (Use Proxy : "+ProxyIP+")");
             return resUrl;
         }
 
@@ -372,8 +372,8 @@ public class NicoVideo {
 
         } catch (Exception e) {
             //System.out.println("[Debug] 動画情報 取得失敗 "+sdf.format(new Date()));
-            e.printStackTrace();
-            LogRedisWrite(AccessCode, "getURL:error","live.nicovideo.jp");
+            //e.printStackTrace();
+            LogRedisWrite(AccessCode, "getURL:error","live.nicovideo.jp" + e.getMessage() + " (Use Proxy : "+ProxyIP+")");
             //System.out.println("live.nicovideo.jp html error");
             return null;
         }
@@ -388,12 +388,13 @@ public class NicoVideo {
         if (!matcher.find()){
             LogRedisWrite(AccessCode, "getURL:error","live.nicovideo.jp");
             //System.out.println("live.nicovideo.jp html error");
-            System.out.println(htmlText);
+            //System.out.println(htmlText);
 
             return null;
         }
 
-        final String quality = matcher_quality.find() ? matcher_quality.group(1) : null;
+        //final String quality = matcher_quality.find() ? matcher_quality.group(1) : null;
+        final String quality = null;
 
         Request request = new Request.Builder()
                 .url("wss://"+matcher.group(1))
@@ -450,7 +451,7 @@ public class NicoVideo {
                     if (matcher.find()){
                         System.out.println("url get ok");
                         resUrl[0] = matcher.group(1);
-                        //System.out.println(resUrl[0]);
+                        System.out.println(resUrl[0]);
                     } else {
                         resUrl[0] = "not";
                         LogRedisWrite(AccessCode, "getURL:error","Live Websocket Error");
