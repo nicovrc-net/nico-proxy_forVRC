@@ -4,6 +4,7 @@ import com.amihaiemil.eoyaml.*;
 import okhttp3.*;
 import redis.clients.jedis.Protocol;
 import xyz.n7mn.lib.Bilibili;
+import xyz.n7mn.lib.NicoVideo;
 
 import java.io.*;
 import java.net.*;
@@ -13,8 +14,6 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static xyz.n7mn.lib.NicoVideo.getLive;
-import static xyz.n7mn.lib.NicoVideo.getVideo;
 import static xyz.n7mn.lib.Redis.LogRedisWrite;
 
 public class Main {
@@ -218,18 +217,16 @@ public class Main {
                             Matcher matcher_bilibiliURL = Pattern.compile("(http|https)://(www\\.bilibili\\.com|bilibili\\.com/video/)").matcher(url);
                             if (matcher_NicoVideoURL.find()){
                                 //System.out.println("video");
-                                videoUrl = getVideo(url, AccessCode);
+                                videoUrl = NicoVideo.getVideo(url, AccessCode);
                             } else if (matcher_NicoLiveURL.find()) {
                                 //System.out.println(url);
                                 //System.out.println("live");
-                                videoUrl = getLive(url, AccessCode);
+                                videoUrl = NicoVideo.getLive(url, AccessCode);
                             } else if (matcher_bilibiliURL.find()) {
                                 videoUrl = Bilibili.getVideo(url, AccessCode);
                             } else {
                                 System.out.println("Unk url "+url);
                             }
-
-
 
                             if (videoUrl == null || !videoUrl.startsWith("http")){
                                 httpResponse = "HTTP/1."+httpVersion+" 403 Forbidden\r\n" +
