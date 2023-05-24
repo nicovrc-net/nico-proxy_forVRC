@@ -13,10 +13,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -311,7 +308,7 @@ public class NicoVideo {
         return VideoURL;
     }
 
-    public static String getLive(String url, String AccessCode) {
+    public static String getLive(String url, String AccessCode, Map<String, String> LiveList) {
         //System.out.println("aa");
         // Proxy読み込み
         List<String> ProxyList = new ArrayList<>();
@@ -353,6 +350,12 @@ public class NicoVideo {
         id = id.split("\\?")[0];
 
         //System.out.println("[Debug] ID: " + id + " "+sdf.format(new Date()));
+        // 無駄にアクセスしないようにすでに接続されてたらそれを返す
+        if (LiveList.get(id) != null){
+            System.out.println("Cache : "+LiveList.get(id));
+            LogRedisWrite(AccessCode, "getURL:success", LiveList.get(id));
+            return LiveList.get(id);
+        }
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         String[] split = ProxyList.get(new SecureRandom().nextInt(0, ProxyList.size())).split(":");
@@ -392,9 +395,6 @@ public class NicoVideo {
 
             return null;
         }
-
-        //final String quality = matcher_quality.find() ? matcher_quality.group(1) : null;
-        final String quality = null;
 
         Request request = new Request.Builder()
                 .url("wss://"+matcher.group(1))
@@ -469,12 +469,7 @@ public class NicoVideo {
             @Override
             public void onOpen(@NotNull WebSocket webSocket, @NotNull Response response) {
                 //System.out.println("websocket open");
-                if (quality == null){
-                    webSocket.send("{\"type\":\"startWatching\",\"data\":{\"stream\":{\"quality\":\"abr\",\"protocol\":\"hls\",\"latency\":\"low\",\"chasePlay\":false},\"room\":{\"protocol\":\"webSocket\",\"commentable\":true},\"reconnect\":false}}");
-                } else {
-                    webSocket.send("{\"type\":\"startWatching\",\"data\":{\"stream\":{\"quality\":\""+quality+"\",\"protocol\":\"hls\",\"latency\":\"low\",\"chasePlay\":false},\"room\":{\"protocol\":\"webSocket\",\"commentable\":true},\"reconnect\":false}}");
-                }
-
+                webSocket.send("{\"type\":\"startWatching\",\"data\":{\"stream\":{\"quality\":\"abr\",\"protocol\":\"hls\",\"latency\":\"low\",\"chasePlay\":false},\"room\":{\"protocol\":\"webSocket\",\"commentable\":true},\"reconnect\":false}}");
             }
         });
 
@@ -482,6 +477,8 @@ public class NicoVideo {
         while (!isFound){
             isFound = !resUrl[0].startsWith("loading...");
         }
+
+        LiveList.put(id, resUrl[0]);
         //System.out.println("成功 : "+ resUrl[0]);
         LogRedisWrite(AccessCode, "getURL:success", resUrl[0]);
 
