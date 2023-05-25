@@ -176,11 +176,31 @@ public class NicoVideo {
 
         //System.out.println("[Debug] JSON生成開始 "+ sdf.format(new Date()));
 
-        Matcher matcher4 = Pattern.compile("archive_h264_600kbps_360p").matcher(HtmlText);
-        Matcher matcher5 = Pattern.compile("archive_h264_300kbps_360p").matcher(HtmlText);
+        Matcher matcher_video600 = Pattern.compile("archive_h264_600kbps_360p").matcher(HtmlText);
+        Matcher matcher_video400 = Pattern.compile("archive_h264_400kbps_360p").matcher(HtmlText);
+        Matcher matcher_video200 = Pattern.compile("archive_h264_200kbps_360p").matcher(HtmlText);
+        Matcher matcher_video360p = Pattern.compile("archive_h264_300kbps_360p").matcher(HtmlText);
         Matcher matcher_http = Pattern.compile("&quot;http&quot;").matcher(HtmlText);
 
-        String json = "{\"session\":{\"recipe_id\":\"nicovideo-"+id+"\",\"content_id\":\"out1\",\"content_type\":\"movie\",\"content_src_id_sets\":[{\"content_src_ids\":[{\"src_id_to_mux\":{\"video_src_ids\":["+(matcher5.find() ? "\"archive_h264_300kbps_360p\"" : (matcher4.find() ? "\"archive_h264_600kbps_360p\",\"archive_h264_300kbps_360p\"" : "\"archive_h264_360p\",\"archive_h264_360p_low\""))+"],\"audio_src_ids\":[\"archive_aac_64kbps\"]}}]}],\"timing_constraint\":\"unlimited\",\"keep_method\":{\"heartbeat\":{\"lifetime\":120000}},\"protocol\":{\"name\":\"http\",\"parameters\":{\"http_parameters\":{\"parameters\":{\"http_output_download_parameters\":{\"use_well_known_port\":\"yes\",\"use_ssl\":\"yes\",\"transfer_preset\":\"\"}}}}},\"content_uri\":\"\",\"session_operation_auth\":{\"session_operation_auth_by_signature\":{\"token\":\""+Token+"\",\"signature\":\""+Signature+"\"}},\"content_auth\":{\"auth_type\":\"ht2\",\"content_key_timeout\":600000,\"service_id\":\"nicovideo\",\"service_user_id\":\""+SessionId+"\"},\"client_info\":{\"player_id\":\"nicovideo-"+SessionId+"\"},\"priority\":0"+(id.startsWith("so") ? ".2" : "")+"}}";
+        StringBuffer video_src = new StringBuffer();
+        if (matcher_video600.find()){
+            video_src.append("\"archive_h264_600kbps_360p\",");
+        }
+        if (matcher_video400.find()){
+            video_src.append("\"archive_h264_400kbps_360p\",");
+        }
+        if (matcher_video200.find()){
+            video_src.append("\"archive_h264_200kbps_360p\",");
+        }
+        if (matcher_video360p.find()){
+            video_src.append("\"archive_h264_300kbps_360p\",");
+        }
+
+        String s1 = video_src.substring(0, video_src.length() - 1);
+        //System.out.println(s1);
+
+        String json = "{\"session\":{\"recipe_id\":\"nicovideo-"+id+"\",\"content_id\":\"out1\",\"content_type\":\"movie\",\"content_src_id_sets\":[{\"content_src_ids\":[{\"src_id_to_mux\":{\"video_src_ids\":["+s1+"],\"audio_src_ids\":[\"archive_aac_64kbps\"]}}]}],\"timing_constraint\":\"unlimited\",\"keep_method\":{\"heartbeat\":{\"lifetime\":120000}},\"protocol\":{\"name\":\"http\",\"parameters\":{\"http_parameters\":{\"parameters\":{\"http_output_download_parameters\":{\"use_well_known_port\":\"yes\",\"use_ssl\":\"yes\",\"transfer_preset\":\"\"}}}}},\"content_uri\":\"\",\"session_operation_auth\":{\"session_operation_auth_by_signature\":{\"token\":\""+Token+"\",\"signature\":\""+Signature+"\"}},\"content_auth\":{\"auth_type\":\"ht2\",\"content_key_timeout\":600000,\"service_id\":\"nicovideo\",\"service_user_id\":\""+SessionId+"\"},\"client_info\":{\"player_id\":\"nicovideo-"+SessionId+"\"},\"priority\":0"+(id.startsWith("so") ? ".2" : "")+"}}";
+
         if (!matcher_http.find()){
             Matcher matcher_hls1 = Pattern.compile("hls_encrypted_key\\\\&quot;:\\\\&quot;(.*)\\\\&quot;}&quot;,&quot;signature").matcher(HtmlText);
             Matcher matcher_hls2 = Pattern.compile("&quot;keyUri&quot;:&quot;(.*)&quot;},&quot;movie").matcher(HtmlText);
