@@ -86,7 +86,7 @@ public class NicoVideo {
 
         // 無駄にアクセスしないようにすでに接続されてたらそれを返す
         String s = LogRedisRead("nico-proxy:log:video-nico:" + id);
-        if (s != null && s.length() > 0){
+        if (s != null && s.startsWith("http")){
             //System.out.println("Cache : "+s);
             LogRedisWrite(AccessCode, "getURL:success", s);
             return s;
@@ -178,26 +178,34 @@ public class NicoVideo {
 
         Matcher matcher_video600 = Pattern.compile("archive_h264_600kbps_360p").matcher(HtmlText);
         Matcher matcher_video400 = Pattern.compile("archive_h264_400kbps_360p").matcher(HtmlText);
+        Matcher matcher_video300 = Pattern.compile("archive_h264_300kbps_360p").matcher(HtmlText);
         Matcher matcher_video200 = Pattern.compile("archive_h264_200kbps_360p").matcher(HtmlText);
-        Matcher matcher_video360p = Pattern.compile("archive_h264_300kbps_360p").matcher(HtmlText);
+        Matcher matcher_video360p = Pattern.compile("archive_h264_360p").matcher(HtmlText);
+
         Matcher matcher_http = Pattern.compile("&quot;http&quot;").matcher(HtmlText);
 
-        StringBuffer video_src = new StringBuffer();
+        StringBuffer video_src = new StringBuffer("");
         if (matcher_video600.find()){
             video_src.append("\"archive_h264_600kbps_360p\",");
         }
         if (matcher_video400.find()){
             video_src.append("\"archive_h264_400kbps_360p\",");
         }
+        if (matcher_video300.find()){
+            video_src.append("\"archive_h264_300kbps_360p\",");
+        }
         if (matcher_video200.find()){
             video_src.append("\"archive_h264_200kbps_360p\",");
         }
         if (matcher_video360p.find()){
-            video_src.append("\"archive_h264_300kbps_360p\",");
+            video_src.append("\"archive_h264_360p\",\"archive_h264_360p_low\",");
+        }
+        if (video_src.length() == 0){
+            video_src.append(",");
         }
 
         String s1 = video_src.substring(0, video_src.length() - 1);
-        //System.out.println(s1);
+        System.out.println(s1);
 
         String json = "{\"session\":{\"recipe_id\":\"nicovideo-"+id+"\",\"content_id\":\"out1\",\"content_type\":\"movie\",\"content_src_id_sets\":[{\"content_src_ids\":[{\"src_id_to_mux\":{\"video_src_ids\":["+s1+"],\"audio_src_ids\":[\"archive_aac_64kbps\"]}}]}],\"timing_constraint\":\"unlimited\",\"keep_method\":{\"heartbeat\":{\"lifetime\":120000}},\"protocol\":{\"name\":\"http\",\"parameters\":{\"http_parameters\":{\"parameters\":{\"http_output_download_parameters\":{\"use_well_known_port\":\"yes\",\"use_ssl\":\"yes\",\"transfer_preset\":\"\"}}}}},\"content_uri\":\"\",\"session_operation_auth\":{\"session_operation_auth_by_signature\":{\"token\":\""+Token+"\",\"signature\":\""+Signature+"\"}},\"content_auth\":{\"auth_type\":\"ht2\",\"content_key_timeout\":600000,\"service_id\":\"nicovideo\",\"service_user_id\":\""+SessionId+"\"},\"client_info\":{\"player_id\":\"nicovideo-"+SessionId+"\"},\"priority\":0"+(id.startsWith("so") ? ".2" : "")+"}}";
 
