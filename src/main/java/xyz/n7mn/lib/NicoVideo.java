@@ -198,7 +198,8 @@ public class NicoVideo {
             video_src.append("\"archive_h264_200kbps_360p\",");
         }
         if (matcher_video360p.find()){
-            video_src.append("\"archive_h264_360p\",\"archive_h264_360p_low\",");
+            video_src.append("\"archive_h264_360p\",");
+            video_src.append("\"archive_h264_360p_low\",");
         }
         if (video_src.length() == 0){
             video_src.append(",");
