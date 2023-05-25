@@ -82,8 +82,15 @@ public class NicoVideo {
         url = url.replaceAll("http://nico.7mi.site/proxy/\\?","").replaceAll("https://nico.7mi.site/proxy/\\?","").replaceAll("nico.7mi.site/proxy/\\?","");
 
         // 送られてきたURLを一旦IDだけにする
-        String id = url.replaceAll("http://sp.nicovideo.jp/watch/","").replaceAll("https://sp.nicovideo.jp/watch/","").replaceAll("http://nicovideo.jp/watch/","").replaceAll("https://nicovideo.jp/watch/","").replaceAll("http://www.nicovideo.jp/watch/","").replaceAll("https://www.nicovideo.jp/watch/","").replaceAll("http://nico.ms/","").replaceAll("https://nico.ms/","");
-        id = id.split("\\?")[0];
+        final String id = url.replaceAll("http://sp.nicovideo.jp/watch/","").replaceAll("https://sp.nicovideo.jp/watch/","").replaceAll("http://nicovideo.jp/watch/","").replaceAll("https://nicovideo.jp/watch/","").replaceAll("http://www.nicovideo.jp/watch/","").replaceAll("https://www.nicovideo.jp/watch/","").replaceAll("http://nico.ms/","").replaceAll("https://nico.ms/","").split("\\?")[0];
+
+        // 無駄にアクセスしないようにすでに接続されてたらそれを返す
+        String s = LogRedisRead("nico-proxy:log:video-nico:" + id);
+        if (s != null && s.length() > 0){
+            //System.out.println("Cache : "+s);
+            LogRedisWrite(AccessCode, "getURL:success", s);
+            return s;
+        }
 
         //System.out.println("[Debug] ID: " + id + " "+sdf.format(new Date()));
 
@@ -234,6 +241,8 @@ public class NicoVideo {
         Matcher video_matcher = Pattern.compile("\"content_uri\":\"(.*)\",\"session_operation_auth").matcher(ResponseJson);
         if (video_matcher.find()){
             VideoURL = video_matcher.group(1).replaceAll("\\\\","");
+
+            LogRedisWrite(id, "video-nico", VideoURL);
             //System.out.println("[Debug] 動画URL : "+VideoURL+" "+sdf.format(new Date()));
         }
 
@@ -265,6 +274,7 @@ public class NicoVideo {
         String finalHeartBeatSession = HeartBeatSession;
         String finalHeartBeatSessionId = HeartBeatSessionId;
 
+
         new Thread(()->{
             Timer timer = new Timer();
 
@@ -295,6 +305,8 @@ public class NicoVideo {
                     System.gc();
 
                     if (i[0] >= maxCount){
+
+                        LogRedisDelete("nico-proxy:log:video-nico:"+id);
                         timer.cancel();
                     }
 
@@ -352,7 +364,7 @@ public class NicoVideo {
         // 無駄にアクセスしないようにすでに接続されてたらそれを返す
         String s = LogRedisRead("nico-proxy:log:live-nico:" + id);
         if (s != null && s.length() > 0){
-            System.out.println("Cache : "+s);
+            //System.out.println("Cache : "+s);
             LogRedisWrite(AccessCode, "getURL:success", s);
             return s;
         }
@@ -404,14 +416,11 @@ public class NicoVideo {
         client.newWebSocket(request, new WebSocketListener() {
             @Override
             public void onClosed(@NotNull WebSocket webSocket, int code, @NotNull String reason) {
-                super.onClosed(webSocket, code, reason);
+                //super.onClosed(webSocket, code, reason);
                 //System.out.println("---- reason text ----");
                 //System.out.println(reason);
                 //System.out.println("---- reason text ----");
-                String s = LogRedisRead("nico-proxy:log:live-nico:" + id);
-                if (s != null){
-                    LogRedisDelete("nico-proxy:log:live-nico:" + id);
-                }
+                LogRedisDelete("nico-proxy:log:live-nico:" + id);
             }
 
             @Override
