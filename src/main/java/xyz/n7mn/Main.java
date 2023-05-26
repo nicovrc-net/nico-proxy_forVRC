@@ -9,6 +9,7 @@ import xyz.n7mn.lib.NicoVideo;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -205,8 +206,15 @@ public class Main {
                         Matcher matcher1 = Pattern.compile("GET /\\?vi=(.*) HTTP").matcher(text);
                         Matcher matcher2 = Pattern.compile("HTTP/1\\.(\\d)").matcher(text);
                         String httpResponse;
+                        byte[] binary = new byte[1000000000];
 
                         String httpVersion = matcher2.find() ? matcher2.group(1) : "1";
+                        Matcher matcher = Pattern.compile("Host: (.*)\r\n").matcher(RequestHttp);
+                        String host = "localhost:"+ResponsePort;
+                        if (matcher.find()){
+                            host = matcher.group(1);
+                        }
+
                         if (matcher1.find()){
 
                             // "https://www.nicovideo.jp/watch/sm10759623"
@@ -215,6 +223,7 @@ public class Main {
                             Matcher matcher_NicoVideoURL = Pattern.compile("(http|https)://(www\\.nicovideo\\.jp|nicovideo\\.jp/watch/(sm|nm|so)|sp\\.nicovideo\\.jp/watch/|nico\\.ms/(sm|nm|so))").matcher(url);
                             Matcher matcher_NicoLiveURL = Pattern.compile("(http|https)://(live\\.nicovideo\\.jp|nicovideo\\.jp/watch/(lv)|sp\\.live\\.nicovideo\\.jp/watch/|nico\\.ms/lv)").matcher(url);
                             Matcher matcher_bilibiliURL = Pattern.compile("(http|https)://(www\\.bilibili\\.com|bilibili\\.com/video/)").matcher(url);
+                            Matcher matcher_m3u8 = Pattern.compile("(\\.m3u8|\\.ts)").matcher(url);
                             if (matcher_NicoVideoURL.find()){
                                 //System.out.println("video");
                                 videoUrl = NicoVideo.getVideo(url, AccessCode);
@@ -223,7 +232,25 @@ public class Main {
                                 //System.out.println("live");
                                 videoUrl = NicoVideo.getLive(url, AccessCode);
                             } else if (matcher_bilibiliURL.find()) {
-                                videoUrl = Bilibili.getVideo(url, AccessCode);
+                                videoUrl = Bilibili.getVideo(url, AccessCode, host);
+ /*                           } else if (matcher_m3u8.find()) {
+                                File file = new File("./"+url);
+                                if (file.exists()){
+                                    binary = Files.readAllBytes(file.toPath());
+                                    byte[] bytes;
+                                    if (binary.length > 0){
+                                        bytes = new byte[binary.length];
+                                    } else {
+                                        bytes = new byte[0];
+                                    }
+
+                                    Matcher matcher_m3u8_m3 = Pattern.compile("\\.m3u8").matcher(url);
+                                    httpResponse = "HTTP/1."+httpVersion + "200 OK\r\n" +
+                                            "date: "+ new Date() +"\r\n" +
+                                            "content-type: "+(matcher_m3u8_m3.find() ? "application/vnd.apple.mpegurl\n" : "video/mp2t\n")+"\r\n" +
+                                            "content-length: "+binary.length+"\r\n" +
+                                            "\r\n\r\n";
+                                }*/
                             } else {
                                 System.out.println("Unk url "+url);
                             }
@@ -234,12 +261,6 @@ public class Main {
                                         "content-type: text/plain\r\n\r\n" +
                                         "403\r\n";
                             } else {
-
-                                Matcher matcher = Pattern.compile("Host: (.*)\r\n").matcher(RequestHttp);
-                                String host = "localhost:"+ResponsePort;
-                                if (matcher.find()){
-                                    host = matcher.group(1);
-                                }
 
                                 httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
                                         "Host: "+host+"\n" +
@@ -256,6 +277,9 @@ public class Main {
                                     "403\r\n";
                         }
                         out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
+                        if (binary.length > 0){
+                            out.write(binary);
+                        }
                         out.flush();
 
 

@@ -24,7 +24,7 @@ public class Bilibili {
 
     private static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
 
-    public static String getVideo(String url, String AccessCode){
+    public static String getVideo(String url, String AccessCode, String host){
 
         System.gc();
 
@@ -64,68 +64,96 @@ public class Bilibili {
 
         // https://www.bilibili.com/video/BV1H24y1L7m6/
 
-        // IDだけにする
-        String s = url.split("\\?")[0];
-        String[] strings = s.split("/");
-        String id = strings[strings.length - 1];
-        if (id.length() == 0){
-            id = strings[strings.length - 2];
+        Matcher com = Pattern.compile("bilibili\\.com").matcher(url);
+        Matcher tv = Pattern.compile("bilibili\\.tv").matcher(url);
+        if (com.find()){
+            // IDだけにする
+            String s = url.split("\\?")[0];
+            String[] strings = s.split("/");
+            String id = strings[strings.length - 1];
+            if (id.length() == 0){
+                id = strings[strings.length - 2];
+            }
+
+            //System.out.println("debug id : "+id);
+
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            String[] split = ProxyList_video.get(new SecureRandom().nextInt(0, ProxyList_video.size())).split(":");
+
+            String ProxyIP = split[0];
+            int ProxyPort = Integer.parseInt(split[1]);
+
+
+            final OkHttpClient client = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyIP, ProxyPort))).build();
+            final String HtmlText;
+            Request request_html = new Request.Builder()
+                    .url("https://api.bilibili.com/x/web-interface/view?bvid="+id)
+                    .build();
+
+            try {
+                Response response = client.newCall(request_html).execute();
+                HtmlText = response.body().string();
+            } catch (IOException e) {
+                e.printStackTrace();
+                LogRedisWrite(AccessCode, "getURL:error","api.bilibili.com (get cid)");
+                return VideoURL;
+            }
+
+            //
+            Matcher matcher = Pattern.compile("\"cid\":(\\d+),").matcher(HtmlText);
+            if (!matcher.find()){
+                LogRedisWrite(AccessCode, "getURL:error","api.bilibili.com (not found cid)");
+                return VideoURL;
+            }
+
+            String cid = matcher.group(1);
+
+            //System.out.println(cid);
+
+            final String ResultText;
+            Request request_api = new Request.Builder()
+                    .url("https://api.bilibili.com/x/player/playurl?bvid="+id+"&cid="+cid)
+                    .build();
+
+            try {
+                Response response2 = client.newCall(request_api).execute();
+                ResultText = response2.body().string();
+            } catch (IOException e) {
+                e.printStackTrace();
+                LogRedisWrite(AccessCode, "getURL:error","api.bilibili.com (get videoURL)");
+                return VideoURL;
+            }
+
+            Matcher matcher2 = Pattern.compile("\"url\":\"(.*)\",\"backup_url\"").matcher(ResultText);
+            if (matcher2.find()){
+                VideoURL = matcher2.group(1).replaceAll("\\\\u0026","&");
+            }
         }
+/*
+        if (tv.find()){
+            // https://www.bilibili.tv/en/video/4786094886751232
+            String s = url.split("\\?")[0];
+            String[] strings = s.split("/");
+            String id = strings[strings.length - 1];
+            if (id.length() == 0){
+                id = strings[strings.length - 2];
+            }
 
-        //System.out.println("debug id : "+id);
+            if (new File("./temp/"+id+".m3u8").exists()){
+               return "http:///?vi="+id+".m3u8";
+            }
 
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        String[] split = ProxyList_video.get(new SecureRandom().nextInt(0, ProxyList_video.size())).split(":");
+            //
+            final String ResultText;
+            Request api = new Request.Builder()
+                    .url("https://api.bilibili.tv/intl/gateway/web/playurl?s_locale=en_US&platform=web&aid="+id)
+                    .build();
 
-        String ProxyIP = split[0];
-        int ProxyPort = Integer.parseInt(split[1]);
 
+            VideoURL = "./";
 
-        final OkHttpClient client = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyIP, ProxyPort))).build();
-        final String HtmlText;
-        Request request_html = new Request.Builder()
-                .url("https://api.bilibili.com/x/web-interface/view?bvid="+id)
-                .build();
-
-        try {
-            Response response = client.newCall(request_html).execute();
-            HtmlText = response.body().string();
-        } catch (IOException e) {
-            e.printStackTrace();
-            LogRedisWrite(AccessCode, "getURL:error","api.bilibili.com (get cid)");
-            return VideoURL;
         }
-
-        //
-        Matcher matcher = Pattern.compile("\"cid\":(\\d+),").matcher(HtmlText);
-        if (!matcher.find()){
-            LogRedisWrite(AccessCode, "getURL:error","api.bilibili.com (not found cid)");
-            return VideoURL;
-        }
-
-        String cid = matcher.group(1);
-
-        //System.out.println(cid);
-
-        final String ResultText;
-        Request request_api = new Request.Builder()
-                .url("https://api.bilibili.com/x/player/playurl?bvid="+id+"&cid="+cid)
-                .build();
-
-        try {
-            Response response2 = client.newCall(request_api).execute();
-            ResultText = response2.body().string();
-        } catch (IOException e) {
-            e.printStackTrace();
-            LogRedisWrite(AccessCode, "getURL:error","api.bilibili.com (get videoURL)");
-            return VideoURL;
-        }
-
-        Matcher matcher2 = Pattern.compile("\"url\":\"(.*)\",\"backup_url\"").matcher(ResultText);
-        if (matcher2.find()){
-            VideoURL = matcher2.group(1).replaceAll("\\\\u0026","&");
-        }
-
+*/
         //System.out.println(VideoURL);
         return VideoURL;
 
