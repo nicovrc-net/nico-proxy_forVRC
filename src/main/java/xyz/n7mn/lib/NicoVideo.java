@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.security.SecureRandom;
+import java.sql.Time;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -420,6 +421,7 @@ public class NicoVideo {
         resUrl[0] = "loading...";
 
         client.newWebSocket(request, new WebSocketListener() {
+            private Timer timer = new Timer();
             @Override
             public void onClosed(@NotNull WebSocket webSocket, int code, @NotNull String reason) {
                 //super.onClosed(webSocket, code, reason);
@@ -441,9 +443,9 @@ public class NicoVideo {
 
             @Override
             public void onMessage(@NotNull WebSocket webSocket, @NotNull String text) {
-                //System.out.println("---- result text ----");
-                //System.out.println(text);
-                //System.out.println("---- result text ----");
+                System.out.println("---- result text ----");
+                System.out.println(text);
+                System.out.println("---- result text ----");
 
                 if (text.startsWith("{\"type\":\"serverTime\",\"data\":{")){
                     webSocket.send("{\"type\":\"getEventState\",\"data\":{}}");
@@ -459,8 +461,20 @@ public class NicoVideo {
                 }
 
                 if (text.startsWith("{\"type\":\"statistics\",\"data\":{")){
-                    webSocket.send("{\"type\":\"keepSeat\"}");
+
+                    timer.scheduleAtFixedRate(new TimerTask() {
+                        @Override
+                        public void run() {
+                            webSocket.send("{\"type\":\"keepSeat\"}");
+                        }
+                    }, 0L, 30000L);
                     //System.out.println("{\"type\":\"keepSeat\"}");
+                }
+
+                if (text.startsWith("{\"type\":\"disconnect\"")){
+                    LogRedisDelete("nico-proxy:log:live-nico:" + id);
+                    webSocket.cancel();
+                    timer.cancel();
                 }
 
                 Matcher matcherData = Pattern.compile("\\{\"type\":\"stream\",\"data\":\\{\"uri\":\"https://").matcher(text);
