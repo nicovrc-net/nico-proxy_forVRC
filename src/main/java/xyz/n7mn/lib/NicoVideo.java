@@ -449,25 +449,26 @@ public class NicoVideo {
 
                 if (text.startsWith("{\"type\":\"serverTime\",\"data\":{")){
                     webSocket.send("{\"type\":\"getEventState\",\"data\":{}}");
-                    //System.out.println("{\"type\":\"getEventState\",\"data\":{}}");
+                    System.out.println("{\"type\":\"getEventState\",\"data\":{}}");
                 }
                 if (text.startsWith("{\"type\":\"eventState\",\"data\":{\"commentState\":{\"locked\":false,\"layout\":\"normal\"}}}")){
                     webSocket.send("{\"type\":\"getAkashic\",\"data\":{\"chasePlay\":false}}");
-                    //System.out.println("{\"type\":\"getAkashic\",\"data\":{\"chasePlay\":false}}");
+                    System.out.println("{\"type\":\"getAkashic\",\"data\":{\"chasePlay\":false}}");
                 }
 
                 if (text.equals("{\"type\":\"ping\"}")){
                     webSocket.send("{\"type\":\"pong\"}");
                 }
 
-                if (text.startsWith("{\"type\":\"statistics\",\"data\":{")){
+                if (text.startsWith("{\"type\":\"seat\",\"data\":{\"keepIntervalSec\":30}}")){
 
                     timer.scheduleAtFixedRate(new TimerTask() {
                         @Override
                         public void run() {
                             webSocket.send("{\"type\":\"keepSeat\"}");
+                            System.out.println("{\"type\":\"keepSeat\"}");
                         }
-                    }, 0L, 30000L);
+                    }, 30000L, 30000L);
                     //System.out.println("{\"type\":\"keepSeat\"}");
                 }
 
