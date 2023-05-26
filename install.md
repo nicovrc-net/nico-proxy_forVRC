@@ -2,8 +2,12 @@
 - config系ファイルは自動生成させるため無いものとする
 ## 事前準備
 ### Proxyサーバー (Squid)をインストール
-- ソースコードからビルドする (この場合 v5だけど バージョンはお好み)
+- ソースコードからビルドする (この場合 v5だけど バージョンはお好み。squidユーザーを別途作るのでsudoできるユーザーで実行すること)
 ```
+sudo useradd -m -U -s /bin/bash squid
+mkdir -p /opt/squid/log
+sudo chown -R squid:squid /opt/squid
+
 git clone https://github.com/squid-cache/squid.git
 cd squid
 git checkout v5
@@ -19,7 +23,7 @@ sudo make install
 http_access deny CONNECT !SSL_ports
 http_access deny all
 ```
-- squidを起動しておく (`/opt/squid/sbin/squid`で起動する。常時起動させる場合は別途調べて)
+- squidを起動しておく (squidユーザーになって`/opt/squid/sbin/squid`で起動する。常時起動させる場合は別途調べて)
 
 - Java17以上を入れる
 ```
