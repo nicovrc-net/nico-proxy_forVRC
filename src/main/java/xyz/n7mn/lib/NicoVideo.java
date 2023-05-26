@@ -443,17 +443,17 @@ public class NicoVideo {
 
             @Override
             public void onMessage(@NotNull WebSocket webSocket, @NotNull String text) {
-                System.out.println("---- result text ----");
-                System.out.println(text);
-                System.out.println("---- result text ----");
+                //System.out.println("---- result text ----");
+                //System.out.println(text);
+                //System.out.println("---- result text ----");
 
                 if (text.startsWith("{\"type\":\"serverTime\",\"data\":{")){
                     webSocket.send("{\"type\":\"getEventState\",\"data\":{}}");
-                    System.out.println("{\"type\":\"getEventState\",\"data\":{}}");
+                    //System.out.println("{\"type\":\"getEventState\",\"data\":{}}");
                 }
                 if (text.startsWith("{\"type\":\"eventState\",\"data\":{\"commentState\":{\"locked\":false,\"layout\":\"normal\"}}}")){
                     webSocket.send("{\"type\":\"getAkashic\",\"data\":{\"chasePlay\":false}}");
-                    System.out.println("{\"type\":\"getAkashic\",\"data\":{\"chasePlay\":false}}");
+                    //System.out.println("{\"type\":\"getAkashic\",\"data\":{\"chasePlay\":false}}");
                 }
 
                 if (text.equals("{\"type\":\"ping\"}")){
