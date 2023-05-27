@@ -47,7 +47,7 @@ public class Bilibili {
             return null;
         }
 
-        YamlSequence list = ConfigYaml.yamlSequence("VideoProxy");
+        YamlSequence list = ConfigYaml.yamlSequence("OfficialProxy");
         for (int i = 0; i < list.size(); i++){
             ProxyList_video.add(list.string(i));
         }
@@ -139,12 +139,9 @@ public class Bilibili {
             if (id.length() == 0){
                 id = strings[strings.length - 2];
             }
-
-            if (new File("./temp/"+id+".m3u8").exists()){
-               return "http:///?vi="+id+".m3u8";
-            }
-
-            //
+            Request html = new Request.Builder()
+                    .url("https://www.bilibili.tv/en/video/"+id)
+                    .build();
             Request api = new Request.Builder()
                     .url("https://api.bilibili.tv/intl/gateway/web/playurl?s_locale=en_US&platform=web&aid="+id)
                     .build();
@@ -155,26 +152,56 @@ public class Bilibili {
             String ProxyIP = split[0];
             int ProxyPort = Integer.parseInt(split[1]);
 
-            final OkHttpClient client = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyIP, ProxyPort))).build();
+            //final OkHttpClient client = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyIP, ProxyPort))).build();
+            final OkHttpClient client = new OkHttpClient();
             final String JsonText;
             String tempText;
 
             try {
-                Response response = client.newCall(api).execute();
-                tempText = response.body().string();
+                Response response1 = client.newCall(html).execute();
+                response1.close();
+                Response response2 = client.newCall(api).execute();
+                tempText = response2.body().string();
+                response2.close();
             } catch (Exception e){
                 tempText = "";
+                e.printStackTrace();
                 LogRedisWrite(AccessCode, "getURL:error","api.bilibili.tv "+ e.getMessage() + "(Use Proxy : "+ProxyIP+")");
+                return null;
             }
             JsonText = tempText;
 
             BilibiliTvData data = new Gson().fromJson(JsonText, BilibiliTvData.class);
+            if (data.getData() == null){
+                System.out.println(JsonText);
+                return null;
+            }
             String videoURL = data.getData().getPlayurl().getVideo()[0].getVideo_resource().getUrl();
             String audioURL = data.getData().getPlayurl().getAudio_resource()[0].getUrl();
 
-            LogRedisWrite(AccessCode, "getURL:success", videoURL);
+            Request m3u8 = new Request.Builder()
+                    .url("https://nico.7mi.site/m3u8/?vi="+videoURL+"&music="+audioURL)
+                    .build();
 
-            return videoURL;
+            String URL = null;
+            try {
+                //System.out.println("https://nico.7mi.site/m3u8/?vi="+videoURL+"&music="+audioURL);
+
+                Response response = client.newCall(m3u8).execute();
+                String s1 = response.body().string();
+
+                URL = "https://nico.7mi.site/m3u8/video_"+s1+".m3u8";
+
+            } catch (Exception e){
+                e.printStackTrace();
+                return null;
+            }
+
+            //System.out.println("https://nico.7mi.site/m3u8/?vi="+videoURL+"&music="+audioURL);
+            System.out.println(URL);
+            LogRedisWrite(AccessCode, "getURL:success", URL);
+
+            return URL;
 
         }
 
