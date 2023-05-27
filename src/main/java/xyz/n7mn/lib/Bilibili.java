@@ -3,6 +3,7 @@ package xyz.n7mn.lib;
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlSequence;
+import com.google.gson.Gson;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -129,7 +130,7 @@ public class Bilibili {
                 VideoURL = matcher2.group(1).replaceAll("\\\\u0026","&");
             }
         }
-/*
+
         if (tv.find()){
             // https://www.bilibili.tv/en/video/4786094886751232
             String s = url.split("\\?")[0];
@@ -144,16 +145,39 @@ public class Bilibili {
             }
 
             //
-            final String ResultText;
             Request api = new Request.Builder()
                     .url("https://api.bilibili.tv/intl/gateway/web/playurl?s_locale=en_US&platform=web&aid="+id)
                     .build();
 
+            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            String[] split = ProxyList_video.get(new SecureRandom().nextInt(0, ProxyList_video.size())).split(":");
 
-            VideoURL = "./";
+            String ProxyIP = split[0];
+            int ProxyPort = Integer.parseInt(split[1]);
+
+            final OkHttpClient client = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyIP, ProxyPort))).build();
+            final String JsonText;
+            String tempText;
+
+            try {
+                Response response = client.newCall(api).execute();
+                tempText = response.body().string();
+            } catch (Exception e){
+                tempText = "";
+                LogRedisWrite(AccessCode, "getURL:error","api.bilibili.tv "+ e.getMessage() + "(Use Proxy : "+ProxyIP+")");
+            }
+            JsonText = tempText;
+
+            BilibiliTvData data = new Gson().fromJson(JsonText, BilibiliTvData.class);
+            String videoURL = data.getData().getPlayurl().getVideo()[0].getVideo_resource().getUrl();
+            String audioURL = data.getData().getPlayurl().getAudio_resource()[0].getUrl();
+
+            LogRedisWrite(AccessCode, "getURL:success", videoURL);
+
+            return videoURL;
 
         }
-*/
+
         //System.out.println(VideoURL);
         return VideoURL;
 
