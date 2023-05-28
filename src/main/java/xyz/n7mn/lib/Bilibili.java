@@ -72,7 +72,7 @@ public class Bilibili {
             String s = url.split("\\?")[0];
             String[] strings = s.split("/");
             String id = strings[strings.length - 1];
-            if (id.length() == 0){
+            if (id.length() == 0 || id.startsWith("?")){
                 id = strings[strings.length - 2];
             }
 
@@ -198,7 +198,7 @@ public class Bilibili {
             }
 
             //System.out.println("https://nico.7mi.site/m3u8/?vi="+videoURL+"&music="+audioURL);
-            System.out.println(URL);
+            //System.out.println(URL);
             LogRedisWrite(AccessCode, "getURL:success", URL);
 
             return URL;
