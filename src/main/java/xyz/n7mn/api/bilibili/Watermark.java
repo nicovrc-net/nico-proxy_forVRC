@@ -1,4 +1,4 @@
-package xyz.n7mn.lib.bilibili;
+package xyz.n7mn.api.bilibili;
 
 public class Watermark {
     private String image;

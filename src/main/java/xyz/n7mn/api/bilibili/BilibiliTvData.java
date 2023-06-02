@@ -1,6 +1,6 @@
-package xyz.n7mn.lib;
+package xyz.n7mn.api.bilibili;
 
-import xyz.n7mn.lib.bilibili.Data;
+import xyz.n7mn.api.bilibili.Data;
 
 public class BilibiliTvData {
 

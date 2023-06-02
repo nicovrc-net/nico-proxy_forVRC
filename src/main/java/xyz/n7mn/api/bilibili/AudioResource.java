@@ -1,13 +1,13 @@
-package xyz.n7mn.lib.bilibili;
+package xyz.n7mn.api.bilibili;
 
-public class VideoResource {
+public class AudioResource {
 
     private String id;
     private int quality;
     private int bandwidth;
     private int codec_id;
     private int duration;
-    private long size;
+    private int size;
     private String md5;
     private String url;
     private String backup_url;
@@ -61,11 +61,11 @@ public class VideoResource {
         this.duration = duration;
     }
 
-    public long getSize() {
+    public int getSize() {
         return size;
     }
 
-    public void setSize(long size) {
+    public void setSize(int size) {
         this.size = size;
     }
 
