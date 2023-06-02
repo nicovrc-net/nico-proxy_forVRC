@@ -17,6 +17,8 @@ PingHTTPPort: 25280
 # 同期用 (このjavaプログラムを1つ動かすだけならば設定不要。
 # 2つ以上動かす場合は1つだけ「-:(任意ポート)」にして他は1つの動いている「IPアドレス:(任意ポート)」と設定する) 
 Master: "-:22552"
+# ログをRedisに書き出すときはTrue
+LogToRedis: False
 ```
 - config-proxy.yml
 ```

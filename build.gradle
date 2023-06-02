@@ -8,6 +8,8 @@ version "1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
+
+    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -19,6 +21,8 @@ dependencies {
 
     implementation 'redis.clients:jedis:5.0.0-alpha2'
     implementation 'com.google.code.gson:gson:2.10.1'
+
+    implementation 'com.github.7mi-site:nico-proxy:f5b80d879e'
 }
 
 tasks.test {

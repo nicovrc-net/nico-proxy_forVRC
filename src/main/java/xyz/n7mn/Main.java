@@ -2,30 +2,33 @@ package xyz.n7mn;
 
 import com.amihaiemil.eoyaml.*;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import okhttp3.*;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;
-import xyz.n7mn.api.*;
+import xyz.n7mn.data.LogData;
+import xyz.n7mn.data.PingHTTPServer;
+import xyz.n7mn.data.PingTCPServer;
 import xyz.n7mn.data.QueueData;
+import xyz.n7mn.nico_proxy.*;
 
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
 public class Main {
-    private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private static OkHttpClient client = new OkHttpClient();
     private static int ResponsePort = 25252;
     private static int PingPort = 25253;
     private static int PingHTTPPort = 25280;
     private static String Master = "-:22552";
     private static final HashMap<String, String> QueueList = new HashMap<>();
+    private static boolean logToRedis = false;
 
     public static void main(String[] args) {
         // Proxy読み込み
@@ -42,7 +45,8 @@ public class Main {
                     .add("Port", String.valueOf(ResponsePort))
                     .add("PingPort", String.valueOf(PingPort))
                     .add("PingHTTPPort", String.valueOf(PingHTTPPort))
-                    .add("Master", "-:22552");
+                    .add("Master", "-:22552")
+                    .add("LogToRedis", "False");
             ConfigYaml1 = add.build();
 
             try {
@@ -63,6 +67,7 @@ public class Main {
                 ResponsePort = ConfigYaml1.integer("Port");
                 PingPort = ConfigYaml1.integer("PingPort");
                 PingHTTPPort = ConfigYaml1.integer("PingHTTPPort");
+                logToRedis = ConfigYaml1.string("LogToRedis").equals("True");
             } catch (Exception e){
                 e.printStackTrace();
                 return;
@@ -158,180 +163,15 @@ public class Main {
         }
 
         // 同期用
-        Thread thread_master = null;
         if (Master.split(":")[0].equals("-")){
-            thread_master = new Thread(() -> {
-
-                ServerSocket svSock1 = null;
-                try {
-                    svSock1 = new ServerSocket(Integer.parseInt(Master.split(":")[1]));
-                    System.out.println(Master+"で 同期サーバー待機開始");
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    return;
-                }
-
-                while (true) {
-                    try {
-                        System.gc();
-                        Socket socket = svSock1.accept();
-                        new Thread(() -> {
-                            try {
-                                InputStream in = socket.getInputStream();
-                                OutputStream out = socket.getOutputStream();
-                                byte[] tempText = in.readAllBytes();
-                                String requestText = new String(tempText);
-
-                                if (requestText.equals("{\"queue\":\"getList\"}")) {
-                                    QueueData[] temp = new QueueData[QueueList.size()];
-
-                                    AtomicInteger i = new AtomicInteger();
-                                    QueueList.forEach((id, url) -> {
-                                        temp[i.get()] = new QueueData(id, url);
-                                        i.getAndIncrement();
-                                    });
-
-                                    out.write(new Gson().toJson(temp).getBytes(StandardCharsets.UTF_8));
-
-                                    out.flush();
-                                    in.close();
-                                    socket.close();
-                                    return;
-                                }
-
-                                Matcher matcher = Pattern.compile("\\{\"queue\":\"(.*)\"\\}").matcher(requestText);
-                                if (matcher.find()) {
-                                    String[] split = matcher.group(1).split(",");
-
-                                    if (split[1].length() != 0) {
-                                        QueueList.put(split[0], split[1]);
-                                    } else {
-                                        QueueList.remove(split[0]);
-                                    }
-
-                                    out.write("{\"queue\": \"ok\"}".getBytes(StandardCharsets.UTF_8));
-                                } else {
-                                    out.write("{}}".getBytes(StandardCharsets.UTF_8));
-                                }
-                                out.flush();
-                                in.close();
-                                socket.close();
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                                try {
-                                    socket.getOutputStream().write("{\"queue\":\"error\"}".getBytes(StandardCharsets.UTF_8));
-                                    socket.getOutputStream().flush();
-                                    socket.close();
-                                } catch (IOException ex) {
-                                    // ex.printStackTrace();
-                                }
-                            }
-                        }).start();
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-
-            });
-
-            thread_master.start();
+            new SyncServer(Master, QueueList).start();
         }
 
         // TCP死活管理用
-        Thread thread_tcp = new Thread(() -> {
-            ServerSocket svSock1 = null;
-            try {
-                svSock1 = new ServerSocket(PingPort);
-                System.out.println("Port"+PingPort+"で 死活監視用TCPサーバー待機開始");
-            } catch (Exception e) {
-                e.printStackTrace();
-                return;
-            }
-
-            while (true) {
-                try {
-                    Socket socket = svSock1.accept();
-                    OutputStream stream = socket.getOutputStream();
-
-                    stream.write("{status: \"OK\"}".getBytes(StandardCharsets.UTF_8));
-                    stream.flush();
-
-                    stream.close();
-                    System.gc();
-
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        Thread thread_tcp = new PingTCPServer(PingPort);
 
         // HTTP死活管理用
-        Thread thread_http = new Thread(() -> {
-            ServerSocket svSock2 = null;
-            try {
-                svSock2 = new ServerSocket(PingHTTPPort);
-                System.out.println("Port"+PingHTTPPort+"で 死活監視用HTTPサーバー待機開始");
-            } catch (Exception e) {
-                e.printStackTrace();
-                return;
-            }
-            while (true) {
-                try {
-                    Socket socket1 = svSock2.accept();
-                    InputStream inputStream = socket1.getInputStream();
-                    OutputStream outputStream = socket1.getOutputStream();
-
-                    byte[] data = new byte[1073741824];
-                    int readSize = inputStream.read(data);
-                    if (readSize == 0){
-                        outputStream.write(("HTTP/1.1 400 Bad Request\r\n" +
-                                "date: " + new Date() + "\r\n" +
-                                "content-type: text/plain\r\n\r\n" +
-                                "400\r\n").getBytes(StandardCharsets.UTF_8));
-                        outputStream.flush();
-                        outputStream.close();
-                        inputStream.close();
-                        socket1.close();
-                        return;
-                    }
-                    data = Arrays.copyOf(data, readSize);
-
-                    String text = new String(data, StandardCharsets.UTF_8);
-                    Matcher matcher1 = Pattern.compile("GET").matcher(text);
-                    Matcher matcher2 = Pattern.compile("HTTP/1\\.(\\d)").matcher(text);
-
-                    String httpVersion = "1." + (matcher2.find() ? matcher2.group(1) : "1");
-
-                    String response;
-                    if (!matcher1.find()) {
-                        response = "HTTP/1." + httpVersion + " 400 Bad Request\r\n" +
-                                "date: " + new Date() + "\r\n" +
-                                "content-type: text/plain\r\n\r\n" +
-                                "400\r\n";
-
-                    } else {
-                        response = "HTTP/1." + httpVersion + " 200 OK\r\n" +
-                                "date: " + new Date() + "\r\n" +
-                                "Content-type: text/plain; charset=UTF-8\r\n\r\n" +
-                                "ok";
-                    }
-
-                    outputStream.write(response.getBytes(StandardCharsets.UTF_8));
-                    outputStream.flush();
-
-                    inputStream.close();
-                    outputStream.close();
-
-                    socket1.close();
-
-                    System.gc();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+        Thread thread_http = new PingHTTPServer(PingHTTPPort);
 
         Thread thread_main = new Thread(() -> {
             ServerSocket svSock = null;
@@ -373,12 +213,15 @@ public class Main {
                     System.gc();
                     Socket sock = svSock.accept();
                     new Thread(()->{
-                        final String AccessCode = UUID.randomUUID().toString()+"-" + new Date().getTime();
+                        final LogData log = new LogData();
+                        log.setLogID(UUID.randomUUID().toString()+"-" + new Date().getTime());
+                        log.setDate(new Date());
+
                         try {
                             InputStream in = sock.getInputStream();
                             OutputStream out = sock.getOutputStream();
 
-                            byte[] data = new byte[1073741824];
+                            byte[] data = new byte[1000000];
                             int readSize = in.read(data);
                             if (readSize <= 0){
                                 sock.close();
@@ -388,6 +231,8 @@ public class Main {
 
                             String RequestHttp = new String(data, StandardCharsets.UTF_8);
                             String RequestIP = sock.getInetAddress().getHostAddress();
+                            log.setHTTPRequest(RequestHttp);
+                            log.setRequestIP(RequestIP);
 
                             String text = new String(data, StandardCharsets.UTF_8);
 
@@ -405,6 +250,7 @@ public class Main {
                             if (matcher1.find()){
                                 // "https://www.nicovideo.jp/watch/sm10759623"
                                 String url = matcher1.group(1);
+                                log.setResultURL(url);
                                 String videoUrl = null;
 
                                 // すでにあったら処理済みURLを返す
@@ -423,8 +269,28 @@ public class Main {
                                     in.close();
                                     out.close();
                                     sock.close();
-                                    System.out.println("キャッシュ : "+ videoUrl);
-                                    // TODO ログ書き出し処理
+                                    log.setResultURL(QueueList.get(url));
+
+                                    String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
+                                    if (logToRedis){
+                                        ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), json);
+                                    } else {
+                                        File file = new File("./log/");
+                                        if (!file.exists()){
+                                            file.mkdir();
+                                        }
+
+                                        File file1 = new File("./log/" + log.getLogID() + ".json");
+                                        try {
+                                            file1.createNewFile();
+                                            PrintWriter writer = new PrintWriter(file1);
+                                            writer.print(json);
+                                            writer.close();
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+
                                     return;
                                 }
 
@@ -467,15 +333,34 @@ public class Main {
 
                                             inputStream.close();
                                             socket.close();
-                                            System.out.println("問い合わせキャッシュ : "+ videoUrl);
-                                            // TODO ログ書き出し処理
+                                            log.setResultURL(QueueList.get(url));
+
+                                            String jsonText = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
+                                            if (logToRedis){
+                                                ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), jsonText);
+                                            } else {
+                                                File file = new File("./log/");
+                                                if (!file.exists()){
+                                                    file.mkdir();
+                                                }
+
+                                                File file1 = new File("./log/" + log.getLogID() + ".json");
+                                                try {
+                                                    file1.createNewFile();
+                                                    PrintWriter writer = new PrintWriter(file1);
+                                                    writer.print(jsonText);
+                                                    writer.close();
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
                                             return;
                                         }
                                     }
                                 }
 
                                 System.gc();
-                                System.out.println("キャッシュヒットせず : " + url);
+                                //System.out.println("キャッシュヒットせず : " + url);
 
                                 String ErrorMessage = null;
 
@@ -542,10 +427,30 @@ public class Main {
                                         // TODO エラーログ
                                         ErrorMessage = e.getMessage();
                                         videoUrl = null;
+                                        log.setErrorMessage(e.getMessage());
+
+                                        String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
+                                        if (logToRedis){
+                                            ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), json);
+                                        } else {
+                                            File file = new File("./log/");
+                                            if (!file.exists()){
+                                                file.mkdir();
+                                            }
+
+                                            File file1 = new File("./log/" + log.getLogID() + ".json");
+                                            try {
+                                                file1.createNewFile();
+                                                PrintWriter writer = new PrintWriter(file1);
+                                                writer.print(json);
+                                                writer.close();
+                                            } catch (IOException ex) {
+                                                ex.printStackTrace();
+                                            }
+                                        }
                                     }
                                 }
 
-                                // TODO ログ書き出し処理
                                 if (videoUrl == null && ErrorMessage == null){
                                     httpResponse = "HTTP/1."+httpVersion+" 404 Not Found\r\n" +
                                             "date: "+ new Date() +"\r\n" +
@@ -567,21 +472,44 @@ public class Main {
                                             "Location: " + videoUrl + "\r\n" +
                                             "Content-type: text/html; charset=UTF-8\r\n\r\n";
 
+                                    log.setResultURL(videoUrl);
+
                                     if (!isBili){
                                         QueueList.put(url, videoUrl);
                                     }
                                 }
                             } else {
-                                // TODO ログ書き出し処理
                                 httpResponse = "HTTP/1."+httpVersion+" 400 Bad Request\r\n" +
                                         "date: "+new Date()+"\r\n" +
                                         "content-type: application/json\r\n\r\n" +
                                         "{\"ErrorMessage\": \"Not Support\"}\r\n";
+
+
                             }
+
+                            new Thread(()->{
+                                String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
+                                if (logToRedis){
+                                    ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), json);
+                                } else {
+                                    File file = new File("./log/");
+                                    if (!file.exists()){
+                                        file.mkdir();
+                                    }
+
+                                    File file1 = new File("./log/" + log.getLogID() + ".json");
+                                    try {
+                                        file1.createNewFile();
+                                        PrintWriter writer = new PrintWriter(file1);
+                                        writer.print(json);
+                                        writer.close();
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }).start();
                             out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
                             out.flush();
-
-
 
                             in.close();
                             out.close();
@@ -608,4 +536,49 @@ public class Main {
         thread_http.start();
     }
 
+
+    private static void ToRedis(String key, String content){
+
+        File config = new File("./config-redis.yml");
+        YamlMapping ConfigYml = null;
+
+        if (!config.exists()){
+            YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
+            ConfigYml = builder.add(
+                    "RedisServer", "127.0.0.1"
+            ).add(
+                    "RedisPort", String.valueOf(Protocol.DEFAULT_PORT)
+            ).add(
+                    "RedisPass", ""
+            ).build();
+
+            try {
+                config.createNewFile();
+                PrintWriter writer = new PrintWriter(config);
+                writer.print(ConfigYml.toString());
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                ConfigYml = Yaml.createYamlInput(config).readYamlMapping();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+        Jedis jedis = jedisPool.getResource();
+        if (ConfigYml.string("RedisPass").length() > 0){
+            jedis.auth(ConfigYml.string("RedisPass"));
+        }
+
+        jedis.set(key, content);
+
+
+        jedis.close();
+        jedisPool.close();
+
+    }
 }
