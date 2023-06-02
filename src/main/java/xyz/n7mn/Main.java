@@ -165,6 +165,37 @@ public class Main {
         // 同期用
         if (Master.split(":")[0].equals("-")){
             new SyncServer(Master, QueueList).start();
+        } else {
+            Timer timer = new Timer();
+            TimerTask task = new TimerTask() {
+                @Override
+                public void run() {
+                    // すでに有効期限が切れていて見れないものは削除
+                    HashMap<String, String> temp = new HashMap<>(QueueList);
+
+                    temp.forEach((id, url)->{
+                        try {
+                            OkHttpClient build = new OkHttpClient();
+                            Request request = new Request.Builder()
+                                    .url(url)
+                                    .build();
+                            Response response = build.newCall(request).execute();
+
+                            if (response.code() == 403 || response.code() == 404){
+                                QueueList.remove(id);
+                                System.out.println("[Debug] キュー " + id + "を削除");
+                            }
+                            response.close();
+                        } catch (Exception e) {
+                            //System.out.println(e.getMessage());
+                        }
+                    });
+
+                    System.gc();
+                }
+            };
+
+            timer.scheduleAtFixedRate(task, 0L, 5000L);
         }
 
         // TCP死活管理用
@@ -250,7 +281,7 @@ public class Main {
                             if (matcher1.find()){
                                 // "https://www.nicovideo.jp/watch/sm10759623"
                                 String url = matcher1.group(1);
-                                log.setResultURL(url);
+                                log.setRequestURL(url);
                                 String videoUrl = null;
 
                                 // すでにあったら処理済みURLを返す
@@ -320,6 +351,7 @@ public class Main {
                                                     "Connection: close\r\n" +
                                                     "X-Powered-By: Java/8\r\n" +
                                                     "Location: " + qData.getURL() + "\r\n" +
+                                                    "Access-Control-Allow-Origin: *\r\n" +
                                                     "Content-type: text/html; charset=UTF-8\r\n\r\n";
 
                                             out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
@@ -402,10 +434,29 @@ public class Main {
                                             }
                                         }
                                     } catch (Exception e){
-                                        // TODO エラーログ
                                         ErrorMessage = e.getMessage();
-                                        System.out.println(e.getMessage());
                                         videoUrl = null;
+                                        log.setErrorMessage(e.getMessage());
+
+                                        String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
+                                        if (logToRedis){
+                                            ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), json);
+                                        } else {
+                                            File file = new File("./log/");
+                                            if (!file.exists()){
+                                                file.mkdir();
+                                            }
+
+                                            File file1 = new File("./log/" + log.getLogID() + ".json");
+                                            try {
+                                                file1.createNewFile();
+                                                PrintWriter writer = new PrintWriter(file1);
+                                                writer.print(json);
+                                                writer.close();
+                                            } catch (IOException ex) {
+                                                ex.printStackTrace();
+                                            }
+                                        }
                                     }
                                 }
 
@@ -424,7 +475,6 @@ public class Main {
                                             videoUrl = service.getVideo(url.split("\\?")[0], null);
                                         }
                                     } catch (Exception e){
-                                        // TODO エラーログ
                                         ErrorMessage = e.getMessage();
                                         videoUrl = null;
                                         log.setErrorMessage(e.getMessage());

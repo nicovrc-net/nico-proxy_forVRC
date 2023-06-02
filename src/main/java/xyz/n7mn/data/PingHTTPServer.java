@@ -33,7 +33,7 @@ public class PingHTTPServer extends Thread{
                 InputStream inputStream = socket1.getInputStream();
                 OutputStream outputStream = socket1.getOutputStream();
 
-                byte[] data = new byte[1073741824];
+                byte[] data = new byte[1000000];
                 int readSize = inputStream.read(data);
                 if (readSize == 0){
                     outputStream.write(("HTTP/1.1 400 Bad Request\r\n" +

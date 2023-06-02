@@ -1,15 +1,23 @@
 package xyz.n7mn;
 
 import com.google.gson.Gson;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import xyz.n7mn.data.QueueData;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,6 +42,38 @@ public class SyncServer extends Thread {
             return;
         }
 
+        Timer timer = new Timer();
+        TimerTask task = new TimerTask() {
+            @Override
+            public void run() {
+                // すでに有効期限が切れていて見れないものは削除
+
+                HashMap<String, String> temp = new HashMap<>(QueueList);
+
+                temp.forEach((id, url)->{
+                    try {
+                        OkHttpClient build = new OkHttpClient();
+                        Request request = new Request.Builder()
+                                .url(url)
+                                .build();
+                        Response response = build.newCall(request).execute();
+
+                        if (response.code() == 403 || response.code() == 404){
+                            QueueList.remove(id);
+                            System.out.println("[Debug] キュー " + id + "を削除");
+                        }
+                        response.close();
+                    } catch (Exception e) {
+                        //System.out.println(e.getMessage());
+                    }
+                });
+
+                System.gc();
+            }
+        };
+
+        timer.scheduleAtFixedRate(task, 0L, 5000L);
+
         while (true) {
             try {
                 System.gc();
@@ -42,8 +82,9 @@ public class SyncServer extends Thread {
                     try {
                         InputStream in = socket.getInputStream();
                         OutputStream out = socket.getOutputStream();
-                        byte[] tempText = in.readAllBytes();
-                        String requestText = new String(tempText);
+                        byte[] data = new byte[1000000];
+                        int readSize = in.read(data);
+                        String requestText = new String(Arrays.copyOf(data, readSize));
 
                         if (requestText.equals("{\"queue\":\"getList\"}")) {
                             QueueData[] temp = new QueueData[QueueList.size()];
@@ -90,6 +131,8 @@ public class SyncServer extends Thread {
                             // ex.printStackTrace();
                         }
                     }
+
+                    System.gc();
                 }).start();
 
             } catch (Exception e) {
