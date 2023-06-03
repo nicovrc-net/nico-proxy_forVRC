@@ -3,6 +3,7 @@ plugins {
     id "com.github.johnrengelman.shadow" version "8.1.1"
 }
 
+
 group  "xyz.n7mn"
 version "1.0-SNAPSHOT"
 
@@ -30,6 +31,14 @@ tasks.test {
 }
 
 shadowJar {
+
+    compileJava.options.encoding = 'UTF-8'
+    compileTestJava.options.encoding = 'UTF-8'
+
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+
     manifest {
         attributes 'Main-Class': 'xyz.n7mn.Main'
     }
