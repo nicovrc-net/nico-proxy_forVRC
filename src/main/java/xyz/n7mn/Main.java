@@ -396,7 +396,7 @@ public class Main {
 
                                 String ErrorMessage = null;
 
-                                Matcher matcher_NicoVideoURL = Pattern.compile("\\.nicovideo\\.jp").matcher(url);
+                                Matcher matcher_NicoVideoURL = Pattern.compile("(\\.nicovideo\\.jp|nico\\.ms)").matcher(url);
                                 Matcher matcher_BilibiliURL = Pattern.compile("bilibili(\\.com|\\.tv)").matcher(url);
 
                                 ShareService service = null;

@@ -19,10 +19,10 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp:4.11.0"
     implementation 'com.amihaiemil.web:eo-yaml:7.0.6'
 
-    implementation 'redis.clients:jedis:5.0.0-alpha2'
+    implementation 'redis.clients:jedis:5.0.0-beta1'
     implementation 'com.google.code.gson:gson:2.10.1'
 
-    implementation 'com.github.7mi-site:nico-proxy:f5b80d879e'
+    implementation 'com.github.7mi-site:nico-proxy:224f19f580'
 }
 
 tasks.test {
