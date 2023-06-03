@@ -55,7 +55,7 @@ public class Main {
                 writer.print(ConfigYaml1.toString());
                 writer.close();
 
-                System.out.println("[info] config.ymlを設定してください。");
+                System.out.println("[Info] config.ymlを設定してください。");
                 return;
             } catch (IOException e) {
                 e.printStackTrace();
@@ -95,7 +95,7 @@ public class Main {
             // Proxyチェック
             try {
                 YamlMapping yamlMapping = Yaml.createYamlInput(config2).readYamlMapping();
-                System.out.println("[info] プロキシチェック中...");
+                System.out.println("[Info] プロキシチェック中...");
                 YamlSequence list = yamlMapping.yamlSequence("VideoProxy");
 
                 final OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -111,10 +111,10 @@ public class Main {
                             Response response = build.newCall(request_html).execute();
                             response.close();
                         } catch (Exception e){
-                            System.out.println("[info] "+s[0]+":"+s[1]+" 接続失敗");
+                            System.out.println("[Info] "+s[0]+":"+s[1]+" 接続失敗");
                             continue;
                         }
-                        System.out.println("[info] "+s[0]+":"+s[1]+" 接続成功");
+                        System.out.println("[Info] "+s[0]+":"+s[1]+" 接続成功");
                     }
                 }
 
@@ -130,13 +130,13 @@ public class Main {
                             Response response = build.newCall(request_html).execute();
                             response.close();
                         } catch (Exception e){
-                            System.out.println("[info] "+s[0]+":"+s[1]+" 接続失敗");
+                            System.out.println("[Info] "+s[0]+":"+s[1]+" 接続失敗");
                             continue;
                         }
-                        System.out.println("[info] "+s[0]+":"+s[1]+" 接続成功");
+                        System.out.println("[Info] "+s[0]+":"+s[1]+" 接続成功");
                     }
                 }
-                System.out.println("[info] プロキシチェック完了");
+                System.out.println("[Info] プロキシチェック完了");
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -183,7 +183,7 @@ public class Main {
 
                             if (response.code() == 403 || response.code() == 404){
                                 QueueList.remove(id);
-                                System.out.println("[Debug] キュー " + id + "を削除");
+                                System.out.println("[Info] キュー " + id + "を削除");
                             }
                             response.close();
                         } catch (Exception e) {

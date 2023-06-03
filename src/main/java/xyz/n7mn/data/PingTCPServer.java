@@ -17,7 +17,7 @@ public class PingTCPServer extends Thread{
         ServerSocket svSock = null;
         try {
             svSock = new ServerSocket(PingPort);
-            System.out.println("Port "+PingPort+"で 死活監視用TCPサーバー待機開始");
+            System.out.println("[Info] Port "+PingPort+"で 死活監視用TCPサーバー待機開始");
         } catch (Exception e) {
             e.printStackTrace();
             return;

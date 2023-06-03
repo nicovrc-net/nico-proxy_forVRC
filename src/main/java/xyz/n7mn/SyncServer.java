@@ -36,7 +36,7 @@ public class SyncServer extends Thread {
         ServerSocket svSock = null;
         try {
             svSock = new ServerSocket(Integer.parseInt(Master.split(":")[1]));
-            System.out.println(Master.replaceAll("-:","Port ")+"で 同期サーバー待機開始");
+            System.out.println("[Info] "+Master.replaceAll("-:","Port ")+"で 同期サーバー待機開始");
         } catch (Exception e) {
             e.printStackTrace();
             return;
