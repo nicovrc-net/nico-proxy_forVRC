@@ -73,7 +73,7 @@ public class SyncServer extends Thread {
             }
         };
 
-        timer.scheduleAtFixedRate(task, 0L, 5000L);
+        timer.scheduleAtFixedRate(task, 0L, 1000L);
 
         while (true) {
             try {
