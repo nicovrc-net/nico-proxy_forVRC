@@ -374,14 +374,14 @@ public class Main {
                                                 sock.close();
 
 
-                                                QueueList.put(url, qData.getURL());
+                                                QueueList.put(url.split("\\?")[0], qData.getURL());
 
                                                 if (!socket1.isClosed()){
                                                     outputStream.close();
                                                     inputStream.close();
                                                     socket1.close();
                                                 }
-                                                log.setResultURL(QueueList.get(url));
+                                                log.setResultURL(QueueList.get(url.split("\\?")[0]));
 
                                                 String jsonText = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
                                                 if (logToRedis){
@@ -507,7 +507,7 @@ public class Main {
 
                                         }
                                         // キューリスト追加
-                                        QueueList.put(url, videoUrl);
+                                        QueueList.put(url.split("\\?")[0], videoUrl);
 
                                         // 同期鯖がある場合は送信する
                                         if (!Master.split(":")[0].equals("-")){
@@ -519,7 +519,7 @@ public class Main {
                                                     OutputStream outputStream = socket1.getOutputStream();
                                                     InputStream inputStream = socket1.getInputStream();
 
-                                                    outputStream.write(("{\"queue\":\"" + url +"," + finalVideoUrl + "\"}").getBytes(StandardCharsets.UTF_8));
+                                                    outputStream.write(("{\"queue\":\"" + url.split("\\?")[0] +"," + finalVideoUrl + "\"}").getBytes(StandardCharsets.UTF_8));
                                                     outputStream.flush();
 
                                                     outputStream.close();
