@@ -168,13 +168,17 @@ public class Main {
         if (Master.split(":")[0].equals("-")){
             new SyncServer(Master, QueueList).start();
         } else {
-            int[] count = new int[]{0};
+            int[] count = new int[]{-1};
             Timer timer = new Timer();
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
                     HashMap<String, String> temp = new HashMap<>(QueueList);
-                    System.out.println("[" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + "] 現在のキュー数 : " + temp.size());
+                    if (count[0] != temp.size()){
+                        System.out.println("[" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + "] 現在のキュー数 : " + temp.size());
+                        count[0] = temp.size();
+                    }
+
                     // すでに有効期限が切れていて見れないものは削除
 
                     temp.forEach((id, url)->{

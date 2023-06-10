@@ -40,7 +40,7 @@ public class SyncServer extends Thread {
         }
 
         Timer timer = new Timer();
-        int[] count = new int[]{0};
+        int[] count = new int[]{-1};
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
