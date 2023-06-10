@@ -304,7 +304,7 @@ public class Main {
                                             "Date: "+new Date()+"\r\n" +
                                             "Connection: close\r\n" +
                                             "X-Powered-By: Java/8\r\n" +
-                                            "Location: " + QueueList.get(url) + "\r\n" +
+                                            "Location: " + QueueList.get(url.split("\\?")[0]) + "\r\n" +
                                             "Content-type: text/html; charset=UTF-8\r\n\r\n";
 
                                     out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
@@ -312,7 +312,7 @@ public class Main {
                                     in.close();
                                     out.close();
                                     sock.close();
-                                    log.setResultURL(QueueList.get(url));
+                                    log.setResultURL(QueueList.get(url.split("\\?")[0]));
 
                                     String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
                                     if (logToRedis){
