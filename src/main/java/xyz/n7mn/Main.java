@@ -12,6 +12,10 @@ import xyz.n7mn.data.PingHTTPServer;
 import xyz.n7mn.data.PingTCPServer;
 import xyz.n7mn.data.QueueData;
 import xyz.n7mn.nico_proxy.*;
+import xyz.n7mn.nico_proxy.data.ProxyData;
+import xyz.n7mn.nico_proxy.data.RequestVideoData;
+import xyz.n7mn.nico_proxy.data.ResultVideoData;
+import xyz.n7mn.nico_proxy.data.TokenJSON;
 
 import java.io.*;
 import java.net.*;
@@ -288,7 +292,7 @@ public class Main {
 
                             if (matcher1.find()){
                                 // "https://www.nicovideo.jp/watch/sm10759623"
-                                String url = matcher1.group(1);
+                                final String url = matcher1.group(1);
                                 log.setRequestURL(url);
                                 String videoUrl = null;
 
@@ -335,66 +339,71 @@ public class Main {
 
                                 // 念のため問い合わせもする
                                 if (!Master.split(":")[0].equals("-")){
-                                    Socket socket = new Socket(Master.split(":")[0], Integer.parseInt(Master.split(":")[1]));
+                                    Socket socket1 = new Socket(Master.split(":")[0], Integer.parseInt(Master.split(":")[1]));
 
-                                    OutputStream outputStream = socket.getOutputStream();
-                                    InputStream inputStream = socket.getInputStream();
+                                    OutputStream outputStream = socket1.getOutputStream();
+                                    InputStream inputStream = socket1.getInputStream();
 
                                     outputStream.write("{\"queue\":\"getList\"}".getBytes(StandardCharsets.UTF_8));
                                     outputStream.flush();
-                                    outputStream.close();
 
                                     if (inputStream.readAllBytes().length == 0){
+                                        outputStream.close();
                                         inputStream.close();
-                                        socket.close();
-                                        return;
+                                        socket1.close();
                                     }
 
                                     QueueData[] json = new Gson().fromJson(new String(inputStream.readAllBytes()), QueueData[].class);
-                                    for (QueueData qData : json) {
-                                        if (qData.getID().equals(url.split("\\?")[0])){
-                                            httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
-                                                    "Host: "+host+"\n" +
-                                                    "Date: "+new Date()+"\r\n" +
-                                                    "Connection: close\r\n" +
-                                                    "X-Powered-By: Java/8\r\n" +
-                                                    "Location: " + qData.getURL() + "\r\n" +
-                                                    "Access-Control-Allow-Origin: *\r\n" +
-                                                    "Content-type: text/html; charset=UTF-8\r\n\r\n";
 
-                                            out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
-                                            out.flush();
-                                            in.close();
-                                            out.close();
-                                            sock.close();
+                                    if (json != null){
+                                        for (QueueData qData : json) {
+                                            if (qData.getID().equals(url.split("\\?")[0])){
+                                                httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
+                                                        "Host: "+host+"\n" +
+                                                        "Date: "+new Date()+"\r\n" +
+                                                        "Connection: close\r\n" +
+                                                        "X-Powered-By: Java/8\r\n" +
+                                                        "Location: " + qData.getURL() + "\r\n" +
+                                                        "Access-Control-Allow-Origin: *\r\n" +
+                                                        "Content-type: text/html; charset=UTF-8\r\n\r\n";
+
+                                                out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
+                                                out.flush();
+                                                in.close();
+                                                out.close();
+                                                sock.close();
 
 
-                                            QueueList.put(url, qData.getURL());
+                                                QueueList.put(url, qData.getURL());
 
-                                            inputStream.close();
-                                            socket.close();
-                                            log.setResultURL(QueueList.get(url));
-
-                                            String jsonText = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
-                                            if (logToRedis){
-                                                ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), jsonText);
-                                            } else {
-                                                File file = new File("./log/");
-                                                if (!file.exists()){
-                                                    file.mkdir();
+                                                if (!socket1.isClosed()){
+                                                    outputStream.close();
+                                                    inputStream.close();
+                                                    socket1.close();
                                                 }
+                                                log.setResultURL(QueueList.get(url));
 
-                                                File file1 = new File("./log/" + log.getLogID() + ".json");
-                                                try {
-                                                    file1.createNewFile();
-                                                    PrintWriter writer = new PrintWriter(file1);
-                                                    writer.print(jsonText);
-                                                    writer.close();
-                                                } catch (IOException e) {
-                                                    e.printStackTrace();
+                                                String jsonText = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
+                                                if (logToRedis){
+                                                    ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), jsonText);
+                                                } else {
+                                                    File file = new File("./log/");
+                                                    if (!file.exists()){
+                                                        file.mkdir();
+                                                    }
+
+                                                    File file1 = new File("./log/" + log.getLogID() + ".json");
+                                                    try {
+                                                        file1.createNewFile();
+                                                        PrintWriter writer = new PrintWriter(file1);
+                                                        writer.print(jsonText);
+                                                        writer.close();
+                                                    } catch (IOException e) {
+                                                        e.printStackTrace();
+                                                    }
                                                 }
+                                                return;
                                             }
-                                            return;
                                         }
                                     }
                                 }
@@ -429,21 +438,100 @@ public class Main {
                                         if (matcher_live.find()){
                                             //System.out.println("kita?");
                                             if (proxy != null){
-                                                videoUrl = service.getLive(url, new ProxyData(proxy[0], Integer.parseInt(proxy[1])));
+                                                videoUrl = service.getLive(new RequestVideoData(url, new ProxyData(proxy[0], Integer.parseInt(proxy[1])))).getVideoURL();
                                             } else {
-                                                videoUrl = service.getLive(url, null);
+                                                videoUrl = service.getLive(new RequestVideoData(url, null)).getVideoURL();
                                             }
                                             //System.out.println("kiteru : " + videoUrl);
                                         } else {
+                                            ResultVideoData video;
                                             if (proxy != null){
-                                                videoUrl = service.getVideo(url, new ProxyData(proxy[0], Integer.parseInt(proxy[1])));
+                                                video = service.getVideo(new RequestVideoData(url, new ProxyData(proxy[0], Integer.parseInt(proxy[1]))));
+                                                videoUrl = video.getVideoURL();
                                             } else {
-                                                videoUrl = service.getVideo(url, null);
+                                                video = service.getVideo(new RequestVideoData(url, null));
+                                                videoUrl = video.getVideoURL();
                                             }
+
+                                            // ハートビート信号送る
+                                            final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+                                            final OkHttpClient client = proxy != null ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy[0], Integer.parseInt(proxy[1])))).build() : new OkHttpClient();
+                                            Request request_html = new Request.Builder()
+                                                    .url(url)
+                                                    .build();
+                                            Response response1 = client.newCall(request_html).execute();
+                                            String HtmlText;
+                                            if (response1.body() != null){
+                                                HtmlText = response1.body().string();
+                                            } else {
+                                                HtmlText = "";
+                                            }
+                                            response1.close();
+                                            Matcher matcher_video = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">").matcher(HtmlText);
+
+                                            final long videoTime;
+                                            if (matcher_video.find()){
+                                                videoTime = Long.parseLong(matcher_video.group(1));
+                                            } else {
+                                                videoTime = 3600L;
+                                            }
+
+                                            TokenJSON json = new Gson().fromJson(video.getTokenJson(), TokenJSON.class);
+                                            Timer timer = new Timer();
+                                            int[] count = new int[]{0};
+                                            timer.scheduleAtFixedRate(new TimerTask() {
+                                                @Override
+                                                public void run() {
+                                                    if (count[0] > (videoTime / 40L)){
+                                                        timer.cancel();
+                                                        return;
+                                                    }
+
+                                                    RequestBody body = RequestBody.create(json.getTokenValue(), MediaType.get("application/json; charset=utf-8"));
+                                                    Request request1 = new Request.Builder()
+                                                            .url(json.getTokenSendURL())
+                                                            .post(body)
+                                                            .build();
+                                                    try {
+                                                        Response response1 = client.newCall(request1).execute();
+                                                        //System.out.println(response.body().string());
+                                                        response1.close();
+                                                    } catch (IOException e) {
+                                                        // e.printStackTrace();
+                                                        return;
+                                                    }
+
+                                                    count[0]++;
+                                                }
+                                            }, 0L, 40000L);
+
+                                        }
+                                        // キューリスト追加
+                                        QueueList.put(url, videoUrl);
+
+                                        // 同期鯖がある場合は送信する
+                                        if (!Master.split(":")[0].equals("-")){
+                                            String finalVideoUrl = videoUrl;
+                                            new Thread(()->{
+                                                try {
+                                                    Socket socket1 = new Socket(Master.split(":")[0], Integer.parseInt(Master.split(":")[1]));
+
+                                                    OutputStream outputStream = socket1.getOutputStream();
+                                                    InputStream inputStream = socket1.getInputStream();
+
+                                                    outputStream.write(("{\"queue\":\"" + url +"," + finalVideoUrl + "\"}").getBytes(StandardCharsets.UTF_8));
+                                                    outputStream.flush();
+
+                                                    outputStream.close();
+                                                    inputStream.close();
+                                                    socket1.close();
+                                                } catch (Exception e){
+                                                    //e.printStackTrace();
+                                                }
+                                            }).start();
                                         }
                                     } catch (Exception e){
                                         ErrorMessage = e.getMessage();
-                                        videoUrl = null;
                                         log.setErrorMessage(e.getMessage());
 
                                         String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
@@ -469,19 +557,35 @@ public class Main {
                                 }
 
                                 // ビリビリ
-                                boolean isBili = false;
                                 if (matcher_BilibiliURL.find()){
-                                    isBili = true;
                                     Matcher m = Pattern.compile("tv").matcher(url);
                                     service = m.find() ? new BilibiliTv() : new BilibiliCom();
                                     String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
 
                                     try {
+                                        ResultVideoData video;
                                         if (split != null){
-                                            videoUrl = service.getVideo(url.split("\\?")[0], new ProxyData(split[0], Integer.parseInt(split[1])));
+                                            video = service.getVideo(new RequestVideoData(url, new ProxyData(split[0], Integer.parseInt(split[1]))));
                                         } else {
-                                            videoUrl = service.getVideo(url.split("\\?")[0], null);
+                                            video = service.getVideo(new RequestVideoData(url, null));
                                         }
+
+                                        // tvの場合は映像と音声で分離するので結合処理が必要
+                                        if (video.getAudioURL() != null){
+
+                                            Request m3u8 = new Request.Builder()
+                                                    .url("https://nico.7mi.site/m3u8/?vi="+video.getVideoURL()+"&music="+video.getAudioURL())
+                                                    .build();
+
+                                            final OkHttpClient client = new OkHttpClient();
+                                            Response response = client.newCall(m3u8).execute();
+                                            String s1 = response.body() != null ? response.body().string() : "";
+                                            response.close();
+                                            videoUrl = "https://nico.7mi.site/m3u8/video_"+s1+".m3u8";
+                                        } else {
+                                            videoUrl = video.getVideoURL();
+                                        }
+
                                     } catch (Exception e){
                                         ErrorMessage = e.getMessage();
                                         videoUrl = null;
@@ -531,10 +635,6 @@ public class Main {
                                             "Content-type: text/html; charset=UTF-8\r\n\r\n";
 
                                     log.setResultURL(videoUrl);
-
-                                    if (!isBili){
-                                        QueueList.put(url, videoUrl);
-                                    }
                                 }
                             } else {
                                 httpResponse = "HTTP/1."+httpVersion+" 400 Bad Request\r\n" +
