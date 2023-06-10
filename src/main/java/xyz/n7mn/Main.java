@@ -17,6 +17,7 @@ import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,6 +68,7 @@ public class Main {
                 ResponsePort = ConfigYaml1.integer("Port");
                 PingPort = ConfigYaml1.integer("PingPort");
                 PingHTTPPort = ConfigYaml1.integer("PingHTTPPort");
+                Master = ConfigYaml1.string("Master");
                 logToRedis = ConfigYaml1.string("LogToRedis").equals("True");
             } catch (Exception e){
                 e.printStackTrace();
@@ -166,12 +168,14 @@ public class Main {
         if (Master.split(":")[0].equals("-")){
             new SyncServer(Master, QueueList).start();
         } else {
+            int[] count = new int[]{0};
             Timer timer = new Timer();
             TimerTask task = new TimerTask() {
                 @Override
                 public void run() {
-                    // すでに有効期限が切れていて見れないものは削除
                     HashMap<String, String> temp = new HashMap<>(QueueList);
+                    System.out.println("[" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + "] 現在のキュー数 : " + temp.size());
+                    // すでに有効期限が切れていて見れないものは削除
 
                     temp.forEach((id, url)->{
                         try {

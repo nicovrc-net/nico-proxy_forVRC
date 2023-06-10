@@ -1,6 +1,7 @@
 package xyz.n7mn;
 
 import com.google.gson.Gson;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -12,10 +13,8 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,12 +40,16 @@ public class SyncServer extends Thread {
         }
 
         Timer timer = new Timer();
+        int[] count = new int[]{0};
         TimerTask task = new TimerTask() {
             @Override
             public void run() {
-                // すでに有効期限が切れていて見れないものは削除
-
                 HashMap<String, String> temp = new HashMap<>(QueueList);
+                if (count[0] != temp.size()){
+                    System.out.println("[" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + "] 現在のキュー数 : " + temp.size());
+                    count[0] = temp.size();
+                }
+                // すでに有効期限が切れていて見れないものは削除
 
                 temp.forEach((id, url)->{
                     try {
