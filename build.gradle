@@ -18,12 +18,12 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.1'
 
     implementation "com.squareup.okhttp3:okhttp:4.11.0"
-    implementation 'com.amihaiemil.web:eo-yaml:7.0.6'
+    implementation 'com.amihaiemil.web:eo-yaml:7.0.8'
 
-    implementation 'redis.clients:jedis:5.0.0-beta1'
+    implementation 'redis.clients:jedis:5.0.0-beta2'
     implementation 'com.google.code.gson:gson:2.10.1'
 
-    implementation 'com.github.7mi-site:nico-proxy:1.0'
+    implementation 'com.github.7mi-site:nico-proxy:1.02'
 }
 
 tasks.test {
