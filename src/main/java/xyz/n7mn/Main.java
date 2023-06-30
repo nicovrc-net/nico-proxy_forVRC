@@ -468,22 +468,6 @@ public class Main {
                                                 videoUrl = "https://nico.7mi.site/m3u8/"+s1+".m3u8";
                                             }
 
-                                            // ニコ動hlsをQuest用にmpeg-dashに変換する
-                                            /*
-                                            System.out.println(videoUrl);
-                                            Request dash = new Request.Builder()
-                                                    .url("https://nico.7mi.site/dash/encode?"+videoUrl)
-                                                    .build();
-
-                                            Response response = client.newCall(dash).execute();
-                                            String s1 = response.body() != null ? response.body().string() : "";
-                                            response.close();
-                                            if (s1.length() > 0){
-                                                videoUrl = "https://nico.7mi.site/dash"+s1;
-                                            }*/
-
-                                            System.out.println(videoUrl);
-
                                             // ハートビート信号送る
                                             Request request_html = new Request.Builder()
                                                     .url(url)
