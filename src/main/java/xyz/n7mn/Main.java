@@ -218,6 +218,8 @@ public class Main {
             try {
                 svSock = new ServerSocket(ResponsePort);
 
+                System.out.println("Use URL : http://<IP>:"+ResponsePort+"/?vi=<NicoNicoURL>");
+
                 while (true){
                     final File config = new File("./config-proxy.yml");
 
