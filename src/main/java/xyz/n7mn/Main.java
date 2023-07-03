@@ -291,7 +291,25 @@ public class Main {
 
                             if (matcher1.find()){
                                 // "https://www.nicovideo.jp/watch/sm10759623"
-                                final String url = matcher1.group(1);
+                                String temp_url = matcher1.group(1);
+                                Matcher matcher3 = Pattern.compile("api\\.nicoad\\.nicovideo\\.jp").matcher(temp_url);
+                                if (matcher3.find()){
+                                    OkHttpClient build = new OkHttpClient();
+                                    Request request = new Request.Builder()
+                                            .url(temp_url)
+                                            .build();
+                                    Response response = build.newCall(request).execute();
+                                    if (response.body() != null){
+                                        Matcher matcher4 = Pattern.compile("<meta property=\"og:url\" content=\"(.*)\">").matcher(response.body().string());
+                                        if (matcher4.find()){
+                                            temp_url = matcher4.group(1);
+                                            //System.out.println(temp_url);
+                                        }
+                                    }
+                                    response.close();
+                                }
+
+                                final String url = temp_url;
                                 log.setRequestURL(url);
                                 String videoUrl = null;
 
