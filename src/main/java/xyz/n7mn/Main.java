@@ -292,8 +292,9 @@ public class Main {
                             if (matcher1.find()){
                                 // "https://www.nicovideo.jp/watch/sm10759623"
                                 String temp_url = matcher1.group(1);
-                                Matcher matcher3 = Pattern.compile("api\\.nicoad\\.nicovideo\\.jp").matcher(temp_url);
-                                if (matcher3.find()){
+                                Matcher matcher_1 = Pattern.compile("api\\.nicoad\\.nicovideo\\.jp").matcher(temp_url);
+                                Matcher matcher_2 = Pattern.compile("b23\\.tv").matcher(temp_url);
+                                if (matcher_1.find()){
                                     OkHttpClient build = new OkHttpClient();
                                     Request request = new Request.Builder()
                                             .url(temp_url)
@@ -306,6 +307,15 @@ public class Main {
                                             //System.out.println(temp_url);
                                         }
                                     }
+                                    response.close();
+                                }
+                                if (matcher_2.find()){
+                                    OkHttpClient build = new OkHttpClient();
+                                    Request request = new Request.Builder()
+                                            .url(temp_url)
+                                            .build();
+                                    Response response = build.newCall(request).execute();
+                                    temp_url = response.request().url().toString();
                                     response.close();
                                 }
 
