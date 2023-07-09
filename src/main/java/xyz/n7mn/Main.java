@@ -442,8 +442,63 @@ public class Main {
 
                                 Matcher matcher_NicoVideoURL = Pattern.compile("(\\.nicovideo\\.jp|nico\\.ms)").matcher(url);
                                 Matcher matcher_BilibiliURL = Pattern.compile("bilibili(\\.com|\\.tv)").matcher(url);
+                                Matcher matcher_YoutubeURL = Pattern.compile("(youtu.be|youtube.com)").matcher(url);
 
                                 ShareService service = null;
+
+                                // Youtubeは別のサービスに転送する
+                                if (matcher_YoutubeURL.find()){
+                                    String[] youtubeList = new String[]{
+                                            "https://vrc.kuroneko6423.com/proxy?url=",
+                                            "https://api.yamachan.moe/proxy?url=",
+                                            "https://yt.8uro.net/r?v=",
+                                            "https://qst.akakitune87.net/q?url=",
+                                            "https://vq.vrcprofile.com/?url="
+                                    };
+
+                                    int i = new SecureRandom().nextInt(0, youtubeList.length);
+
+                                    httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
+                                            "Host: "+host+"\n" +
+                                            "Date: "+new Date()+"\r\n" +
+                                            "Connection: close\r\n" +
+                                            "X-Powered-By: Java/8\r\n" +
+                                            "Location: " + youtubeList[i]+url + "\r\n" +
+                                            "Content-type: text/html; charset=UTF-8\r\n\r\n";
+
+
+                                    log.setResultURL(youtubeList[i]+url);
+                                    out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
+                                    out.flush();
+
+                                    new Thread(()->{
+                                        String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
+                                        if (logToRedis){
+                                            ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), json);
+                                        } else {
+                                            File file = new File("./log/");
+                                            if (!file.exists()){
+                                                file.mkdir();
+                                            }
+
+                                            File file1 = new File("./log/" + log.getLogID() + ".json");
+                                            try {
+                                                file1.createNewFile();
+                                                PrintWriter writer = new PrintWriter(file1);
+                                                writer.print(json);
+                                                writer.close();
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }).start();
+
+                                    in.close();
+                                    out.close();
+                                    sock.close();
+
+                                    return;
+                                }
 
                                 // ニコ動 / ニコ生
                                 if (matcher_NicoVideoURL.find()){
