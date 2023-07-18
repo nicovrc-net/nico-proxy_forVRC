@@ -294,6 +294,7 @@ public class Main {
                                 String temp_url = matcher1.group(1);
                                 Matcher matcher_1 = Pattern.compile("api\\.nicoad\\.nicovideo\\.jp").matcher(temp_url);
                                 Matcher matcher_2 = Pattern.compile("b23\\.tv").matcher(temp_url);
+                                Matcher
                                 if (matcher_1.find()){
                                     OkHttpClient build = new OkHttpClient();
                                     Request request = new Request.Builder()
