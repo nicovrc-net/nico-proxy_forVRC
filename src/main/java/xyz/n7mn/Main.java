@@ -449,7 +449,7 @@ public class Main {
                                 // Youtubeは別のサービスに転送する
                                 if (matcher_YoutubeURL.find()){
                                     String[] youtubeList = new String[]{
-                                            "https://vrc.kuroneko6423.com/proxy?url=",
+                                            "https://kvvs.net/proxy?url=",
                                             "https://api.yamachan.moe/proxy?url=",
                                             "https://yt.8uro.net/r?v=",
                                             "https://qst.akakitune87.net/q?url=",
