@@ -292,9 +292,11 @@ public class Main {
                             if (matcher1.find()){
                                 // "https://www.nicovideo.jp/watch/sm10759623"
                                 String temp_url = matcher1.group(1);
+                                log.setRequestURL(temp_url);
+
                                 Matcher matcher_1 = Pattern.compile("api\\.nicoad\\.nicovideo\\.jp").matcher(temp_url);
                                 Matcher matcher_2 = Pattern.compile("b23\\.tv").matcher(temp_url);
-                                Matcher
+                                Matcher matcher_3 = Pattern.compile("https://shinchan\\.biz/player\\.html\\?video_id=(.*)").matcher(temp_url);
                                 if (matcher_1.find()){
                                     OkHttpClient build = new OkHttpClient();
                                     Request request = new Request.Builder()
@@ -320,8 +322,11 @@ public class Main {
                                     response.close();
                                 }
 
+                                if (matcher_3.find()){
+                                    temp_url = "https://www.nicovideo.jp/watch/"+matcher_3.group(1);
+                                }
+
                                 final String url = temp_url;
-                                log.setRequestURL(url);
                                 String videoUrl = null;
 
                                 // すでにあったら処理済みURLを返す
