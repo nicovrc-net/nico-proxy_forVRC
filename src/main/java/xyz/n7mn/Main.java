@@ -448,7 +448,8 @@ public class Main {
 
                                 Matcher matcher_NicoVideoURL = Pattern.compile("(\\.nicovideo\\.jp|nico\\.ms)").matcher(url);
                                 Matcher matcher_BilibiliURL = Pattern.compile("bilibili(\\.com|\\.tv)").matcher(url);
-                                Matcher matcher_YoutubeURL = Pattern.compile("(youtu.be|youtube.com)").matcher(url);
+                                Matcher matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)").matcher(url);
+                                Matcher matcher_XvideoURL = Pattern.compile("xvideo").matcher(url);
 
                                 ShareService service = null;
 
@@ -718,6 +719,23 @@ public class Main {
                                     }
                                 }
 
+                                // xvideos
+                                //System.out.println(url);
+                                if (matcher_XvideoURL.find()){
+                                    //System.out.println("test");
+                                    service = new Xvideos();
+                                    String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
+                                    try {
+                                        ResultVideoData video = service.getVideo(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
+                                        videoUrl = video.getVideoURL();
+                                        //System.out.println(videoUrl);
+                                    } catch (Exception e){
+                                        ErrorMessage = e.getMessage();
+                                        videoUrl = null;
+                                        log.setErrorMessage(e.getMessage());
+                                    }
+                                }
+
                                 if (videoUrl == null && ErrorMessage == null){
                                     httpResponse = "HTTP/1."+httpVersion+" 404 Not Found\r\n" +
                                             "date: "+ new Date() +"\r\n" +
@@ -731,13 +749,15 @@ public class Main {
                                             "{\"ErrorMessage\": \""+ErrorMessage+"\"}\r\n";
 
                                 } else {
+                                    String locationText = "Found. Redirecting to "+videoUrl;
+
                                     httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
                                             "Host: "+host+"\n" +
                                             "Date: "+new Date()+"\r\n" +
-                                            "Connection: close\r\n" +
+                                            "content-length: "+locationText.getBytes(StandardCharsets.UTF_8).length+"\r\n"+
                                             "X-Powered-By: Java/8\r\n" +
                                             "Location: " + videoUrl + "\r\n" +
-                                            "Content-type: text/html; charset=UTF-8\r\n\r\n";
+                                            "Content-type: text/plain; charset=UTF-8\r\n\r\n"+locationText;
 
                                     log.setResultURL(videoUrl);
                                 }
