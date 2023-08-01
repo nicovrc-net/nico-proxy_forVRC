@@ -450,6 +450,7 @@ public class Main {
                                 Matcher matcher_BilibiliURL = Pattern.compile("bilibili(\\.com|\\.tv)").matcher(url);
                                 Matcher matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)").matcher(url);
                                 Matcher matcher_XvideoURL = Pattern.compile("xvideo").matcher(url);
+                                Matcher matcher_TikTokURL = Pattern.compile("tiktok").matcher(url);
 
                                 ShareService service = null;
 
@@ -724,6 +725,21 @@ public class Main {
                                 if (matcher_XvideoURL.find()){
                                     //System.out.println("test");
                                     service = new Xvideos();
+                                    String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
+                                    try {
+                                        ResultVideoData video = service.getVideo(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
+                                        videoUrl = video.getVideoURL();
+                                        //System.out.println(videoUrl);
+                                    } catch (Exception e){
+                                        ErrorMessage = e.getMessage();
+                                        videoUrl = null;
+                                        log.setErrorMessage(e.getMessage());
+                                    }
+                                }
+
+                                // TikTok
+                                if (matcher_TikTokURL.find()){
+                                    service = new TikTok();
                                     String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
                                     try {
                                         ResultVideoData video = service.getVideo(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
