@@ -552,13 +552,13 @@ public class Main {
                                                 EncryptedTokenJSON json = new Gson().fromJson(video.getTokenJson(), EncryptedTokenJSON.class);
                                                 //
                                                 Request m3u8 = new Request.Builder()
-                                                        .url("https://nico.7mi.site/m3u8/?vi="+video.getVideoURL()+"&nnkey="+json.getEncryptedURL()+"&mode=nico_enc")
+                                                        .url("https://nicovrc.net/m3u8/?vi="+video.getVideoURL()+"&nnkey="+json.getEncryptedURL()+"&mode=nico_enc")
                                                         .build();
 
                                                 Response response = client.newCall(m3u8).execute();
                                                 String s1 = response.body() != null ? response.body().string() : "";
                                                 response.close();
-                                                videoUrl = "https://nico.7mi.site/m3u8/"+s1+".m3u8";
+                                                videoUrl = "https://nicovrc.net/m3u8/"+s1+".m3u8";
                                             }
 
                                             // ハートビート信号送る
