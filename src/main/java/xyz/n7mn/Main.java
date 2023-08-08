@@ -297,7 +297,7 @@ public class Main {
                                 Matcher matcher_1 = Pattern.compile("api\\.nicoad\\.nicovideo\\.jp").matcher(temp_url);
                                 Matcher matcher_2 = Pattern.compile("b23\\.tv").matcher(temp_url);
                                 Matcher matcher_3 = Pattern.compile("https://shinchan\\.biz/player\\.html\\?video_id=(.*)").matcher(temp_url);
-                                Matcher matcher_4 = Pattern.compile("ext\\.nicovideo\\.jp").matcher(temp_url);
+                                Matcher matcher_4 = Pattern.compile("(ext|commons)\\.nicovideo\\.jp").matcher(temp_url);
 
                                 if (matcher_1.find()){
                                     OkHttpClient build = new OkHttpClient();
@@ -329,7 +329,7 @@ public class Main {
                                 }
 
                                 if (matcher_4.find()){
-                                    temp_url = temp_url.replaceAll("ext","www").replaceAll("thumb","watch");
+                                    temp_url = temp_url.replaceAll("ext","www").replaceAll("commons","www").replaceAll("thumb","watch").replaceAll("works", "watch");
                                 }
 
                                 final String url = temp_url;
