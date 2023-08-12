@@ -460,28 +460,19 @@ public class Main {
 
                                 ShareService service = null;
 
-                                // Youtubeは別のサービスに転送する
+                                // youtubeはそのまま転送
                                 if (matcher_YoutubeURL.find()){
-                                    String[] youtubeList = new String[]{
-                                            "https://kvvs.net/proxy?url=",
-                                            "https://api.yamachan.moe/proxy?url=",
-                                            "https://yt.8uro.net/r?v=",
-                                            "https://qst.akakitune87.net/q?url=",
-                                            "https://vq.vrcprofile.com/?url="
-                                    };
-
-                                    int i = new SecureRandom().nextInt(0, youtubeList.length);
 
                                     httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
                                             "Host: "+host+"\n" +
                                             "Date: "+new Date()+"\r\n" +
                                             "Connection: close\r\n" +
                                             "X-Powered-By: Java/8\r\n" +
-                                            "Location: " + youtubeList[i]+url + "\r\n" +
+                                            "Location: " + url + "\r\n" +
                                             "Content-type: text/html; charset=UTF-8\r\n\r\n";
 
 
-                                    log.setResultURL(youtubeList[i]+url);
+                                    log.setResultURL(url);
                                     out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
                                     out.flush();
 
