@@ -522,6 +522,72 @@ public class Main {
 
                                     final String[] proxy = proxyList.size() > 0 ? proxyList.get(new SecureRandom().nextInt(0, proxyList.size())).split(":") : null;
 
+                                    // VRCStringDownloaderっぽいアクセスから来たときは動画情報の取得だけして200を返す
+                                    Matcher matcher_vrcString = Pattern.compile("user-agent: unityplayer/").matcher(RequestHttp.toLowerCase(Locale.ROOT));
+                                    if (matcher_vrcString.find()){
+
+                                        final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+                                        final OkHttpClient client = proxyList.size() > 0 ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy[0], Integer.parseInt(proxy[1])))).build() : new OkHttpClient();
+
+                                        String HtmlText = "";
+                                        Request request_html = new Request.Builder()
+                                                .url(url)
+                                                .build();
+                                        Response response = client.newCall(request_html).execute();
+                                        if (response.body() != null){
+                                            HtmlText = response.body().string();
+                                        }
+                                        response.close();
+
+                                        Matcher matcher_title = Pattern.compile("<meta property=\"og:title\" content=\"(.*)\">").matcher(HtmlText);
+
+                                        if (matcher_title.find()){
+                                            httpResponse = "HTTP/1."+httpVersion+" 200 OK\r\n" +
+                                                    "date: "+ new Date() +"\r\n" +
+                                                    "content-type: text/plain\r\n\r\n" +
+                                                    matcher_title.group(1);
+
+
+                                        } else {
+                                            httpResponse = "HTTP/1."+httpVersion+" 404 Not Found\r\n" +
+                                                    "date: "+ new Date() +"\r\n" +
+                                                    "content-type: application/json\r\n\r\n" +
+                                                    "{\"ErrorMessage\": \"Not Found\"}\r\n";
+                                        }
+
+                                        out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
+                                        out.flush();
+
+
+                                        in.close();
+                                        out.close();
+                                        sock.close();
+
+                                        new Thread(()->{
+                                            String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
+                                            if (logToRedis){
+                                                ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), json);
+                                            } else {
+                                                File file = new File("./log/");
+                                                if (!file.exists()){
+                                                    file.mkdir();
+                                                }
+
+                                                File file1 = new File("./log/" + log.getLogID() + ".json");
+                                                try {
+                                                    file1.createNewFile();
+                                                    PrintWriter writer = new PrintWriter(file1);
+                                                    writer.print(json);
+                                                    writer.close();
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
+                                                }
+                                            }
+                                        }).start();
+
+                                        return;
+                                    }
+
                                     try {
                                         if (matcher_live.find()){
                                             //System.out.println("kita?");
