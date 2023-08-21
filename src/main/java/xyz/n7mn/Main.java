@@ -457,7 +457,7 @@ public class Main {
                                 Matcher matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)").matcher(url);
                                 Matcher matcher_XvideoURL = Pattern.compile("xvideo").matcher(url);
                                 Matcher matcher_TikTokURL = Pattern.compile("tiktok").matcher(url);
-                                Matcher matcher_TwitterURL = Pattern.compile("twitter\\.com/(.*)/status/(.*)").matcher(url);
+                                Matcher matcher_TwitterURL = Pattern.compile("(x|twitter)\\.com/(.*)/status/(.*)").matcher(url);
 
                                 ShareService service = null;
 
