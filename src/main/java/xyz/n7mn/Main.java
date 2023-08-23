@@ -458,6 +458,7 @@ public class Main {
                                 Matcher matcher_XvideoURL = Pattern.compile("xvideo").matcher(url);
                                 Matcher matcher_TikTokURL = Pattern.compile("tiktok").matcher(url);
                                 Matcher matcher_TwitterURL = Pattern.compile("(x|twitter)\\.com/(.*)/status/(.*)").matcher(url);
+                                Matcher matcher_OpenrecURL = Pattern.compile("openrec").matcher(url);
 
                                 ShareService service = null;
 
@@ -824,6 +825,41 @@ public class Main {
                                         ResultVideoData video = service.getVideo(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
                                         videoUrl = video.getVideoURL();
                                         //System.out.println(videoUrl);
+                                    } catch (Exception e){
+                                        ErrorMessage = e.getMessage();
+                                        videoUrl = null;
+                                        log.setErrorMessage(e.getMessage());
+                                    }
+                                }
+
+                                // OPENREC
+                                if (matcher_OpenrecURL.find()){
+
+                                    //System.out.println("openrec test");
+                                    Matcher m = Pattern.compile("live").matcher(url);
+
+                                    service = new OPENREC();
+                                    String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
+                                    try {
+                                        ResultVideoData video = m.find() ? service.getLive(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null)) : service.getVideo(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
+                                        //videoUrl = video.getVideoURL();
+
+                                        String proxy = "null";
+                                        if (split != null){
+                                            proxy = split[0]+":"+split[1];
+                                        }
+                                        String isStream = video.isStream() ? "true" : "false";
+
+                                        Request m3u8 = new Request.Builder()
+                                                .url("https://nicovrc.net/rec/?isStream="+isStream+"&u="+video.getVideoURL()+"&proxy="+proxy)
+                                                .build();
+
+                                        final OkHttpClient client = new OkHttpClient();
+                                        Response response = client.newCall(m3u8).execute();
+                                        videoUrl = response.body() != null ? response.body().string() : "";
+                                        response.close();
+                                        //System.out.println(videoUrl);
+
                                     } catch (Exception e){
                                         ErrorMessage = e.getMessage();
                                         videoUrl = null;
