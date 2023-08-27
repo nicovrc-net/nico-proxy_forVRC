@@ -337,7 +337,7 @@ public class Main {
                                     temp_url = URLDecoder.decode(temp_url, StandardCharsets.UTF_8);
                                 }
 
-                                String[] list = {"",
+                                String[] list = {""+
                                         "http://yt.8uro.net/r?v=",
                                         "https://yt.8uro.net/r?v=",
                                         "http://nextnex.com/?url=",
@@ -368,7 +368,7 @@ public class Main {
                                         "https://qst.akakitune87.net/q?url="
                                 };
 
-                                String[] list_tube = {"",
+                                String[] list_tube = {"" +
                                         "http://shay.loan/",
                                         "https://shay.loan/",
                                         "http://questing.thetechnolus.com/watch?v=",
