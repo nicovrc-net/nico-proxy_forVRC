@@ -332,6 +332,60 @@ public class Main {
                                     temp_url = temp_url.replaceAll("ext","www").replaceAll("commons","www").replaceAll("thumb","watch").replaceAll("works", "watch");
                                 }
 
+                                // URL変換サービスのURLは取り除く
+                                if (temp_url.startsWith("http://yt.8uro.net") || temp_url.startsWith("https://yt.8uro.net")){
+                                    temp_url = URLDecoder.decode(temp_url, StandardCharsets.UTF_8);
+                                }
+
+                                String[] list = {"",
+                                        "http://yt.8uro.net/r?v=",
+                                        "https://yt.8uro.net/r?v=",
+                                        "http://nextnex.com/?url=",
+                                        "https://nextnex.com/?url=",
+                                        "http://vrc.kuroneko6423.com/proxy?url=",
+                                        "https://vrc.kuroneko6423.com/proxy?url=",
+                                        "http://kvvs.net/proxy?url=",
+                                        "https://kvvs.net/proxy?url=",
+                                        "http://questify.dev/?url=",
+                                        "https://questify.dev/?url=",
+                                        "http://questing.thetechnolus.com/v?url=",
+                                        "https://questing.thetechnolus.com/v?url=",
+                                        "http://questing.thetechnolus.com/",
+                                        "https://questing.thetechnolus.com/",
+                                        "http://vq.vrcprofile.com/?url=",
+                                        "https://vq.vrcprofile.com/?url=",
+                                        "http://api.yamachan.moe/proxy?url=",
+                                        "https://api.yamachan.moe/proxy?url=",
+                                        "http://nicovrc.net/proxy/?",
+                                        "https://nicovrc.net/proxy/?",
+                                        "http://nicovrc.net/proxy/dummy.m3u8?",
+                                        "https://nicovrc.net/proxy/dummy.m3u8?",
+                                        "http://nico.7mi.site/proxy/?",
+                                        "https://nico.7mi.site/proxy/?",
+                                        "http://nico.7mi.site/proxy/dummy.m3u8?",
+                                        "https://nico.7mi.site/proxy/dummy.m3u8?",
+                                        "http://qst.akakitune87.net/q?url=",
+                                        "https://qst.akakitune87.net/q?url="
+                                };
+
+                                String[] list_tube = {"",
+                                        "http://shay.loan/",
+                                        "https://shay.loan/",
+                                        "http://questing.thetechnolus.com/watch?v=",
+                                        "https://questing.thetechnolus.com/watch?v=",
+                                        "http://questing.thetechnolus.com/v/",
+                                        "https://questing.thetechnolus.com/v/",
+                                        "http://youtube.irunu.co/watch?v=",
+                                        "https://youtube.irunu.co/watch?v="
+                                };
+
+                                for (String str : list){
+                                    temp_url = temp_url.replaceAll(str, "");
+                                }
+                                for (String str : list_tube){
+                                    temp_url = temp_url.replaceAll(str, "https://youtu.be/");
+                                }
+
                                 final String url = temp_url;
                                 String videoUrl = null;
 
