@@ -921,6 +921,18 @@ public class Main {
                                     }
                                 }
 
+                                Request img = new Request.Builder()
+                                        .url("https://i2v.nicovrc.net/?url="+url)
+                                        .build();
+                                final OkHttpClient client = new OkHttpClient();
+                                Response response_img = client.newCall(img).execute();
+
+                                // 画像
+                                if (response_img.code() == 200 || response_img.code() == 302){
+                                    videoUrl = "https://i2v.nicovrc.net/?url="+url;
+                                }
+                                response_img.close();
+
                                 if (videoUrl == null && ErrorMessage == null){
                                     httpResponse = "HTTP/1."+httpVersion+" 404 Not Found\r\n" +
                                             "date: "+ new Date() +"\r\n" +
