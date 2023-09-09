@@ -31,6 +31,7 @@ public class Main {
     private static String Master = "-:22552";
     private static final HashMap<String, String> QueueList = new HashMap<>();
     private static boolean logToRedis = false;
+    private static String bilibiliSystemURL = "http://localhost:28280";
 
     public static void main(String[] args) {
         // Proxy読み込み
@@ -48,7 +49,8 @@ public class Main {
                     .add("PingPort", String.valueOf(PingPort))
                     .add("PingHTTPPort", String.valueOf(PingHTTPPort))
                     .add("Master", "-:22552")
-                    .add("LogToRedis", "False");
+                    .add("LogToRedis", "False")
+                    .add("bilibiliSystemURL", bilibiliSystemURL);
             ConfigYaml1 = add.build();
 
             try {
@@ -71,6 +73,7 @@ public class Main {
                 PingHTTPPort = ConfigYaml1.integer("PingHTTPPort");
                 Master = ConfigYaml1.string("Master");
                 logToRedis = ConfigYaml1.string("LogToRedis").equals("True");
+                bilibiliSystemURL = ConfigYaml1.string("bilibiliSystemURL");
             } catch (Exception e){
                 e.printStackTrace();
                 return;
@@ -523,6 +526,98 @@ public class Main {
                                 Matcher matcher_TwitterURL = Pattern.compile("(x|twitter)\\.com/(.*)/status/(.*)").matcher(url);
                                 Matcher matcher_OpenrecURL = Pattern.compile("openrec").matcher(url);
 
+                                // VRCStringDownloaderっぽいアクセスから来たときは動画情報の取得だけして200を返す
+                                Matcher matcher_vrcString = Pattern.compile("user-agent: unityplayer/").matcher(RequestHttp.toLowerCase(Locale.ROOT));
+                                if (matcher_vrcString.find()){
+                                    final List<String> proxyList;
+
+                                    if (matcher_NicoVideoURL.find()){
+                                        Matcher matcher_Official = Pattern.compile("(live|so)").matcher(url);
+
+                                        if (matcher_Official.find()){
+                                            proxyList = ProxyList_Official;
+                                        } else {
+                                            proxyList = ProxyList_Video;
+                                        }
+                                    } else {
+                                        proxyList = ProxyList_Official;
+                                    }
+
+                                    final String[] proxy = !proxyList.isEmpty() ? proxyList.get(new SecureRandom().nextInt(0, proxyList.size())).split(":") : null;
+                                    String title = "";
+                                    try {
+                                        ShareService service = null;
+
+                                        if (matcher_NicoVideoURL.find()){
+                                            service = new NicoNicoVideo();
+                                        }
+
+                                        if (matcher_BilibiliURL.find()){
+                                            Matcher m = Pattern.compile("tv").matcher(url);
+                                            service = m.find() ? new BilibiliTv() : new BilibiliCom();
+                                        }
+
+                                        if (matcher_XvideoURL.find()){
+                                            service = new Xvideos();
+                                        }
+
+                                        if (matcher_TikTokURL.find()){
+                                            service = new TikTok();
+                                        }
+
+                                        if (matcher_OpenrecURL.find()){
+                                            service = new OPENREC();
+                                        }
+
+                                        if (service != null){
+                                            if (proxy != null){
+                                                title = service.getTitle(new RequestVideoData(url, new ProxyData(proxy[0], Integer.parseInt(proxy[1]))));
+                                            } else {
+                                                title = service.getTitle(new RequestVideoData(url, null));
+                                            }
+                                        }
+
+                                    } catch (Exception e){
+                                        e.printStackTrace();
+                                    }
+
+                                    httpResponse = "HTTP/1."+httpVersion+" 200 OK\r\n" +
+                                            "date: "+ new Date() +"\r\n" +
+                                            "content-type: text/plain\r\n\r\n" +
+                                            title+"\r\n";
+
+                                    out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
+                                    out.flush();
+
+                                    new Thread(()->{
+                                        String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
+                                        if (logToRedis){
+                                            ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), json);
+                                        } else {
+                                            File file = new File("./log/");
+                                            if (!file.exists()){
+                                                file.mkdir();
+                                            }
+
+                                            File file1 = new File("./log/" + log.getLogID() + ".json");
+                                            try {
+                                                file1.createNewFile();
+                                                PrintWriter writer = new PrintWriter(file1);
+                                                writer.print(json);
+                                                writer.close();
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }).start();
+
+                                    in.close();
+                                    out.close();
+                                    sock.close();
+
+                                    return;
+                                }
+
                                 ShareService service = null;
 
                                 // youtubeはそのまま転送
@@ -585,72 +680,6 @@ public class Main {
                                     }
 
                                     final String[] proxy = proxyList.size() > 0 ? proxyList.get(new SecureRandom().nextInt(0, proxyList.size())).split(":") : null;
-
-                                    // VRCStringDownloaderっぽいアクセスから来たときは動画情報の取得だけして200を返す
-                                    Matcher matcher_vrcString = Pattern.compile("user-agent: unityplayer/").matcher(RequestHttp.toLowerCase(Locale.ROOT));
-                                    if (matcher_vrcString.find()){
-
-                                        final OkHttpClient.Builder builder = new OkHttpClient.Builder();
-                                        final OkHttpClient client = proxyList.size() > 0 ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy[0], Integer.parseInt(proxy[1])))).build() : new OkHttpClient();
-
-                                        String HtmlText = "";
-                                        Request request_html = new Request.Builder()
-                                                .url(url)
-                                                .build();
-                                        Response response = client.newCall(request_html).execute();
-                                        if (response.body() != null){
-                                            HtmlText = response.body().string();
-                                        }
-                                        response.close();
-
-                                        Matcher matcher_title = Pattern.compile("<meta property=\"og:title\" content=\"(.*)\">").matcher(HtmlText);
-
-                                        if (matcher_title.find()){
-                                            httpResponse = "HTTP/1."+httpVersion+" 200 OK\r\n" +
-                                                    "date: "+ new Date() +"\r\n" +
-                                                    "content-type: text/plain\r\n\r\n" +
-                                                    matcher_title.group(1);
-
-
-                                        } else {
-                                            httpResponse = "HTTP/1."+httpVersion+" 404 Not Found\r\n" +
-                                                    "date: "+ new Date() +"\r\n" +
-                                                    "content-type: application/json\r\n\r\n" +
-                                                    "{\"ErrorMessage\": \"Not Found\"}\r\n";
-                                        }
-
-                                        out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
-                                        out.flush();
-
-
-                                        in.close();
-                                        out.close();
-                                        sock.close();
-
-                                        new Thread(()->{
-                                            String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
-                                            if (logToRedis){
-                                                ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), json);
-                                            } else {
-                                                File file = new File("./log/");
-                                                if (!file.exists()){
-                                                    file.mkdir();
-                                                }
-
-                                                File file1 = new File("./log/" + log.getLogID() + ".json");
-                                                try {
-                                                    file1.createNewFile();
-                                                    PrintWriter writer = new PrintWriter(file1);
-                                                    writer.print(json);
-                                                    writer.close();
-                                                } catch (IOException e) {
-                                                    e.printStackTrace();
-                                                }
-                                            }
-                                        }).start();
-
-                                        return;
-                                    }
 
                                     try {
                                         if (matcher_live.find()){
@@ -794,7 +823,9 @@ public class Main {
                                 // ビリビリ
                                 if (matcher_BilibiliURL.find()){
                                     Matcher m = Pattern.compile("tv").matcher(url);
-                                    service = m.find() ? new BilibiliTv() : new BilibiliCom();
+                                    //System.out.println(url);
+                                    boolean isTv = m.find();
+                                    service = isTv ? new BilibiliTv() : new BilibiliCom();
                                     String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
 
                                     try {
@@ -805,20 +836,33 @@ public class Main {
                                             video = service.getVideo(new RequestVideoData(url, null));
                                         }
 
-                                        // tvの場合は映像と音声で分離するので結合処理が必要
-                                        if (video.getAudioURL() != null){
+                                        //System.out.println(video.getVideoURL());
 
-                                            Request m3u8 = new Request.Builder()
-                                                    .url("https://nico.7mi.site/m3u8/?vi="+video.getVideoURL()+"&music="+video.getAudioURL())
-                                                    .build();
+                                        // 映像と音声で分離しているので結合処理が必要
+                                        if (video.getAudioURL() != null){
+                                            //System.out.println("!!");
+                                            final Request m3u8;
+                                            if (split != null){
+                                                //System.out.println(bilibiliSystemURL+"/?url="+video.getVideoURL()+",,"+video.getAudioURL()+"&cc&" + (m.find() ? "tv" : "com")+"&cc&"+split[0]+":"+split[1]);
+                                                m3u8 = new Request.Builder()
+                                                        .url(bilibiliSystemURL+"/?url="+video.getVideoURL()+",,"+video.getAudioURL()+"&cc&" + (isTv ? "tv" : "com")+"&cc&"+split[0]+":"+split[1])
+                                                        .build();
+                                            } else {
+                                                //System.out.println(bilibiliSystemURL+"/?url="+video.getVideoURL()+",,"+video.getAudioURL()+"&cc&" + (isTv ? "tv" : "com"));
+                                                m3u8 = new Request.Builder()
+                                                        .url(bilibiliSystemURL+"/?url="+video.getVideoURL()+",,"+video.getAudioURL()+"&&cc&" + (isTv ? "tv" : "com"))
+                                                        .build();
+                                            }
+
 
                                             final OkHttpClient client = new OkHttpClient();
                                             Response response = client.newCall(m3u8).execute();
                                             String s1 = response.body() != null ? response.body().string() : "";
                                             response.close();
-                                            videoUrl = "https://nico.7mi.site/m3u8/video_"+s1+".m3u8";
+                                            videoUrl = bilibiliSystemURL+s1;
+                                            //System.out.println(videoUrl);
                                         } else {
-                                            videoUrl = video.getVideoURL();
+                                            videoUrl = "";
                                         }
 
                                     } catch (Exception e){
