@@ -526,12 +526,22 @@ public class Main {
                                 Matcher matcher_TwitterURL = Pattern.compile("(x|twitter)\\.com/(.*)/status/(.*)").matcher(url);
                                 Matcher matcher_OpenrecURL = Pattern.compile("openrec").matcher(url);
 
+                                boolean isNico = matcher_NicoVideoURL.find();
+                                boolean isBiliBili = matcher_BilibiliURL.find();
+                                boolean isYoutube = matcher_YoutubeURL.find();
+                                boolean isXvideo = matcher_XvideoURL.find();
+                                boolean isTiktok = matcher_TikTokURL.find();
+                                boolean isTwitter = matcher_TwitterURL.find();
+                                boolean isOpenrec = matcher_OpenrecURL.find();
+
                                 // VRCStringDownloaderっぽいアクセスから来たときは動画情報の取得だけして200を返す
                                 Matcher matcher_vrcString = Pattern.compile("user-agent: unityplayer/").matcher(RequestHttp.toLowerCase(Locale.ROOT));
                                 if (matcher_vrcString.find()){
+
+
                                     final List<String> proxyList;
 
-                                    if (matcher_NicoVideoURL.find()){
+                                    if (isNico){
                                         Matcher matcher_Official = Pattern.compile("(live|so)").matcher(url);
 
                                         if (matcher_Official.find()){
@@ -548,24 +558,24 @@ public class Main {
                                     try {
                                         ShareService service = null;
 
-                                        if (matcher_NicoVideoURL.find()){
+                                        if (isNico){
                                             service = new NicoNicoVideo();
                                         }
 
-                                        if (matcher_BilibiliURL.find()){
+                                        if (isBiliBili){
                                             Matcher m = Pattern.compile("tv").matcher(url);
                                             service = m.find() ? new BilibiliTv() : new BilibiliCom();
                                         }
 
-                                        if (matcher_XvideoURL.find()){
+                                        if (isXvideo){
                                             service = new Xvideos();
                                         }
 
-                                        if (matcher_TikTokURL.find()){
+                                        if (isTiktok){
                                             service = new TikTok();
                                         }
 
-                                        if (matcher_OpenrecURL.find()){
+                                        if (isOpenrec){
                                             service = new OPENREC();
                                         }
 
@@ -621,7 +631,7 @@ public class Main {
                                 ShareService service = null;
 
                                 // youtubeはそのまま転送
-                                if (matcher_YoutubeURL.find()){
+                                if (isYoutube){
 
                                     httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
                                             "Host: "+host+"\n" +
@@ -666,7 +676,7 @@ public class Main {
                                 }
 
                                 // ニコ動 / ニコ生
-                                if (matcher_NicoVideoURL.find()){
+                                if (isNico){
                                     service = new NicoNicoVideo();
 
                                     Matcher matcher_Official = Pattern.compile("(live|so)").matcher(url);
@@ -821,7 +831,7 @@ public class Main {
                                 }
 
                                 // ビリビリ
-                                if (matcher_BilibiliURL.find()){
+                                if (isBiliBili){
                                     Matcher m = Pattern.compile("tv").matcher(url);
                                     //System.out.println(url);
                                     boolean isTv = m.find();
@@ -894,7 +904,7 @@ public class Main {
 
                                 // xvideos
                                 //System.out.println(url);
-                                if (matcher_XvideoURL.find()){
+                                if (isXvideo){
                                     //System.out.println("test");
                                     service = new Xvideos();
                                     String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
@@ -910,7 +920,7 @@ public class Main {
                                 }
 
                                 // TikTok
-                                if (matcher_TikTokURL.find()){
+                                if (isTiktok){
                                     service = new TikTok();
                                     String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
                                     try {
@@ -925,7 +935,7 @@ public class Main {
                                 }
 
                                 // Twitter
-                                if (matcher_TwitterURL.find()){
+                                if (isTwitter){
                                     service = new Twitter();
                                     String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
                                     try {
@@ -940,7 +950,7 @@ public class Main {
                                 }
 
                                 // OPENREC
-                                if (matcher_OpenrecURL.find()){
+                                if (isOpenrec){
 
                                     //System.out.println("openrec test");
                                     Matcher m = Pattern.compile("live").matcher(url);
