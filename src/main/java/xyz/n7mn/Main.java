@@ -378,12 +378,21 @@ public class Main {
                                         "http://youtube.irunu.co/watch?v=",
                                         "https://youtube.irunu.co/watch?v="
                                 };
+                                String[] list_nico = {"" +
+                                        "http://www.nicovideo.life/watch?v=",
+                                        "https://www.nicovideo.life/watch?v=",
+                                        "http://live.nicovideo.life/watch?v=",
+                                        "https://live.nicovideo.life/watch?v=",
+                                };
 
                                 for (String str : list){
                                     temp_url = temp_url.replaceAll(str, "");
                                 }
                                 for (String str : list_tube){
                                     temp_url = temp_url.replaceAll(str, "https://youtu.be/");
+                                }
+                                for (String str : list_nico){
+                                    temp_url = temp_url.replaceAll(str, "https://nico.ms/");
                                 }
 
                                 final String url = temp_url;
