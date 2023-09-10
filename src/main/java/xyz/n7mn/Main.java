@@ -525,6 +525,7 @@ public class Main {
                                 Matcher matcher_TikTokURL = Pattern.compile("tiktok").matcher(url);
                                 Matcher matcher_TwitterURL = Pattern.compile("(x|twitter)\\.com/(.*)/status/(.*)").matcher(url);
                                 Matcher matcher_OpenrecURL = Pattern.compile("openrec").matcher(url);
+                                Matcher matcher_PornhubURL = Pattern.compile("\\.pornhub\\.com/view_video\\.php?viewkey=").matcher(url);
 
                                 boolean isNico = matcher_NicoVideoURL.find();
                                 boolean isBiliBili = matcher_BilibiliURL.find();
@@ -533,6 +534,7 @@ public class Main {
                                 boolean isTiktok = matcher_TikTokURL.find();
                                 boolean isTwitter = matcher_TwitterURL.find();
                                 boolean isOpenrec = matcher_OpenrecURL.find();
+                                boolean isPornhub = matcher_PornhubURL.find();
 
                                 // VRCStringDownloaderっぽいアクセスから来たときは動画情報の取得だけして200を返す
                                 Matcher matcher_vrcString = Pattern.compile("user-agent: unityplayer/").matcher(RequestHttp.toLowerCase(Locale.ROOT));
@@ -577,6 +579,10 @@ public class Main {
 
                                         if (isOpenrec){
                                             service = new OPENREC();
+                                        }
+
+                                        if (isPornhub){
+                                            service = new Pornhub();
                                         }
 
                                         if (service != null){
@@ -984,17 +990,33 @@ public class Main {
                                     }
                                 }
 
+                                // Pornhub
+                                if (isPornhub){
+                                    service = new Pornhub();
+                                    String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
+                                    try {
+                                        ResultVideoData video = service.getVideo(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
+                                        videoUrl = video.getVideoURL();
+
+                                    } catch (Exception e){
+                                        ErrorMessage = e.getMessage();
+                                        videoUrl = null;
+                                        log.setErrorMessage(e.getMessage());
+                                    }
+                                }
+
+                                // 画像
                                 Request img = new Request.Builder()
                                         .url("https://i2v.nicovrc.net/?url="+url)
                                         .build();
                                 final OkHttpClient client = new OkHttpClient();
                                 Response response_img = client.newCall(img).execute();
 
-                                // 画像
                                 if (response_img.code() == 200 || response_img.code() == 302){
                                     videoUrl = "https://i2v.nicovrc.net/?url="+url;
                                 }
                                 response_img.close();
+
 
                                 if (videoUrl == null && ErrorMessage == null){
                                     httpResponse = "HTTP/1."+httpVersion+" 404 Not Found\r\n" +
