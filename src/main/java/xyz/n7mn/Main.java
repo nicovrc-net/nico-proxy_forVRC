@@ -525,7 +525,7 @@ public class Main {
                                 Matcher matcher_TikTokURL = Pattern.compile("tiktok").matcher(url);
                                 Matcher matcher_TwitterURL = Pattern.compile("(x|twitter)\\.com/(.*)/status/(.*)").matcher(url);
                                 Matcher matcher_OpenrecURL = Pattern.compile("openrec").matcher(url);
-                                Matcher matcher_PornhubURL = Pattern.compile("\\.pornhub\\.com/view_video\\.php?viewkey=").matcher(url);
+                                Matcher matcher_PornhubURL = Pattern.compile("pornhub\\.com").matcher(url);
 
                                 boolean isNico = matcher_NicoVideoURL.find();
                                 boolean isBiliBili = matcher_BilibiliURL.find();
