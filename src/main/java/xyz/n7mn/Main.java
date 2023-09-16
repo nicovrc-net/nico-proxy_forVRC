@@ -33,15 +33,20 @@ public class Main {
     private static boolean logToRedis = false;
     private static String bilibiliSystemURL = "http://localhost:28280";
 
+    private static String twitcastClientId = "";
+    private static String twitcastClientSecret = "";
+
     public static void main(String[] args) {
         // Proxy読み込み
         File config1 = new File("./config.yml");
         File config2 = new File("./config-proxy.yml");
         File config3 = new File("./config-redis.yml");
+        File config4 = new File("./config-twitcast.yml");
 
         YamlMapping ConfigYaml1 = null;
         YamlMapping ConfigYaml2 = null;
         YamlMapping ConfigYaml3 = null;
+        YamlMapping ConfigYaml4 = null;
 
         if (!config1.exists()){
             YamlMappingBuilder add = Yaml.createYamlMappingBuilder()
@@ -164,6 +169,32 @@ public class Main {
                 writer.print(ConfigYaml3.toString());
                 writer.close();
             } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (!config4.exists()){
+            YamlMappingBuilder builder = Yaml.createYamlMappingBuilder();
+            ConfigYaml4 = builder.add(
+                    "ClientID", "xxxx"
+            ).add(
+                    "ClientSecret", "xxxx"
+            ).build();
+
+            try {
+                config4.createNewFile();
+                PrintWriter writer = new PrintWriter(config4);
+                writer.print(ConfigYaml4.toString());
+                writer.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            try {
+                ConfigYaml4 = Yaml.createYamlInput(config4).readYamlMapping();
+                twitcastClientId = ConfigYaml4.string("ClientID");
+                twitcastClientSecret = ConfigYaml4.string("ClientSecret");
+            } catch (Exception e){
                 e.printStackTrace();
             }
         }
@@ -526,6 +557,7 @@ public class Main {
                                 Matcher matcher_TwitterURL = Pattern.compile("(x|twitter)\\.com/(.*)/status/(.*)").matcher(url);
                                 Matcher matcher_OpenrecURL = Pattern.compile("openrec").matcher(url);
                                 Matcher matcher_PornhubURL = Pattern.compile("pornhub\\.com").matcher(url);
+                                Matcher matcher_TwicastURL = Pattern.compile("twitcasting\\.tv").matcher(url);
 
                                 boolean isNico = matcher_NicoVideoURL.find();
                                 boolean isBiliBili = matcher_BilibiliURL.find();
@@ -535,6 +567,7 @@ public class Main {
                                 boolean isTwitter = matcher_TwitterURL.find();
                                 boolean isOpenrec = matcher_OpenrecURL.find();
                                 boolean isPornhub = matcher_PornhubURL.find();
+                                boolean isTwicast = matcher_TwicastURL.find();
 
                                 // VRCStringDownloaderっぽいアクセスから来たときは動画情報の取得だけして200を返す
                                 Matcher matcher_vrcString = Pattern.compile("user-agent: unityplayer/").matcher(RequestHttp.toLowerCase(Locale.ROOT));
@@ -583,6 +616,10 @@ public class Main {
 
                                         if (isPornhub){
                                             service = new Pornhub();
+                                        }
+
+                                        if (isTwicast){
+                                            service = new Twicast(twitcastClientId, twitcastClientSecret);
                                         }
 
                                         if (service != null){
@@ -720,6 +757,7 @@ public class Main {
                                             final OkHttpClient client = proxy != null ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy[0], Integer.parseInt(proxy[1])))).build() : new OkHttpClient();
 
                                             //System.out.println(video.isEncrypted());
+                                            /*
                                             if (video.isEncrypted()){
                                                 // 暗号化HLS
                                                 EncryptedTokenJSON json = new Gson().fromJson(video.getTokenJson(), EncryptedTokenJSON.class);
@@ -733,6 +771,7 @@ public class Main {
                                                 response.close();
                                                 videoUrl = "https://nicovrc.net/m3u8/"+s1+".m3u8";
                                             }
+                                            */
 
                                             // ハートビート信号送る
                                             Request request_html = new Request.Builder()
@@ -811,7 +850,7 @@ public class Main {
                                         }
                                     } catch (Exception e){
                                         ErrorMessage = e.getMessage();
-                                        e.printStackTrace();
+                                        //e.printStackTrace();
                                         log.setErrorMessage(e.getMessage());
 
                                         String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
@@ -842,7 +881,7 @@ public class Main {
                                     //System.out.println(url);
                                     boolean isTv = m.find();
                                     service = isTv ? new BilibiliTv() : new BilibiliCom();
-                                    String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
+                                    String[] split = !ProxyList_Official.isEmpty() ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
 
                                     try {
                                         ResultVideoData video;
@@ -913,7 +952,7 @@ public class Main {
                                 if (isXvideo){
                                     //System.out.println("test");
                                     service = new Xvideos();
-                                    String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
+                                    String[] split = !ProxyList_Official.isEmpty() ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
                                     try {
                                         ResultVideoData video = service.getVideo(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
                                         videoUrl = video.getVideoURL();
@@ -928,7 +967,7 @@ public class Main {
                                 // TikTok
                                 if (isTiktok){
                                     service = new TikTok();
-                                    String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
+                                    String[] split = !ProxyList_Official.isEmpty() ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
                                     try {
                                         ResultVideoData video = service.getVideo(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
                                         videoUrl = video.getVideoURL();
@@ -943,7 +982,7 @@ public class Main {
                                 // Twitter
                                 if (isTwitter){
                                     service = new Twitter();
-                                    String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
+                                    String[] split = !ProxyList_Official.isEmpty() ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
                                     try {
                                         ResultVideoData video = service.getVideo(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
                                         videoUrl = video.getVideoURL();
@@ -962,7 +1001,7 @@ public class Main {
                                     Matcher m = Pattern.compile("live").matcher(url);
 
                                     service = new OPENREC();
-                                    String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
+                                    String[] split = !ProxyList_Official.isEmpty() ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
                                     try {
                                         ResultVideoData video = m.find() ? service.getLive(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null)) : service.getVideo(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
                                         //videoUrl = video.getVideoURL();
@@ -993,7 +1032,7 @@ public class Main {
                                 // Pornhub
                                 if (isPornhub){
                                     service = new Pornhub();
-                                    String[] split = ProxyList_Official.size() > 0 ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
+                                    String[] split = !ProxyList_Official.isEmpty() ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
                                     try {
                                         ResultVideoData video = service.getVideo(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
                                         videoUrl = video.getVideoURL();
@@ -1002,6 +1041,29 @@ public class Main {
                                         ErrorMessage = e.getMessage();
                                         videoUrl = null;
                                         log.setErrorMessage(e.getMessage());
+                                    }
+                                }
+
+                                // ツイキャス
+                                if (isTwicast){
+                                    //System.out.println("id : " +twitcastClientId+ " / "+twitcastClientSecret);
+                                    service = new Twicast(twitcastClientId, twitcastClientSecret);
+
+                                    String[] split = !ProxyList_Official.isEmpty() ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
+                                    try {
+                                        ResultVideoData video = service.getLive(new RequestVideoData(url,split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
+                                        videoUrl = video.getVideoURL();
+
+                                        if (!video.isStream()){
+                                            // アーカイブはリファラ必須なので対応しない
+                                            videoUrl = null;
+                                        }
+
+                                    } catch (Exception e){
+                                        ErrorMessage = e.getMessage();
+                                        videoUrl = null;
+                                        log.setErrorMessage(e.getMessage());
+                                        //e.printStackTrace();
                                     }
                                 }
 
