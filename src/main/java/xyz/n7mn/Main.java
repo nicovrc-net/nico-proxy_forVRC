@@ -1099,28 +1099,46 @@ public class Main {
 
                                 // 画像
                                 Request img = new Request.Builder()
-                                        .url("https://i2v.nicovrc.net/?url="+url)
+                                        .url(url)
                                         .build();
                                 final OkHttpClient client = new OkHttpClient();
                                 Response response_img = client.newCall(img).execute();
 
-                                if (response_img.code() == 200 || response_img.code() == 302){
+                                if (response_img.body().contentType().toString().startsWith("image")){
                                     videoUrl = "https://i2v.nicovrc.net/?url="+url;
                                 }
                                 response_img.close();
 
-
                                 if (videoUrl == null && ErrorMessage == null){
-                                    httpResponse = "HTTP/1."+httpVersion+" 404 Not Found\r\n" +
+                                    /*httpResponse = "HTTP/1."+httpVersion+" 404 Not Found\r\n" +
                                             "date: "+ new Date() +"\r\n" +
                                             "content-type: application/json\r\n\r\n" +
-                                            "{\"ErrorMessage\": \"Not Found\"}\r\n";
-                                } else if (ErrorMessage != null) {
+                                            "{\"ErrorMessage\": \"Not Found\"}\r\n";*/
+                                    //
 
+                                    String locationText = "Found. Redirecting to https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=Not Found";
+                                    httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
+                                            "Host: "+host+"\n" +
+                                            "Date: "+new Date()+"\r\n" +
+                                            "content-length: "+locationText.getBytes(StandardCharsets.UTF_8).length+"\r\n"+
+                                            "X-Powered-By: Java/8\r\n" +
+                                            "Location: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=Not Found\r\n" +
+                                            "Content-type: text/plain; charset=UTF-8\r\n\r\n"+locationText;
+                                } else if (ErrorMessage != null) {
+                                    /*
                                     httpResponse = "HTTP/1."+httpVersion+" 400 Bad Request\r\n" +
                                             "date: "+ new Date() +"\r\n" +
                                             "content-type: application/json\r\n\r\n" +
-                                            "{\"ErrorMessage\": \""+ErrorMessage+"\"}\r\n";
+                                            "{\"ErrorMessage\": \""+ErrorMessage+"\"}\r\n";*/
+
+                                    String locationText = "Found. Redirecting to https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+ErrorMessage;
+                                    httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
+                                            "Host: "+host+"\n" +
+                                            "Date: "+new Date()+"\r\n" +
+                                            "content-length: "+locationText.getBytes(StandardCharsets.UTF_8).length+"\r\n"+
+                                            "X-Powered-By: Java/8\r\n" +
+                                            "Location: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=" + ErrorMessage + "\r\n" +
+                                            "Content-type: text/plain; charset=UTF-8\r\n\r\n"+locationText;
 
                                 } else {
                                     String locationText = "Found. Redirecting to "+videoUrl;
