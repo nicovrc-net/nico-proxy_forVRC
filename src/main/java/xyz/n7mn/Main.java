@@ -755,24 +755,6 @@ public class Main {
 
                                             final OkHttpClient.Builder builder = new OkHttpClient.Builder();
                                             final OkHttpClient client = proxy != null ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy[0], Integer.parseInt(proxy[1])))).build() : new OkHttpClient();
-
-                                            //System.out.println(video.isEncrypted());
-                                            /*
-                                            if (video.isEncrypted()){
-                                                // 暗号化HLS
-                                                EncryptedTokenJSON json = new Gson().fromJson(video.getTokenJson(), EncryptedTokenJSON.class);
-                                                //
-                                                Request m3u8 = new Request.Builder()
-                                                        .url("https://nicovrc.net/m3u8/?vi="+video.getVideoURL()+"&nnkey="+json.getEncryptedURL()+"&mode=nico_enc")
-                                                        .build();
-
-                                                Response response = client.newCall(m3u8).execute();
-                                                String s1 = response.body() != null ? response.body().string() : "";
-                                                response.close();
-                                                videoUrl = "https://nicovrc.net/m3u8/"+s1+".m3u8";
-                                            }
-                                            */
-
                                             // ハートビート信号送る
                                             Request request_html = new Request.Builder()
                                                     .url(url)
@@ -822,6 +804,21 @@ public class Main {
                                                     count[0]++;
                                                 }
                                             }, 0L, 40000L);
+
+
+                                            if (video.isEncrypted()){
+                                                // 暗号化HLS
+                                                Request m3u8 = new Request.Builder()
+                                                        .url("https://n.nicovrc.net/?url="+video.getVideoURL()+"&proxy="+(proxy != null ? proxy[0]+":"+proxy[1] : ""))
+                                                        .build();
+
+                                                Response response = client.newCall(m3u8).execute();
+                                                String s1 = response.body() != null && response.code() == 200 ? response.body().string() : "";
+                                                response.close();
+                                                if (!s1.isEmpty()){
+                                                    videoUrl = "https://n.nicovrc.net"+s1;
+                                                }
+                                            }
 
                                         }
                                         // キューリスト追加
