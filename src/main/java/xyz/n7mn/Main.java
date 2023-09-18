@@ -1098,13 +1098,15 @@ public class Main {
                                 }
 
                                 // 画像
+                                final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+                                String[] split = !ProxyList_Video.isEmpty() ? ProxyList_Video.get(new SecureRandom().nextInt(0, ProxyList_Video.size())).split(":") : null;
+                                final OkHttpClient client = !ProxyList_Video.isEmpty() ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(split[0], Integer.parseInt(split[1])))).build() : new OkHttpClient();
                                 Request img = new Request.Builder()
                                         .url(url)
                                         .build();
-                                final OkHttpClient client = new OkHttpClient();
                                 Response response_img = client.newCall(img).execute();
 
-                                if (response_img.body().contentType().toString().startsWith("image")){
+                                if (response_img.body() != null && response_img.body().contentType().toString().startsWith("image")){
                                     videoUrl = "https://i2v.nicovrc.net/?url="+url;
                                 }
                                 response_img.close();
