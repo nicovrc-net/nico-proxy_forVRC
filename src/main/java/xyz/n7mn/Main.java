@@ -1052,8 +1052,41 @@ public class Main {
                                         videoUrl = video.getVideoURL();
 
                                         if (!video.isStream()){
-                                            // アーカイブはリファラ必須なので対応しない
+                                            String tempVideoUrl = videoUrl;
                                             videoUrl = null;
+                                            // アーカイブは最初のmaster.m3u8だけリファラが必須。それ以降は必要なさそう
+                                            Request twicast = new Request.Builder()
+                                                    .url(tempVideoUrl)
+                                                    .addHeader("Referer", "https://twitcasting.tv/")
+                                                    .build();
+
+
+                                            final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+                                            final OkHttpClient client = !ProxyList_Official.isEmpty() ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(split[0], Integer.parseInt(split[1])))).build() : new OkHttpClient();
+                                            Response response_twicast = client.newCall(twicast).execute();
+
+                                            if (response_twicast.code() == 200){
+                                                if (response_twicast.body() != null){
+
+                                                    Matcher tempUrl = Pattern.compile("https://(.+)/tc.vod.v2").matcher(tempVideoUrl);
+
+                                                    String baseUrl = "";
+                                                    if (tempUrl.find()){
+                                                        baseUrl = "https://"+tempUrl.group(1);
+                                                    }
+
+                                                    String str = response_twicast.body().string();
+                                                    for (String s : str.split("\n")){
+                                                        if (s.startsWith("#")){
+                                                            continue;
+                                                        }
+
+                                                        videoUrl = baseUrl+s;
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            response_twicast.close();
                                         }
 
                                     } catch (Exception e){
