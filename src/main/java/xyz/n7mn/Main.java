@@ -1097,19 +1097,21 @@ public class Main {
                                     }
                                 }
 
-                                // 画像
-                                final OkHttpClient.Builder builder = new OkHttpClient.Builder();
-                                String[] split = !ProxyList_Video.isEmpty() ? ProxyList_Video.get(new SecureRandom().nextInt(0, ProxyList_Video.size())).split(":") : null;
-                                final OkHttpClient client = !ProxyList_Video.isEmpty() ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(split[0], Integer.parseInt(split[1])))).build() : new OkHttpClient();
-                                Request img = new Request.Builder()
-                                        .url(url)
-                                        .build();
-                                Response response_img = client.newCall(img).execute();
+                                if (!isNico && !isBiliBili && !isXvideo && !isTiktok && !isTwitter && !isOpenrec && !isPornhub && !isTwicast && videoUrl == null && url.startsWith("http")){
+                                    // 画像
+                                    final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+                                    String[] split = !ProxyList_Video.isEmpty() ? ProxyList_Video.get(new SecureRandom().nextInt(0, ProxyList_Video.size())).split(":") : null;
+                                    final OkHttpClient client = !ProxyList_Video.isEmpty() ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(split[0], Integer.parseInt(split[1])))).build() : new OkHttpClient();
+                                    Request img = new Request.Builder()
+                                            .url(url)
+                                            .build();
+                                    Response response_img = client.newCall(img).execute();
 
-                                if (response_img.body() != null && response_img.body().contentType().toString().startsWith("image")){
-                                    videoUrl = "https://i2v.nicovrc.net/?url="+url;
+                                    if (response_img.body() != null && response_img.body().contentType().toString().startsWith("image")){
+                                        videoUrl = "https://i2v.nicovrc.net/?url="+url;
+                                    }
+                                    response_img.close();
                                 }
-                                response_img.close();
 
                                 if (videoUrl == null && ErrorMessage == null){
                                     /*httpResponse = "HTTP/1."+httpVersion+" 404 Not Found\r\n" +
