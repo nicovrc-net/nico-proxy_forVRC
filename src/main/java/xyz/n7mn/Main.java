@@ -559,6 +559,7 @@ public class Main {
                                 Matcher matcher_PornhubURL = Pattern.compile("pornhub\\.com").matcher(url);
                                 Matcher matcher_TwicastURL = Pattern.compile("twitcasting\\.tv").matcher(url);
 
+
                                 boolean isNico = matcher_NicoVideoURL.find();
                                 boolean isBiliBili = matcher_BilibiliURL.find();
                                 boolean isYoutube = matcher_YoutubeURL.find();
@@ -568,6 +569,10 @@ public class Main {
                                 boolean isOpenrec = matcher_OpenrecURL.find();
                                 boolean isPornhub = matcher_PornhubURL.find();
                                 boolean isTwicast = matcher_TwicastURL.find();
+
+                                Matcher matcher_vrcString = Pattern.compile("user-agent: unityplayer/").matcher(RequestHttp.toLowerCase(Locale.ROOT));
+                                Matcher matcher_TitleGet= Pattern.compile("x-nicovrc-titleget: yes").matcher(RequestHttp.toLowerCase(Locale.ROOT));
+                                boolean isTitleGet = matcher_vrcString.find() || matcher_TitleGet.find();
 
                                 final ShareService service;
                                 final String BiliBili;
@@ -599,9 +604,9 @@ public class Main {
                                     BiliBili = "";
                                 }
 
-                                // VRCStringDownloaderっぽいアクセスから来たときは動画情報の取得だけして200を返す
-                                Matcher matcher_vrcString = Pattern.compile("user-agent: unityplayer/").matcher(RequestHttp.toLowerCase(Locale.ROOT));
-                                if (matcher_vrcString.find()){
+
+                                // VRCStringDownloaderっぽいアクセスとx-nicovrc-titlegetがyesのときは動画情報の取得だけして200を返す
+                                if (isTitleGet){
 
                                     final List<String> proxyList;
 
