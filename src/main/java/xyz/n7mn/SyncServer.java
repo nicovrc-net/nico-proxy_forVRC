@@ -61,7 +61,7 @@ public class SyncServer extends Thread {
 
                         if (response.code() == 403 || response.code() == 404){
                             QueueList.remove(id);
-                            System.out.println("[Debug] キュー " + id + "を削除");
+                            System.out.println("[Info] キューから " + id + " を削除");
                         }
                         response.close();
                     } catch (Exception e) {
@@ -108,8 +108,9 @@ public class SyncServer extends Thread {
                         if (matcher.find()) {
                             String[] split = matcher.group(1).split(",");
 
-                            if (split[1].length() != 0) {
+                            if (!split[1].isEmpty()) {
                                 QueueList.put(split[0], split[1]);
+                                System.out.println("[Info] キューに "+split[0]+" を追加");
                             } else {
                                 QueueList.remove(split[0]);
                             }
