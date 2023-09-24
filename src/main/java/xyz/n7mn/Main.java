@@ -426,7 +426,7 @@ public class Main {
                                     temp_url = temp_url.replaceAll(str, "https://youtu.be/");
                                 }
                                 for (String str : list_nico){
-                                    temp_url = temp_url.replaceAll(str, "https://nico.ms/");
+                                    temp_url = temp_url.replaceAll(str, "https://www.nicovideo.jp/watch/");
                                 }
 
                                 final String url = temp_url;
