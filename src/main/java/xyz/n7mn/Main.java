@@ -1080,7 +1080,7 @@ public class Main {
                                     }
                                 }
 
-                                if (!isNico && !isBiliBili && !isXvideo && !isTiktok && !isTwitter && !isOpenrec && !isPornhub && !isTwicast && videoUrl == null && url.startsWith("http")){
+                                if (!isNico && !isBiliBili && !isXvideo && !isTiktok && !isTwitter && !isOpenrec && !isPornhub && !isTwicast && url.startsWith("http")){
                                     // 画像
                                     final OkHttpClient.Builder builder = new OkHttpClient.Builder();
                                     String[] split = !ProxyList_Video.isEmpty() ? ProxyList_Video.get(new SecureRandom().nextInt(0, ProxyList_Video.size())).split(":") : null;
