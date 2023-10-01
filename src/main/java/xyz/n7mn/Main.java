@@ -587,8 +587,11 @@ public class Main {
                                 } else if (isXvideo){
                                     service = new Xvideos();
                                     BiliBili = "";
-                                } else if (isTiktok){
+                                } else if (isTiktok) {
                                     service = new TikTok();
+                                    BiliBili = "";
+                                }else if (isTwitter){
+                                    service = new Twitter();
                                     BiliBili = "";
                                 } else if (isOpenrec){
                                     service = new OPENREC();
