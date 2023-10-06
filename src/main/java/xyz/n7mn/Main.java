@@ -399,7 +399,9 @@ public class Main {
                                         "http://nico.7mi.site/proxy/dummy.m3u8?",
                                         "https://nico.7mi.site/proxy/dummy.m3u8?",
                                         "http://qst.akakitune87.net/q?url=",
-                                        "https://qst.akakitune87.net/q?url="
+                                        "https://qst.akakitune87.net/q?url=",
+                                        "http://u2b.cx/",
+                                        "https://u2b.cx/"
                                 };
 
                                 String[] list_tube = {"" +
