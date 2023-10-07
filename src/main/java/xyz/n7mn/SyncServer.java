@@ -55,12 +55,14 @@ public class SyncServer extends Thread {
             boolean[] b = {true};
             while (b[0]){
                 try {
+                    //System.out.println("Debug");
                     DatagramSocket sock = new DatagramSocket(Integer.parseInt(Master.split(":")[1]));
+
+                    byte[] data = new byte[1000000];
+                    DatagramPacket packet = new DatagramPacket(data, data.length);
+                    sock.receive(packet);
                     new Thread(() -> {
                         try {
-                            byte[] data = new byte[1000000];
-                            DatagramPacket packet = new DatagramPacket(data, data.length);
-                            sock.receive(packet);
                             String s = new String(Arrays.copyOf(packet.getData(), packet.getLength()));
                             //System.out.println("受信 : "+s);
                             InetSocketAddress address = new InetSocketAddress(packet.getAddress(), packet.getPort());
@@ -105,13 +107,16 @@ public class SyncServer extends Thread {
                                 return;
                             }
                         } catch (Exception e){
+                            e.printStackTrace();
                             sock.close();
                             return;
                         }
 
                         sock.close();
                     }).start();
+                    //sock.close();
                 } catch (Exception e){
+                    e.printStackTrace();
                     b[0] = false;
                 }
             }
