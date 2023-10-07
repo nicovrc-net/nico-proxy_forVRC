@@ -511,6 +511,7 @@ public class Main {
                                 Matcher matcher_OpenrecURL = Pattern.compile("openrec").matcher(url);
                                 Matcher matcher_PornhubURL = Pattern.compile("pornhub\\.com").matcher(url);
                                 Matcher matcher_TwicastURL = Pattern.compile("twitcasting\\.tv").matcher(url);
+                                Matcher matcher_AbemaURL = Pattern.compile("abema\\.tv").matcher(url);
 
 
                                 boolean isNico = matcher_NicoVideoURL.find();
@@ -522,6 +523,7 @@ public class Main {
                                 boolean isOpenrec = matcher_OpenrecURL.find();
                                 boolean isPornhub = matcher_PornhubURL.find();
                                 boolean isTwicast = matcher_TwicastURL.find();
+                                boolean isAbema = matcher_AbemaURL.find();
 
                                 Matcher matcher_vrcString = Pattern.compile("user-agent: unityplayer/").matcher(RequestHttp.toLowerCase(Locale.ROOT));
                                 Matcher matcher_TitleGet= Pattern.compile("x-nicovrc-titleget: yes").matcher(RequestHttp.toLowerCase(Locale.ROOT));
@@ -552,9 +554,11 @@ public class Main {
                                 } else if (isPornhub){
                                     service = new Pornhub();
                                     BiliBili = "";
-                                } else if (isTwicast){
+                                } else if (isTwicast) {
                                     service = new Twicast(twitcastClientId, twitcastClientSecret);
                                     BiliBili = "";
+                                } else if (isAbema){
+                                    service = new Abema();
                                 } else {
                                     service = null;
                                     BiliBili = "";
@@ -1055,7 +1059,20 @@ public class Main {
                                     }
                                 }
 
-                                if (!isNico && !isBiliBili && !isXvideo && !isTiktok && !isTwitter && !isOpenrec && !isPornhub && !isTwicast && url.startsWith("http")){
+                                // Abema
+                                if (isAbema){
+                                    String[] split = !ProxyList_Official.isEmpty() ? ProxyList_Official.get(new SecureRandom().nextInt(0, ProxyList_Official.size())).split(":") : null;
+                                    try {
+                                        ResultVideoData video = service.getVideo(new RequestVideoData(url, split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
+                                        videoUrl = video.getVideoURL();
+                                    } catch (Exception e){
+                                        ErrorMessage = e.getMessage();
+                                        videoUrl = null;
+                                        log.setErrorMessage(e.getMessage());
+                                    }
+                                }
+
+                                if (!isNico && !isBiliBili && !isXvideo && !isTiktok && !isTwitter && !isOpenrec && !isPornhub && !isTwicast && !isAbema && url.startsWith("http")){
                                     // 画像
                                     final OkHttpClient.Builder builder = new OkHttpClient.Builder();
                                     String[] split = !ProxyList_Video.isEmpty() ? ProxyList_Video.get(new SecureRandom().nextInt(0, ProxyList_Video.size())).split(":") : null;
