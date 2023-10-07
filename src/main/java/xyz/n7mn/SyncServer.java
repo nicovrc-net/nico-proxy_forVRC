@@ -52,8 +52,7 @@ public class SyncServer extends Thread {
         if (Master.split(":")[0].equals("-")){
             // UDPで受付
             System.out.println("[Info] UDP Port "+Integer.parseInt(Master.split(":")[1])+"で キューサーバー待機開始");
-            boolean[] b = {true};
-            while (b[0]){
+            while (true){
                 try {
                     //System.out.println("Debug");
                     DatagramSocket sock = new DatagramSocket(Integer.parseInt(Master.split(":")[1]));
@@ -61,67 +60,50 @@ public class SyncServer extends Thread {
                     byte[] data = new byte[1000000];
                     DatagramPacket packet = new DatagramPacket(data, data.length);
                     sock.receive(packet);
-                    new Thread(() -> {
-                        try {
-                            String s = new String(Arrays.copyOf(packet.getData(), packet.getLength()));
-                            //System.out.println("受信 : "+s);
-                            InetSocketAddress address = new InetSocketAddress(packet.getAddress(), packet.getPort());
-                            try {
-                                SyncData syncData = new Gson().fromJson(s, SyncData.class);
-                                System.out.println(syncData.getRequestURL() + " / " + syncData.getResultURL());
-
-                                if (syncData.getResultURL() != null){
-                                    if (syncData.getResultURL().isEmpty()){
-                                        // 削除処理
-                                        delQueue(syncData);
-                                        byte[] bytes = "{\"ok\"}".getBytes(StandardCharsets.UTF_8);
-                                        sock.send(new DatagramPacket(bytes, bytes.length, address));
-                                        sock.close();
-                                        System.out.println("[Info] "+syncData.getRequestURL()+"を削除しました。 (キュー数 : "+QueueList.size()+")");
-                                        return;
-                                    }
-                                    // 登録処理
-                                    setQueue(syncData);
-                                    byte[] bytes = "{\"ok\"}".getBytes(StandardCharsets.UTF_8);
-                                    sock.send(new DatagramPacket(bytes, bytes.length, address));
-                                    System.out.println("[Info] "+syncData.getRequestURL()+"を追加しました。 (キュー数 : "+QueueList.size()+")");
-                                } else {
-                                    // 取得処理
-                                    String queue = getQueue(syncData);
-                                    if (queue == null){
-                                        queue = "null";
-                                    }
-                                    byte[] bytes = queue.getBytes(StandardCharsets.UTF_8);
-                                    //System.out.println(packet.getPort());
-                                    //System.out.println("[Debug] " + new String(bytes) + "を送信します");
-                                    sock.send(new DatagramPacket(bytes, bytes.length, address));
-                                    //System.out.println("[Debug] " + new String(bytes) + "を送信しました");
-                                }
-
-                            } catch (Exception e){
-                                e.printStackTrace();
-
-
-                                sock.send(new DatagramPacket("".getBytes(StandardCharsets.UTF_8), 0));
-                                sock.close();
-                                return;
-                            }
-                        } catch (Exception e){
-                            e.printStackTrace();
-                            sock.close();
-                            return;
-                        }
-
+                    String s = new String(Arrays.copyOf(packet.getData(), packet.getLength()));
+                    //System.out.println("受信 : "+s);
+                    InetSocketAddress address = new InetSocketAddress(packet.getAddress(), packet.getPort());
+                    SyncData syncData = new Gson().fromJson(s, SyncData.class);
+                    //System.out.println(syncData.getRequestURL() + " / " + syncData.getResultURL());
+                    if (syncData.getRequestURL() == null) {
                         sock.close();
-                    }).start();
-                    //sock.close();
+                        continue;
+                    }
+
+                    if (syncData.getResultURL() != null){
+                        if (syncData.getResultURL().isEmpty()){
+                            // 削除処理
+                            delQueue(syncData);
+                            byte[] bytes = "{\"ok\"}".getBytes(StandardCharsets.UTF_8);
+                            sock.send(new DatagramPacket(bytes, bytes.length, address));
+                            sock.close();
+                            System.out.println("[Info] "+syncData.getRequestURL()+"を削除しました。 (キュー数 : "+QueueList.size()+")");
+                            continue;
+                        }
+                        // 登録処理
+                        setQueue(syncData);
+                        byte[] bytes = "{\"ok\"}".getBytes(StandardCharsets.UTF_8);
+                        sock.send(new DatagramPacket(bytes, bytes.length, address));
+                        System.out.println("[Info] "+syncData.getRequestURL()+"を追加しました。 (キュー数 : "+QueueList.size()+")");
+                    } else {
+                        // 取得処理
+                        String queue = getQueue(syncData);
+                        if (queue == null){
+                            queue = "null";
+                        }
+                        byte[] bytes = queue.getBytes(StandardCharsets.UTF_8);
+                        //System.out.println(packet.getPort());
+                        //System.out.println("[Debug] " + new String(bytes) + "を送信します");
+                        sock.send(new DatagramPacket(bytes, bytes.length, address));
+                        //System.out.println("[Debug] " + new String(bytes) + "を送信しました");
+                    }
+                    sock.close();
                 } catch (Exception e){
                     e.printStackTrace();
-                    b[0] = false;
                 }
             }
 
-            System.out.println("[Error] キューサーバー 異常終了 再起動してください。");
+            //System.out.println("[Error] キューサーバー 異常終了 再起動してください。");
         }
     }
 
