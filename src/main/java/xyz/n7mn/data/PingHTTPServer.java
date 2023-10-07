@@ -22,7 +22,7 @@ public class PingHTTPServer extends Thread{
         ServerSocket svSock = null;
         try {
             svSock = new ServerSocket(PingHTTPPort);
-            System.out.println("[Info] Port "+PingHTTPPort+"で 死活監視用HTTPサーバー待機開始");
+            System.out.println("[Info] TCP Port "+PingHTTPPort+"で 死活監視用HTTPサーバー待機開始");
         } catch (Exception e) {
             e.printStackTrace();
             return;

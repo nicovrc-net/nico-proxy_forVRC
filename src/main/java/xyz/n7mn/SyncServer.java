@@ -1,23 +1,14 @@
 package xyz.n7mn;
 
 import com.google.gson.Gson;
-import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import xyz.n7mn.data.QueueData;
+import xyz.n7mn.data.SyncData;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class SyncServer extends Thread {
     private final String Master;
@@ -30,116 +21,119 @@ public class SyncServer extends Thread {
 
     @Override
     public void run() {
-        ServerSocket svSock = null;
-        try {
-            svSock = new ServerSocket(Integer.parseInt(Master.split(":")[1]));
-            System.out.println("[Info] "+Master.replaceAll("-:","Port ")+"で 同期サーバー待機開始");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return;
-        }
-
+        // 定期的な掃除
         Timer timer = new Timer();
-        int[] count = new int[]{-1};
-        TimerTask task = new TimerTask() {
+        timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                HashMap<String, String> temp = new HashMap<>(QueueList);
-                if (count[0] != temp.size()){
-                    System.out.println("[" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + "] 現在のキュー数 : " + temp.size());
-                    count[0] = temp.size();
-                }
-                // すでに有効期限が切れていて見れないものは削除
-
-                temp.forEach((id, url)->{
+                final HashMap<String, String> temp = new HashMap<>(QueueList);
+                temp.forEach((requestUrl, resultUrl)->{
                     try {
                         OkHttpClient build = new OkHttpClient();
                         Request request = new Request.Builder()
-                                .url(url)
+                                .url(requestUrl)
                                 .build();
                         Response response = build.newCall(request).execute();
-
-                        if (response.code() == 403 || response.code() == 404){
-                            QueueList.remove(id);
-                            System.out.println("[Info] キューから " + id + " を削除");
+                        if (response.code() >= 200 && response.code() <= 299){
+                            response.close();
+                            return;
                         }
+                        delQueue(new SyncData(requestUrl, resultUrl));
+                        System.out.println("[Info] "+requestUrl+"を自動削除 (キュー数 : "+QueueList.size()+")");
                         response.close();
-                    } catch (Exception e) {
-                        //System.out.println(e.getMessage());
+                    } catch (Exception e){
+                        // e.printStackTrace();
                     }
                 });
-
-                System.gc();
             }
-        };
+        }, 0L, 1000L);
 
-        timer.scheduleAtFixedRate(task, 0L, 1000L);
 
-        while (true) {
-            try {
-                System.gc();
-                Socket socket = svSock.accept();
-                new Thread(() -> {
-                    try {
-                        InputStream in = socket.getInputStream();
-                        OutputStream out = socket.getOutputStream();
-                        byte[] data = new byte[1000000];
-                        int readSize = in.read(data);
-                        String requestText = new String(Arrays.copyOf(data, readSize));
+        if (Master.split(":")[0].equals("-")){
+            // UDPで受付
+            System.out.println("[Info] UDP Port "+Integer.parseInt(Master.split(":")[1])+"で キューサーバー待機開始");
+            boolean[] b = {true};
+            while (b[0]){
+                try {
+                    DatagramSocket sock = new DatagramSocket(Integer.parseInt(Master.split(":")[1]));
+                    new Thread(() -> {
+                        try {
+                            byte[] data = new byte[1000000];
+                            DatagramPacket packet = new DatagramPacket(data, data.length);
+                            sock.receive(packet);
+                            String s = new String(Arrays.copyOf(packet.getData(), packet.getLength()));
+                            //System.out.println("受信 : "+s);
+                            InetSocketAddress address = new InetSocketAddress(packet.getAddress(), packet.getPort());
+                            try {
+                                SyncData syncData = new Gson().fromJson(s, SyncData.class);
+                                System.out.println(syncData.getRequestURL() + " / " + syncData.getResultURL());
 
-                        if (requestText.equals("{\"queue\":\"getList\"}")) {
-                            QueueData[] temp = new QueueData[QueueList.size()];
+                                if (syncData.getResultURL() != null){
+                                    if (syncData.getResultURL().isEmpty()){
+                                        // 削除処理
+                                        delQueue(syncData);
+                                        byte[] bytes = "{\"ok\"}".getBytes(StandardCharsets.UTF_8);
+                                        sock.send(new DatagramPacket(bytes, bytes.length, address));
+                                        sock.close();
+                                        System.out.println("[Info] "+syncData.getRequestURL()+"を削除しました。 (キュー数 : "+QueueList.size()+")");
+                                        return;
+                                    }
+                                    // 登録処理
+                                    setQueue(syncData);
+                                    byte[] bytes = "{\"ok\"}".getBytes(StandardCharsets.UTF_8);
+                                    sock.send(new DatagramPacket(bytes, bytes.length, address));
+                                    System.out.println("[Info] "+syncData.getRequestURL()+"を追加しました。 (キュー数 : "+QueueList.size()+")");
+                                } else {
+                                    // 取得処理
+                                    String queue = getQueue(syncData);
+                                    if (queue == null){
+                                        queue = "null";
+                                    }
+                                    byte[] bytes = queue.getBytes(StandardCharsets.UTF_8);
+                                    //System.out.println(packet.getPort());
+                                    //System.out.println("[Debug] " + new String(bytes) + "を送信します");
+                                    sock.send(new DatagramPacket(bytes, bytes.length, address));
+                                    //System.out.println("[Debug] " + new String(bytes) + "を送信しました");
+                                }
 
-                            AtomicInteger i = new AtomicInteger();
-                            QueueList.forEach((id, url) -> {
-                                temp[i.get()] = new QueueData(id, url);
-                                i.getAndIncrement();
-                            });
+                            } catch (Exception e){
+                                e.printStackTrace();
 
-                            out.write(new Gson().toJson(temp).getBytes(StandardCharsets.UTF_8));
 
-                            out.flush();
-                            in.close();
-                            socket.close();
+                                sock.send(new DatagramPacket("".getBytes(StandardCharsets.UTF_8), 0));
+                                sock.close();
+                                return;
+                            }
+                        } catch (Exception e){
+                            sock.close();
                             return;
                         }
 
-                        Matcher matcher = Pattern.compile("\\{\"queue\":\"(.*)\"\\}").matcher(requestText);
-                        if (matcher.find()) {
-                            String[] split = matcher.group(1).split(",");
-
-                            if (!split[1].isEmpty()) {
-                                QueueList.put(split[0], split[1]);
-                                System.out.println("[Info] キューに "+split[0]+" を追加");
-                            } else {
-                                QueueList.remove(split[0]);
-                            }
-
-                            out.write("{\"queue\": \"ok\"}".getBytes(StandardCharsets.UTF_8));
-                        } else {
-                            out.write("{}}".getBytes(StandardCharsets.UTF_8));
-                        }
-                        out.flush();
-                        in.close();
-                        socket.close();
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        try {
-                            socket.getOutputStream().write("{\"queue\":\"error\"}".getBytes(StandardCharsets.UTF_8));
-                            socket.getOutputStream().flush();
-                            socket.close();
-                        } catch (IOException ex) {
-                            // ex.printStackTrace();
-                        }
-                    }
-
-                    System.gc();
-                }).start();
-
-            } catch (Exception e) {
-                e.printStackTrace();
+                        sock.close();
+                    }).start();
+                } catch (Exception e){
+                    b[0] = false;
+                }
             }
+
+            System.out.println("[Error] キューサーバー 異常終了 再起動してください。");
         }
+    }
+
+
+    private void setQueue(SyncData data){
+        if (QueueList.get(data.getRequestURL()) != null){
+            return;
+        }
+
+        QueueList.put(data.getRequestURL(), data.getResultURL());
+    }
+
+    private String getQueue(SyncData data){
+        return QueueList.get(data.getRequestURL());
+    }
+
+    private void delQueue(SyncData data){
+        QueueList.remove(data.getRequestURL());
     }
 }

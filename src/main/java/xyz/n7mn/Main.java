@@ -7,15 +7,14 @@ import okhttp3.*;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Protocol;
-import xyz.n7mn.data.LogData;
-import xyz.n7mn.data.PingHTTPServer;
-import xyz.n7mn.data.PingTCPServer;
-import xyz.n7mn.data.QueueData;
+import xyz.n7mn.data.*;
 import xyz.n7mn.nico_proxy.*;
 import xyz.n7mn.nico_proxy.data.*;
 
 import java.io.*;
 import java.net.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
@@ -200,46 +199,7 @@ public class Main {
         }
 
         // 同期用
-        if (Master.split(":")[0].equals("-")){
-            new SyncServer(Master, QueueList).start();
-        } else {
-            int[] count = new int[]{-1};
-            Timer timer = new Timer();
-            TimerTask task = new TimerTask() {
-                @Override
-                public void run() {
-                    HashMap<String, String> temp = new HashMap<>(QueueList);
-                    if (count[0] != temp.size()){
-                        System.out.println("[" + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) + "] 現在のキュー数 : " + temp.size());
-                        count[0] = temp.size();
-                    }
-
-                    // すでに有効期限が切れていて見れないものは削除
-
-                    temp.forEach((id, url)->{
-                        try {
-                            OkHttpClient build = new OkHttpClient();
-                            Request request = new Request.Builder()
-                                    .url(url)
-                                    .build();
-                            Response response = build.newCall(request).execute();
-
-                            if (response.code() == 403 || response.code() == 404){
-                                QueueList.remove(id);
-                                System.out.println("[Info] キュー " + id + "を削除");
-                            }
-                            response.close();
-                        } catch (Exception e) {
-                            //System.out.println(e.getMessage());
-                        }
-                    });
-
-                    System.gc();
-                }
-            };
-
-            timer.scheduleAtFixedRate(task, 0L, 5000L);
-        }
+        new SyncServer(Master, QueueList).start();
 
         // TCP死活管理用
         Thread thread_tcp = new PingTCPServer(PingPort);
@@ -477,72 +437,63 @@ public class Main {
 
                                 // 念のため問い合わせもする
                                 if (!Master.split(":")[0].equals("-")){
-                                    Socket socket1 = new Socket(Master.split(":")[0], Integer.parseInt(Master.split(":")[1]));
 
-                                    OutputStream outputStream = socket1.getOutputStream();
-                                    InputStream inputStream = socket1.getInputStream();
+                                    String jsonText = new Gson().toJson(new SyncData(url.split("\\?")[0], null));
 
-                                    outputStream.write("{\"queue\":\"getList\"}".getBytes(StandardCharsets.UTF_8));
-                                    outputStream.flush();
+                                    DatagramSocket udp_sock = new DatagramSocket();
+                                    DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length,new InetSocketAddress(Master.split(":")[0],Integer.parseInt(Master.split(":")[1])));
+                                    udp_sock.send(udp_packet);
+                                    System.out.println("キュー送信 : " + jsonText);
 
-                                    if (inputStream.readAllBytes().length == 0){
-                                        outputStream.close();
-                                        inputStream.close();
-                                        socket1.close();
-                                    }
+                                    byte[] temp = new byte[100000];
+                                    DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
+                                    udp_sock.receive(udp_packet2);
+                                    System.out.println("キュー受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
+                                    udp_sock.close();
 
-                                    QueueData[] json = new Gson().fromJson(new String(inputStream.readAllBytes()), QueueData[].class);
+                                    String result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
 
-                                    if (json != null){
-                                        for (QueueData qData : json) {
-                                            if (qData.getID().equals(url.split("\\?")[0])){
-                                                httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
-                                                        "Host: "+host+"\n" +
-                                                        "Date: "+new Date()+"\r\n" +
-                                                        "Connection: close\r\n" +
-                                                        "X-Powered-By: Java/8\r\n" +
-                                                        "Location: " + qData.getURL() + "\r\n" +
-                                                        "Access-Control-Allow-Origin: *\r\n" +
-                                                        "Content-type: text/html; charset=UTF-8\r\n\r\n";
+                                    if (!result.equals("null")){
+                                        httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
+                                                "Host: "+host+"\n" +
+                                                "Date: "+new Date()+"\r\n" +
+                                                "Connection: close\r\n" +
+                                                "X-Powered-By: Java/8\r\n" +
+                                                "Location: " + result + "\r\n" +
+                                                "Access-Control-Allow-Origin: *\r\n" +
+                                                "Content-type: text/html; charset=UTF-8\r\n\r\n";
 
-                                                out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
-                                                out.flush();
-                                                in.close();
-                                                out.close();
-                                                sock.close();
+                                        out.write(httpResponse.getBytes(StandardCharsets.UTF_8));
+                                        out.flush();
+                                        in.close();
+                                        out.close();
+                                        sock.close();
 
+                                        log.setResultURL(result);
 
-                                                QueueList.put(url.split("\\?")[0], qData.getURL());
-
-                                                if (!socket1.isClosed()){
-                                                    outputStream.close();
-                                                    inputStream.close();
-                                                    socket1.close();
+                                        new Thread(()->{
+                                            String json = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
+                                            if (logToRedis){
+                                                ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), json);
+                                            } else {
+                                                File file = new File("./log/");
+                                                if (!file.exists()){
+                                                    file.mkdir();
                                                 }
-                                                log.setResultURL(QueueList.get(url.split("\\?")[0]));
 
-                                                String jsonText = new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(log);
-                                                if (logToRedis){
-                                                    ToRedis("nico-proxy:ExecuteLog:"+log.getLogID(), jsonText);
-                                                } else {
-                                                    File file = new File("./log/");
-                                                    if (!file.exists()){
-                                                        file.mkdir();
-                                                    }
-
-                                                    File file1 = new File("./log/" + log.getLogID() + ".json");
-                                                    try {
-                                                        file1.createNewFile();
-                                                        PrintWriter writer = new PrintWriter(file1);
-                                                        writer.print(jsonText);
-                                                        writer.close();
-                                                    } catch (IOException e) {
-                                                        e.printStackTrace();
-                                                    }
+                                                File file1 = new File("./log/" + log.getLogID() + ".json");
+                                                try {
+                                                    file1.createNewFile();
+                                                    PrintWriter writer = new PrintWriter(file1);
+                                                    writer.print(json);
+                                                    writer.close();
+                                                } catch (IOException e) {
+                                                    e.printStackTrace();
                                                 }
-                                                return;
                                             }
-                                        }
+                                        }).start();
+
+                                        return;
                                     }
                                 }
 
@@ -747,6 +698,26 @@ public class Main {
                                                 videoUrl = service.getLive(new RequestVideoData(url, null)).getVideoURL();
                                             }
                                             //System.out.println("kiteru : " + videoUrl);
+
+                                            // キューリスト追加
+                                            QueueList.put(url.split("\\?")[0], videoUrl);
+
+                                            // 同期鯖がある場合は送信する
+                                            if (!Master.split(":")[0].equals("-")){
+                                                String finalVideoUrl = videoUrl;
+                                                new Thread(()->{
+                                                    try {
+                                                        String[] s = Master.split(":");
+                                                        byte[] bytes = new Gson().toJson(new SyncData(finalVideoUrl.split("\\?")[0], null)).getBytes(StandardCharsets.UTF_8);
+                                                        DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
+                                                        DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
+                                                        udp_sock.send(udp_packet);
+                                                        udp_sock.close();
+                                                    } catch (Exception e){
+                                                        //e.printStackTrace();
+                                                    }
+                                                }).start();
+                                            }
                                         } else {
                                             ResultVideoData video;
                                             if (proxy != null){
@@ -755,6 +726,26 @@ public class Main {
                                             } else {
                                                 video = service.getVideo(new RequestVideoData(url, null));
                                                 videoUrl = video.getVideoURL();
+                                            }
+
+                                            // キューリスト追加
+                                            QueueList.put(url.split("\\?")[0], videoUrl);
+
+                                            // 同期鯖がある場合は送信する
+                                            if (!Master.split(":")[0].equals("-")){
+                                                String finalVideoUrl = videoUrl;
+                                                new Thread(()->{
+                                                    try {
+                                                        String[] s = Master.split(":");
+                                                        byte[] bytes = ("{\"queue\":\"" + url.split("\\?")[0] +"," +finalVideoUrl + "\"}").getBytes(StandardCharsets.UTF_8);
+                                                        DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
+                                                        DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
+                                                        udp_sock.send(udp_packet);
+                                                        udp_sock.close();
+                                                    } catch (Exception e){
+                                                        //e.printStackTrace();
+                                                    }
+                                                }).start();
                                             }
 
                                             final OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -825,30 +816,7 @@ public class Main {
                                             }
 
                                         }
-                                        // キューリスト追加
-                                        QueueList.put(url.split("\\?")[0], videoUrl);
 
-                                        // 同期鯖がある場合は送信する
-                                        if (!Master.split(":")[0].equals("-")){
-                                            String finalVideoUrl = videoUrl;
-                                            new Thread(()->{
-                                                try {
-                                                    Socket socket1 = new Socket(Master.split(":")[0], Integer.parseInt(Master.split(":")[1]));
-
-                                                    OutputStream outputStream = socket1.getOutputStream();
-                                                    InputStream inputStream = socket1.getInputStream();
-
-                                                    outputStream.write(("{\"queue\":\"" + url.split("\\?")[0] +"," + finalVideoUrl + "\"}").getBytes(StandardCharsets.UTF_8));
-                                                    outputStream.flush();
-
-                                                    outputStream.close();
-                                                    inputStream.close();
-                                                    socket1.close();
-                                                } catch (Exception e){
-                                                    //e.printStackTrace();
-                                                }
-                                            }).start();
-                                        }
                                     } catch (Exception e){
                                         ErrorMessage = e.getMessage();
                                         //e.printStackTrace();
