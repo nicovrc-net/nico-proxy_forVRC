@@ -443,12 +443,12 @@ public class Main {
                                     DatagramSocket udp_sock = new DatagramSocket();
                                     DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length,new InetSocketAddress(Master.split(":")[0],Integer.parseInt(Master.split(":")[1])));
                                     udp_sock.send(udp_packet);
-                                    System.out.println("キュー送信 : " + jsonText);
+                                    //System.out.println("キュー送信 : " + jsonText);
 
                                     byte[] temp = new byte[100000];
                                     DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
                                     udp_sock.receive(udp_packet2);
-                                    System.out.println("キュー受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
+                                    //System.out.println("キュー受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
                                     udp_sock.close();
 
                                     String result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
@@ -708,7 +708,8 @@ public class Main {
                                                 new Thread(()->{
                                                     try {
                                                         String[] s = Master.split(":");
-                                                        byte[] bytes = new Gson().toJson(new SyncData(finalVideoUrl.split("\\?")[0], null)).getBytes(StandardCharsets.UTF_8);
+                                                        byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], finalVideoUrl)).getBytes(StandardCharsets.UTF_8);
+                                                        //System.out.println("[Debug] " + new String(bytes) + "を送信");
                                                         DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
                                                         DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
                                                         udp_sock.send(udp_packet);
@@ -737,7 +738,8 @@ public class Main {
                                                 new Thread(()->{
                                                     try {
                                                         String[] s = Master.split(":");
-                                                        byte[] bytes = ("{\"queue\":\"" + url.split("\\?")[0] +"," +finalVideoUrl + "\"}").getBytes(StandardCharsets.UTF_8);
+                                                        byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], finalVideoUrl)).getBytes(StandardCharsets.UTF_8);
+                                                        //System.out.println("[Debug] " + new String(bytes) + "を送信");
                                                         DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
                                                         DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
                                                         udp_sock.send(udp_packet);

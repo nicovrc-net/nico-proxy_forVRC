@@ -75,16 +75,16 @@ public class SyncServer extends Thread {
                             // 削除処理
                             delQueue(syncData);
                             byte[] bytes = "{\"ok\"}".getBytes(StandardCharsets.UTF_8);
+                            System.out.println("[Info] "+syncData.getRequestURL()+"を削除しました。 (キュー数 : "+QueueList.size()+")");
                             sock.send(new DatagramPacket(bytes, bytes.length, address));
                             sock.close();
-                            System.out.println("[Info] "+syncData.getRequestURL()+"を削除しました。 (キュー数 : "+QueueList.size()+")");
                             continue;
                         }
                         // 登録処理
                         setQueue(syncData);
+                        System.out.println("[Info] "+syncData.getRequestURL()+"を追加しました。 (キュー数 : "+QueueList.size()+")");
                         byte[] bytes = "{\"ok\"}".getBytes(StandardCharsets.UTF_8);
                         sock.send(new DatagramPacket(bytes, bytes.length, address));
-                        System.out.println("[Info] "+syncData.getRequestURL()+"を追加しました。 (キュー数 : "+QueueList.size()+")");
                     } else {
                         // 取得処理
                         String queue = getQueue(syncData);
