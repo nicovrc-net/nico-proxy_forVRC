@@ -31,7 +31,7 @@ public class SyncServer extends Thread {
                     try {
                         OkHttpClient build = new OkHttpClient();
                         Request request = new Request.Builder()
-                                .url(requestUrl)
+                                .url(resultUrl)
                                 .build();
                         Response response = build.newCall(request).execute();
                         if (response.code() >= 200 && response.code() <= 299){
