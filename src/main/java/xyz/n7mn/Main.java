@@ -559,6 +559,7 @@ public class Main {
                                     BiliBili = "";
                                 } else if (isAbema){
                                     service = new Abema();
+                                    BiliBili = "";
                                 } else {
                                     service = null;
                                     BiliBili = "";
