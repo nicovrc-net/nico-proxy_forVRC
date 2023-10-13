@@ -46,7 +46,7 @@ public class SyncServer extends Thread {
                     }
                 });
             }
-        }, 0L, Master.split(":")[0].equals("-") ? 1000L : 5000L);
+        }, 0L, 5000L);
 
 
         if (Master.split(":")[0].equals("-")){
