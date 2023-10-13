@@ -734,27 +734,6 @@ public class Main {
                                                 videoUrl = video.getVideoURL();
                                             }
 
-                                            // キューリスト追加
-                                            QueueList.put(url.split("\\?")[0], videoUrl);
-
-                                            // 同期鯖がある場合は送信する
-                                            if (!Master.split(":")[0].equals("-")){
-                                                String finalVideoUrl = videoUrl;
-                                                new Thread(()->{
-                                                    try {
-                                                        String[] s = Master.split(":");
-                                                        byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], finalVideoUrl)).getBytes(StandardCharsets.UTF_8);
-                                                        //System.out.println("[Debug] " + new String(bytes) + "を送信");
-                                                        DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
-                                                        DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
-                                                        udp_sock.send(udp_packet);
-                                                        udp_sock.close();
-                                                    } catch (Exception e){
-                                                        //e.printStackTrace();
-                                                    }
-                                                }).start();
-                                            }
-
                                             final OkHttpClient.Builder builder = new OkHttpClient.Builder();
                                             final OkHttpClient client = proxy != null ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy[0], Integer.parseInt(proxy[1])))).build() : new OkHttpClient();
                                             // ハートビート信号送る
@@ -822,6 +801,26 @@ public class Main {
                                                 }
                                             }
 
+                                            // キューリスト追加
+                                            QueueList.put(url.split("\\?")[0], videoUrl);
+
+                                            // 同期鯖がある場合は送信する
+                                            if (!Master.split(":")[0].equals("-")){
+                                                String finalVideoUrl = videoUrl;
+                                                new Thread(()->{
+                                                    try {
+                                                        String[] s = Master.split(":");
+                                                        byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], finalVideoUrl)).getBytes(StandardCharsets.UTF_8);
+                                                        //System.out.println("[Debug] " + new String(bytes) + "を送信");
+                                                        DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
+                                                        DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
+                                                        udp_sock.send(udp_packet);
+                                                        udp_sock.close();
+                                                    } catch (Exception e){
+                                                        //e.printStackTrace();
+                                                    }
+                                                }).start();
+                                            }
                                         }
 
                                     } catch (Exception e){
