@@ -392,6 +392,14 @@ public class Main {
                                     temp_url = temp_url.replaceAll(str, "https://www.nicovideo.jp/watch/");
                                 }
 
+                                if (temp_url.startsWith("sm") || temp_url.startsWith("nm") || temp_url.startsWith("so")){
+                                    temp_url = "https://www.nicovideo.jp/watch/"+temp_url;
+                                }
+
+                                if (temp_url.startsWith("lv")){
+                                    temp_url = "https://live.nicovideo.jp/watch/"+temp_url;
+                                }
+
                                 final String url = temp_url;
                                 String videoUrl = null;
 
@@ -446,14 +454,19 @@ public class Main {
                                     udp_sock.send(udp_packet);
                                     //System.out.println("キュー送信 : " + jsonText);
 
-                                    byte[] temp = new byte[100000];
-                                    DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
-                                    udp_sock.setSoTimeout(1000);
-                                    udp_sock.receive(udp_packet2);
-                                    //System.out.println("キュー受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
-                                    udp_sock.close();
+                                    String result = "null";
+                                    try {
+                                        byte[] temp = new byte[100000];
+                                        DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
+                                        udp_sock.setSoTimeout(1000);
+                                        udp_sock.receive(udp_packet2);
+                                        //System.out.println("キュー受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
+                                        udp_sock.close();
 
-                                    String result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+                                        result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+                                    } catch (Exception e){
+                                        e.printStackTrace();
+                                    }
 
                                     if (!result.equals("null")){
                                         httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
