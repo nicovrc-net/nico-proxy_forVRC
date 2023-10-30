@@ -740,6 +740,10 @@ public class Main {
                                                 }).start();
                                             }
                                         } else {
+
+                                            final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+                                            final OkHttpClient client = proxy != null ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy[0], Integer.parseInt(proxy[1])))).build() : new OkHttpClient();
+
                                             ResultVideoData video;
                                             if (proxy != null){
                                                 video = service.getVideo(new RequestVideoData(url, new ProxyData(proxy[0], Integer.parseInt(proxy[1]))));
@@ -749,8 +753,41 @@ public class Main {
                                                 videoUrl = video.getVideoURL();
                                             }
 
-                                            final OkHttpClient.Builder builder = new OkHttpClient.Builder();
-                                            final OkHttpClient client = proxy != null ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxy[0], Integer.parseInt(proxy[1])))).build() : new OkHttpClient();
+                                            if (video.isEncrypted()){
+                                                // 暗号化HLS
+                                                Request m3u8 = new Request.Builder()
+                                                        .url("https://n.nicovrc.net/?url="+video.getVideoURL()+"&proxy="+(proxy != null ? proxy[0]+":"+proxy[1] : ""))
+                                                        .build();
+
+                                                Response response = client.newCall(m3u8).execute();
+                                                String s1 = response.body() != null && response.code() == 200 ? response.body().string() : "";
+                                                response.close();
+                                                if (!s1.isEmpty()){
+                                                    videoUrl = "https://n.nicovrc.net"+s1;
+                                                }
+                                            }
+
+                                            // キューリスト追加
+                                            QueueList.put(url.split("\\?")[0], videoUrl);
+
+                                            // 同期鯖がある場合は送信する
+                                            if (!Master.split(":")[0].equals("-")){
+                                                String finalVideoUrl = videoUrl;
+                                                new Thread(()->{
+                                                    try {
+                                                        String[] s = Master.split(":");
+                                                        byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], finalVideoUrl)).getBytes(StandardCharsets.UTF_8);
+                                                        //System.out.println("[Debug] " + new String(bytes) + "を送信");
+                                                        DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
+                                                        DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
+                                                        udp_sock.send(udp_packet);
+                                                        udp_sock.close();
+                                                    } catch (Exception e){
+                                                        //e.printStackTrace();
+                                                    }
+                                                }).start();
+                                            }
+
                                             // ハートビート信号送る
                                             Request request_html = new Request.Builder()
                                                     .url(url)
@@ -800,42 +837,6 @@ public class Main {
                                                     count[0]++;
                                                 }
                                             }, 0L, 40000L);
-
-
-                                            if (video.isEncrypted()){
-                                                // 暗号化HLS
-                                                Request m3u8 = new Request.Builder()
-                                                        .url("https://n.nicovrc.net/?url="+video.getVideoURL()+"&proxy="+(proxy != null ? proxy[0]+":"+proxy[1] : ""))
-                                                        .build();
-
-                                                Response response = client.newCall(m3u8).execute();
-                                                String s1 = response.body() != null && response.code() == 200 ? response.body().string() : "";
-                                                response.close();
-                                                if (!s1.isEmpty()){
-                                                    videoUrl = "https://n.nicovrc.net"+s1;
-                                                }
-                                            }
-
-                                            // キューリスト追加
-                                            QueueList.put(url.split("\\?")[0], videoUrl);
-
-                                            // 同期鯖がある場合は送信する
-                                            if (!Master.split(":")[0].equals("-")){
-                                                String finalVideoUrl = videoUrl;
-                                                new Thread(()->{
-                                                    try {
-                                                        String[] s = Master.split(":");
-                                                        byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], finalVideoUrl)).getBytes(StandardCharsets.UTF_8);
-                                                        //System.out.println("[Debug] " + new String(bytes) + "を送信");
-                                                        DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
-                                                        DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
-                                                        udp_sock.send(udp_packet);
-                                                        udp_sock.close();
-                                                    } catch (Exception e){
-                                                        //e.printStackTrace();
-                                                    }
-                                                }).start();
-                                            }
                                         }
 
                                     } catch (Exception e){
