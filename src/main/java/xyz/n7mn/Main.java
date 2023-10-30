@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,7 +29,7 @@ public class Main {
     private static int PingPort = 25253;
     private static int PingHTTPPort = 25280;
     private static String Master = "-:22552";
-    private static final HashMap<String, String> QueueList = new HashMap<>();
+    private static final ConcurrentHashMap<String, String> QueueList = new ConcurrentHashMap<>();
     private static boolean logToRedis = false;
     private static String bilibiliSystemURL = "http://localhost:28280";
 
@@ -447,6 +448,7 @@ public class Main {
 
                                     byte[] temp = new byte[100000];
                                     DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
+                                    udp_sock.setSoTimeout(1000);
                                     udp_sock.receive(udp_packet2);
                                     //System.out.println("キュー受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
                                     udp_sock.close();

@@ -9,12 +9,13 @@ import xyz.n7mn.data.SyncData;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class SyncServer extends Thread {
     private final String Master;
-    private final HashMap<String, String> QueueList;
+    private final ConcurrentHashMap<String, String> QueueList;
 
-    public SyncServer(String master, HashMap<String, String> queueList){
+    public SyncServer(String master, ConcurrentHashMap<String, String> queueList){
         this.Master = master;
         this.QueueList = queueList;
     }
