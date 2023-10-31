@@ -29,6 +29,10 @@ public class SyncServer extends Thread {
             public void run() {
                 final HashMap<String, String> temp = new HashMap<>(QueueList);
                 temp.forEach((requestUrl, resultUrl)->{
+                    if (resultUrl.equals("preadd")){
+                        return;
+                    }
+
                     try {
                         OkHttpClient build = new OkHttpClient();
                         Request request = new Request.Builder()
@@ -82,8 +86,12 @@ public class SyncServer extends Thread {
                             continue;
                         }
                         // 登録処理
+                        System.out.println("[Debug] " + syncData.getRequestURL() + " / " + syncData.getResultURL());
                         setQueue(syncData);
-                        System.out.println("[Info] "+syncData.getRequestURL()+"を追加しました。 (キュー数 : "+QueueList.size()+")");
+                        if (!syncData.getResultURL().equals("preadd")){
+                            System.out.println("[Info] "+syncData.getRequestURL()+"を追加しました。 (キュー数 : "+QueueList.size()+")");
+                        }
+
                         byte[] bytes = "{\"ok\"}".getBytes(StandardCharsets.UTF_8);
                         sock.send(new DatagramPacket(bytes, bytes.length, address));
                     } else {
@@ -110,7 +118,7 @@ public class SyncServer extends Thread {
 
 
     private void setQueue(SyncData data){
-        if (QueueList.get(data.getRequestURL()) != null){
+        if (QueueList.get(data.getRequestURL()) != null && !QueueList.get(data.getRequestURL()).equals("preadd")){
             return;
         }
 

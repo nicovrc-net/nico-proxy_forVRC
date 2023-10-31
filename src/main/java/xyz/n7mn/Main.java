@@ -448,22 +448,24 @@ public class Main {
                                 if (!Master.split(":")[0].equals("-")){
 
                                     String jsonText = new Gson().toJson(new SyncData(url.split("\\?")[0], null));
+                                    String result = "preadd";
 
-                                    DatagramSocket udp_sock = new DatagramSocket();
-                                    DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length,new InetSocketAddress(Master.split(":")[0],Integer.parseInt(Master.split(":")[1])));
-                                    udp_sock.send(udp_packet);
-                                    //System.out.println("キュー送信 : " + jsonText);
-
-                                    String result = "null";
                                     try {
-                                        byte[] temp = new byte[100000];
-                                        DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
-                                        udp_sock.setSoTimeout(1000);
-                                        udp_sock.receive(udp_packet2);
-                                        //System.out.println("キュー受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
-                                        udp_sock.close();
+                                        while (result.equals("preadd")){
 
-                                        result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+                                            DatagramSocket udp_sock = new DatagramSocket();
+                                            DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length,new InetSocketAddress(Master.split(":")[0],Integer.parseInt(Master.split(":")[1])));
+                                            udp_sock.send(udp_packet);
+
+                                            byte[] temp = new byte[100000];
+                                            DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
+                                            udp_sock.setSoTimeout(1000);
+                                            udp_sock.receive(udp_packet2);
+                                            System.out.println("キュー受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
+                                            udp_sock.close();
+
+                                            result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+                                        }
                                     } catch (Exception e){
                                         e.printStackTrace();
                                     }
@@ -550,6 +552,23 @@ public class Main {
                                 if (isNico){
                                     service = new NicoNicoVideo();
                                     BiliBili = "";
+
+                                    if (!Master.split(":")[0].equals("-")){
+                                        new Thread(()->{
+                                            try {
+                                                String[] s = Master.split(":");
+                                                byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], "preadd")).getBytes(StandardCharsets.UTF_8);
+                                                //System.out.println("[Debug] " + new String(bytes) + "を送信");
+                                                DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
+                                                DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
+                                                udp_sock.send(udp_packet);
+                                                udp_sock.close();
+                                            } catch (Exception e){
+                                                //e.printStackTrace();
+                                            }
+                                        }).start();
+                                    }
+
                                 } else if (isBiliBili){
                                     Matcher m = Pattern.compile("tv").matcher(url);
                                     service = m.find() ? new BilibiliTv() : new BilibiliCom();
