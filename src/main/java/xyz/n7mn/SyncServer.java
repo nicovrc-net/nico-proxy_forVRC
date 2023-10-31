@@ -86,7 +86,7 @@ public class SyncServer extends Thread {
                             continue;
                         }
                         // 登録処理
-                        System.out.println("[Debug] " + syncData.getRequestURL() + " / " + syncData.getResultURL());
+                        //System.out.println("[Debug] " + syncData.getRequestURL() + " / " + syncData.getResultURL());
                         setQueue(syncData);
                         if (!syncData.getResultURL().equals("preadd")){
                             System.out.println("[Info] "+syncData.getRequestURL()+"を追加しました。 (キュー数 : "+QueueList.size()+")");

@@ -461,7 +461,7 @@ public class Main {
                                             DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
                                             udp_sock.setSoTimeout(1000);
                                             udp_sock.receive(udp_packet2);
-                                            System.out.println("キュー受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
+                                            //System.out.println("キュー受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
                                             udp_sock.close();
 
                                             result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
