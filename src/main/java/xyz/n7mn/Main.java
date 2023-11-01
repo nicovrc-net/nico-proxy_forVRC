@@ -403,9 +403,14 @@ public class Main {
                                 final String url = temp_url;
                                 String videoUrl = null;
 
+
+                                Matcher matcher_vrcString = Pattern.compile("user-agent: unityplayer/").matcher(RequestHttp.toLowerCase(Locale.ROOT));
+                                Matcher matcher_TitleGet= Pattern.compile("x-nicovrc-titleget: yes").matcher(RequestHttp.toLowerCase(Locale.ROOT));
+                                boolean isTitleGet = matcher_vrcString.find() || matcher_TitleGet.find();
+
                                 // すでにあったら処理済みURLを返す
                                 String queueURL = QueueList.get(url.split("\\?")[0]);
-                                if (queueURL != null){
+                                if (queueURL != null && !isTitleGet){
                                     httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
                                             "Host: "+host+"\n" +
                                             "Date: "+new Date()+"\r\n" +
@@ -470,7 +475,7 @@ public class Main {
                                         e.printStackTrace();
                                     }
 
-                                    if (!result.equals("null")){
+                                    if (!result.equals("null") && result.equals("preadd")){
                                         httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
                                                 "Host: "+host+"\n" +
                                                 "Date: "+new Date()+"\r\n" +
@@ -542,9 +547,6 @@ public class Main {
                                 boolean isTwicast = matcher_TwicastURL.find();
                                 boolean isAbema = matcher_AbemaURL.find();
 
-                                Matcher matcher_vrcString = Pattern.compile("user-agent: unityplayer/").matcher(RequestHttp.toLowerCase(Locale.ROOT));
-                                Matcher matcher_TitleGet= Pattern.compile("x-nicovrc-titleget: yes").matcher(RequestHttp.toLowerCase(Locale.ROOT));
-                                boolean isTitleGet = matcher_vrcString.find() || matcher_TitleGet.find();
 
                                 final ShareService service;
                                 final String BiliBili;
@@ -602,6 +604,22 @@ public class Main {
 
                                 // VRCStringDownloaderっぽいアクセスとx-nicovrc-titlegetがyesのときは動画情報の取得だけして200を返す
                                 if (isTitleGet){
+
+                                    if (!Master.split(":")[0].equals("-")){
+                                        new Thread(()->{
+                                            try {
+                                                String[] s = Master.split(":");
+                                                byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], null)).getBytes(StandardCharsets.UTF_8);
+                                                //System.out.println("[Debug] " + new String(bytes) + "を送信");
+                                                DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
+                                                DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
+                                                udp_sock.send(udp_packet);
+                                                udp_sock.close();
+                                            } catch (Exception e){
+                                                //e.printStackTrace();
+                                            }
+                                        }).start();
+                                    }
 
                                     final List<String> proxyList;
 
@@ -859,6 +877,24 @@ public class Main {
                                         }
 
                                     } catch (Exception e){
+
+                                        if (!Master.split(":")[0].equals("-")){
+                                            String finalVideoUrl = videoUrl;
+                                            new Thread(()->{
+                                                try {
+                                                    String[] s = Master.split(":");
+                                                    byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], null)).getBytes(StandardCharsets.UTF_8);
+                                                    //System.out.println("[Debug] " + new String(bytes) + "を送信");
+                                                    DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
+                                                    DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
+                                                    udp_sock.send(udp_packet);
+                                                    udp_sock.close();
+                                                } catch (Exception ex){
+                                                    //ex.printStackTrace();
+                                                }
+                                            }).start();
+                                        }
+
                                         ErrorMessage = e.getMessage();
                                         //e.printStackTrace();
                                         log.setErrorMessage(e.getMessage());
