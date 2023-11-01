@@ -475,7 +475,7 @@ public class Main {
                                         e.printStackTrace();
                                     }
 
-                                    if (!result.equals("null") && result.equals("preadd")){
+                                    if (!result.equals("null") && !result.equals("preadd")){
                                         httpResponse = "HTTP/1."+httpVersion+" 302 Found\n" +
                                                 "Host: "+host+"\n" +
                                                 "Date: "+new Date()+"\r\n" +
