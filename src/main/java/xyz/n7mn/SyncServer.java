@@ -78,9 +78,12 @@ public class SyncServer extends Thread {
                     if (syncData.getResultURL() != null){
                         if (syncData.getResultURL().isEmpty()){
                             // 削除処理
+                            String s1 = QueueList.get(syncData.getRequestURL());
                             delQueue(syncData);
                             byte[] bytes = "{\"ok\"}".getBytes(StandardCharsets.UTF_8);
-                            System.out.println("[Info] "+syncData.getRequestURL()+"を削除しました。 (キュー数 : "+QueueList.size()+")");
+                            if (!s1.equals("preadd")){
+                                System.out.println("[Info] "+syncData.getRequestURL()+"を削除しました。 (キュー数 : "+QueueList.size()+")");
+                            }
                             sock.send(new DatagramPacket(bytes, bytes.length, address));
                             sock.close();
                             continue;

@@ -609,7 +609,7 @@ public class Main {
                                         new Thread(()->{
                                             try {
                                                 String[] s = Master.split(":");
-                                                byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], null)).getBytes(StandardCharsets.UTF_8);
+                                                byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], "")).getBytes(StandardCharsets.UTF_8);
                                                 //System.out.println("[Debug] " + new String(bytes) + "を送信");
                                                 DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
                                                 DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
@@ -879,11 +879,10 @@ public class Main {
                                     } catch (Exception e){
 
                                         if (!Master.split(":")[0].equals("-")){
-                                            String finalVideoUrl = videoUrl;
                                             new Thread(()->{
                                                 try {
                                                     String[] s = Master.split(":");
-                                                    byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], null)).getBytes(StandardCharsets.UTF_8);
+                                                    byte[] bytes = new Gson().toJson(new SyncData(url.split("\\?")[0], "")).getBytes(StandardCharsets.UTF_8);
                                                     //System.out.println("[Debug] " + new String(bytes) + "を送信");
                                                     DatagramSocket udp_sock = new DatagramSocket();//UDP送信用ソケットの構築
                                                     DatagramPacket udp_packet = new DatagramPacket(bytes, bytes.length,new InetSocketAddress(s[0],Integer.parseInt(s[1])));
