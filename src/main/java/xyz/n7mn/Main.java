@@ -457,19 +457,23 @@ public class Main {
 
                                     try {
                                         while (result.equals("preadd")){
+                                            try {
+                                                DatagramSocket udp_sock = new DatagramSocket();
+                                                DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length,new InetSocketAddress(Master.split(":")[0],Integer.parseInt(Master.split(":")[1])));
+                                                udp_sock.send(udp_packet);
 
-                                            DatagramSocket udp_sock = new DatagramSocket();
-                                            DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length,new InetSocketAddress(Master.split(":")[0],Integer.parseInt(Master.split(":")[1])));
-                                            udp_sock.send(udp_packet);
+                                                byte[] temp = new byte[100000];
+                                                DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
+                                                udp_sock.setSoTimeout(1000);
+                                                udp_sock.receive(udp_packet2);
+                                                //System.out.println("キュー受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
+                                                udp_sock.close();
 
-                                            byte[] temp = new byte[100000];
-                                            DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
-                                            udp_sock.setSoTimeout(1000);
-                                            udp_sock.receive(udp_packet2);
-                                            //System.out.println("キュー受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
-                                            udp_sock.close();
 
-                                            result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+                                                result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+                                            } catch (Exception ex){
+                                                //ex.printStackTrace();
+                                            }
                                         }
                                     } catch (Exception e){
                                         e.printStackTrace();
