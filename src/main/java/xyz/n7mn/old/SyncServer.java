@@ -1,4 +1,4 @@
-package xyz.n7mn;
+package xyz.n7mn.old;
 
 import com.google.gson.Gson;
 import okhttp3.OkHttpClient;

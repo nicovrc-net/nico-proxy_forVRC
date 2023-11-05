@@ -1,14 +1,14 @@
-package xyz.n7mn.data;
+package xyz.n7mn;
 
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 
-public class PingTCPServer extends Thread{
+public class CheckTCPServer extends Thread{
 
     private final int PingPort;
-    public PingTCPServer(int pingPort){
+    public CheckTCPServer(int pingPort){
         this.PingPort = pingPort;
     }
 
@@ -28,7 +28,7 @@ public class PingTCPServer extends Thread{
                 Socket socket = svSock.accept();
                 OutputStream stream = socket.getOutputStream();
 
-                stream.write("{status: \"OK\"}".getBytes(StandardCharsets.UTF_8));
+                stream.write("{\"status\": \"OK\"}".getBytes(StandardCharsets.UTF_8));
                 stream.flush();
 
                 stream.close();

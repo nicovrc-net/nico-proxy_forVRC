@@ -1,4 +1,4 @@
-package xyz.n7mn.data;
+package xyz.n7mn;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -10,10 +10,10 @@ import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PingHTTPServer extends Thread{
+public class CheckHTTPServer extends Thread{
     private final int PingHTTPPort;
 
-    public PingHTTPServer(int pingHTTPPort) {
+    public CheckHTTPServer(int pingHTTPPort) {
         this.PingHTTPPort = pingHTTPPort;
     }
 
@@ -49,7 +49,7 @@ public class PingHTTPServer extends Thread{
                 data = Arrays.copyOf(data, readSize);
 
                 String text = new String(data, StandardCharsets.UTF_8);
-                Matcher matcher1 = Pattern.compile("GET").matcher(text);
+                Matcher matcher1 = Pattern.compile("(GET|HEAD)").matcher(text);
                 Matcher matcher2 = Pattern.compile("HTTP/1\\.(\\d)").matcher(text);
 
                 String httpVersion = "1." + (matcher2.find() ? matcher2.group(1) : "1");
