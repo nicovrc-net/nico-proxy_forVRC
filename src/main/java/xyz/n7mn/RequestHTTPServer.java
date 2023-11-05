@@ -323,11 +323,11 @@ public class RequestHTTPServer extends Thread{
                                         return;
                                     }
 
-                                    while (s != null && s.equals("pre")){
+                                    while (s == null || s.equals("pre")){
                                         s = queueList.get(tempURL);
                                     }
 
-                                    System.out.println("[Info] リクエスト : "+ tempURL + " ---> " + s +" ("+sdf.format(new Date())+")");
+                                    System.out.println("[Info] リクエスト(キャッシュ) : "+ tempURL + " ---> " + s +" ("+sdf.format(new Date())+")");
 
                                     httpResult = "HTTP/"+httpVersion+" 302 Found\nLocation: "+s+"\nDate: "+new Date()+"\n\n";
 
@@ -336,6 +336,18 @@ public class RequestHTTPServer extends Thread{
                                     out.close();
                                     in.close();
                                     sock.close();
+
+                                    final LogData logData = new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), httpRequest, sock.getInetAddress().getHostAddress(), RequestURL, s, null);
+                                    final boolean isRedis;
+                                    boolean isRedis1;
+                                    try {
+                                        YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+                                        isRedis1 = yamlMapping.string("LogToRedis").equals("true");
+                                    } catch (Exception e){
+                                        isRedis1 = false;
+                                    }
+                                    isRedis = isRedis1;
+                                    new Thread(()-> LogWrite(logData, isRedis)).start();
                                     return;
 
                                 }

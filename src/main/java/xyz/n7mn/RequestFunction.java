@@ -3,7 +3,10 @@ package xyz.n7mn;
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import okhttp3.*;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import xyz.n7mn.data.Image;
 import xyz.n7mn.data.LogData;
 import xyz.n7mn.data.VideoRequest;
@@ -16,6 +19,7 @@ import xyz.n7mn.nico_proxy.data.TokenJSON;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.security.SecureRandom;
@@ -478,6 +482,47 @@ public class RequestFunction {
     }
 
     public static void LogWrite(LogData data, boolean isRedis){
+        new Thread(() -> {
+            if (isRedis) {
+                // Redis
+                File config = new File("./config.yml");
+                YamlMapping ConfigYml = null;
 
+                try {
+                    ConfigYml = Yaml.createYamlInput(config).readYamlMapping();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+                Jedis jedis = jedisPool.getResource();
+                if (!ConfigYml.string("RedisPass").isEmpty()){
+                    jedis.auth(ConfigYml.string("RedisPass"));
+                }
+
+                jedis.set("nico-proxy2:ExecuteLog:"+data.getLogID(), new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(data));
+
+                jedis.close();
+                jedisPool.close();
+
+            } else {
+                // ファイル
+                if (!new File("./log").exists()) {
+                    new File("./log").mkdir();
+                }
+
+                try {
+                    File file = new File("./log/" + data.getLogID() + ".json");
+                    file.createNewFile();
+                    PrintWriter writer = new PrintWriter(file);
+                    writer.print(new Gson().toJson(data));
+                    writer.close();
+                } catch (Exception e) {
+                    System.out.println("---- " + data.getLogID() + ".json ----");
+                    System.out.println(new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(data));
+                    System.out.println("---- " + data.getLogID() + ".json ----");
+                }
+            }
+        }).start();
     }
 }
