@@ -28,6 +28,7 @@ public class RequestServer extends Thread{
     private List<String> VideoProxy = new ArrayList<>();
     private List<String> VideoProxy2 = new ArrayList<>();
 
+    private boolean isRedis;
     private String TwitcastClientId;
     private String TwitcastClientSecret;
 
@@ -100,6 +101,13 @@ public class RequestServer extends Thread{
             TwitcastClientId = "";
             TwitcastClientSecret = "";
         }
+
+        try {
+            YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+            isRedis = yamlMapping.string("LogToRedis").equals("true");
+        } catch (Exception e){
+            isRedis = false;
+        }
     }
 
     @Override
@@ -148,9 +156,9 @@ public class RequestServer extends Thread{
 
                             final VideoResult result;
                             if (matcher.find()){
-                                result = RequestFunction.getTitle(request, true);
+                                result = RequestFunction.getTitle(request, isRedis);
                             } else {
-                                result = RequestFunction.getURL(request, true);
+                                result = RequestFunction.getURL(request, isRedis);
                             }
 
                             bytes = new Gson().toJson(result).getBytes(StandardCharsets.UTF_8);
