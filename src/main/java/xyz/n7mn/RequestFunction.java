@@ -400,14 +400,13 @@ public class RequestFunction {
 
     public static VideoResult getTitle(VideoRequest videoRequest, boolean isRedis){
         final VideoResult videoResult = new VideoResult();
+        final LogData logData = new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), videoRequest.getHTTPRequest(), videoRequest.getServerIP(), videoRequest.getRequestURL(), null, null);
 
         Matcher matcher_NicoVideoURL = Pattern.compile("(\\.nicovideo\\.jp|nico\\.ms)").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_BilibiliComURL = Pattern.compile("bilibili\\.com").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_BilibiliTvURL = Pattern.compile("bilibili\\.tv").matcher(videoRequest.getTempRequestURL());
-        Matcher matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_XvideoURL = Pattern.compile("xvideo").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_TikTokURL = Pattern.compile("tiktok").matcher(videoRequest.getTempRequestURL());
-        Matcher matcher_TwitterURL = Pattern.compile("(x|twitter)\\.com/(.*)/status/(.*)").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_OpenrecURL = Pattern.compile("openrec").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_PornhubURL = Pattern.compile("pornhub\\.com").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_TwicastURL = Pattern.compile("twitcasting\\.tv").matcher(videoRequest.getTempRequestURL());
@@ -416,16 +415,66 @@ public class RequestFunction {
         boolean isNico = matcher_NicoVideoURL.find();
         boolean isBiliBiliCom = matcher_BilibiliComURL.find();
         boolean isBiliBiliTv = matcher_BilibiliTvURL.find();
-        boolean isYoutube = matcher_YoutubeURL.find();
         boolean isXvideo = matcher_XvideoURL.find();
         boolean isTiktok = matcher_TikTokURL.find();
-        boolean isTwitter = matcher_TwitterURL.find();
         boolean isOpenrec = matcher_OpenrecURL.find();
         boolean isPornhub = matcher_PornhubURL.find();
         boolean isTwicast = matcher_TwicastURL.find();
         boolean isAbema = matcher_AbemaURL.find();
 
+        List<String> proxyList = new ArrayList();
+        ShareService service = null;
+        if (isNico){
+            service = new NicoNicoVideo();
+            if (Pattern.compile("(lv|so)").matcher(videoRequest.getTempRequestURL()).find()){
+                proxyList.addAll(videoRequest.getProxyListOfficial());
+            } else {
+                proxyList.addAll(videoRequest.getProxyListVideo());
+            }
+        } else if (isBiliBiliCom){
+            service = new BilibiliCom();
+            proxyList.addAll(videoRequest.getProxyListVideo());
+        } else if (isBiliBiliTv){
+            service = new BilibiliTv();
+            proxyList.addAll(videoRequest.getProxyListVideo());
+        } else if (isXvideo){
+            service = new Xvideos();
+            proxyList.addAll(videoRequest.getProxyListVideo());
+        } else if (isTiktok){
+            service = new TikTok();
+            proxyList.addAll(videoRequest.getProxyListVideo());
+        } else if (isOpenrec){
+            service = new OPENREC();
+            proxyList.addAll(videoRequest.getProxyListVideo());
+        } else if (isPornhub){
+            service = new Pornhub();
+            proxyList.addAll(videoRequest.getProxyListVideo());
+        } else if (isTwicast){
+            proxyList.addAll(videoRequest.getProxyListVideo());
+            service = new Twicast(videoRequest.getTwitcastClientId(), videoRequest.getTwitcastClientSecret());
+        } else if (isAbema){
+            proxyList.addAll(videoRequest.getProxyListVideo());
+            service = new Abema();
+        }
 
+        if (isNico || isBiliBiliCom || isBiliBiliTv || isXvideo || isTiktok || isOpenrec || isPornhub || isTwicast || isAbema){
+            String[] split = !proxyList.isEmpty() ? proxyList.get(new SecureRandom().nextInt(0, proxyList.size())).split(":") : null;
+            String title;
+            try {
+                if (split != null){
+                    title = service.getTitle(new RequestVideoData(videoRequest.getTempRequestURL(), new ProxyData(split[0], Integer.parseInt(split[1]))));
+                } else {
+                    title = service.getTitle(new RequestVideoData(videoRequest.getTempRequestURL(), null));
+                }
+            } catch (Exception e){
+                title = "";
+                logData.setErrorMessage(e.getMessage());
+            }
+            logData.setResultURL("Title : "+title);
+            videoResult.setTitle(title);
+        }
+
+        new Thread(()-> LogWrite(logData, isRedis)).start();
         return videoResult;
     }
 
