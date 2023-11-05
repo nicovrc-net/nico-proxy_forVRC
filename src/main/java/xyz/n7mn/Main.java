@@ -191,10 +191,10 @@ public class Main {
         Thread thread_httpCheck = new CheckHTTPServer(PingHTTPPort);
 
         // UDP経由での受付
-        Thread thread_udp = new RequestServer();
+        Thread thread_udp = new RequestServer(ResponsePort);
 
         // HTTP経由での受付
-        Thread thread_http = new RequestHTTPServer();
+        Thread thread_http = new RequestHTTPServer(ResponsePort);
 
         thread_udp.start();
         thread_http.start();

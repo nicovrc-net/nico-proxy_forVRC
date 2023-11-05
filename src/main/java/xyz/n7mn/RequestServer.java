@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import xyz.n7mn.data.UDPJsonRequest;
 import xyz.n7mn.data.VideoRequest;
+import xyz.n7mn.data.VideoResult;
 
 import java.io.File;
 import java.net.DatagramPacket;
@@ -11,16 +12,26 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RequestServer extends Thread{
+
+    private final int Port;
+
+    public RequestServer(int port) {
+        this.Port = port;
+    }
+
     @Override
     public void run() {
 
+        System.out.println("[Info] UDP Port "+Port+"で 処理受付用UDPサーバー待機開始");
         while (true){
+            DatagramSocket sock = null;
             try {
-                DatagramSocket sock = new DatagramSocket(8888);
+                sock = new DatagramSocket(Port);
 
                 byte[] data = new byte[100000];
                 DatagramPacket packet = new DatagramPacket(data, data.length);
@@ -33,7 +44,7 @@ public class RequestServer extends Thread{
 
                 String s = new String(Arrays.copyOf(packet.getData(), packet.getLength()));
 
-                System.out.println("受信 : \n"+s);
+                //System.out.println("受信 : \n"+s);
                 InetSocketAddress address = new InetSocketAddress(packet.getAddress(), packet.getPort());
 
                 try {
@@ -50,24 +61,37 @@ public class RequestServer extends Thread{
                         request.setRequestURL(udpJsonRequest.getRequestURL());
                         request.setTempRequestURL(udpJsonRequest.getTempRequestURL());
 
-                        Matcher matcher = Pattern.compile("(|)").matcher(udpJsonRequest.getHTTPRequest());
+                        Matcher matcher = Pattern.compile("(x-nicovrc-titleget: yes|user-agent: unityplayer/)").matcher(udpJsonRequest.getHTTPRequest().toLowerCase(Locale.ROOT));
 
-                        RequestFunction.getURL(request, true);
+                        final VideoResult result;
+                        if (matcher.find()){
+                            result = RequestFunction.getTitle(request, true);
+                        } else {
+                            result = RequestFunction.getURL(request, true);
+                        }
 
+                        bytes = new Gson().toJson(result).getBytes(StandardCharsets.UTF_8);
                     }
 
                     sock.send(new DatagramPacket(bytes, bytes.length, address));
                     sock.close();
+
+                    data = null;
+                    System.gc();
+                    continue;
                 } catch (Exception e){
                     byte[] bytes = "{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8);
 
                     sock.send(new DatagramPacket(bytes, bytes.length, address));
                     sock.close();
-                }
 
-                data = null;
-                System.gc();
+                    data = null;
+                    System.gc();
+                }
             } catch (Exception e){
+                if (sock != null){
+                    sock.close();
+                }
                 e.printStackTrace();
                 return;
             }
