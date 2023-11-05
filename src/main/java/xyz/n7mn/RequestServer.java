@@ -1,12 +1,10 @@
 package xyz.n7mn;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import xyz.n7mn.data.UDPJsonRequest;
 import xyz.n7mn.data.VideoRequest;
 import xyz.n7mn.data.VideoResult;
 
-import java.io.File;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
