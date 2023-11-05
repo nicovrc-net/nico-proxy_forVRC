@@ -176,6 +176,18 @@ public class RequestHTTPServer extends Thread{
                                 return;
                             }
 
+                            // 死活監視用
+                            if (RequestURL.equals("check_health")){
+                                httpResult = "HTTP/"+httpVersion+" 200 OK\nContent-Type: text/plain; charset=utf-8\n\nへるすちぇっくー！";
+
+                                out.write(httpResult.getBytes(StandardCharsets.UTF_8));
+                                out.flush();
+                                out.close();
+                                in.close();
+                                sock.close();
+                                return;
+                            }
+
                             //System.out.println(tempURL);
                             // URL変換サービスのURLは取り除く
                             if (tempURL.startsWith("http://yt.8uro.net") || tempURL.startsWith("https://yt.8uro.net")){
