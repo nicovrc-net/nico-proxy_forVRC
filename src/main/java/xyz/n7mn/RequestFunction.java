@@ -494,16 +494,53 @@ public class RequestFunction {
                     e.printStackTrace();
                 }
 
-                JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
-                Jedis jedis = jedisPool.getResource();
-                if (!ConfigYml.string("RedisPass").isEmpty()){
-                    jedis.auth(ConfigYml.string("RedisPass"));
+                try {
+                    JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+                    Jedis jedis = jedisPool.getResource();
+                    if (!ConfigYml.string("RedisPass").isEmpty()){
+                        jedis.auth(ConfigYml.string("RedisPass"));
+                    }
+
+                    jedis.set("nico-proxy:ExecuteLog:"+data.getLogID(), new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(data));
+
+                    jedis.close();
+                    jedisPool.close();
+                } catch (Exception e){
+                    // 5秒後に再試行。それでもだめならファイルに保存
+                    try {
+                        Thread.sleep(5000L);
+                    } catch (Exception ex){
+                        //ex.printStackTrace();
+                    }
+                    try {
+                        JedisPool jedisPool = new JedisPool(ConfigYml.string("RedisServer"), ConfigYml.integer("RedisPort"));
+                        Jedis jedis = jedisPool.getResource();
+                        if (!ConfigYml.string("RedisPass").isEmpty()) {
+                            jedis.auth(ConfigYml.string("RedisPass"));
+                        }
+
+                        jedis.set("nico-proxy:ExecuteLog:" + data.getLogID(), new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(data));
+
+                        jedis.close();
+                        jedisPool.close();
+                    } catch (Exception exx){
+                        if (!new File("./log").exists()) {
+                            new File("./log").mkdir();
+                        }
+
+                        try {
+                            File file = new File("./log/" + data.getLogID() + ".json");
+                            file.createNewFile();
+                            PrintWriter writer = new PrintWriter(file);
+                            writer.print(new Gson().toJson(data));
+                            writer.close();
+                        } catch (Exception exxx) {
+                            System.out.println("---- " + data.getLogID() + ".json ----");
+                            System.out.println(new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(data));
+                            System.out.println("---- " + data.getLogID() + ".json ----");
+                        }
+                    }
                 }
-
-                jedis.set("nico-proxy:ExecuteLog:"+data.getLogID(), new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(data));
-
-                jedis.close();
-                jedisPool.close();
 
             } else {
                 // ファイル
