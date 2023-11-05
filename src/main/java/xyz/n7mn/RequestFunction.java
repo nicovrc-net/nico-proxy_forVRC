@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 public class RequestFunction {
 
+
     public static VideoResult getURL(VideoRequest videoRequest, boolean isRedis){
         final VideoResult videoResult = new VideoResult();
         final LogData logData = new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), videoRequest.getHTTPRequest(), videoRequest.getServerIP(), videoRequest.getRequestURL(), null, null);
@@ -58,87 +59,55 @@ public class RequestFunction {
 
         final List<String> proxyList = new ArrayList<>();
 
-        final List<String> ProxyList_Video = new ArrayList<>();
-        final List<String> ProxyList_Official = new ArrayList<>();
-        try {
-            YamlMapping proxy = Yaml.createYamlInput(new File("./config-proxy.yml")).readYamlMapping();
-            YamlSequence list = proxy.yamlSequence("VideoProxy");
-            if (list != null){
-                for (int i = 0; i < list.size(); i++){
-                    ProxyList_Video.add(list.string(i));
-                }
-            }
-
-            YamlSequence list_so = proxy.yamlSequence("OfficialProxy");
-            if (list_so != null){
-                for (int i = 0; i < list_so.size(); i++){
-                    ProxyList_Official.add(list_so.string(i));
-                }
-            }
-        } catch (Exception e){
-            //e.printStackTrace();
-        }
-
-
         if (isNico){
             service = new NicoNicoVideo();
             if (Pattern.compile("(lv|so)").matcher(videoRequest.getTempRequestURL()).find()){
-                proxyList.addAll(ProxyList_Official);
+                proxyList.addAll(videoRequest.getProxyListOfficial());
             } else {
-                proxyList.addAll(ProxyList_Video);
+                proxyList.addAll(videoRequest.getProxyListVideo());
             }
         } else if (isBiliBiliCom){
             service = new BilibiliCom();
-            proxyList.addAll(ProxyList_Video);
+            proxyList.addAll(videoRequest.getProxyListVideo());
         } else if (isBiliBiliTv){
             service = new BilibiliTv();
-            proxyList.addAll(ProxyList_Video);
+            proxyList.addAll(videoRequest.getProxyListVideo());
         } else if (isYoutube){
             // Youtubeはそのままお返し
             logData.setResultURL(videoRequest.getTempRequestURL());
             videoResult.setResultCode(videoResult.getResultCode());
             videoResult.setResultURL(videoRequest.getTempRequestURL());
             videoResult.setErrorMessage(null);
-            new Thread(()-> LogWrite(logData)).start();
+            new Thread(()-> LogWrite(logData, isRedis)).start();
             return videoResult;
         } else if (isXvideo){
             service = new Xvideos();
-            proxyList.addAll(ProxyList_Video);
+            proxyList.addAll(videoRequest.getProxyListVideo());
         } else if (isTiktok){
             service = new TikTok();
-            proxyList.addAll(ProxyList_Video);
+            proxyList.addAll(videoRequest.getProxyListVideo());
         } else if (isTwitter){
             service = new Twitter();
-            proxyList.addAll(ProxyList_Video);
+            proxyList.addAll(videoRequest.getProxyListVideo());
         } else if (isOpenrec){
             service = new OPENREC();
-            proxyList.addAll(ProxyList_Video);
+            proxyList.addAll(videoRequest.getProxyListVideo());
         } else if (isPornhub){
             service = new Pornhub();
-            proxyList.addAll(ProxyList_Video);
+            proxyList.addAll(videoRequest.getProxyListVideo());
         } else if (isTwicast){
-            proxyList.addAll(ProxyList_Video);
-            try {
-                YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config-twitcast.yml")).readYamlMapping();
-                service = new Twicast(yamlMapping.string("ClientID"), yamlMapping.string("ClientSecret"));
-            } catch (Exception e){
-                logData.setErrorMessage("Twitcasting API key Not Found");
-                videoResult.setResultCode(videoResult.getResultCode());
-                videoResult.setResultURL(videoRequest.getTempRequestURL());
-                videoResult.setErrorMessage("Twicasting API Error");
-                new Thread(()-> LogWrite(logData)).start();
-                return videoResult;
-            }
+            proxyList.addAll(videoRequest.getProxyListVideo());
+            service = new Twicast(videoRequest.getTwitcastClientId(), videoRequest.getTwitcastClientSecret());
         } else if (isAbema){
-            proxyList.addAll(ProxyList_Video);
+            proxyList.addAll(videoRequest.getProxyListVideo());
             service = new Abema();
         } else {
             ShareService t;
-            proxyList.addAll(ProxyList_Video);
+            proxyList.addAll(videoRequest.getProxyListVideo());
             try {
                 final OkHttpClient.Builder builder = new OkHttpClient.Builder();
-                String[] split = !ProxyList_Video.isEmpty() ? ProxyList_Video.get(new SecureRandom().nextInt(0, ProxyList_Video.size())).split(":") : null;
-                final OkHttpClient client = !ProxyList_Video.isEmpty() ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(split[0], Integer.parseInt(split[1])))).build() : new OkHttpClient();
+                String[] split = !videoRequest.getProxyListVideo().isEmpty() ? videoRequest.getProxyListVideo().get(new SecureRandom().nextInt(0, videoRequest.getProxyListVideo().size())).split(":") : null;
+                final OkHttpClient client = !videoRequest.getProxyListVideo().isEmpty() ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(split[0], Integer.parseInt(split[1])))).build() : new OkHttpClient();
 
                 Request img = new Request.Builder()
                         .url(videoRequest.getTempRequestURL())
@@ -161,7 +130,7 @@ public class RequestFunction {
         if (service == null){
             videoResult.setErrorMessage("Not Found");
             logData.setErrorMessage("Not Found");
-            new Thread(()-> LogWrite(logData)).start();
+            new Thread(()-> LogWrite(logData, isRedis)).start();
             return videoResult;
         }
 
@@ -185,7 +154,7 @@ public class RequestFunction {
             }
 
             if (data == null){
-                new Thread(()-> LogWrite(logData)).start();
+                new Thread(()-> LogWrite(logData, isRedis)).start();
                 return videoResult;
             }
 
@@ -291,7 +260,7 @@ public class RequestFunction {
                 String bilibiliSystemURL = "";
                 try {
                     YamlMapping mapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-                    bilibiliSystemURL = mapping.string("bilibiliSystemURL");
+                    bilibiliSystemURL = mapping.string("BiliBliSystem");
                 } catch (Exception e){
                     //e.printStackTrace();
                 }
@@ -425,19 +394,42 @@ public class RequestFunction {
             }
         }
 
-        new Thread(()-> LogWrite(logData)).start();
+        new Thread(()-> LogWrite(logData, isRedis)).start();
         return videoResult;
     }
 
     public static VideoResult getTitle(VideoRequest videoRequest, boolean isRedis){
         final VideoResult videoResult = new VideoResult();
 
+        Matcher matcher_NicoVideoURL = Pattern.compile("(\\.nicovideo\\.jp|nico\\.ms)").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_BilibiliComURL = Pattern.compile("bilibili\\.com").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_BilibiliTvURL = Pattern.compile("bilibili\\.tv").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_XvideoURL = Pattern.compile("xvideo").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_TikTokURL = Pattern.compile("tiktok").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_TwitterURL = Pattern.compile("(x|twitter)\\.com/(.*)/status/(.*)").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_OpenrecURL = Pattern.compile("openrec").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_PornhubURL = Pattern.compile("pornhub\\.com").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_TwicastURL = Pattern.compile("twitcasting\\.tv").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_AbemaURL = Pattern.compile("abema\\.tv").matcher(videoRequest.getTempRequestURL());
+
+        boolean isNico = matcher_NicoVideoURL.find();
+        boolean isBiliBiliCom = matcher_BilibiliComURL.find();
+        boolean isBiliBiliTv = matcher_BilibiliTvURL.find();
+        boolean isYoutube = matcher_YoutubeURL.find();
+        boolean isXvideo = matcher_XvideoURL.find();
+        boolean isTiktok = matcher_TikTokURL.find();
+        boolean isTwitter = matcher_TwitterURL.find();
+        boolean isOpenrec = matcher_OpenrecURL.find();
+        boolean isPornhub = matcher_PornhubURL.find();
+        boolean isTwicast = matcher_TwicastURL.find();
+        boolean isAbema = matcher_AbemaURL.find();
 
 
         return videoResult;
     }
 
-    public static void LogWrite(LogData data){
+    public static void LogWrite(LogData data, boolean isRedis){
 
     }
 }
