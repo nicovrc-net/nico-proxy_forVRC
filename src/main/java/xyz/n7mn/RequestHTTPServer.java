@@ -8,10 +8,8 @@ import com.google.gson.JsonElement;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import xyz.n7mn.data.JsonRequest;
+import xyz.n7mn.data.*;
 import xyz.n7mn.data.Queue;
-import xyz.n7mn.data.VideoRequest;
-import xyz.n7mn.data.VideoResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +23,8 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import static xyz.n7mn.RequestFunction.LogWrite;
 
 public class RequestHTTPServer extends Thread{
 
@@ -307,10 +307,23 @@ public class RequestHTTPServer extends Thread{
                                         out.close();
                                         in.close();
                                         sock.close();
+
+                                        final LogData logData = new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), httpRequest, sock.getInetAddress().getHostAddress(), RequestURL, s, null);
+                                        final boolean isRedis;
+                                        boolean isRedis1;
+
+                                        try {
+                                            YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+                                            isRedis1 = yamlMapping.string("LogToRedis").equals("true");
+                                        } catch (Exception e){
+                                            isRedis1 = false;
+                                        }
+                                        isRedis = isRedis1;
+                                        new Thread(()-> LogWrite(logData, isRedis)).start();
                                         return;
                                     }
 
-                                    while (s.equals("pre")){
+                                    while (s != null && s.equals("pre")){
                                         s = queueList.get(tempURL);
                                     }
 
