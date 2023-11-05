@@ -2,7 +2,6 @@ package xyz.n7mn;
 
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
-import com.amihaiemil.eoyaml.YamlSequence;
 import com.google.gson.Gson;
 import okhttp3.*;
 import xyz.n7mn.data.Image;
@@ -107,7 +106,7 @@ public class RequestFunction {
             try {
                 final OkHttpClient.Builder builder = new OkHttpClient.Builder();
                 String[] split = !videoRequest.getProxyListVideo().isEmpty() ? videoRequest.getProxyListVideo().get(new SecureRandom().nextInt(0, videoRequest.getProxyListVideo().size())).split(":") : null;
-                final OkHttpClient client = !videoRequest.getProxyListVideo().isEmpty() ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(split[0], Integer.parseInt(split[1])))).build() : new OkHttpClient();
+                final OkHttpClient client = split != null ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(split[0], Integer.parseInt(split[1])))).build() : new OkHttpClient();
 
                 Request img = new Request.Builder()
                         .url(videoRequest.getTempRequestURL())
@@ -422,7 +421,7 @@ public class RequestFunction {
         boolean isTwicast = matcher_TwicastURL.find();
         boolean isAbema = matcher_AbemaURL.find();
 
-        List<String> proxyList = new ArrayList();
+        List<String> proxyList = new ArrayList<>();
         ShareService service = null;
         if (isNico){
             service = new NicoNicoVideo();
