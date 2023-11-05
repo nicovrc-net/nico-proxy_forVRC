@@ -26,6 +26,9 @@ public class CheckTCPServer extends Thread{
         while (true) {
             try {
                 Socket socket = svSock.accept();
+
+                //System.out.println(new String(socket.getInputStream().readAllBytes(), StandardCharsets.UTF_8));
+
                 OutputStream stream = socket.getOutputStream();
 
                 stream.write("{\"status\": \"OK\"}".getBytes(StandardCharsets.UTF_8));
