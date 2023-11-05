@@ -500,7 +500,7 @@ public class RequestFunction {
                     jedis.auth(ConfigYml.string("RedisPass"));
                 }
 
-                jedis.set("nico-proxy2:ExecuteLog:"+data.getLogID(), new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(data));
+                jedis.set("nico-proxy:ExecuteLog:"+data.getLogID(), new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(data));
 
                 jedis.close();
                 jedisPool.close();
