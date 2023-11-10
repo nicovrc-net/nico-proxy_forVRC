@@ -553,6 +553,19 @@ public class RequestHTTPServer extends Thread{
                                 queueList.remove(tempURL.split("\\?")[0]);
                                 if (resultURL.startsWith("http://") || resultURL.startsWith("https://")){
                                     queueList.put(tempURL.split("\\?")[0], resultURL);
+                                    if (resultURL.startsWith("https://i2v.nicovrc.net")){
+                                        // エラー表示の場合は20秒で同期対象から削除
+                                        String finalTempURL = tempURL.split("\\?")[0];
+                                        new Thread(()->{
+                                            try {
+                                                Thread.sleep(20000);
+                                            } catch (InterruptedException e) {
+                                                //e.printStackTrace();
+                                            }
+
+                                            queueList.remove(finalTempURL);
+                                        }).start();
+                                    }
                                 }
                             }
                             System.out.println("[Info] リクエスト : "+ tempURL + " ---> " + resultURL +" ("+sdf.format(new Date())+")");
