@@ -298,8 +298,15 @@ public class RequestFunction {
             // xvideos / TikTok / Twitter / Pornhub / Ameba
             try {
                 ResultVideoData video = service.getVideo(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
-                logData.setResultURL(video.getVideoURL());
-                videoResult.setResultURL(video.getVideoURL());
+
+                if (isTwitter){
+                    logData.setResultURL(video.getVideoURL().split("\\?")[0]);
+                    videoResult.setResultURL(video.getVideoURL().split("\\?")[0]);
+                } else{
+                    logData.setResultURL(video.getVideoURL());
+                    videoResult.setResultURL(video.getVideoURL());
+                }
+
             } catch (Exception e){
                 logData.setErrorMessage(e.getMessage());
                 logData.setResultURL(null);
