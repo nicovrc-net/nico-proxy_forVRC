@@ -305,9 +305,10 @@ public class RequestHTTPServer extends Thread{
                             boolean ServerListEmpty = ServerList.isEmpty();
 
                             Matcher queueUrl = Pattern.compile("(nico\\.ms|nicovideo\\.jp|bilibili)").matcher(tempURL);
+                            boolean isQueue = queueUrl.find();
 
                             String s = queueList.get(tempURL.split("\\?")[0]);
-                            if (queueUrl.find()){
+                            if (isQueue){
                                 if (s != null){
                                     if (!s.equals("pre")){
                                         System.out.println("[Info] リクエスト(キャッシュ) : "+ tempURL + " ---> " + s +" ("+sdf.format(new Date())+")");
@@ -548,11 +549,14 @@ public class RequestHTTPServer extends Thread{
 
                             //System.out.println(httpResult);
 
-                            queueList.remove(tempURL.split("\\?")[0]);
-                            if (resultURL.startsWith("http://") || resultURL.startsWith("https://")){
-                                queueList.put(tempURL.split("\\?")[0], resultURL);
-                                System.out.println("[Info] リクエスト : "+ tempURL + " ---> " + resultURL +" ("+sdf.format(new Date())+")");
+                            if (isQueue){
+                                queueList.remove(tempURL.split("\\?")[0]);
+                                if (resultURL.startsWith("http://") || resultURL.startsWith("https://")){
+                                    queueList.put(tempURL.split("\\?")[0], resultURL);
+                                }
                             }
+                            System.out.println("[Info] リクエスト : "+ tempURL + " ---> " + resultURL +" ("+sdf.format(new Date())+")");
+
 
                             out.write(httpResult.getBytes(StandardCharsets.UTF_8));
                             out.flush();
