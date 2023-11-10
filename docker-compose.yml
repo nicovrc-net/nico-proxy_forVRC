@@ -11,9 +11,7 @@ services:
         condition: service_healthy
     ports:
       - "25252:25252"
-      - "25253:25253"
-      - "25280:25280"
-      - "22552:22552"
+      - "25252:25252/udp"
     volumes:
       - /nico-proxy/nico-proxy:/nico-proxy
     command:
