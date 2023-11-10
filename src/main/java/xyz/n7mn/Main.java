@@ -22,7 +22,7 @@ public class Main {
                     # HTTPで受付する場合はtrue
                     HTTPServer: true
                     # UDPで受付する場合はtrue
-                    UDPServer : false
+                    UDPServer: false
                     
                     # 他に処理鯖がある場合はそのリストを「IP:受付ポート」形式で記載する
                     # (HTTP受付の鯖ではUDP受付をfalseにし他の処理鯖ではHTTP受付をfalse、UDP受付をtrueにすることを推奨)
@@ -92,9 +92,12 @@ public class Main {
 
         try {
             YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+            //System.out.println(yamlMapping.string("UDPServer"));
             UDPServer = yamlMapping.string("UDPServer").equals("true");
+            //System.out.println(UDPServer);
             HTTPServer = yamlMapping.string("HTTPServer").equals("true");
         } catch (Exception e){
+            e.printStackTrace();
             UDPServer = false;
             HTTPServer = true;
         }
