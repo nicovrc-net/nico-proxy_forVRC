@@ -406,8 +406,10 @@ public class RequestHTTPServer extends Thread{
 
                                             //System.out.println(json.isJsonObject());
 
-                                            if (json.getAsJsonObject().get("ResultURL").isJsonNull() && !json.getAsJsonObject().get("ErrorMessage").isJsonNull()){
+                                            if (tempURL.startsWith("http") && json.getAsJsonObject().get("ResultURL").isJsonNull() && !json.getAsJsonObject().get("ErrorMessage").isJsonNull()){
                                                 resultURL = "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=" + URLEncoder.encode(json.getAsJsonObject().get("ErrorMessage").getAsString(), StandardCharsets.UTF_8);
+                                            } else if (!tempURL.startsWith("http")){
+                                                resultURL = "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=Not+Found";
                                             } else if (!json.getAsJsonObject().get("ResultURL").isJsonNull()){
                                                 resultURL = json.getAsJsonObject().get("ResultURL").getAsString();
                                             } else if (!json.getAsJsonObject().get("Title").isJsonNull()){
