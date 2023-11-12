@@ -369,7 +369,7 @@ public class RequestHTTPServer extends Thread{
                             }
 
                             List<String> tempList = new ArrayList<>(ServerList);
-                            String te = !tempList.isEmpty() ? tempList.get(new SecureRandom().nextInt(0, tempList.size())) : "";
+                            String te = !tempList.isEmpty() ? tempList.get(new SecureRandom().nextInt(0, tempList.size() - 1)) : "";
 
                             String resultURL = "";
                             String title = "";
@@ -432,7 +432,7 @@ public class RequestHTTPServer extends Thread{
 
                                     } catch (Exception e){
                                         tempList.remove(te);
-                                        te = tempList.get(new SecureRandom().nextInt(0, tempList.size()));
+                                        te = tempList.get(new SecureRandom().nextInt(0, tempList.size() - 1));
                                     }
                                 }
                             } else {
