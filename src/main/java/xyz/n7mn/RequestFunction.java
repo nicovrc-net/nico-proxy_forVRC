@@ -7,10 +7,7 @@ import com.google.gson.GsonBuilder;
 import okhttp3.*;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import xyz.n7mn.data.Image;
-import xyz.n7mn.data.LogData;
-import xyz.n7mn.data.VideoRequest;
-import xyz.n7mn.data.VideoResult;
+import xyz.n7mn.data.*;
 import xyz.n7mn.nico_proxy.*;
 import xyz.n7mn.nico_proxy.data.ProxyData;
 import xyz.n7mn.nico_proxy.data.RequestVideoData;
@@ -20,8 +17,11 @@ import xyz.n7mn.nico_proxy.data.TokenJSON;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -30,7 +30,7 @@ import java.util.regex.Pattern;
 public class RequestFunction {
 
 
-    public static VideoResult getURL(VideoRequest videoRequest, boolean isRedis){
+    public static VideoResult getURL(VideoRequest videoRequest, boolean isRedis) {
         final VideoResult videoResult = new VideoResult();
         final LogData logData = new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), videoRequest.getHTTPRequest(), videoRequest.getServerIP(), videoRequest.getRequestURL(), null, null);
 
@@ -62,46 +62,41 @@ public class RequestFunction {
 
         final List<String> proxyList = new ArrayList<>();
 
-        if (isNico){
+        if (isNico) {
             service = new NicoNicoVideo();
-            if (Pattern.compile("(lv|so)").matcher(videoRequest.getTempRequestURL()).find()){
+            if (Pattern.compile("(lv|so)").matcher(videoRequest.getTempRequestURL()).find()) {
                 proxyList.addAll(videoRequest.getProxyListOfficial());
             } else {
                 proxyList.addAll(videoRequest.getProxyListVideo());
             }
-        } else if (isBiliBiliCom){
+        } else if (isBiliBiliCom) {
             service = new BilibiliCom();
             proxyList.addAll(videoRequest.getProxyListVideo());
-        } else if (isBiliBiliTv){
+        } else if (isBiliBiliTv) {
             service = new BilibiliTv();
             proxyList.addAll(videoRequest.getProxyListVideo());
-        } else if (isYoutube){
-            // Youtubeはそのままお返し
-            logData.setResultURL(videoRequest.getTempRequestURL());
-            videoResult.setResultCode(videoResult.getResultCode());
-            videoResult.setResultURL(videoRequest.getTempRequestURL());
-            videoResult.setErrorMessage(null);
-            new Thread(()-> LogWrite(logData, isRedis)).start();
-            return videoResult;
-        } else if (isXvideo){
+        } else if (isYoutube) {
+            service = new YoutubeHLS();
+            proxyList.addAll(videoRequest.getProxyListVideo());
+        } else if (isXvideo) {
             service = new Xvideos();
             proxyList.addAll(videoRequest.getProxyListVideo());
-        } else if (isTiktok){
+        } else if (isTiktok) {
             service = new TikTok();
             proxyList.addAll(videoRequest.getProxyListVideo());
-        } else if (isTwitter){
+        } else if (isTwitter) {
             service = new Twitter();
             proxyList.addAll(videoRequest.getProxyListVideo());
-        } else if (isOpenrec){
+        } else if (isOpenrec) {
             service = new OPENREC();
             proxyList.addAll(videoRequest.getProxyListVideo());
-        } else if (isPornhub){
+        } else if (isPornhub) {
             service = new Pornhub();
             proxyList.addAll(videoRequest.getProxyListVideo());
-        } else if (isTwicast){
+        } else if (isTwicast) {
             proxyList.addAll(videoRequest.getProxyListVideo());
             service = new Twicast(videoRequest.getTwitcastClientId(), videoRequest.getTwitcastClientSecret());
-        } else if (isAbema){
+        } else if (isAbema) {
             proxyList.addAll(videoRequest.getProxyListVideo());
             service = new Abema();
         } else {
@@ -117,23 +112,23 @@ public class RequestFunction {
                         .build();
                 Response response_img = client.newCall(img).execute();
 
-                if (response_img.body() != null && response_img.body().contentType().toString().startsWith("image")){
+                if (response_img.body() != null && response_img.body().contentType().toString().startsWith("image")) {
                     t = new Image();
                 } else {
                     t = null;
                 }
                 response_img.close();
-            } catch (Exception e){
+            } catch (Exception e) {
                 t = null;
             }
 
             service = t;
         }
 
-        if (service == null){
+        if (service == null) {
             videoResult.setErrorMessage("Not Found");
             logData.setErrorMessage("Not Found");
-            new Thread(()-> LogWrite(logData, isRedis)).start();
+            new Thread(() -> LogWrite(logData, isRedis)).start();
             return videoResult;
         }
 
@@ -142,53 +137,53 @@ public class RequestFunction {
         final OkHttpClient client = !proxyList.isEmpty() ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(split[0], Integer.parseInt(split[1])))).build() : new OkHttpClient();
 
         // ニコ動 / ニコ生
-        if (isNico){
+        if (isNico) {
             ResultVideoData data = null;
 
             try {
-                if (Pattern.compile("(lv|so)").matcher(videoRequest.getTempRequestURL()).find()){
+                if (Pattern.compile("(lv|so)").matcher(videoRequest.getTempRequestURL()).find()) {
                     data = service.getLive(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
                 } else {
                     data = service.getVideo(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
                 }
-            } catch (Exception e){
+            } catch (Exception e) {
                 logData.setErrorMessage(e.getMessage());
                 videoResult.setErrorMessage(e.getMessage());
             }
 
-            if (data == null){
-                new Thread(()-> LogWrite(logData, isRedis)).start();
+            if (data == null) {
+                new Thread(() -> LogWrite(logData, isRedis)).start();
                 return videoResult;
             }
 
             logData.setResultURL(data.getVideoURL());
             videoResult.setResultURL(data.getVideoURL());
 
-            if (data.isEncrypted()){
+            if (data.isEncrypted()) {
                 try {
                     // TODO: 後でUDP通信を使ったものに書き換える
                     OkHttpClient client2 = new OkHttpClient();
                     Request m3u8 = new Request.Builder()
-                            .url("https://n.nicovrc.net/?url="+data.getVideoURL()+"&proxy="+(split != null ? split[0]+":"+split[1] : ""))
+                            .url("https://n.nicovrc.net/?url=" + data.getVideoURL() + "&proxy=" + (split != null ? split[0] + ":" + split[1] : ""))
                             .build();
 
                     Response response = client2.newCall(m3u8).execute();
                     String s1 = response.body() != null && response.code() == 200 ? response.body().string() : "";
                     response.close();
-                    if (s1.startsWith("/")){
-                        logData.setResultURL("https://n.nicovrc.net"+s1);
-                        videoResult.setResultURL("https://n.nicovrc.net"+s1);
+                    if (s1.startsWith("/")) {
+                        logData.setResultURL("https://n.nicovrc.net" + s1);
+                        videoResult.setResultURL("https://n.nicovrc.net" + s1);
                     }
-                } catch (Exception e){
+                } catch (Exception e) {
                     logData.setResultURL(null);
                     videoResult.setResultURL(null);
                     logData.setErrorMessage(e.getMessage());
                 }
             }
 
-            if (!data.isStream()){
+            if (!data.isStream()) {
                 ResultVideoData finalData = data;
-                new Thread(()->{
+                new Thread(() -> {
                     try {
                         // ハートビート信号
                         Request request_html = new Request.Builder()
@@ -196,7 +191,7 @@ public class RequestFunction {
                                 .build();
                         Response response1 = client.newCall(request_html).execute();
                         String HtmlText;
-                        if (response1.body() != null){
+                        if (response1.body() != null) {
                             HtmlText = response1.body().string();
                         } else {
                             HtmlText = "";
@@ -206,7 +201,7 @@ public class RequestFunction {
                         Matcher matcher_video = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">").matcher(HtmlText);
 
                         final long videoTime;
-                        if (matcher_video.find()){
+                        if (matcher_video.find()) {
                             videoTime = Long.parseLong(matcher_video.group(1));
                         } else {
                             videoTime = 3600L;
@@ -219,7 +214,7 @@ public class RequestFunction {
                         timer.scheduleAtFixedRate(new TimerTask() {
                             @Override
                             public void run() {
-                                if (count[0] > (videoTime / 40L)){
+                                if (count[0] > (videoTime / 40L)) {
                                     timer.cancel();
                                     return;
                                 }
@@ -241,8 +236,8 @@ public class RequestFunction {
 
                                 count[0]++;
                             }
-                        },0L, 40000L);
-                    } catch (Exception e){
+                        }, 0L, 40000L);
+                    } catch (Exception e) {
                         //e.printStackTrace();
                     }
                 }).start();
@@ -252,7 +247,7 @@ public class RequestFunction {
             // bilibili
             try {
                 ResultVideoData video;
-                if (split != null){
+                if (split != null) {
                     video = service.getVideo(new RequestVideoData(videoRequest.getTempRequestURL(), new ProxyData(split[0], Integer.parseInt(split[1]))));
                 } else {
                     video = service.getVideo(new RequestVideoData(videoRequest.getTempRequestURL(), null));
@@ -264,56 +259,56 @@ public class RequestFunction {
                 try {
                     YamlMapping mapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
                     bilibiliSystemURL = mapping.string("BiliBliSystem");
-                } catch (Exception e){
+                } catch (Exception e) {
                     //e.printStackTrace();
                 }
 
                 final Request m3u8;
                 final String bi = isBiliBiliCom ? "com" : "tv";
-                if (split != null){
+                if (split != null) {
                     //System.out.println(bilibiliSystemURL+"/?url="+video.getVideoURL()+",,"+video.getAudioURL()+"&cc&" + (m.find() ? "tv" : "com")+"&cc&"+split[0]+":"+split[1]);
                     m3u8 = new Request.Builder()
-                            .url(bilibiliSystemURL+"/?url="+video.getVideoURL()+",,"+video.getAudioURL()+"&cc&" + bi +"&cc&"+split[0]+":"+split[1])
+                            .url(bilibiliSystemURL + "/?url=" + video.getVideoURL() + ",," + video.getAudioURL() + "&cc&" + bi + "&cc&" + split[0] + ":" + split[1])
                             .build();
                 } else {
                     //System.out.println(bilibiliSystemURL+"/?url="+video.getVideoURL()+",,"+video.getAudioURL()+"&cc&" + (isTv ? "tv" : "com"));
                     m3u8 = new Request.Builder()
-                            .url(bilibiliSystemURL+"/?url="+video.getVideoURL()+",,"+video.getAudioURL()+"&&cc&" + bi)
+                            .url(bilibiliSystemURL + "/?url=" + video.getVideoURL() + ",," + video.getAudioURL() + "&&cc&" + bi)
                             .build();
                 }
 
                 Response response = client.newCall(m3u8).execute();
                 String s1 = response.body() != null ? response.body().string() : "";
                 response.close();
-                logData.setResultURL(bilibiliSystemURL+s1);
-                videoResult.setResultURL(bilibiliSystemURL+s1);
+                logData.setResultURL(bilibiliSystemURL + s1);
+                videoResult.setResultURL(bilibiliSystemURL + s1);
 
-            } catch (Exception e){
+            } catch (Exception e) {
                 logData.setErrorMessage(e.getMessage());
                 logData.setResultURL(null);
                 videoResult.setErrorMessage(e.getMessage());
                 videoResult.setResultURL(null);
             }
-        } else if (isXvideo || isTiktok || isTwitter || isPornhub || isAbema){
+        } else if (isXvideo || isTiktok || isTwitter || isPornhub || isAbema) {
             // xvideos / TikTok / Twitter / Pornhub / Ameba
             try {
                 ResultVideoData video = service.getVideo(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
 
-                if (isTwitter){
+                if (isTwitter) {
                     logData.setResultURL(video.getVideoURL().split("\\?")[0]);
                     videoResult.setResultURL(video.getVideoURL().split("\\?")[0]);
-                } else{
+                } else {
                     logData.setResultURL(video.getVideoURL());
                     videoResult.setResultURL(video.getVideoURL());
                 }
 
-            } catch (Exception e){
+            } catch (Exception e) {
                 logData.setErrorMessage(e.getMessage());
                 logData.setResultURL(null);
                 videoResult.setErrorMessage(e.getMessage());
                 videoResult.setResultURL(null);
             }
-        } else if (isOpenrec){
+        } else if (isOpenrec) {
             Matcher m = Pattern.compile("live").matcher(videoRequest.getTempRequestURL());
 
             try {
@@ -321,14 +316,14 @@ public class RequestFunction {
                 //videoUrl = video.getVideoURL();
 
                 String proxy = "null";
-                if (split != null){
-                    proxy = split[0]+":"+split[1];
+                if (split != null) {
+                    proxy = split[0] + ":" + split[1];
                 }
 
                 // TODO: 後でUDP通信を使ったものに書き換える
                 String isStream = video.isStream() ? "true" : "false";
                 Request m3u8 = new Request.Builder()
-                        .url("https://nicovrc.net/rec/?isStream="+isStream+"&u="+video.getVideoURL()+"&proxy="+proxy)
+                        .url("https://nicovrc.net/rec/?isStream=" + isStream + "&u=" + video.getVideoURL() + "&proxy=" + proxy)
                         .build();
 
                 Response response = client.newCall(m3u8).execute();
@@ -336,16 +331,16 @@ public class RequestFunction {
                 videoResult.setResultURL(response.body() != null ? response.body().string() : "");
                 response.close();
 
-            } catch (Exception e){
+            } catch (Exception e) {
                 logData.setErrorMessage(e.getMessage());
                 videoResult.setErrorMessage(e.getMessage());
             }
-        } else if (isTwicast){
+        } else if (isTwicast) {
             // ツイキャス
             try {
                 ResultVideoData video = service.getLive(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
 
-                if (video.isStream()){
+                if (video.isStream()) {
                     logData.setResultURL(video.getVideoURL());
                     videoResult.setResultURL(video.getVideoURL());
                 } else {
@@ -357,37 +352,42 @@ public class RequestFunction {
 
                     Response response_twicast = client.newCall(twicast).execute();
 
-                    if (response_twicast.code() == 200){
-                        if (response_twicast.body() != null){
+                    if (response_twicast.code() == 200) {
+                        if (response_twicast.body() != null) {
 
                             Matcher tempUrl = Pattern.compile("https://(.+)/tc.vod.v2").matcher(video.getVideoURL());
 
                             String baseUrl = "";
-                            if (tempUrl.find()){
-                                baseUrl = "https://"+tempUrl.group(1);
+                            if (tempUrl.find()) {
+                                baseUrl = "https://" + tempUrl.group(1);
                             }
 
                             String str = response_twicast.body().string();
-                            for (String s : str.split("\n")){
-                                if (s.startsWith("#")){
+                            for (String s : str.split("\n")) {
+                                if (s.startsWith("#")) {
                                     continue;
                                 }
 
-                                logData.setResultURL(baseUrl+s);
-                                videoResult.setResultURL(baseUrl+s);
+                                logData.setResultURL(baseUrl + s);
+                                videoResult.setResultURL(baseUrl + s);
                                 break;
                             }
                         }
                     }
                     response_twicast.close();
                 }
-            } catch (Exception e){
+            } catch (Exception e) {
                 logData.setResultURL(null);
                 videoResult.setResultURL(null);
                 logData.setErrorMessage(e.getMessage());
                 videoResult.setErrorMessage(e.getMessage());
             }
-        } else {
+        } else if (isYoutube){
+            logData.setResultURL(videoRequest.getTempRequestURL());
+            videoResult.setResultURL(videoRequest.getTempRequestURL());
+            logData.setErrorMessage(null);
+            videoResult.setErrorMessage(null);
+        }else {
             // 画像
             ResultVideoData video;
             try {
@@ -421,6 +421,7 @@ public class RequestFunction {
         Matcher matcher_PornhubURL = Pattern.compile("pornhub\\.com").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_TwicastURL = Pattern.compile("twitcasting\\.tv").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_AbemaURL = Pattern.compile("abema\\.tv").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)").matcher(videoRequest.getTempRequestURL());
 
         boolean isNico = matcher_NicoVideoURL.find();
         boolean isBiliBiliCom = matcher_BilibiliComURL.find();
@@ -431,6 +432,7 @@ public class RequestFunction {
         boolean isPornhub = matcher_PornhubURL.find();
         boolean isTwicast = matcher_TwicastURL.find();
         boolean isAbema = matcher_AbemaURL.find();
+        boolean isYoutube = matcher_YoutubeURL.find();
 
         List<String> proxyList = new ArrayList<>();
         ShareService service = null;
@@ -465,9 +467,12 @@ public class RequestFunction {
         } else if (isAbema){
             proxyList.addAll(videoRequest.getProxyListVideo());
             service = new Abema();
+        } else if (isYoutube){
+            proxyList.addAll(videoRequest.getProxyListVideo());
+            service = new YoutubeHLS();
         }
 
-        if (isNico || isBiliBiliCom || isBiliBiliTv || isXvideo || isTiktok || isOpenrec || isPornhub || isTwicast || isAbema){
+        if (isNico || isBiliBiliCom || isBiliBiliTv || isXvideo || isTiktok || isOpenrec || isPornhub || isTwicast || isAbema || isYoutube){
             String[] split = !proxyList.isEmpty() ? proxyList.get(new SecureRandom().nextInt(0, proxyList.size())).split(":") : null;
             String title;
             try {

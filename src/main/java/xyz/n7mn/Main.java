@@ -36,6 +36,9 @@ public class Main {
 
                     # bilibili変換システムのURL
                     BiliBliSystem: "https://b.nicovrc.net"
+                    
+                    # Youtube変換システムのIP
+                    YoutubeSystem: "127.0.0.1"
 
                     # Redisの設定(LogToRedisをtrue)にしていない場合は設定不要
                     # RedisサーバーIP
