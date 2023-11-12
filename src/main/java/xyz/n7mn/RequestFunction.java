@@ -141,7 +141,7 @@ public class RequestFunction {
             ResultVideoData data = null;
 
             try {
-                if (Pattern.compile("(lv|so)").matcher(videoRequest.getTempRequestURL()).find()) {
+                if (Pattern.compile("lv").matcher(videoRequest.getTempRequestURL()).find()) {
                     data = service.getLive(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
                 } else {
                     data = service.getVideo(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
