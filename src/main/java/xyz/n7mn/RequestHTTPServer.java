@@ -432,7 +432,17 @@ public class RequestHTTPServer extends Thread{
 
                                     } catch (Exception e){
                                         tempList.remove(te);
-                                        te = tempList.get(new SecureRandom().nextInt(0, tempList.size() - 1));
+                                        try {
+                                            if (tempList.size() - 1 > 0){
+                                                te = tempList.get(new SecureRandom().nextInt(0, tempList.size() - 1));
+                                            } else {
+                                                te = tempList.get(0);
+                                            }
+
+                                        } catch (Exception ex){
+
+                                        }
+
                                     }
                                 }
                             } else {
