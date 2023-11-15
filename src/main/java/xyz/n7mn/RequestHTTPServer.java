@@ -124,7 +124,7 @@ public class RequestHTTPServer extends Thread{
                     }
                 });
             }
-        }, 0L, 5000L);
+        }, 0L, 10000L);
 
         // HTTP通信受け取り
         try {
