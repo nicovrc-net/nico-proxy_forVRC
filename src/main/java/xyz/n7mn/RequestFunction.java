@@ -292,7 +292,13 @@ public class RequestFunction {
         } else if (isXvideo || isTiktok || isTwitter || isPornhub || isAbema) {
             // xvideos / TikTok / Twitter / Pornhub / Ameba
             try {
-                ResultVideoData video = service.getVideo(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
+                ResultVideoData video;
+                if (isAbema && Pattern.compile("https://abema.tv/now-on-air/(.+)").matcher(videoRequest.getTempRequestURL()).find()){
+                    video = service.getLive(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
+                } else {
+                    video = service.getVideo(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
+                }
+
 
                 if (isTwitter) {
                     logData.setResultURL(video.getVideoURL().split("\\?")[0]);
