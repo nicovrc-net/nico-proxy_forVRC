@@ -304,7 +304,7 @@ public class RequestHTTPServer extends Thread{
 
                             boolean ServerListEmpty = ServerList.isEmpty();
 
-                            Matcher queueUrl = Pattern.compile("(nico\\.ms|nicovideo\\.jp|bilibili)").matcher(tempURL);
+                            Matcher queueUrl = Pattern.compile("(nico\\.ms|nicovideo\\.jp|bilibili|tver\\.jp)").matcher(tempURL);
                             boolean isQueue = queueUrl.find();
 
                             String s = queueList.get(tempURL.split("\\?")[0]);

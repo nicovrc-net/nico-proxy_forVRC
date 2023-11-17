@@ -45,6 +45,7 @@ public class RequestFunction {
         Matcher matcher_PornhubURL = Pattern.compile("pornhub\\.com").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_TwicastURL = Pattern.compile("twitcasting\\.tv").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_AbemaURL = Pattern.compile("abema\\.tv").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_TVerURL = Pattern.compile("tver\\.jp").matcher(videoRequest.getTempRequestURL());
 
         boolean isNico = matcher_NicoVideoURL.find();
         boolean isBiliBiliCom = matcher_BilibiliComURL.find();
@@ -57,6 +58,7 @@ public class RequestFunction {
         boolean isPornhub = matcher_PornhubURL.find();
         boolean isTwicast = matcher_TwicastURL.find();
         boolean isAbema = matcher_AbemaURL.find();
+        boolean isTVer = matcher_TVerURL.find();
 
         final ShareService service;
 
@@ -99,6 +101,9 @@ public class RequestFunction {
         } else if (isAbema) {
             proxyList.addAll(videoRequest.getProxyListVideo());
             service = new Abema();
+        } else if (isTVer) {
+            proxyList.addAll(videoRequest.getProxyListVideo());
+            service = new TVer();
         } else {
             ShareService t;
             proxyList.addAll(videoRequest.getProxyListVideo());
@@ -289,16 +294,17 @@ public class RequestFunction {
                 videoResult.setErrorMessage(e.getMessage());
                 videoResult.setResultURL(null);
             }
-        } else if (isXvideo || isTiktok || isTwitter || isPornhub || isAbema) {
-            // xvideos / TikTok / Twitter / Pornhub / Ameba
+        } else if (isXvideo || isTiktok || isTwitter || isPornhub || isAbema || isTVer) {
+            // xvideos / TikTok / Twitter / Pornhub / Ameba / TVer
             try {
                 ResultVideoData video;
-                if (isAbema && Pattern.compile("https://abema.tv/now-on-air/(.+)").matcher(videoRequest.getTempRequestURL()).find()){
+                if (isAbema && Pattern.compile("https://abema\\.tv/now-on-air/(.+)").matcher(videoRequest.getTempRequestURL()).find()){
+                    video = service.getLive(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
+                } else if (isTVer && Pattern.compile("https://tver\\.jp/live/(.+)").matcher(videoRequest.getTempRequestURL()).find()) {
                     video = service.getLive(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
                 } else {
                     video = service.getVideo(new RequestVideoData(videoRequest.getTempRequestURL(), split != null ? new ProxyData(split[0], Integer.parseInt(split[1])) : null));
                 }
-
 
                 if (isTwitter) {
                     logData.setResultURL(video.getVideoURL().split("\\?")[0]);
@@ -393,7 +399,7 @@ public class RequestFunction {
             videoResult.setResultURL(videoRequest.getTempRequestURL());
             logData.setErrorMessage(null);
             videoResult.setErrorMessage(null);
-        }else {
+        } else {
             // 画像
             ResultVideoData video;
             try {
