@@ -91,7 +91,7 @@ public class RequestServer extends Thread{
                     //e.printStackTrace();
                 }
             }
-        }, 0L, 5000L);
+        }, 0L, 60000L);
 
         try {
             YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
