@@ -526,7 +526,7 @@ public class RequestHTTPServer extends Thread{
                                             //e.printStackTrace();
                                         }
                                     }
-                                }, 0L, 5000L);
+                                }, 0L, 60000L);
 
                                 VideoRequest request = new VideoRequest(UUID.randomUUID().toString(), httpRequest, sock.getInetAddress().getHostAddress(), RequestURL, tempURL, proxyList, proxyList2, twitcastClientID, twitcastSecret);
 
