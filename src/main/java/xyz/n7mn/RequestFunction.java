@@ -46,6 +46,7 @@ public class RequestFunction {
         Matcher matcher_TwicastURL = Pattern.compile("twitcasting\\.tv").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_AbemaURL = Pattern.compile("abema\\.tv").matcher(videoRequest.getTempRequestURL());
         Matcher matcher_TVerURL = Pattern.compile("tver\\.jp").matcher(videoRequest.getTempRequestURL());
+        Matcher matcher_DiscordURL = Pattern.compile("discord\\.com").matcher(videoRequest.getTempRequestURL());
 
         boolean isNico = matcher_NicoVideoURL.find();
         boolean isBiliBiliCom = matcher_BilibiliComURL.find();
@@ -59,6 +60,7 @@ public class RequestFunction {
         boolean isTwicast = matcher_TwicastURL.find();
         boolean isAbema = matcher_AbemaURL.find();
         boolean isTVer = matcher_TVerURL.find();
+        boolean isDiscord = matcher_DiscordURL.find();
 
         final ShareService service;
 
@@ -121,6 +123,12 @@ public class RequestFunction {
                     t = new Image();
                 } else {
                     t = null;
+                    if (isDiscord){
+                        logData.setResultURL(videoRequest.getTempRequestURL());
+                        videoResult.setResultURL(videoRequest.getTempRequestURL());
+                        logData.setErrorMessage(null);
+                        videoResult.setErrorMessage(null);
+                    }
                 }
                 response_img.close();
             } catch (Exception e) {
@@ -128,6 +136,11 @@ public class RequestFunction {
             }
 
             service = t;
+        }
+
+        if (isDiscord){
+            new Thread(()-> LogWrite(logData, isRedis)).start();
+            return videoResult;
         }
 
         if (service == null) {
