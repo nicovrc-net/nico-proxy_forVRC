@@ -392,7 +392,7 @@ public class RequestHTTPServer extends Thread{
 
                                         byte[] temp = new byte[100000];
                                         DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
-                                        udp_sock.setSoTimeout(5000);
+                                        udp_sock.setSoTimeout(6000);
                                         udp_sock.receive(udp_packet2);
 
                                         String jsonT = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));

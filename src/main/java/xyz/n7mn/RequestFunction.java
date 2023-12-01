@@ -177,88 +177,139 @@ public class RequestFunction {
             logData.setResultURL(data.getVideoURL());
             videoResult.setResultURL(data.getVideoURL());
 
-            if (data.isEncrypted()) {
+            if (data.getAudioURL() != null){
                 try {
-                    // TODO: 後でUDP通信を使ったものに書き換える
-                    OkHttpClient client2 = new OkHttpClient();
-                    Request m3u8 = new Request.Builder()
-                            .url("https://n.nicovrc.net/?url=" + data.getVideoURL() + "&proxy=" + (split != null ? split[0] + ":" + split[1] : ""))
-                            .build();
+                    //System.out.println("domand");
+                    DatagramSocket udp_sock = new DatagramSocket();
 
-                    Response response = client2.newCall(m3u8).execute();
-                    String s1 = response.body() != null && response.code() == 200 ? response.body().string() : "";
-                    response.close();
-                    if (s1.startsWith("/")) {
-                        logData.setResultURL("https://n.nicovrc.net" + s1);
-                        videoResult.setResultURL("https://n.nicovrc.net" + s1);
+                    NicoVideoInputData nicoVideoInputData = new NicoVideoInputData();
+                    nicoVideoInputData.setVideoURL(data.getVideoURL());
+                    nicoVideoInputData.setAudioURL(data.getAudioURL());
+                    nicoVideoInputData.setCookie(data.getTokenJson());
+                    if (split != null){
+                        nicoVideoInputData.setProxy(split[0] + ":" + split[1]);
                     }
-                } catch (Exception e) {
-                    logData.setResultURL(null);
-                    videoResult.setResultURL(null);
-                    logData.setErrorMessage(e.getMessage());
-                }
-            }
 
-            if (!data.isStream()) {
-                ResultVideoData finalData = data;
-                new Thread(() -> {
+                    String jsonText = new Gson().toJson(nicoVideoInputData);
+
+                    String SystemIP = "";
                     try {
-                        // ハートビート信号
-                        Request request_html = new Request.Builder()
-                                .url(videoRequest.getTempRequestURL())
-                                .build();
-                        Response response1 = client.newCall(request_html).execute();
-                        String HtmlText;
-                        if (response1.body() != null) {
-                            HtmlText = response1.body().string();
-                        } else {
-                            HtmlText = "";
-                        }
-                        response1.close();
-
-                        Matcher matcher_video = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">").matcher(HtmlText);
-
-                        final long videoTime;
-                        if (matcher_video.find()) {
-                            videoTime = Long.parseLong(matcher_video.group(1));
-                        } else {
-                            videoTime = 3600L;
-                        }
-
-                        TokenJSON json = new Gson().fromJson(finalData.getTokenJson(), TokenJSON.class);
-
-                        Timer timer = new Timer();
-                        int[] count = new int[]{0};
-                        timer.scheduleAtFixedRate(new TimerTask() {
-                            @Override
-                            public void run() {
-                                if (count[0] > (videoTime / 40L)) {
-                                    timer.cancel();
-                                    return;
-                                }
-
-                                RequestBody body = RequestBody.create(json.getTokenValue(), MediaType.get("application/json; charset=utf-8"));
-                                Request request1 = new Request.Builder()
-                                        .url(json.getTokenSendURL())
-                                        .post(body)
-                                        .build();
-                                try {
-                                    Response response1 = client.newCall(request1).execute();
-                                    //System.out.println(response.body().string());
-                                    response1.close();
-                                } catch (IOException e) {
-                                    // e.printStackTrace();
-                                    count[0]++;
-                                    return;
-                                }
-
-                                count[0]++;
-                            }
-                        }, 0L, 40000L);
+                        YamlMapping mapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+                        SystemIP = mapping.string("NicoVideoSystem");
                     } catch (Exception e) {
                         //e.printStackTrace();
                     }
-                }).start();
+
+                    DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length,new InetSocketAddress(SystemIP, 25251));
+                    udp_sock.send(udp_packet);
+
+                    byte[] temp = new byte[100000];
+                    DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
+                    udp_sock.setSoTimeout(5000);
+                    udp_sock.receive(udp_packet2);
+
+                    String url = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+
+                    logData.setResultURL(url);
+                    videoResult.setResultURL(url);
+
+                    new Thread(() -> LogWrite(logData, isRedis)).start();
+                    return videoResult;
+                } catch (Exception e){
+                    logData.setErrorMessage(e.getMessage());
+                    videoResult.setErrorMessage(e.getMessage());
+
+                    new Thread(() -> LogWrite(logData, isRedis)).start();
+                    return videoResult;
+                }
+            }
+
+            // ここがtrueになることはもうない。多分。
+            if (data.getAudioURL() == null){
+
+                if (data.isEncrypted()) {
+                    try {
+                        // TODO: 後でUDP通信を使ったものに書き換える
+                        OkHttpClient client2 = new OkHttpClient();
+                        Request m3u8 = new Request.Builder()
+                                .url("https://n.nicovrc.net/?url=" + data.getVideoURL() + "&proxy=" + (split != null ? split[0] + ":" + split[1] : ""))
+                                .build();
+
+                        Response response = client2.newCall(m3u8).execute();
+                        String s1 = response.body() != null && response.code() == 200 ? response.body().string() : "";
+                        response.close();
+                        if (s1.startsWith("/")) {
+                            logData.setResultURL("https://n.nicovrc.net" + s1);
+                            videoResult.setResultURL("https://n.nicovrc.net" + s1);
+                        }
+                    } catch (Exception e) {
+                        logData.setResultURL(null);
+                        videoResult.setResultURL(null);
+                        logData.setErrorMessage(e.getMessage());
+                    }
+                }
+
+                if (!data.isStream()) {
+                    ResultVideoData finalData = data;
+                    new Thread(() -> {
+                        try {
+                            // ハートビート信号
+                            Request request_html = new Request.Builder()
+                                    .url(videoRequest.getTempRequestURL())
+                                    .build();
+                            Response response1 = client.newCall(request_html).execute();
+                            String HtmlText;
+                            if (response1.body() != null) {
+                                HtmlText = response1.body().string();
+                            } else {
+                                HtmlText = "";
+                            }
+                            response1.close();
+
+                            Matcher matcher_video = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">").matcher(HtmlText);
+
+                            final long videoTime;
+                            if (matcher_video.find()) {
+                                videoTime = Long.parseLong(matcher_video.group(1));
+                            } else {
+                                videoTime = 3600L;
+                            }
+
+                            TokenJSON json = new Gson().fromJson(finalData.getTokenJson(), TokenJSON.class);
+
+                            Timer timer = new Timer();
+                            int[] count = new int[]{0};
+                            timer.scheduleAtFixedRate(new TimerTask() {
+                                @Override
+                                public void run() {
+                                    if (count[0] > (videoTime / 40L)) {
+                                        timer.cancel();
+                                        return;
+                                    }
+
+                                    RequestBody body = RequestBody.create(json.getTokenValue(), MediaType.get("application/json; charset=utf-8"));
+                                    Request request1 = new Request.Builder()
+                                            .url(json.getTokenSendURL())
+                                            .post(body)
+                                            .build();
+                                    try {
+                                        Response response1 = client.newCall(request1).execute();
+                                        //System.out.println(response.body().string());
+                                        response1.close();
+                                    } catch (IOException e) {
+                                        // e.printStackTrace();
+                                        count[0]++;
+                                        return;
+                                    }
+
+                                    count[0]++;
+                                }
+                            }, 0L, 40000L);
+                        } catch (Exception e) {
+                            //e.printStackTrace();
+                        }
+                    }).start();
+                }
             }
 
         } else if (isBiliBiliCom || isBiliBiliTv) {
