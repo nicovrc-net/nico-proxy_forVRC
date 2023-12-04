@@ -474,6 +474,7 @@ public class RequestHTTPServer extends Thread{
                                     @Override
                                     public void run() {
                                         List<String> temp = new ArrayList<>();
+                                        List<String> temp2 = new ArrayList<>();
 
                                         try {
                                             YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config-proxy.yml")).readYamlMapping();
@@ -501,7 +502,6 @@ public class RequestHTTPServer extends Thread{
                                             }
 
                                             if (list2 != null){
-                                                temp.clear();
                                                 for (int i = 0; i < list2.size(); i++){
                                                     String[] s = list2.string(i).split(":");
                                                     try {
@@ -515,11 +515,11 @@ public class RequestHTTPServer extends Thread{
                                                     } catch (Exception e){
                                                         continue;
                                                     }
-                                                    temp.add(list2.string(i));
+                                                    temp2.add(list2.string(i));
                                                 }
 
                                                 proxyList2.clear();
-                                                proxyList2.addAll(temp);
+                                                proxyList2.addAll(temp2);
                                             }
 
                                         } catch (Exception e){
