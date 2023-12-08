@@ -15,13 +15,8 @@ import xyz.n7mn.nico_proxy.data.RequestVideoData;
 import xyz.n7mn.nico_proxy.data.ResultVideoData;
 import xyz.n7mn.nico_proxy.data.TokenJSON;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
+import java.io.*;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.*;
@@ -220,20 +215,23 @@ public class RequestFunction {
                         //e.printStackTrace();
                     }
 
-                    DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length,new InetSocketAddress(SystemIP, 25251));
-                    udp_sock.send(udp_packet);
+                    Socket sock = new Socket(SystemIP, 25250);
+                    OutputStream outputStream = sock.getOutputStream();
+                    InputStream inputStream = sock.getInputStream();
+                    outputStream.write(jsonText.getBytes(StandardCharsets.UTF_8));
+                    outputStream.flush();
 
-                    byte[] temp = new byte[100000];
-                    DatagramPacket udp_packet2 = new DatagramPacket(temp, temp.length);
-                    udp_sock.setSoTimeout(5000);
-                    udp_sock.receive(udp_packet2);
-
-                    String url = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+                    byte[] bytes = inputStream.readAllBytes();
+                    String url = new String(bytes, StandardCharsets.UTF_8);
 
                     logData.setResultURL(url);
                     videoResult.setResultURL(url);
 
                     new Thread(() -> LogWrite(logData, isRedis)).start();
+
+                    outputStream.close();
+                    inputStream.close();
+                    sock.close();
                     return videoResult;
                 } catch (Exception e){
                     logData.setErrorMessage(e.getMessage());
