@@ -4,6 +4,7 @@ import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import okhttp3.*;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -174,8 +175,27 @@ public class RequestFunction {
                 return videoResult;
             }
 
-            logData.setResultURL(data.getVideoURL());
-            videoResult.setResultURL(data.getVideoURL());
+            //logData.setResultURL(data.getVideoURL());
+            //videoResult.setResultURL(data.getVideoURL());
+
+            if (data.getVideoURL().startsWith("https://delivery.domand.nicovideo.jp/") && (data.getAudioURL() == null || data.getAudioURL().isEmpty())){
+                JsonElement json = new Gson().fromJson(data.getTokenJson(), JsonElement.class);
+
+                Request m3u8 = new Request.Builder()
+                        .url(data.getVideoURL())
+                        .addHeader("Cookie", "nicosid="+json.getAsJsonObject().get("nicosid").getAsString()+"; domand_bid=" + json.getAsJsonObject().get("domand_bid").getAsString())
+                        .build();
+
+                try {
+                    Response response = client.newCall(m3u8).execute();
+                    if (response.body() != null){
+                        System.out.println(response.body());
+                    }
+                    response.close();
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+            }
 
             if (data.getAudioURL() != null){
                 try {
@@ -224,30 +244,8 @@ public class RequestFunction {
                 }
             }
 
-            // ここがtrueになることはもうない。多分。
+            // dmc.nicoの場合
             if (data.getAudioURL() == null){
-
-                if (data.isEncrypted()) {
-                    try {
-                        // TODO: 後でUDP通信を使ったものに書き換える
-                        OkHttpClient client2 = new OkHttpClient();
-                        Request m3u8 = new Request.Builder()
-                                .url("https://n.nicovrc.net/?url=" + data.getVideoURL() + "&proxy=" + (split != null ? split[0] + ":" + split[1] : ""))
-                                .build();
-
-                        Response response = client2.newCall(m3u8).execute();
-                        String s1 = response.body() != null && response.code() == 200 ? response.body().string() : "";
-                        response.close();
-                        if (s1.startsWith("/")) {
-                            logData.setResultURL("https://n.nicovrc.net" + s1);
-                            videoResult.setResultURL("https://n.nicovrc.net" + s1);
-                        }
-                    } catch (Exception e) {
-                        logData.setResultURL(null);
-                        videoResult.setResultURL(null);
-                        logData.setErrorMessage(e.getMessage());
-                    }
-                }
 
                 if (!data.isStream()) {
                     ResultVideoData finalData = data;
