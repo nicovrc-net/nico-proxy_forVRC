@@ -195,7 +195,6 @@ public class RequestFunction {
             if (data.getAudioURL() != null){
                 try {
                     //System.out.println("domand");
-                    DatagramSocket udp_sock = new DatagramSocket();
 
                     NicoVideoInputData nicoVideoInputData = new NicoVideoInputData();
                     nicoVideoInputData.setVideoURL(data.getVideoURL());
@@ -247,6 +246,8 @@ public class RequestFunction {
 
             // dmc.nicoの場合
             if (data.getAudioURL() == null){
+                logData.setResultURL(data.getVideoURL());
+                videoResult.setResultURL(data.getVideoURL());
 
                 if (!data.isStream()) {
                     ResultVideoData finalData = data;
