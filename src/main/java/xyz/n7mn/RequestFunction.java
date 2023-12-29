@@ -216,6 +216,7 @@ public class RequestFunction {
                     }
 
                     Socket sock = new Socket(SystemIP, 25250);
+                    sock.setSoTimeout(4000);
                     OutputStream outputStream = sock.getOutputStream();
                     InputStream inputStream = sock.getInputStream();
                     outputStream.write(jsonText.getBytes(StandardCharsets.UTF_8));
@@ -234,6 +235,8 @@ public class RequestFunction {
                     sock.close();
                     return videoResult;
                 } catch (Exception e){
+                    logData.setResultURL(null);
+                    videoResult.setResultURL(null);
                     logData.setErrorMessage(e.getMessage());
                     videoResult.setErrorMessage(e.getMessage());
 

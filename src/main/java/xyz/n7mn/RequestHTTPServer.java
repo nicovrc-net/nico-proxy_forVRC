@@ -580,6 +580,7 @@ public class RequestHTTPServer extends Thread{
                                     }
                                 }
                             }
+
                             System.out.println("[Info] リクエスト : "+ tempURL + " ---> " + resultURL +" ("+sdf.format(new Date())+")");
 
 
