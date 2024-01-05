@@ -322,37 +322,59 @@ public class RequestFunction {
                     video = service.getVideo(new RequestVideoData(videoRequest.getTempRequestURL(), null));
                 }
 
-                // TODO: 後でUDP通信を使ったものに書き換える
                 // 映像と音声で分離しているので結合処理が必要
-                String bilibiliSystemURL = "";
+                String bilibiliSystem = "";
                 try {
                     YamlMapping mapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-                    bilibiliSystemURL = mapping.string("BiliBliSystem");
+                    bilibiliSystem = mapping.string("BiliBiliSystemIP");
                 } catch (Exception e) {
                     //e.printStackTrace();
                 }
 
-                final Request m3u8;
                 final String bi = isBiliBiliCom ? "com" : "tv";
-                if (split != null) {
-                    //System.out.println(bilibiliSystemURL+"/?url="+video.getVideoURL()+",,"+video.getAudioURL()+"&cc&" + (m.find() ? "tv" : "com")+"&cc&"+split[0]+":"+split[1]);
-                    m3u8 = new Request.Builder()
-                            .url(bilibiliSystemURL + "/?url=" + video.getVideoURL() + ",," + video.getAudioURL() + "&cc&" + bi + "&cc&" + split[0] + ":" + split[1])
-                            .build();
-                } else {
-                    //System.out.println(bilibiliSystemURL+"/?url="+video.getVideoURL()+",,"+video.getAudioURL()+"&cc&" + (isTv ? "tv" : "com"));
-                    m3u8 = new Request.Builder()
-                            .url(bilibiliSystemURL + "/?url=" + video.getVideoURL() + ",," + video.getAudioURL() + "&&cc&" + bi)
-                            .build();
+                final String proxy = split != null ? split[0] + ":" + split[1] : null;
+
+                if (!bilibiliSystem.isEmpty()){
+                    BiliBiliRequestJson jsonText = new BiliBiliRequestJson();
+                    jsonText.setSiteType(bi);
+                    jsonText.setVideoURL(video.getVideoURL());
+                    jsonText.setAudioURL(video.getAudioURL());
+                    jsonText.setProxy(proxy);
+
+                    if (bi.equals("com")){
+                        long duration = 0;
+                        Request request_html = new Request.Builder()
+                                .url(videoRequest.getTempRequestURL())
+                                .build();
+                        Response response = client.newCall(request_html).execute();
+                        if (response.body() != null){
+                            Matcher matcher = Pattern.compile("\"dash\":\\{\"duration\":(\\d+)").matcher(response.body().string());
+                            if (matcher.find()){
+                                duration = Long.parseLong(matcher.group(1));
+                            }
+                        }
+                        response.close();
+                        jsonText.setVideoDuration(duration);
+                    }
+
+                    String json = new Gson().toJson(jsonText);
+
+                    Socket sock = new Socket(bilibiliSystem, 28279);
+                    sock.setSoTimeout(4000);
+                    OutputStream outputStream = sock.getOutputStream();
+                    InputStream inputStream = sock.getInputStream();
+                    outputStream.write(json.getBytes(StandardCharsets.UTF_8));
+                    outputStream.flush();
+
+                    byte[] bytes = inputStream.readAllBytes();
+                    String url = new String(bytes, StandardCharsets.UTF_8);
+
+                    logData.setResultURL(url);
+                    videoResult.setResultURL(url);
                 }
 
-                Response response = client.newCall(m3u8).execute();
-                String s1 = response.body() != null ? response.body().string() : "";
-                response.close();
-                logData.setResultURL(bilibiliSystemURL + s1);
-                videoResult.setResultURL(bilibiliSystemURL + s1);
-
             } catch (Exception e) {
+                //e.printStackTrace();
                 logData.setErrorMessage(e.getMessage());
                 logData.setResultURL(null);
                 videoResult.setErrorMessage(e.getMessage());

@@ -34,8 +34,8 @@ public class Main {
                     ClientID: ""
                     ClientSecret: ""
 
-                    # bilibili変換システムのURL
-                    BiliBliSystem: "https://b.nicovrc.net"
+                    # bilibili変換システムのIP
+                    BiliBiliSystemIP: '127.0.0.1'
                     
                     # Youtube変換システムのIP
                     YoutubeSystem: "127.0.0.1"
