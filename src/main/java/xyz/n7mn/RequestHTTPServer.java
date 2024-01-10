@@ -277,7 +277,7 @@ public class RequestHTTPServer extends Thread{
                             Matcher matcher_4 = Pattern.compile("https://shinchan\\.biz/player\\.html\\?video_id=(.*)").matcher(tempURL);
                             Matcher matcher_5 = Pattern.compile("(ext|commons)\\.nicovideo\\.jp").matcher(tempURL);
 
-                            if (matcher_1.find() || matcher_2.find() || matcher_3.find()){
+                            if (matcher_1.find() || matcher_2.find() || matcher_3.find() && (tempURL.startsWith("http://") || tempURL.startsWith("https://"))){
                                 OkHttpClient build = new OkHttpClient();
                                 Request request = new Request.Builder()
                                         .url(tempURL)
