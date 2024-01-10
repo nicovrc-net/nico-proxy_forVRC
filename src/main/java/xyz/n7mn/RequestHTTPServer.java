@@ -381,7 +381,7 @@ public class RequestHTTPServer extends Thread{
                                         request.setRequestCode(new String(Base64.getEncoder().encode((UUID.randomUUID() + Long.toString(new Date().getTime())).getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8));
                                         request.setHTTPRequest(httpRequest);
                                         request.setRequestURL(RequestURL);
-                                        request.setTempRequestURL(tempURL);
+                                        request.setTempRequestURL(tempURL.split("\\?")[0]);
                                         request.setRequestServerIP(te.split(":")[0]);
 
                                         String jsonText = new Gson().toJson(request);
@@ -528,7 +528,7 @@ public class RequestHTTPServer extends Thread{
                                     }
                                 }, 0L, 60000L);
 
-                                VideoRequest request = new VideoRequest(UUID.randomUUID().toString(), httpRequest, sock.getInetAddress().getHostAddress(), RequestURL, tempURL, proxyList, proxyList2, twitcastClientID, twitcastSecret);
+                                VideoRequest request = new VideoRequest(UUID.randomUUID().toString(), httpRequest, sock.getInetAddress().getHostAddress(), RequestURL, tempURL.split("\\?")[0], proxyList, proxyList2, twitcastClientID, twitcastSecret);
 
                                 Matcher matcher = Pattern.compile("(x-nicovrc-titleget: yes|user-agent: unityplayer/)").matcher(httpRequest.toLowerCase(Locale.ROOT));
 
