@@ -117,6 +117,14 @@ public class RequestFunction {
 
                 if (response_img.body() != null && response_img.body().contentType().toString().startsWith("image")) {
                     t = new Image();
+                } else if (response_img.body() != null && response_img.body().contentType().toString().startsWith("video")) {
+                    logData.setResultURL(videoRequest.getTempRequestURL());
+                    videoResult.setResultURL(videoRequest.getTempRequestURL());
+                    logData.setErrorMessage(null);
+                    videoResult.setErrorMessage(null);
+                    response_img.close();
+                    new Thread(()-> LogWrite(logData, isRedis)).start();
+                    return videoResult;
                 } else {
                     t = null;
                 }
