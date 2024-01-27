@@ -93,6 +93,7 @@ public class RequestHTTPServer extends Thread{
                 }
 
                 ServerList.clear();
+                System.gc();
                 ServerList.addAll(temp);
 
             }
@@ -123,6 +124,7 @@ public class RequestHTTPServer extends Thread{
                         queueList.remove(req);
                     }
                 });
+                System.gc();
             }
         }, 0L, 10000L);
 
@@ -132,6 +134,7 @@ public class RequestHTTPServer extends Thread{
 
             boolean[] t = {true};
             while (t[0]){
+                System.gc();
                 Socket sock = svSock.accept();
                 new Thread(()->{
                     try {
