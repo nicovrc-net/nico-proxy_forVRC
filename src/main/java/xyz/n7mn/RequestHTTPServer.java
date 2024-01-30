@@ -144,12 +144,16 @@ public class RequestHTTPServer extends Thread{
                         byte[] data = new byte[1000000];
                         int readSize = in.read(data);
                         if (readSize <= 0){
+                            data = null;
                             sock.close();
                             return;
                         }
                         data = Arrays.copyOf(data, readSize);
 
                         final String httpRequest = new String(data, StandardCharsets.UTF_8);
+                        data = null;
+                        System.gc();
+
                         String httpResult = "";
 
                         Matcher matcher1 = Pattern.compile("(GET|HEAD) /\\?vi=(.*) HTTP").matcher(httpRequest);
@@ -176,6 +180,8 @@ public class RequestHTTPServer extends Thread{
                                 out.close();
                                 in.close();
                                 sock.close();
+                                temp.clear();
+                                System.gc();
                                 return;
                             }
 
@@ -616,6 +622,8 @@ public class RequestHTTPServer extends Thread{
             }
             svSock.close();
 
+            svSock = null;
+            System.gc();
         } catch (Exception e){
             e.printStackTrace();
         }
