@@ -487,8 +487,8 @@ public class RequestFunction {
                 videoResult.setErrorMessage(e.getMessage());
             }
         } else if (isYoutube){
-            logData.setResultURL(videoRequest.getTempRequestURL());
-            videoResult.setResultURL(videoRequest.getTempRequestURL());
+            logData.setResultURL(videoRequest.getRequestURL());
+            videoResult.setResultURL(videoRequest.getRequestURL());
             logData.setErrorMessage(null);
             videoResult.setErrorMessage(null);
         } else {
