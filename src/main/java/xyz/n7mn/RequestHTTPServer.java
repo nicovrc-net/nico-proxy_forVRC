@@ -360,8 +360,14 @@ public class RequestHTTPServer extends Thread{
                             // debug
                             //ServerList.add("localhost:25252");
                             //queueList.put("http://www.nicovideo.jp/watch/sm9", "https://nico.ms/sm9");
-                            // URLを処理鯖に投げる
 
+
+                            // Videoモードの場合の誘導
+                            if (Pattern.compile("(Chrome/91|NSPlayer)").matcher(httpRequest).find()){
+                                tempURL = "https://r2.7mi.site/vrc/nico/v2.mp4";
+                            }
+
+                            // URLを処理鯖に投げる
                             boolean ServerListEmpty = ServerList.isEmpty();
 
                             Matcher queueUrl = Pattern.compile("(nico\\.ms|nicovideo\\.jp|bilibili|tver\\.jp)").matcher(tempURL);
