@@ -60,9 +60,10 @@ public class RequestHTTPServer extends Thread{
                     if (nodes != null){
                         for (int i = 0; i < nodes.size(); i++){
 
+                            DatagramSocket udp_sock = null;
                             try {
                                 //System.out.println(nodes.string(i));
-                                DatagramSocket udp_sock = new DatagramSocket();
+                                udp_sock = new DatagramSocket();
 
                                 String jsonText = "{\"check\"}";
                                 DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length,new InetSocketAddress(nodes.string(i).split(":")[0],Integer.parseInt(nodes.string(i).split(":")[1])));
@@ -81,9 +82,18 @@ public class RequestHTTPServer extends Thread{
                                 UUID uuid = UUID.fromString(string);
                                 udp_sock.close();
                             } catch (Exception e){
+                                try {
+                                    if (udp_sock != null){
+                                        udp_sock.close();
+                                    }
+                                } catch (Exception ex){
+                                    //ex.printStackTrace();
+                                }
                                 continue;
                             }
 
+                            udp_sock = null;
+                            System.gc();
                             temp.add(nodes.string(i));
                         }
                     }
@@ -101,19 +111,19 @@ public class RequestHTTPServer extends Thread{
 
         // キャッシュ掃除
         Timer timer2 = new Timer();
+        final OkHttpClient client = new OkHttpClient();
         timer2.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 HashMap<String, String> temp = new HashMap<>(queueList);
                 temp.forEach((req, res)->{
+                    Response response = null;
                     try {
-                        OkHttpClient client = new OkHttpClient();
-
                         Request request_html = new Request.Builder()
                                 .url(res)
                                 .addHeader("User-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:115.0) Gecko/20100101 Firefox/115.0")
                                 .build();
-                        Response response = client.newCall(request_html).execute();
+                        response = client.newCall(request_html).execute();
                         if (response.code() >= 200 && response.code() <= 399){
                             response.close();
                             return;
@@ -122,8 +132,19 @@ public class RequestHTTPServer extends Thread{
                         response.close();
                     } catch (Exception e){
                         queueList.remove(req);
+
+                        try {
+                            if (response != null){
+                                response.close();
+                            }
+                        } catch (Exception ex){
+                            //ex.printStackTrace();
+                        }
                     }
                 });
+
+                temp.clear();
+                temp = null;
                 System.gc();
             }
         }, 0L, 10000L);
@@ -133,19 +154,24 @@ public class RequestHTTPServer extends Thread{
             ServerSocket svSock = new ServerSocket(Port);
 
             boolean[] t = {true};
+            Thread thread;
             while (t[0]){
+                thread = null;
                 System.gc();
                 Socket sock = svSock.accept();
-                new Thread(()->{
+                thread = new Thread(() -> {
                     try {
                         final InputStream in = sock.getInputStream();
                         final OutputStream out = sock.getOutputStream();
 
                         byte[] data = new byte[1000000];
                         int readSize = in.read(data);
-                        if (readSize <= 0){
+                        if (readSize <= 0) {
                             data = null;
+                            in.close();
+                            out.close();
                             sock.close();
+                            System.gc();
                             return;
                         }
                         data = Arrays.copyOf(data, readSize);
@@ -163,17 +189,17 @@ public class RequestHTTPServer extends Thread{
 
                         //System.out.println(httpRequest);
 
-                        if (matcher1.find()){
+                        if (matcher1.find()) {
 
                             final String RequestURL = matcher1.group(2);
                             String tempURL = RequestURL;
 
                             // どれだけ溜まっているかのチェック用
-                            if (RequestURL.equals("check_queue")){
+                            if (RequestURL.equals("check_queue")) {
                                 List<Queue> temp = new ArrayList<>();
-                                queueList.forEach((req, res)-> temp.add(new Queue(req, res)));
+                                queueList.forEach((req, res) -> temp.add(new Queue(req, res)));
 
-                                httpResult = "HTTP/"+httpVersion+" 200 OK\nContent-Type: application/json; charset=utf-8\n\n"+new Gson().toJson(temp);
+                                httpResult = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n" + new Gson().toJson(temp);
 
                                 out.write(httpResult.getBytes(StandardCharsets.UTF_8));
                                 out.flush();
@@ -186,8 +212,8 @@ public class RequestHTTPServer extends Thread{
                             }
 
                             // 死活監視用
-                            if (RequestURL.equals("check_health")){
-                                httpResult = "HTTP/"+httpVersion+" 200 OK\nContent-Type: text/plain; charset=utf-8\n\nへるすちぇっくー！";
+                            if (RequestURL.equals("check_health")) {
+                                httpResult = "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\nへるすちぇっくー！";
 
                                 out.write(httpResult.getBytes(StandardCharsets.UTF_8));
                                 out.flush();
@@ -199,7 +225,7 @@ public class RequestHTTPServer extends Thread{
 
                             //System.out.println(tempURL);
                             // URL変換サービスのURLは取り除く
-                            if (tempURL.startsWith("http://yt.8uro.net") || tempURL.startsWith("https://yt.8uro.net")){
+                            if (tempURL.startsWith("http://yt.8uro.net") || tempURL.startsWith("https://yt.8uro.net")) {
                                 tempURL = URLDecoder.decode(tempURL, StandardCharsets.UTF_8);
                             }
                             String[] list = {
@@ -252,32 +278,39 @@ public class RequestHTTPServer extends Thread{
                                     "https://live.nicovideo.life/watch?v=",
                             };
 
-                            for (String str : list){
-                                Matcher matcher = Pattern.compile(str.replaceAll("\\?", "\\\\?").replaceAll("\\.", "\\\\.") + "(.*)").matcher(tempURL);
-                                if (matcher.find()){
+                            Matcher matcher = null;
+                            for (String str : list) {
+                                matcher = Pattern.compile(str.replaceAll("\\?", "\\\\?").replaceAll("\\.", "\\\\.") + "(.*)").matcher(tempURL);
+                                if (matcher.find()) {
                                     tempURL = matcher.group(1);
                                 }
                             }
-                            for (String str : list_tube){
-                                Matcher matcher = Pattern.compile(str.replaceAll("\\?", "\\\\?").replaceAll("\\.", "\\\\.") + "(.*)").matcher(tempURL);
-                                if (matcher.find()){
-                                    tempURL = "https://youtu.be/"+matcher.group(1);
+                            matcher = null;
+                            System.gc();
+                            for (String str : list_tube) {
+                                matcher = Pattern.compile(str.replaceAll("\\?", "\\\\?").replaceAll("\\.", "\\\\.") + "(.*)").matcher(tempURL);
+                                if (matcher.find()) {
+                                    tempURL = "https://youtu.be/" + matcher.group(1);
                                 }
                             }
-                            for (String str : list_nico){
-                                Matcher matcher = Pattern.compile(str.replaceAll("\\?", "\\\\?").replaceAll("\\.", "\\\\.") + "(.*)").matcher(tempURL);
-                                if (matcher.find()){
+                            matcher = null;
+                            System.gc();
+                            for (String str : list_nico) {
+                                matcher = Pattern.compile(str.replaceAll("\\?", "\\\\?").replaceAll("\\.", "\\\\.") + "(.*)").matcher(tempURL);
+                                if (matcher.find()) {
                                     tempURL = matcher.group(1);
                                 }
                             }
+                            matcher = null;
+                            System.gc();
 
-                            if (tempURL.startsWith("sm") || tempURL.startsWith("nm") || tempURL.startsWith("so")){
-                                tempURL = "https://www.nicovideo.jp/watch/"+tempURL;
+                            if (tempURL.startsWith("sm") || tempURL.startsWith("nm") || tempURL.startsWith("so")) {
+                                tempURL = "https://www.nicovideo.jp/watch/" + tempURL;
                             }
 
-                            if (tempURL.startsWith("lv")){
+                            if (tempURL.startsWith("lv")) {
                                 //System.out.println("lv");
-                                tempURL = "https://live.nicovideo.jp/watch/"+tempURL;
+                                tempURL = "https://live.nicovideo.jp/watch/" + tempURL;
                             }
 
                             Matcher matcher_1 = Pattern.compile("api\\.nicoad\\.nicovideo\\.jp").matcher(tempURL);
@@ -286,24 +319,38 @@ public class RequestHTTPServer extends Thread{
                             Matcher matcher_4 = Pattern.compile("https://shinchan\\.biz/player\\.html\\?video_id=(.*)").matcher(tempURL);
                             Matcher matcher_5 = Pattern.compile("(ext|commons)\\.nicovideo\\.jp").matcher(tempURL);
 
-                            if (matcher_1.find() || matcher_2.find() || matcher_3.find() && (tempURL.startsWith("http://") || tempURL.startsWith("https://"))){
-                                OkHttpClient build = new OkHttpClient();
-                                Request request = new Request.Builder()
-                                        .url(tempURL)
-                                        .build();
-                                Response response = build.newCall(request).execute();
-                                if (response.body() != null){
-                                    tempURL = response.request().url().toString();
+                            if (matcher_1.find() || matcher_2.find() || matcher_3.find() && (tempURL.startsWith("http://") || tempURL.startsWith("https://"))) {
+
+                                Request request = null;
+                                Response response = null;
+
+                                try {
+                                    request = new Request.Builder()
+                                            .url(tempURL)
+                                            .build();
+                                    response = client.newCall(request).execute();
+                                    if (response.body() != null) {
+                                        tempURL = response.request().url().toString();
+                                    }
+                                    response.close();
+                                } catch (Exception e){
+                                    if (response != null){
+                                        response.close();
+                                    }
                                 }
-                                response.close();
+
+                                request = null;
+                                response = null;
+                                System.gc();
+
                             }
 
-                            if (matcher_4.find()){
-                                tempURL = "https://www.nicovideo.jp/watch/"+matcher_3.group(1);
+                            if (matcher_4.find()) {
+                                tempURL = "https://www.nicovideo.jp/watch/" + matcher_3.group(1);
                             }
 
-                            if (matcher_5.find()){
-                                tempURL = tempURL.replaceAll("ext","www").replaceAll("commons","www").replaceAll("thumb","watch").replaceAll("works", "watch");
+                            if (matcher_5.find()) {
+                                tempURL = tempURL.replaceAll("ext", "www").replaceAll("commons", "www").replaceAll("thumb", "watch").replaceAll("works", "watch");
                             }
 
                             // debug
@@ -317,12 +364,12 @@ public class RequestHTTPServer extends Thread{
                             boolean isQueue = queueUrl.find();
 
                             String s = queueList.get(tempURL.split("\\?")[0]);
-                            if (isQueue){
-                                if (s != null){
-                                    if (!s.equals("pre")){
-                                        System.out.println("[Info] リクエスト(キャッシュ) : "+ tempURL + " ---> " + s +" ("+sdf.format(new Date())+")");
+                            if (isQueue) {
+                                if (s != null) {
+                                    if (!s.equals("pre")) {
+                                        System.out.println("[Info] リクエスト(キャッシュ) : " + tempURL + " ---> " + s + " (" + sdf.format(new Date()) + ")");
 
-                                        httpResult = "HTTP/"+httpVersion+" 302 Found\nLocation: "+s+"\nDate: "+new Date()+"\n\n";
+                                        httpResult = "HTTP/" + httpVersion + " 302 Found\nLocation: " + s + "\nDate: " + new Date() + "\n\n";
 
                                         out.write(httpResult.getBytes(StandardCharsets.UTF_8));
                                         out.flush();
@@ -337,21 +384,21 @@ public class RequestHTTPServer extends Thread{
                                         try {
                                             YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
                                             isRedis1 = yamlMapping.string("LogToRedis").equals("true");
-                                        } catch (Exception e){
+                                        } catch (Exception e) {
                                             isRedis1 = false;
                                         }
                                         isRedis = isRedis1;
-                                        new Thread(()-> LogWrite(logData, isRedis)).start();
+                                        new Thread(() -> LogWrite(logData, isRedis)).start();
                                         return;
                                     }
 
-                                    while (s == null || s.equals("pre")){
+                                    while (s == null || s.equals("pre")) {
                                         s = queueList.get(tempURL);
                                     }
 
-                                    System.out.println("[Info] リクエスト(キャッシュ) : "+ tempURL + " ---> " + s +" ("+sdf.format(new Date())+")");
+                                    System.out.println("[Info] リクエスト(キャッシュ) : " + tempURL + " ---> " + s + " (" + sdf.format(new Date()) + ")");
 
-                                    httpResult = "HTTP/"+httpVersion+" 302 Found\nLocation: "+s+"\nDate: "+new Date()+"\n\n";
+                                    httpResult = "HTTP/" + httpVersion + " 302 Found\nLocation: " + s + "\nDate: " + new Date() + "\n\n";
 
                                     out.write(httpResult.getBytes(StandardCharsets.UTF_8));
                                     out.flush();
@@ -365,11 +412,11 @@ public class RequestHTTPServer extends Thread{
                                     try {
                                         YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
                                         isRedis1 = yamlMapping.string("LogToRedis").equals("true");
-                                    } catch (Exception e){
+                                    } catch (Exception e) {
                                         isRedis1 = false;
                                     }
                                     isRedis = isRedis1;
-                                    new Thread(()-> LogWrite(logData, isRedis)).start();
+                                    new Thread(() -> LogWrite(logData, isRedis)).start();
                                     return;
 
                                 }
@@ -382,8 +429,8 @@ public class RequestHTTPServer extends Thread{
 
                             String resultURL = "";
                             String title = "";
-                            if (!ServerListEmpty){
-                                while (!tempList.isEmpty()){
+                            if (!ServerListEmpty) {
+                                while (!tempList.isEmpty()) {
                                     try {
 
                                         JsonRequest request = new JsonRequest();
@@ -396,7 +443,7 @@ public class RequestHTTPServer extends Thread{
                                         String jsonText = new Gson().toJson(request);
 
                                         DatagramSocket udp_sock = new DatagramSocket();
-                                        DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length,new InetSocketAddress(te.split(":")[0],Integer.parseInt(te.split(":")[1])));
+                                        DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length, new InetSocketAddress(te.split(":")[0], Integer.parseInt(te.split(":")[1])));
                                         udp_sock.send(udp_packet);
 
                                         byte[] temp = new byte[100000];
@@ -408,48 +455,46 @@ public class RequestHTTPServer extends Thread{
                                         //System.out.println("受信 : " + jsonT);
                                         udp_sock.close();
                                         tempList.clear();
-
-
                                         try {
                                             JsonElement json = new Gson().fromJson(jsonT, JsonElement.class);
 
                                             //System.out.println(json.isJsonObject());
 
-                                            if (tempURL.startsWith("http") && json.getAsJsonObject().get("ResultURL") == null && json.getAsJsonObject().get("ErrorMessage") != null){
+                                            if (tempURL.startsWith("http") && json.getAsJsonObject().get("ResultURL") == null && json.getAsJsonObject().get("ErrorMessage") != null) {
                                                 resultURL = "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=" + URLEncoder.encode(json.getAsJsonObject().get("ErrorMessage").getAsString(), StandardCharsets.UTF_8);
-                                            } else if (!tempURL.startsWith("http")){
+                                            } else if (!tempURL.startsWith("http")) {
                                                 resultURL = "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=Not+Found";
-                                            } else if (json.getAsJsonObject().get("ResultURL") != null){
+                                            } else if (json.getAsJsonObject().get("ResultURL") != null) {
                                                 resultURL = json.getAsJsonObject().get("ResultURL").getAsString();
-                                            } else if (json.getAsJsonObject().get("Title") != null){
+                                            } else if (json.getAsJsonObject().get("Title") != null) {
                                                 title = json.getAsJsonObject().get("Title").getAsString();
                                             }
-                                        } catch (Exception e){
+                                        } catch (Exception e) {
                                             // ここに来ることはないはず。
                                             resultURL = "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=" + URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
 
                                             e.printStackTrace();
                                         }
 
-                                        if (resultURL.startsWith("http://") || resultURL.startsWith("https://")){
-                                            httpResult = "HTTP/"+httpVersion+" 302 Found\nLocation: "+resultURL+"\nDate: "+new Date()+"\n\n";
+                                        if (resultURL.startsWith("http://") || resultURL.startsWith("https://")) {
+                                            httpResult = "HTTP/" + httpVersion + " 302 Found\nLocation: " + resultURL + "\nDate: " + new Date() + "\n\n";
                                             //System.out.println(httpResult);
                                         } else {
-                                            httpResult = "HTTP/"+httpVersion+" 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+title;
+                                            httpResult = "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n" + title;
                                         }
 
 
-                                    } catch (Exception e){
+                                    } catch (Exception e) {
                                         tempList.remove(te);
                                         try {
-                                            if (tempList.size() - 1 > 0){
+                                            if (tempList.size() - 1 > 0) {
                                                 te = tempList.get(new SecureRandom().nextInt(0, tempList.size() - 1));
                                             } else {
                                                 te = tempList.get(0);
                                             }
 
-                                        } catch (Exception ex){
-
+                                        } catch (Exception ex) {
+                                            //ex.printStackTrace();
                                         }
 
                                     }
@@ -465,7 +510,7 @@ public class RequestHTTPServer extends Thread{
                                 try {
                                     YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
                                     isRedis = yamlMapping.string("LogToRedis").equals("true");
-                                } catch (Exception e){
+                                } catch (Exception e) {
                                     isRedis = false;
                                 }
 
@@ -473,7 +518,7 @@ public class RequestHTTPServer extends Thread{
                                     YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
                                     twitcastClientID = yamlMapping.string("ClientID");
                                     twitcastSecret = yamlMapping.string("ClientSecret");
-                                } catch (Exception e){
+                                } catch (Exception e) {
                                     // e.printStackTrace();
                                 }
 
@@ -489,8 +534,8 @@ public class RequestHTTPServer extends Thread{
                                             YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config-proxy.yml")).readYamlMapping();
                                             YamlSequence list = yamlMapping.yamlSequence("VideoProxy");
                                             YamlSequence list2 = yamlMapping.yamlSequence("OfficialProxy");
-                                            if (list != null){
-                                                for (int i = 0; i < list.size(); i++){
+                                            if (list != null) {
+                                                for (int i = 0; i < list.size(); i++) {
                                                     String[] s = list.string(i).split(":");
                                                     try {
                                                         final OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -500,7 +545,7 @@ public class RequestHTTPServer extends Thread{
                                                                 .build();
                                                         Response response = build.newCall(request_html).execute();
                                                         response.close();
-                                                    } catch (Exception e){
+                                                    } catch (Exception e) {
                                                         continue;
                                                     }
                                                     temp.add(list.string(i));
@@ -510,8 +555,8 @@ public class RequestHTTPServer extends Thread{
                                                 proxyList.addAll(temp);
                                             }
 
-                                            if (list2 != null){
-                                                for (int i = 0; i < list2.size(); i++){
+                                            if (list2 != null) {
+                                                for (int i = 0; i < list2.size(); i++) {
                                                     String[] s = list2.string(i).split(":");
                                                     try {
                                                         final OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -521,7 +566,7 @@ public class RequestHTTPServer extends Thread{
                                                                 .build();
                                                         Response response = build.newCall(request_html).execute();
                                                         response.close();
-                                                    } catch (Exception e){
+                                                    } catch (Exception e) {
                                                         continue;
                                                     }
                                                     temp2.add(list2.string(i));
@@ -531,7 +576,7 @@ public class RequestHTTPServer extends Thread{
                                                 proxyList2.addAll(temp2);
                                             }
 
-                                        } catch (Exception e){
+                                        } catch (Exception e) {
                                             //e.printStackTrace();
                                         }
                                     }
@@ -539,29 +584,29 @@ public class RequestHTTPServer extends Thread{
 
                                 VideoRequest request = new VideoRequest(UUID.randomUUID().toString(), httpRequest, sock.getInetAddress().getHostAddress(), RequestURL, tempURL.split("\\?")[0], proxyList, proxyList2, twitcastClientID, twitcastSecret);
 
-                                Matcher matcher = Pattern.compile("(x-nicovrc-titleget: yes|user-agent: unityplayer/)").matcher(httpRequest.toLowerCase(Locale.ROOT));
+                                matcher = Pattern.compile("(x-nicovrc-titleget: yes|user-agent: unityplayer/)").matcher(httpRequest.toLowerCase(Locale.ROOT));
 
                                 final VideoResult result;
-                                if (!matcher.find()){
+                                if (!matcher.find()) {
                                     result = RequestFunction.getURL(request, isRedis);
                                 } else {
                                     result = RequestFunction.getTitle(request, isRedis);
                                 }
 
                                 String url = "";
-                                if (result.getErrorMessage() != null && !result.getErrorMessage().isEmpty()){
+                                if (result.getErrorMessage() != null && !result.getErrorMessage().isEmpty()) {
                                     url = "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=" + URLEncoder.encode(result.getErrorMessage(), StandardCharsets.UTF_8);
-                                } else if (result.getResultURL() != null && (result.getResultURL().startsWith("http://") || result.getResultURL().startsWith("https://"))){
+                                } else if (result.getResultURL() != null && (result.getResultURL().startsWith("http://") || result.getResultURL().startsWith("https://"))) {
                                     url = result.getResultURL();
-                                } else if (result.getTitle() != null && !result.getTitle().isEmpty()){
+                                } else if (result.getTitle() != null && !result.getTitle().isEmpty()) {
                                     url = result.getTitle();
                                 }
 
-                                if (url.startsWith("http://") || url.startsWith("https://")){
-                                    httpResult = "HTTP/"+httpVersion+" 302 Found\nLocation: "+url+"\nDate: "+new Date()+"\n\n";
+                                if (url.startsWith("http://") || url.startsWith("https://")) {
+                                    httpResult = "HTTP/" + httpVersion + " 302 Found\nLocation: " + url + "\nDate: " + new Date() + "\n\n";
                                     //System.out.println(httpResult);
                                 } else {
-                                    httpResult = "HTTP/"+httpVersion+" 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+url;
+                                    httpResult = "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n" + url;
                                 }
 
                                 resultURL = url;
@@ -570,14 +615,14 @@ public class RequestHTTPServer extends Thread{
 
                             //System.out.println(httpResult);
 
-                            if (isQueue){
+                            if (isQueue) {
                                 queueList.remove(tempURL.split("\\?")[0]);
-                                if (resultURL.startsWith("http://") || resultURL.startsWith("https://")){
+                                if (resultURL.startsWith("http://") || resultURL.startsWith("https://")) {
                                     queueList.put(tempURL.split("\\?")[0], resultURL);
-                                    if (resultURL.startsWith("https://i2v.nicovrc.net")){
+                                    if (resultURL.startsWith("https://i2v.nicovrc.net")) {
                                         // エラー表示の場合は20秒で同期対象から削除
                                         String finalTempURL = tempURL.split("\\?")[0];
-                                        new Thread(()->{
+                                        new Thread(() -> {
                                             try {
                                                 Thread.sleep(20000);
                                             } catch (InterruptedException e) {
@@ -590,7 +635,7 @@ public class RequestHTTPServer extends Thread{
                                 }
                             }
 
-                            System.out.println("[Info] リクエスト : "+ tempURL + " ---> " + resultURL +" ("+sdf.format(new Date())+")");
+                            System.out.println("[Info] リクエスト : " + tempURL + " ---> " + resultURL + " (" + sdf.format(new Date()) + ")");
 
 
                             out.write(httpResult.getBytes(StandardCharsets.UTF_8));
@@ -602,10 +647,10 @@ public class RequestHTTPServer extends Thread{
                             return;
                         }
 
-                        if (Pattern.compile("(GET|HEAD)").matcher(httpRequest).find()){
-                            httpResult = "HTTP/"+httpVersion+" 404 Not Found\nContent-Type: text/plain; charset=utf-8\n\n404";
+                        if (Pattern.compile("(GET|HEAD)").matcher(httpRequest).find()) {
+                            httpResult = "HTTP/" + httpVersion + " 404 Not Found\nContent-Type: text/plain; charset=utf-8\n\n404";
                         } else {
-                            httpResult = "HTTP/"+httpVersion+" 405 Method Not Allowed\nContent-Type: text/plain; charset=utf-8\n\n405";
+                            httpResult = "HTTP/" + httpVersion + " 405 Method Not Allowed\nContent-Type: text/plain; charset=utf-8\n\n405";
                         }
 
                         out.write(httpResult.getBytes(StandardCharsets.UTF_8));
@@ -614,11 +659,14 @@ public class RequestHTTPServer extends Thread{
                         in.close();
                         sock.close();
 
-                    } catch (Exception e){
+                    } catch (Exception e) {
                         e.printStackTrace();
                         t[0] = false;
                     }
-                }).start();
+                });
+
+                thread.start();
+
             }
             svSock.close();
 
