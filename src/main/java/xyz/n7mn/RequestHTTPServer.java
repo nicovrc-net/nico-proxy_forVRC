@@ -115,6 +115,10 @@ public class RequestHTTPServer extends Thread{
         timer2.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
+                if (queueList.isEmpty()){
+                    return;
+                }
+
                 HashMap<String, String> temp = new HashMap<>(queueList);
                 temp.forEach((req, res)->{
                     Response response = null;
