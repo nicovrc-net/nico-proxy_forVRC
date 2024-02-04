@@ -363,9 +363,9 @@ public class RequestHTTPServer extends Thread{
 
 
                             // Videoモードの場合の誘導
-                            //if (Pattern.compile("(Chrome/91|NSPlayer)").matcher(httpRequest).find()){
-                            //    tempURL = "https://r2.7mi.site/vrc/nico/v2.mp4";
-                            //}
+                            if (Pattern.compile("Chrome/91").matcher(httpRequest).find()){
+                                tempURL = "https://r2.7mi.site/vrc/nico/v2.mp4";
+                            }
 
                             // URLを処理鯖に投げる
                             boolean ServerListEmpty = ServerList.isEmpty();
@@ -377,7 +377,7 @@ public class RequestHTTPServer extends Thread{
                             if (isQueue) {
                                 if (s != null) {
                                     if (!s.equals("pre")) {
-                                        System.out.println("[Info] リクエスト(キャッシュ) : " + tempURL + " ---> " + s + " (" + sdf.format(new Date()) + ")");
+                                        System.out.println("[Info] リクエスト(キャッシュ) : " + RequestURL + " ---> " + s + " (" + sdf.format(new Date()) + ")");
 
                                         httpResult = "HTTP/" + httpVersion + " 302 Found\nLocation: " + s + "\nDate: " + new Date() + "\n\n";
 
@@ -406,7 +406,7 @@ public class RequestHTTPServer extends Thread{
                                         s = queueList.get(tempURL);
                                     }
 
-                                    System.out.println("[Info] リクエスト(キャッシュ) : " + tempURL + " ---> " + s + " (" + sdf.format(new Date()) + ")");
+                                    System.out.println("[Info] リクエスト(キャッシュ) : " + RequestURL + " ---> " + s + " (" + sdf.format(new Date()) + ")");
 
                                     httpResult = "HTTP/" + httpVersion + " 302 Found\nLocation: " + s + "\nDate: " + new Date() + "\n\n";
 
@@ -645,7 +645,7 @@ public class RequestHTTPServer extends Thread{
                                 }
                             }
 
-                            System.out.println("[Info] リクエスト : " + tempURL + " ---> " + resultURL + " (" + sdf.format(new Date()) + ")");
+                            System.out.println("[Info] リクエスト : " + RequestURL + " ---> " + resultURL + " (" + sdf.format(new Date()) + ")");
 
 
                             out.write(httpResult.getBytes(StandardCharsets.UTF_8));
