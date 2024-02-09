@@ -29,6 +29,65 @@ import static xyz.n7mn.RequestFunction.LogWrite;
 public class RequestHTTPServer extends Thread{
 
     private final int Port;
+    private final Timer ServerTimer = new Timer();
+    private final Timer CacheTimer = new Timer();
+    private final File ConfigFile = new File("./config.yml");
+    private final OkHttpClient client = new OkHttpClient();
+    
+    private final List<String> ServerList = new ArrayList<>();
+    private final ConcurrentHashMap<String, String> queueList = new ConcurrentHashMap<>();
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    private final String[] jinnnaiUrlList = {
+            "http://yt.8uro.net/r?v=",
+            "https://yt.8uro.net/r?v=",
+            "http://nextnex.com/?url=",
+            "https://nextnex.com/?url=",
+            "http://vrc.kuroneko6423.com/proxy?url=",
+            "https://vrc.kuroneko6423.com/proxy?url=",
+            "http://kvvs.net/proxy?url=",
+            "https://kvvs.net/proxy?url=",
+            "http://questify.dev/?url=",
+            "https://questify.dev/?url=",
+            "http://questing.thetechnolus.com/v?url=",
+            "https://questing.thetechnolus.com/v?url=",
+            "http://questing.thetechnolus.com/",
+            "https://questing.thetechnolus.com/",
+            "http://vq.vrcprofile.com/?url=",
+            "https://vq.vrcprofile.com/?url=",
+            "http://api.yamachan.moe/proxy?url=",
+            "https://api.yamachan.moe/proxy?url=",
+            "http://nicovrc.net/proxy/?",
+            "https://nicovrc.net/proxy/?",
+            "http://nicovrc.net/proxy/dummy.m3u8?",
+            "https://nicovrc.net/proxy/dummy.m3u8?",
+            "http://nico.7mi.site/proxy/?",
+            "https://nico.7mi.site/proxy/?",
+            "http://nico.7mi.site/proxy/dummy.m3u8?",
+            "https://nico.7mi.site/proxy/dummy.m3u8?",
+            "http://qst.akakitune87.net/q?url=",
+            "https://qst.akakitune87.net/q?url=",
+            "http://u2b.cx/",
+            "https://u2b.cx/"
+    };
+
+    private final String[] jinnnaiUrlList_Youtube = {
+            "http://shay.loan/",
+            "https://shay.loan/",
+            "http://questing.thetechnolus.com/watch?v=",
+            "https://questing.thetechnolus.com/watch?v=",
+            "http://questing.thetechnolus.com/v/",
+            "https://questing.thetechnolus.com/v/",
+            "http://youtube.irunu.co/watch?v=",
+            "https://youtube.irunu.co/watch?v="
+    };
+    private final String[] jinnnaiUrlList_Nico = {
+            "http://www.nicovideo.life/watch?v=",
+            "https://www.nicovideo.life/watch?v=",
+            "http://live.nicovideo.life/watch?v=",
+            "https://live.nicovideo.life/watch?v=",
+    };
+    
 
     public RequestHTTPServer(int port) {
         this.Port = port;
@@ -37,89 +96,76 @@ public class RequestHTTPServer extends Thread{
     @Override
     public void run() {
         System.out.println("[Info] TCP Port "+Port+"で 処理受付用HTTPサーバー待機開始");
+        if (ConfigFile.exists()){
+            ServerTimer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    List<String> temp = new ArrayList<>();
+                    try {
+                        YamlMapping yamlMapping = Yaml.createYamlInput(ConfigFile).readYamlMapping();
+                        YamlSequence nodes = yamlMapping.yamlSequence("ServerList");
 
-        // サーバーリストの構築
-        final List<String> ServerList = new ArrayList<>();
-        final ConcurrentHashMap<String, String> queueList = new ConcurrentHashMap<>();
-        final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        if (nodes != null){
+                            for (int i = 0; i < nodes.size(); i++){
 
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                File config = new File("./config.yml");
-                if (!config.exists()){
-                    return;
-                }
-
-                List<String> temp = new ArrayList<>();
-                try {
-                    YamlMapping yamlMapping = Yaml.createYamlInput(config).readYamlMapping();
-                    YamlSequence nodes = yamlMapping.yamlSequence("ServerList");
-
-                    if (nodes != null){
-                        for (int i = 0; i < nodes.size(); i++){
-
-                            DatagramSocket udp_sock = null;
-                            try {
-                                //System.out.println(nodes.string(i));
-                                udp_sock = new DatagramSocket();
-
-                                String jsonText = "{\"check\"}";
-                                DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length,new InetSocketAddress(nodes.string(i).split(":")[0],Integer.parseInt(nodes.string(i).split(":")[1])));
-                                udp_sock.send(udp_packet);
-
-                                byte[] temp1 = new byte[100000];
-                                DatagramPacket udp_packet2 = new DatagramPacket(temp1, temp1.length);
-                                udp_sock.setSoTimeout(100);
-                                udp_sock.receive(udp_packet2);
-
-                                String result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
-                                //System.out.println("受信 : " + result);
-
-                                JsonElement json = new Gson().fromJson(result, JsonElement.class);
-                                String string = json.getAsJsonObject().get("OK").getAsString();
-                                UUID uuid = UUID.fromString(string);
-                                udp_sock.close();
-                            } catch (Exception e){
+                                DatagramSocket udp_sock = null;
                                 try {
-                                    if (udp_sock != null){
-                                        udp_sock.close();
-                                    }
-                                } catch (Exception ex){
-                                    //ex.printStackTrace();
-                                }
-                                continue;
-                            }
+                                    //System.out.println(nodes.string(i));
+                                    udp_sock = new DatagramSocket();
 
-                            udp_sock = null;
-                            System.gc();
-                            temp.add(nodes.string(i));
+                                    String jsonText = "{\"check\"}";
+                                    DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length,new InetSocketAddress(nodes.string(i).split(":")[0],Integer.parseInt(nodes.string(i).split(":")[1])));
+                                    udp_sock.send(udp_packet);
+
+                                    byte[] temp1 = new byte[100000];
+                                    DatagramPacket udp_packet2 = new DatagramPacket(temp1, temp1.length);
+                                    udp_sock.setSoTimeout(100);
+                                    udp_sock.receive(udp_packet2);
+
+                                    String result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+                                    //System.out.println("受信 : " + result);
+
+                                    JsonElement json = new Gson().fromJson(result, JsonElement.class);
+                                    String string = json.getAsJsonObject().get("OK").getAsString();
+                                    UUID uuid = UUID.fromString(string);
+                                    udp_sock.close();
+                                } catch (Exception e){
+                                    try {
+                                        if (udp_sock != null){
+                                            udp_sock.close();
+                                        }
+                                    } catch (Exception ex){
+                                        //ex.printStackTrace();
+                                    }
+                                    continue;
+                                }
+
+                                udp_sock = null;
+                                temp.add(nodes.string(i));
+                            }
                         }
+
+                    } catch (IOException e) {
+                        //e.printStackTrace();
                     }
 
-                } catch (IOException e) {
-                    //e.printStackTrace();
+                    ServerList.clear();
+                    System.gc();
+                    ServerList.addAll(temp);
+
                 }
-
-                ServerList.clear();
-                System.gc();
-                ServerList.addAll(temp);
-
-            }
-        }, 0L, 5000L);
+            }, 0L, 5000L);
+        }
 
         // キャッシュ掃除
-        Timer timer2 = new Timer();
-        final OkHttpClient client = new OkHttpClient();
-        timer2.scheduleAtFixedRate(new TimerTask() {
+        CacheTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 if (queueList.isEmpty()){
                     return;
                 }
 
-                HashMap<String, String> temp = new HashMap<>(queueList);
+                final HashMap<String, String> temp = new HashMap<>(queueList);
                 temp.forEach((req, res)->{
                     Response response = null;
                     try {
@@ -148,8 +194,6 @@ public class RequestHTTPServer extends Thread{
                 });
 
                 temp.clear();
-                temp = null;
-                System.gc();
             }
         }, 0L, 10000L);
 
@@ -232,74 +276,25 @@ public class RequestHTTPServer extends Thread{
                             if (tempURL.startsWith("http://yt.8uro.net") || tempURL.startsWith("https://yt.8uro.net")) {
                                 tempURL = URLDecoder.decode(tempURL, StandardCharsets.UTF_8);
                             }
-                            String[] list = {
-                                    "http://yt.8uro.net/r?v=",
-                                    "https://yt.8uro.net/r?v=",
-                                    "http://nextnex.com/?url=",
-                                    "https://nextnex.com/?url=",
-                                    "http://vrc.kuroneko6423.com/proxy?url=",
-                                    "https://vrc.kuroneko6423.com/proxy?url=",
-                                    "http://kvvs.net/proxy?url=",
-                                    "https://kvvs.net/proxy?url=",
-                                    "http://questify.dev/?url=",
-                                    "https://questify.dev/?url=",
-                                    "http://questing.thetechnolus.com/v?url=",
-                                    "https://questing.thetechnolus.com/v?url=",
-                                    "http://questing.thetechnolus.com/",
-                                    "https://questing.thetechnolus.com/",
-                                    "http://vq.vrcprofile.com/?url=",
-                                    "https://vq.vrcprofile.com/?url=",
-                                    "http://api.yamachan.moe/proxy?url=",
-                                    "https://api.yamachan.moe/proxy?url=",
-                                    "http://nicovrc.net/proxy/?",
-                                    "https://nicovrc.net/proxy/?",
-                                    "http://nicovrc.net/proxy/dummy.m3u8?",
-                                    "https://nicovrc.net/proxy/dummy.m3u8?",
-                                    "http://nico.7mi.site/proxy/?",
-                                    "https://nico.7mi.site/proxy/?",
-                                    "http://nico.7mi.site/proxy/dummy.m3u8?",
-                                    "https://nico.7mi.site/proxy/dummy.m3u8?",
-                                    "http://qst.akakitune87.net/q?url=",
-                                    "https://qst.akakitune87.net/q?url=",
-                                    "http://u2b.cx/",
-                                    "https://u2b.cx/"
-                            };
-
-                            String[] list_tube = {
-                                    "http://shay.loan/",
-                                    "https://shay.loan/",
-                                    "http://questing.thetechnolus.com/watch?v=",
-                                    "https://questing.thetechnolus.com/watch?v=",
-                                    "http://questing.thetechnolus.com/v/",
-                                    "https://questing.thetechnolus.com/v/",
-                                    "http://youtube.irunu.co/watch?v=",
-                                    "https://youtube.irunu.co/watch?v="
-                            };
-                            String[] list_nico = {
-                                    "http://www.nicovideo.life/watch?v=",
-                                    "https://www.nicovideo.life/watch?v=",
-                                    "http://live.nicovideo.life/watch?v=",
-                                    "https://live.nicovideo.life/watch?v=",
-                            };
 
                             Matcher matcher = null;
-                            for (String str : list) {
+                            for (String str : jinnnaiUrlList) {
                                 matcher = Pattern.compile(str.replaceAll("\\?", "\\\\?").replaceAll("\\.", "\\\\.") + "(.*)").matcher(tempURL);
                                 if (matcher.find()) {
                                     tempURL = matcher.group(1);
                                 }
                             }
                             matcher = null;
-                            System.gc();
-                            for (String str : list_tube) {
+                            //System.gc();
+                            for (String str : jinnnaiUrlList_Youtube) {
                                 matcher = Pattern.compile(str.replaceAll("\\?", "\\\\?").replaceAll("\\.", "\\\\.") + "(.*)").matcher(tempURL);
                                 if (matcher.find()) {
                                     tempURL = "https://youtu.be/" + matcher.group(1);
                                 }
                             }
                             matcher = null;
-                            System.gc();
-                            for (String str : list_nico) {
+                            //System.gc();
+                            for (String str : jinnnaiUrlList_Nico) {
                                 matcher = Pattern.compile(str.replaceAll("\\?", "\\\\?").replaceAll("\\.", "\\\\.") + "(.*)").matcher(tempURL);
                                 if (matcher.find()) {
                                     tempURL = matcher.group(1);
