@@ -1,0 +1,160 @@
+package net.nicovrc.dev.api;
+
+import com.amihaiemil.eoyaml.Yaml;
+import com.amihaiemil.eoyaml.YamlMapping;
+import com.amihaiemil.eoyaml.YamlSequence;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import net.nicovrc.dev.data.ServerData;
+import net.nicovrc.dev.data.UDPPacket;
+
+import java.io.File;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class ServerAPI {
+    private final ConcurrentHashMap<String, ServerData> ServerList;
+    private final Gson gson = new Gson();
+    private boolean isRefresh = false;
+
+    public ServerAPI(ConcurrentHashMap<String, ServerData> ServerList){
+        this.ServerList = ServerList;
+    }
+
+    public boolean isCheck(String IP, int Port){
+        UDPPacket check = new UDPPacket("check", false);
+        DatagramSocket udp_sock = null;
+        try {
+            udp_sock = new DatagramSocket();
+
+            byte[] textByte = gson.toJson(check).getBytes(StandardCharsets.UTF_8);
+            DatagramPacket udp_packet = new DatagramPacket(textByte, textByte.length,new InetSocketAddress(IP, Port));
+            udp_sock.send(udp_packet);
+
+            byte[] temp1 = new byte[100000];
+            DatagramPacket udp_packet2 = new DatagramPacket(temp1, temp1.length);
+            udp_sock.setSoTimeout(100);
+            udp_sock.receive(udp_packet2);
+
+            //String result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+            //System.out.println("受信 : " + result);
+            udp_sock.close();
+        } catch (Exception e){
+            try {
+                if (udp_sock != null){
+                    udp_sock.close();
+                }
+            } catch (Exception ex){
+                //ex.printStackTrace();
+            }
+
+            return false;
+        }
+
+        return true;
+    }
+
+    public boolean isCheck(String ServerName){
+        ServerData data = ServerList.get(ServerName);
+        return isCheck(data.getIP(), data.getPort());
+    }
+
+    public void ListRefresh(){
+        try {
+            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+            final YamlSequence list = yamlMapping.yamlSequence("ServerList");
+
+            isRefresh = true;
+            removeAllList();
+            if (list != null){
+                for (int i = 0; i < list.size(); i++){
+                    String[] s = list.string(i).split(":");
+                    if (isCheck(s[0], Integer.parseInt(s[1]))){
+                        addList("Server"+(i+1), s[0], Integer.parseInt(s[1]));
+                    }
+                }
+            }
+            isRefresh = false;
+        } catch (Exception e){
+            // e.printStackTrace();
+        }
+    }
+
+    public void addList(String ServerName, String IP, int Port){
+        ServerList.put(ServerName, new ServerData(IP, Port));
+    }
+
+    public void removeList(String IP, int Port){
+        HashMap<String, ServerData> temp = new HashMap<>(ServerList);
+        temp.forEach((ServerName, ServerData) -> {
+            if (ServerData.getIP().equals(IP) && ServerData.getPort() == Port){
+                ServerList.remove(ServerName);
+            }
+        });
+    }
+
+    public void removeList(String ServerName){
+        ServerList.remove(ServerName);
+    }
+
+    public void removeAllList(){
+        ServerList.clear();
+    }
+
+    public HashMap<String, ServerData> getList(){
+        return new HashMap<>(ServerList);
+    }
+
+    public String getListCount(){
+        return "ServerCount : " + ServerList.size();
+    }
+
+    public UDPPacket SendServer(UDPPacket packet){
+        if (ServerList.isEmpty() && !isRefresh){
+            return null;
+        }
+
+        long l = 0;
+        while (isRefresh && ServerList.isEmpty()){
+            l++;
+        }
+
+        final HashMap<String, ServerData> temp = getList();
+
+        int i = new SecureRandom().nextInt(1, temp.size());
+
+        UDPPacket result = new UDPPacket("");
+        while (!temp.isEmpty()){
+            ServerData data = temp.get("Server" + i);
+            try {
+                DatagramSocket udp_sock = new DatagramSocket();
+
+                String jsonText = gson.toJson(packet);
+                DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length, new InetSocketAddress(data.getIP(), data.getPort()));
+                udp_sock.send(udp_packet);
+                udp_sock.setSoTimeout(2000);
+
+                byte[] temp1 = new byte[100000];
+                DatagramPacket udp_packet2 = new DatagramPacket(temp1, temp1.length);
+                udp_sock.receive(udp_packet2);
+
+                JsonElement json = gson.fromJson(new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())), JsonElement.class);
+
+                if (json.getAsJsonObject().has("ResultURL")){
+                    result.setResultURL(json.getAsJsonObject().get("ResultURL").getAsString());
+                    temp.clear();
+                }
+            } catch (Exception e){
+                temp.remove("Server" + i);
+            }
+        }
+
+        return result;
+    }
+}

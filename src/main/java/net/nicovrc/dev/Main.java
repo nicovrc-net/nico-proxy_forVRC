@@ -1,5 +1,17 @@
 package net.nicovrc.dev;
 
+import net.nicovrc.dev.api.CacheAPI;
+import net.nicovrc.dev.api.JinnnaiSystemURL_API;
+import net.nicovrc.dev.api.ProxyAPI;
+import net.nicovrc.dev.api.ServerAPI;
+import net.nicovrc.dev.data.CacheData;
+import net.nicovrc.dev.data.ProxyData;
+import net.nicovrc.dev.data.ServerData;
+import net.nicovrc.dev.server.HTTPServer;
+import okhttp3.OkHttpClient;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class Main {
     private final String DefaultConfig = """
 # 受付ポート (HTTP/UDP共通)
@@ -11,13 +23,9 @@ LogToRedis: false
 HTTPServer: true
 # UDPで受付する場合はtrue
 UDPServer: false
-# API機能を有効にする場合はtrue
-APIServer: false
-# レートリミット (設定値 回 / 秒)
-APILimitCount: 100
 
 # 他に処理鯖がある場合はそのリストを「IP:受付ポート」形式で記載する
-# (HTTP受付の鯖ではUDP受付をfalseにし他の処理鯖ではHTTP受付をfalse、UDP受付をtrueにすることを推奨)
+# (HTTP通信用を1つ、処理鯖(UDP通信)はn個という想定)
 ServerList:
     - "127.0.0.1:25252"
 
@@ -41,4 +49,46 @@ RedisPort: 6379
 # パスワードがない場合は以下の通りに設定してください
 RedisPass: ""
 """;
+    private static final OkHttpClient HttpClient = new OkHttpClient();
+
+    private static final List<ProxyData> MainProxyList = new ArrayList<>();
+    private static final List<ProxyData> JPProxyList = new ArrayList<>();
+
+
+    private static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, ServerData> ServerList = new ConcurrentHashMap<>();
+
+    private static final Timer ProxyCheckTimer = new Timer();
+    private static final Timer ServerCheckTimer = new Timer();
+    private static final Timer CacheCheckTimer = new Timer();
+
+    private static final CacheAPI cacheAPI = new CacheAPI(CacheList, HttpClient);
+    private static final ProxyAPI proxyAPI = new ProxyAPI(MainProxyList, JPProxyList);
+    private static final ServerAPI serverAPI = new ServerAPI(ServerList);
+    private static final JinnnaiSystemURL_API jinnnaiAPI = new JinnnaiSystemURL_API();
+
+    public static void main(String[] args) {
+        ProxyCheckTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                proxyAPI.ListRefresh();
+            }
+        }, 0L, 60000L);
+
+        ServerCheckTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                serverAPI.ListRefresh();
+            }
+        }, 0L, 15000L);
+
+        CacheCheckTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                cacheAPI.ListRefresh();
+            }
+        }, 0L, 5000L);
+
+        new HTTPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, 25252).start();
+    }
 }
