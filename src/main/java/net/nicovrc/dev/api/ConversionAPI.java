@@ -97,9 +97,8 @@ public class ConversionAPI {
             //System.out.println("Debug3 : "+TempRequestURL);
             TempRequestURL = TempRequestURL.split("\\?")[0];
 
+            ResultVideoData video = null;
             if (ServiceName.equals("ニコニコ動画")){
-                ResultVideoData video = null;
-
                 if (Pattern.compile("sm|nm").matcher(TempRequestURL).find()){
                     // 通常動画
                     video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
@@ -229,11 +228,66 @@ public class ConversionAPI {
                 return new String(bytes, StandardCharsets.UTF_8);
             }
 
+            if (ServiceName.equals("bilibili.com") || ServiceName.equals("bilibili.tv")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+
+                String bilibiliSystem = "";
+                try {
+                    YamlMapping mapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+                    bilibiliSystem = mapping.string("BiliBiliSystemIP");
+                } catch (Exception e) {
+                    //e.printStackTrace();
+                }
+
+                if (!bilibiliSystem.isEmpty()) {
+                    BiliBiliInputData jsonText = new BiliBiliInputData();
+                    jsonText.setSiteType(ServiceName.split("\\.")[1]);
+                    jsonText.setVideoURL(video.getVideoURL());
+                    jsonText.setAudioURL(video.getAudioURL());
+                    if (proxyData != null && !isUseJPProxy){
+                        jsonText.setProxy(proxyData.getProxyIP() + ":" + proxyData.getPort());
+                    }
+                    if (proxyData_jp != null && isUseJPProxy){
+                        jsonText.setProxy(proxyData_jp.getProxyIP() + ":" + proxyData_jp.getPort());
+                    }
+
+                    if (jsonText.getSiteType().equals("com")) {
+                        long duration = 0;
+                        Request request_html = new Request.Builder()
+                                .url(TempRequestURL)
+                                .build();
+                        Response response1 = client.newCall(request_html).execute();
+                        if (response1.body() != null) {
+                            Matcher matcher = Pattern.compile("\"dash\":\\{\"duration\":(\\d+)").matcher(response1.body().string());
+                            if (matcher.find()) {
+                                duration = Long.parseLong(matcher.group(1));
+                            }
+                        }
+                        response1.close();
+                        jsonText.setVideoDuration(duration);
+                    }
+
+                    String json = new Gson().toJson(jsonText);
+                    Socket sock = new Socket(bilibiliSystem, 28279);
+                    sock.setSoTimeout(4000);
+                    OutputStream outputStream = sock.getOutputStream();
+                    InputStream inputStream = sock.getInputStream();
+                    outputStream.write(json.getBytes(StandardCharsets.UTF_8));
+                    outputStream.flush();
+
+                    byte[] bytes = inputStream.readAllBytes();
+                    final String url = new String(bytes, StandardCharsets.UTF_8);
+
+                    final Socket socket = new Socket("nicovrc.net", 80);
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, url, null))).start();
+                    socket.close();
+                    return url;
+                }
+            }
+
         } catch (Exception e){
-            ResultURL = null;
             ErrorMessage = ServiceName + " : " + e.getMessage();
             //e.printStackTrace();
-
 
             final Socket socket = new Socket("nicovrc.net", 80);
             final String finalErrorMessage = ErrorMessage;
@@ -254,7 +308,7 @@ public class ConversionAPI {
     }
 
     public void LogWrite(LogData data){
-
+        System.out.println(data.getRequestIP());
     }
 
     private ShareService getService(String URL){
