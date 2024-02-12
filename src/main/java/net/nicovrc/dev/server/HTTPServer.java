@@ -262,15 +262,21 @@ public class HTTPServer extends Thread {
                                         CacheAPI.setCache(TempURL, result.getResultURL(), Pattern.compile("([nb])\\.nicovrc.net").matcher(result.getResultURL()).find() ? new Date().getTime() + 86400000 : -1);
                                     }
                                 } else {
-                                    if (isTitleGet){
-                                        System.out.println("リクエスト (タイトル取得) : " + RequestURL + " ---> (null)");
-                                    } else {
-                                        System.out.println("リクエスト : " + RequestURL + " ---> (null)");
+                                    String ResultURL = ConversionAPI.get(httpRequest, RequestURL, TempURL, isTitleGet);
+                                    if (ResultURL == null){
+                                        throw new Exception("Not Found");
                                     }
-                                    // 処理鯖がすべて応答を返さなかった場合
-                                    SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=Not%20Found\nDate: " + new Date() + "\n\n");
+
+                                    if (!isTitleGet){
+                                        System.out.println("リクエスト : " + RequestURL + " ---> " + ResultURL);
+                                        SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+ ResultURL +"\nDate: " + new Date() + "\n\n");
+                                    } else {
+                                        System.out.println("リクエスト (タイトル取得) : " + RequestURL + " ---> " + ResultURL);
+                                        SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
+                                    }
                                     if (isCache){
                                         CacheAPI.removeCache(TempURL);
+                                        CacheAPI.setCache(TempURL, ResultURL, Pattern.compile("([nb])\\.nicovrc.net").matcher(ResultURL).find() ? new Date().getTime() + 86400000 : -1);
                                     }
                                 }
                             }
