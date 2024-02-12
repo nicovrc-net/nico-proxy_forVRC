@@ -211,7 +211,7 @@ public class ConversionAPI {
                 } catch (Exception e) {
                     //e.printStackTrace();
                 }
-                System.out.println("Debug : "+SystemIP);
+                //System.out.println("Debug : "+SystemIP);
 
                 Socket sock = new Socket(SystemIP, 25250);
                 sock.setSoTimeout(4000);
