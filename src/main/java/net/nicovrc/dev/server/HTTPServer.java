@@ -14,6 +14,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -30,6 +31,7 @@ public class HTTPServer extends Thread {
     private final OkHttpClient HttpClient;
 
     private final Gson gson = new Gson();
+    private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 
     public HTTPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port){
@@ -187,7 +189,8 @@ public class HTTPServer extends Thread {
                                     while (cacheUrl == null || cacheUrl.equals("pre")){
                                         cacheUrl = CacheAPI.getCache(TempURL);
                                     }
-                                    System.out.println("リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
+
+                                    System.out.println("["+sdf.format(new Date())+"] リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
 
                                     SendResult(out,  "HTTP/" + httpVersion + " 302 Found\nLocation: " + cacheUrl + "\nDate: " + new Date() + "\n\n");
                                     out.close();
@@ -200,7 +203,7 @@ public class HTTPServer extends Thread {
                                 } else if (cacheUrl != null && (cacheUrl.startsWith("http://") || cacheUrl.startsWith("https://"))){
                                     System.out.println("a-3");
                                     // 処理中ではなくURLが入っている場合はその結果を返す
-                                    System.out.println("リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
+                                    System.out.println("["+sdf.format(new Date())+"] リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
 
                                     SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: " + cacheUrl + "\nDate: " + new Date() + "\n\n");
                                     out.close();
@@ -228,10 +231,10 @@ public class HTTPServer extends Thread {
                                     }
 
                                     if (!isTitleGet){
-                                        System.out.println("リクエスト : " + RequestURL + " ---> " + ResultURL);
+                                        System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + ResultURL);
                                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+ ResultURL +"\nDate: " + new Date() + "\n\n");
                                     } else {
-                                        System.out.println("リクエスト (タイトル取得) : " + RequestURL + " ---> " + ResultURL);
+                                        System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + ResultURL);
                                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
                                     }
                                     if (isCache){
@@ -244,7 +247,7 @@ public class HTTPServer extends Thread {
                                     if (isCache){
                                         CacheAPI.removeCache(TempURL);
                                     }
-                                    System.out.println("リクエスト (エラー) : " + RequestURL + " ---> " + e.getMessage());
+                                    System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + e.getMessage());
                                 }
                             } else {
                                 // 処理鯖が設定されている場合は処理鯖へ投げてその結果を返す
@@ -252,10 +255,10 @@ public class HTTPServer extends Thread {
                                 UDPPacket result = ServerAPI.SendServer(packet);
                                 if (result.getResultURL() != null){
                                     if (isTitleGet){
-                                        System.out.println("リクエスト (タイトル取得) : " + RequestURL + " ---> " + result.getResultURL());
+                                        System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + result.getResultURL());
                                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+result.getResultURL());
                                     } else {
-                                        System.out.println("リクエスト : " + RequestURL + " ---> " + result.getResultURL());
+                                        System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + result.getResultURL());
                                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+result.getResultURL()+"\nDate: " + new Date() + "\n\n");
                                     }
                                     if (isCache){
@@ -268,10 +271,10 @@ public class HTTPServer extends Thread {
                                     }
 
                                     if (!isTitleGet){
-                                        System.out.println("リクエスト : " + RequestURL + " ---> " + ResultURL);
+                                        System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + ResultURL);
                                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+ ResultURL +"\nDate: " + new Date() + "\n\n");
                                     } else {
-                                        System.out.println("リクエスト (タイトル取得) : " + RequestURL + " ---> " + ResultURL);
+                                        System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + ResultURL);
                                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
                                     }
                                     if (isCache){
