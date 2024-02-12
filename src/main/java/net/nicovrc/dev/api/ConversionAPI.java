@@ -337,10 +337,10 @@ public class ConversionAPI {
                 client = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(list.get(i).getIP(), list.get(i).getPort()))).build();
             }
 
-            Request img = new Request.Builder()
+            Request html = new Request.Builder()
                     .url(URL)
                     .build();
-            Response response_img = client.newCall(img).execute();
+            Response response_img = client.newCall(html).execute();
             if (response_img.body() != null && response_img.body().contentType().toString().startsWith("image")) {
                 response_img.close();
                 return new Image();
