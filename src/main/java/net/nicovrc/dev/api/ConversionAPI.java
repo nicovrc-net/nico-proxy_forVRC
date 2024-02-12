@@ -99,15 +99,24 @@ public class ConversionAPI {
 
             if (ServiceName.equals("ニコニコ動画")){
                 ResultVideoData video = null;
-                try {
+
+                if (Pattern.compile("sm|nm").matcher(TempRequestURL).find()){
+                    // 通常動画
                     video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
-                } catch (Exception e){
-                    //System.out.println(e.getMessage());
-                    if (e.getMessage().equals("www.nicovideo.jp Not Found")){
-                        video = Service.getLive(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
-                    } else {
-                        throw e;
+                } else if (Pattern.compile("so").matcher(TempRequestURL).find()){
+                    // 公式動画 or 配信
+                    try {
+                        video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                    } catch (Exception e){
+                        if (e.getMessage().equals("www.nicovideo.jp Not Found")){
+                            video = Service.getLive(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                        } else {
+                            throw e;
+                        }
                     }
+                } else {
+                    // 配信
+                    video = Service.getLive(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
                 }
 
                 if (Pattern.compile("dmc\\.nico").matcher(video.getVideoURL()).find()){
