@@ -9,11 +9,16 @@ import net.nicovrc.dev.data.ProxyData;
 import net.nicovrc.dev.data.ServerData;
 import net.nicovrc.dev.server.HTTPServer;
 import okhttp3.OkHttpClient;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Main {
-    private final String DefaultConfig = """
+    private static final String DefaultConfig = """
 # 受付ポート (HTTP/UDP共通)
 Port: 25252
 # ログをRedisに書き出すときはtrue
@@ -88,6 +93,19 @@ RedisPass: ""
                 cacheAPI.ListRefresh();
             }
         }, 0L, 5000L);
+
+        if (!new File("./config.yml").exists()){
+            try {
+                FileWriter file = new FileWriter("./config.yml");
+                PrintWriter pw = new PrintWriter(new BufferedWriter(file));
+                pw.print(DefaultConfig);
+                pw.close();
+                file.close();
+            } catch (Exception e){
+                e.printStackTrace();
+                return;
+            }
+        }
 
         new HTTPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, 25252).start();
     }
