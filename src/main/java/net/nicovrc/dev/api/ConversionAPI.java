@@ -174,6 +174,10 @@ public class ConversionAPI {
                         }).start();
                     }
 
+                    final ResultVideoData finalVideo = video;
+                    final Socket socket = new Socket();
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), HTTPRequest, socket.getInetAddress().getHostAddress(), RequestURL, finalVideo.getVideoURL(), null))).start();
+                    socket.close();
                     return video.getVideoURL();
                 }
 
@@ -209,6 +213,10 @@ public class ConversionAPI {
 
                 byte[] bytes = inputStream.readAllBytes();
                 sock.close();
+
+                final Socket socket = new Socket();
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), HTTPRequest, socket.getInetAddress().getHostAddress(), RequestURL, new String(bytes, StandardCharsets.UTF_8), null))).start();
+                socket.close();
                 return new String(bytes, StandardCharsets.UTF_8);
             }
 
@@ -216,14 +224,13 @@ public class ConversionAPI {
             ResultURL = null;
             ErrorMessage = ServiceName + " : " + e.getMessage();
             e.printStackTrace();
-        }
 
-        try {
-            Socket sock = new Socket();
-            LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, sock.getInetAddress().getHostAddress(), RequestURL, ResultURL, ErrorMessage));
-            sock.close();
-        } catch (Exception e){
-            // e.printStackTrace();
+
+            final Socket socket = new Socket();
+            final String finalErrorMessage = ErrorMessage;
+            new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), HTTPRequest, socket.getInetAddress().getHostAddress(), RequestURL, null, finalErrorMessage))).start();
+            socket.close();
+            throw new Exception(ErrorMessage);
         }
 
         return result;
