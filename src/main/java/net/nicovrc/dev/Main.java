@@ -1,5 +1,7 @@
 package net.nicovrc.dev;
 
+import com.amihaiemil.eoyaml.Yaml;
+import com.amihaiemil.eoyaml.YamlMapping;
 import net.nicovrc.dev.api.CacheAPI;
 import net.nicovrc.dev.api.JinnnaiSystemURL_API;
 import net.nicovrc.dev.api.ProxyAPI;
@@ -107,6 +109,22 @@ RedisPass: ""
             }
         }
 
-        new HTTPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, 25252).start();
+        int port = 25252;
+        boolean isHTTP = false;
+        boolean isUDP = false;
+
+        try {
+            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+            isHTTP = yamlMapping.string("HTTPServer").toLowerCase(Locale.ROOT).equals("true");
+            isUDP = yamlMapping.string("UDPServer").toLowerCase(Locale.ROOT).equals("true");
+            port = yamlMapping.integer("Port");
+        } catch (Exception e){
+            // e.printStackTrace();
+        }
+
+        if (isHTTP){
+            new HTTPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, port).start();
+        }
+
     }
 }
