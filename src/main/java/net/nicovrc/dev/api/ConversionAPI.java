@@ -185,7 +185,7 @@ public class ConversionAPI {
 
                     final ResultVideoData finalVideo = video;
                     final Socket socket = new Socket();
-                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), HTTPRequest, socket.getInetAddress().getHostAddress(), RequestURL, finalVideo.getVideoURL(), null))).start();
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, finalVideo.getVideoURL(), null))).start();
                     socket.close();
                     return video.getVideoURL();
                 }
@@ -224,7 +224,7 @@ public class ConversionAPI {
                 sock.close();
 
                 final Socket socket = new Socket();
-                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), HTTPRequest, socket.getInetAddress().getHostAddress(), RequestURL, new String(bytes, StandardCharsets.UTF_8), null))).start();
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, new String(bytes, StandardCharsets.UTF_8), null))).start();
                 socket.close();
                 return new String(bytes, StandardCharsets.UTF_8);
             }
@@ -237,7 +237,7 @@ public class ConversionAPI {
 
             final Socket socket = new Socket();
             final String finalErrorMessage = ErrorMessage;
-            new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), HTTPRequest, socket.getInetAddress().getHostAddress(), RequestURL, null, finalErrorMessage))).start();
+            new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, null, finalErrorMessage))).start();
             socket.close();
             throw new Exception(ErrorMessage);
         }
