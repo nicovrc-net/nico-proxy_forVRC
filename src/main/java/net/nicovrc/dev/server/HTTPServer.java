@@ -180,9 +180,11 @@ public class HTTPServer extends Thread {
                             if (isCache && !isTitleGet){
                                 // キャッシュ対象の場合はキャッシュチェック
                                 String cacheUrl = CacheAPI.getCache(TempURL);
+                                //System.out.println("a");
                                 if (cacheUrl != null && cacheUrl.equals("pre")){
+                                    //System.out.println("a-2");
                                     // キャッシュにはあるが処理中の場合 一旦待機してから内容を返す
-                                    while (cacheUrl.equals("pre")){
+                                    while (cacheUrl == null || cacheUrl.equals("pre")){
                                         cacheUrl = CacheAPI.getCache(TempURL);
                                     }
                                     System.out.println("リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
@@ -196,6 +198,7 @@ public class HTTPServer extends Thread {
                                     new Thread(()-> ConversionAPI.LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), httpRequest, "Cache", RequestURL, finalCacheUrl, null))).start();
                                     return;
                                 } else if (cacheUrl != null && (cacheUrl.startsWith("http://") || cacheUrl.startsWith("https://"))){
+                                    System.out.println("a-3");
                                     // 処理中ではなくURLが入っている場合はその結果を返す
                                     System.out.println("リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
 
@@ -208,7 +211,7 @@ public class HTTPServer extends Thread {
                                     new Thread(() -> ConversionAPI.LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), httpRequest, "Cache", RequestURL, finalCacheUrl, null))).start();
                                     return;
                                 }
-
+                                //System.out.println("b");
                                 // キャッシュない場合は処理中を表す「pre」をキャッシュリストに入れる
                                 CacheAPI.setCache(TempURL, "pre", -1L);
                             }
