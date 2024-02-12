@@ -6,8 +6,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
-import java.util.Date;
-import java.util.HashMap;
+import java.io.File;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -16,9 +16,20 @@ public class CacheAPI {
     private final ConcurrentHashMap<String, CacheData> CacheList;
     private final OkHttpClient client;
 
+    private final List<String> TempList = new ArrayList<>();
+
     public CacheAPI(ConcurrentHashMap<String, CacheData> CacheList, OkHttpClient client){
         this.CacheList = CacheList;
         this.client = client;
+
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                // 無駄にアクセスして見に行かないように
+                TempList.clear();
+            }
+        }, 0L, 5000L);
     }
 
     public String getCache(String URL){
@@ -50,7 +61,23 @@ public class CacheAPI {
             return false;
         }
 
-        boolean cache = false;
+        // 連続でアクセスきたとき用
+        boolean[] tempCache = {false};
+        TempList.forEach(str->{
+            if (tempCache[0]){
+                return;
+            }
+
+            if (str.equals(data.getCacheUrl())){
+                tempCache[0] = true;
+            }
+        });
+
+        boolean cache = tempCache[0];
+
+        if (cache){
+            return cache;
+        }
 
         if (data.getCacheUrl().startsWith("http://") || data.getCacheUrl().startsWith("https://")){
             Request request = new Request.Builder()
@@ -67,6 +94,7 @@ public class CacheAPI {
             } catch (Exception e){
                 // e.printStackTrace();
             }
+            TempList.add(data.getCacheUrl());
         } else {
             return true;
         }
