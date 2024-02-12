@@ -1,14 +1,15 @@
 package net.nicovrc.dev.server;
 
+import com.amihaiemil.eoyaml.Yaml;
+import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import net.nicovrc.dev.api.*;
 import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.data.ServerData;
 import net.nicovrc.dev.data.UDPPacket;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
 
+import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -33,6 +34,9 @@ public class HTTPServer extends Thread {
     private final Gson gson = new Gson();
     private final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    private final boolean isWebhook;
+    private final String WebhookURL;
+
 
     public HTTPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port){
         this.Port = Port;
@@ -44,6 +48,19 @@ public class HTTPServer extends Thread {
         this.ConversionAPI = new ConversionAPI(ProxyAPI);
 
         this.HttpClient = client;
+
+        String tWebhookURL;
+        boolean tWebhook = false;
+        try {
+            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+            tWebhook = yamlMapping.string("DiscordWebhook").toLowerCase(Locale.ROOT).equals("true");
+            tWebhookURL = yamlMapping.string("DiscordWebhookURL");
+        } catch (Exception e){
+            tWebhookURL = "";
+            tWebhook = false;
+        }
+        WebhookURL = tWebhookURL;
+        isWebhook = tWebhook;
     }
 
     @Override
@@ -191,6 +208,7 @@ public class HTTPServer extends Thread {
                                     }
 
                                     System.out.println("["+sdf.format(new Date())+"] リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
+                                    SendWebhook(RequestURL, cacheUrl, true, false);
 
                                     SendResult(out,  "HTTP/" + httpVersion + " 302 Found\nLocation: " + cacheUrl + "\nDate: " + new Date() + "\n\n");
                                     out.close();
@@ -204,6 +222,7 @@ public class HTTPServer extends Thread {
                                     System.out.println("a-3");
                                     // 処理中ではなくURLが入っている場合はその結果を返す
                                     System.out.println("["+sdf.format(new Date())+"] リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
+                                    SendWebhook(RequestURL, cacheUrl, true, false);
 
                                     SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: " + cacheUrl + "\nDate: " + new Date() + "\n\n");
                                     out.close();
@@ -232,9 +251,11 @@ public class HTTPServer extends Thread {
 
                                     if (!isTitleGet){
                                         System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + ResultURL);
+                                        SendWebhook(RequestURL, ResultURL, false, false);
                                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+ ResultURL +"\nDate: " + new Date() + "\n\n");
                                     } else {
                                         System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + ResultURL);
+                                        SendWebhook(RequestURL, ResultURL, false, true);
                                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
                                     }
                                     if (isCache){
@@ -256,9 +277,11 @@ public class HTTPServer extends Thread {
                                 if (result.getResultURL() != null){
                                     if (isTitleGet){
                                         System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + result.getResultURL());
+                                        SendWebhook(RequestURL, result.getResultURL(), false, true);
                                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+result.getResultURL());
                                     } else {
                                         System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + result.getResultURL());
+                                        SendWebhook(RequestURL, result.getResultURL(), false, false);
                                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+result.getResultURL()+"\nDate: " + new Date() + "\n\n");
                                     }
                                     if (isCache){
@@ -272,9 +295,11 @@ public class HTTPServer extends Thread {
 
                                     if (!isTitleGet){
                                         System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + ResultURL);
+                                        SendWebhook(RequestURL, ResultURL, false, false);
                                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+ ResultURL +"\nDate: " + new Date() + "\n\n");
                                     } else {
                                         System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + ResultURL);
+                                        SendWebhook(RequestURL, ResultURL, false, true);
                                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
                                     }
                                     if (isCache){
@@ -347,5 +372,54 @@ public class HTTPServer extends Thread {
         } catch (Exception e){
             // e.printStackTrace();
         }
+    }
+
+    private void SendWebhook(String RequestURL, String ResultURL, boolean isCache, boolean isTitle){
+
+        if (!isWebhook){
+            return;
+        }
+
+        if (WebhookURL.isEmpty()){
+            return;
+        }
+
+        final String jsonText = "" +
+                "{"+
+                "  \"username\": \"nico-proxy_forVRC (Ver "+ConversionAPI.getVer()+")\","+
+                "  \"avatar_url\": \"https://r2.7mi.site/vrc/nico/nc296562.png\","+
+                "  \"content\": \"利用ログ\","+
+                "  \"embeds\": ["+
+                "    {"+
+                "      \"title\": \""+(isCache ? "キャッシュ" : "新規")+"\","+
+                "      \"description\": \""+sdf.format(new Date())+"\","+
+                "      \"fields\": ["+
+                "        {"+
+                "          \"name\": \"リクエストURL\","+
+                "          \"value\": \""+RequestURL+"\""+
+                "        },"+
+                "        {"+
+                "          \"name\": \"処理結果"+(isTitle ? "タイトル" : "URL")+"\","+
+                "          \"value\": \""+ResultURL+"\""+
+                "        }"+
+                "      ]"+
+                "    }"+
+                "  ]" +
+                "}";
+
+        new Thread(()->{
+            try {
+                RequestBody body = RequestBody.create(jsonText, MediaType.get("application/json; charset=utf-8"));
+                Request request = new Request.Builder()
+                        .url(WebhookURL)
+                        .post(body)
+                        .build();
+
+                Response response = HttpClient.newCall(request).execute();
+                response.close();
+            } catch (Exception e){
+                //e.printStackTrace();
+            }
+        }).start();
     }
 }

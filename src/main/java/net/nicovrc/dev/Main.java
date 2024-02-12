@@ -31,6 +31,11 @@ HTTPServer: true
 # UDPで受付する場合はtrue
 UDPServer: false
 
+# HTTPサーバー/UDPサーバーの受付ログをDiscordへWebhookで配信するかどうか
+DiscordWebhook: false
+# DiscordのWebhookのURL
+DiscordWebhookURL: ""
+
 # 他に処理鯖がある場合はそのリストを「IP:受付ポート」形式で記載する
 # (HTTP通信用を1つ、処理鯖(UDP通信)はn個という想定)
 ServerList:

@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 
 public class ConversionAPI {
 
-    private final String ver = "2.0-20240211";
+    private final String ver = "2.0-20240212";
 
     private final ProxyAPI proxyAPI;
 
@@ -223,7 +223,7 @@ public class ConversionAPI {
                 byte[] bytes = inputStream.readAllBytes();
                 sock.close();
 
-                final Socket socket = new Socket();
+                final Socket socket = new Socket("nicovrc.net", 80);
                 new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, new String(bytes, StandardCharsets.UTF_8), null))).start();
                 socket.close();
                 return new String(bytes, StandardCharsets.UTF_8);
@@ -232,10 +232,10 @@ public class ConversionAPI {
         } catch (Exception e){
             ResultURL = null;
             ErrorMessage = ServiceName + " : " + e.getMessage();
-            e.printStackTrace();
+            //e.printStackTrace();
 
 
-            final Socket socket = new Socket();
+            final Socket socket = new Socket("nicovrc.net", 80);
             final String finalErrorMessage = ErrorMessage;
             new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, null, finalErrorMessage))).start();
             socket.close();
