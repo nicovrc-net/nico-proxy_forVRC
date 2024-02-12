@@ -340,15 +340,15 @@ public class ConversionAPI {
             Request html = new Request.Builder()
                     .url(URL)
                     .build();
-            Response response_img = client.newCall(html).execute();
-            if (response_img.body() != null && response_img.body().contentType().toString().startsWith("image")) {
-                response_img.close();
+            Response response = client.newCall(html).execute();
+            if (response.body() != null && response.body().contentType().toString().startsWith("image")) {
+                response.close();
                 return new Image();
-            } else if (response_img.body() != null && response_img.body().contentType().toString().startsWith("video")) {
-                response_img.close();
+            } else if (response.body() != null && response.body().contentType().toString().startsWith("video")) {
+                response.close();
                 return new Video();
             }
-            response_img.close();
+            response.close();
         } catch (Exception e){
             // e.printStackTrace();
         }
