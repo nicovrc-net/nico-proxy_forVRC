@@ -231,6 +231,10 @@ public class HTTPServer extends Thread {
                                         System.out.println("リクエスト (タイトル取得) : " + RequestURL + " ---> " + ResultURL);
                                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
                                     }
+                                    if (isCache){
+                                        CacheAPI.removeCache(TempURL);
+                                        CacheAPI.setCache(TempURL, ResultURL, Pattern.compile("([nb])\\.nicovrc.net").matcher(ResultURL).find() ? new Date().getTime() + 86400000 : -1);
+                                    }
                                 } catch (Exception e){
                                     SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage()+"\nDate: " + new Date() + "\n\n");
 
@@ -252,7 +256,7 @@ public class HTTPServer extends Thread {
                                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+result.getResultURL()+"\nDate: " + new Date() + "\n\n");
                                     }
                                     if (isCache){
-                                        CacheAPI.setCache(TempURL, result.getResultURL(), (result.getResultURL().startsWith("https://n.nicovrc.net") || result.getResultURL().startsWith("https://b.nicovrc.net")) ? new Date().getTime() + 86400000 : -1);
+                                        CacheAPI.setCache(TempURL, result.getResultURL(), Pattern.compile("([nb])\\.nicovrc.net").matcher(result.getResultURL()).find() ? new Date().getTime() + 86400000 : -1);
                                     }
                                 } else {
                                     if (isTitleGet){
