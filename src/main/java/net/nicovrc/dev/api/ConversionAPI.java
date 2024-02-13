@@ -194,6 +194,7 @@ public class ConversionAPI {
                     final Socket socket = new Socket();
                     new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, finalVideo.getVideoURL(), null))).start();
                     socket.close();
+                    System.gc();
                     return video.getVideoURL();
                 }
 
@@ -233,6 +234,7 @@ public class ConversionAPI {
                 final Socket socket = new Socket("nicovrc.net", 80);
                 new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, new String(bytes, StandardCharsets.UTF_8), null))).start();
                 socket.close();
+                System.gc();
                 return new String(bytes, StandardCharsets.UTF_8);
             }
 
@@ -289,6 +291,7 @@ public class ConversionAPI {
                     final Socket socket = new Socket("nicovrc.net", 80);
                     new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, url, null))).start();
                     socket.close();
+                    System.gc();
                     return url;
                 }
             }
@@ -309,6 +312,8 @@ public class ConversionAPI {
             throw new Exception(ErrorMessage);
         }
 
+
+        System.gc();
         return result;
     }
 
