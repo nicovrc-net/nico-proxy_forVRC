@@ -18,6 +18,10 @@ public class CacheAPI {
 
     private final List<String> TempList = new ArrayList<>();
 
+    /**
+     * @param CacheList キャッシュリスト
+     * @param client OKHttpのClient
+     */
     public CacheAPI(ConcurrentHashMap<String, CacheData> CacheList, OkHttpClient client){
         this.CacheList = CacheList;
         this.client = client;
@@ -32,6 +36,10 @@ public class CacheAPI {
         }, 0L, 5000L);
     }
 
+    /**
+     * @param URL キャッシュがあるかどうかチェックしたい処理前URL
+     * @return キャッシュしているURL(処理後)
+     */
     public String getCache(String URL){
         CacheData data = CacheList.get(URL);
 
@@ -54,6 +62,10 @@ public class CacheAPI {
         }
     }
 
+    /**
+     * @param URL チェックしたいURL
+     * @return trueの場合はキャッシュリストに存在する
+     */
     public boolean CheckCache(String URL){
         CacheData data = CacheList.get(URL);
 
@@ -102,6 +114,11 @@ public class CacheAPI {
         return cache;
     }
 
+    /**
+     * @param RequestURL 処理前URL
+     * @param CacheURL 処理後URL
+     * @param ExpiryDate 有効期限(-1で無限)
+     */
     public void setCache(String RequestURL, String CacheURL, long ExpiryDate){
         CacheList.put(RequestURL, new CacheData(ExpiryDate, CacheURL));
     }
@@ -134,6 +151,9 @@ public class CacheAPI {
         //System.out.println(new Date().getTime());
     }
 
+    /**
+     * @return 「CacheCount : キャッシュ数」
+     */
     public String getListCount(){
         return "CacheCount : " + CacheList.size();
     }

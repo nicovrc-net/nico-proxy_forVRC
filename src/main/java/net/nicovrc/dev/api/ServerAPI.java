@@ -27,6 +27,11 @@ public class ServerAPI {
         this.ServerList = ServerList;
     }
 
+    /**
+     * @param IP 処理サーバーのURL
+     * @param Port 処理サーバーのポート
+     * @return 接続できた場合はtrue
+     */
     public boolean isCheck(String IP, int Port){
         UDPPacket check = new UDPPacket("check", false);
         DatagramSocket udp_sock = null;
@@ -60,11 +65,18 @@ public class ServerAPI {
         return true;
     }
 
+    /**
+     * @param ServerName 処理サーバーの名前
+     * @return 接続できた場合はtrue
+     */
     public boolean isCheck(String ServerName){
         ServerData data = ServerList.get(ServerName);
         return isCheck(data.getIP(), data.getPort());
     }
 
+    /**
+     * 保持している処理サーバーのリストを設定ファイルから構築し直す
+     */
     public void ListRefresh(){
         try {
             final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
@@ -86,6 +98,11 @@ public class ServerAPI {
         }
     }
 
+    /**
+     * @param ServerName サーバー名
+     * @param IP サーバーのIPアドレス
+     * @param Port サーバーのUDPポート
+     */
     public void addList(String ServerName, String IP, int Port){
         ServerList.put(ServerName, new ServerData(IP, Port));
     }
@@ -99,22 +116,38 @@ public class ServerAPI {
         });
     }
 
+    /**
+     * @param ServerName サーバー名
+     */
     public void removeList(String ServerName){
         ServerList.remove(ServerName);
     }
 
+    /**
+     * 保持している処理サーバーのリストの中身を全部削除する
+     */
     public void removeAllList(){
         ServerList.clear();
     }
 
+    /**
+     * @return 保持している処理サーバーのリスト
+     */
     public HashMap<String, ServerData> getList(){
         return new HashMap<>(ServerList);
     }
 
+    /**
+     * @return 「ServerCount : (処理サーバーリストの件数)」
+     */
     public String getListCount(){
         return "ServerCount : " + ServerList.size();
     }
 
+    /**
+     * @param packet 送信するデータ
+     * @return
+     */
     public UDPPacket SendServer(UDPPacket packet){
         if (ServerList.isEmpty() && !isRefresh){
             return null;

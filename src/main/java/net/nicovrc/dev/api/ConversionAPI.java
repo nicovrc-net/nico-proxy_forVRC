@@ -33,6 +33,14 @@ public class ConversionAPI {
         this.proxyAPI = proxyAPI;
     }
 
+    /**
+     * @param HTTPRequest 生のHTTPリクエストorUDPリクエスト
+     * @param RequestURL 事前変換前のURL
+     * @param TempRequestURL 事前変換後のURL(陣内システムがついていたら除去したあとのURL)
+     * @param isTitleGet タイトル取得する場合はtrue
+     * @return 処理結果のURL
+     * @throws Exception エラーメッセージ(#getMessageで取得してエラー画面に表示する想定)
+     */
     public String get(String HTTPRequest, String RequestURL, String TempRequestURL, boolean isTitleGet) throws Exception {
         //System.out.println("Debug : " + TempRequestURL);
         String result = null;
@@ -285,6 +293,11 @@ public class ConversionAPI {
                 }
             }
 
+            // xvideos / TikTok / Twitter / Pornhub / Ameba / TVer
+            if (ServiceName.equals("XVIDEOS.com") || ServiceName.equals("TikTok") || ServiceName.equals("Twitter") || ServiceName.equals("Pornhub") || ServiceName.equals("Abema") || ServiceName.equals("TVer")){
+
+            }
+
         } catch (Exception e){
             ErrorMessage = ServiceName + " : " + e.getMessage();
             //e.printStackTrace();
@@ -299,18 +312,35 @@ public class ConversionAPI {
         return result;
     }
 
+    /**
+     * @param RequestURL 事前処理前URL
+     * @param TempRequestURL 事前処理後URL
+     * @param isTitleGet タイトル取得する場合はtrue
+     * @return 処理後のURL
+     * @throws Exception エラーメッセージ
+     */
     public String get(String RequestURL, String TempRequestURL, boolean isTitleGet) throws Exception{
         return get(null, RequestURL, TempRequestURL, isTitleGet);
     }
 
+    /**
+     * @return 処理プログラムのバージョン
+     */
     public String getVer(){
         return ver;
     }
 
+    /**
+     * @param data ログデータ
+     */
     public void LogWrite(LogData data){
         System.out.println(data.getRequestIP());
     }
 
+    /**
+     * @param URL 処理するURL
+     * @return 対応する処理サービスのオブジェクト
+     */
     private ShareService getService(String URL){
 
         Matcher matcher_NicoVideoURL = Pattern.compile("(\\.nicovideo\\.jp|nico\\.ms)").matcher(URL);
@@ -411,6 +441,10 @@ public class ConversionAPI {
 
     }
 
+    /**
+     * @param URL 処理したいURL
+     * @return サービスの名前
+     */
     private String getServiceName(String URL){
         Matcher matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)").matcher(URL);
         Matcher matcher_TVerURL = Pattern.compile("tver\\.jp").matcher(URL);

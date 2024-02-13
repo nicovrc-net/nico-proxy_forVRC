@@ -59,6 +59,10 @@ public class JinnnaiSystemURL_API {
         JinnnaiSystem_URL.put("https://shinchan\\.biz/player\\.html\\?video_id=(.+)", "https://nico.ms");
     }
 
+    /**
+     * @param URL 処理したいURL
+     * @return 処理結果
+     */
     public String replace(String URL){
         final String tempUrl;
         if (URL.startsWith("http://yt.8uro.net") || URL.startsWith("https://yt.8uro.net")) {

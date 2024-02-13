@@ -26,6 +26,11 @@ public class ProxyAPI {
         this.JPProxyList = JPProxyList;
     }
 
+    /**
+     * @param ProxyIP プロキシIP
+     * @param ProxyPort プロキシのポート
+     * @return 接続できた場合はtrue
+     */
     public boolean isCheck(String ProxyIP, int ProxyPort){
         boolean[] temp = {false};
         MainProxyList.forEach(proxyData -> {
@@ -52,7 +57,12 @@ public class ProxyAPI {
 
         return temp[0];
     }
-
+    /**
+     * @param ProxyIP プロキシIP
+     * @param ProxyPort プロキシのポート
+     * @param isJP 日本国内のプロキシの場合はtrue
+     * @return 接続できた場合はtrue
+     */
     public boolean isCheck(String ProxyIP, int ProxyPort, boolean isJP){
         try {
             final OkHttpClient build = builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ProxyIP, ProxyPort))).build();
@@ -80,6 +90,9 @@ public class ProxyAPI {
         return true;
     }
 
+    /**
+     * 保持しているプロキシリストを設定ファイルから読み込み直して生成し直す
+     */
     public void ListRefresh(){
         if (!new File("./config-proxy.yml").exists()){
             return;
@@ -118,14 +131,23 @@ public class ProxyAPI {
         JPProxyList.addAll(TempJPProxyList);
     }
 
+    /**
+     * @return プロキシリスト
+     */
     public List<ProxyData> getMainProxyList() {
         return MainProxyList;
     }
 
+    /**
+     * @return プロキシリスト(日本国内のみ)
+     */
     public List<ProxyData> getJPProxyList() {
         return JPProxyList;
     }
 
+    /**
+     * @return 「MainProxy : (保持プロキシ数) JPProxy : (保持プロキシ数)」
+     */
     public String getListCount(){
         return "MainProxy : " + MainProxyList.size() + "\nJPProxy : " + JPProxyList.size();
     }
