@@ -73,9 +73,11 @@ public class CacheAPI {
             return false;
         }
 
+        List<String> temp = new ArrayList<>(TempList);
+
         // 連続でアクセスきたとき用
         boolean[] tempCache = {false};
-        TempList.forEach(str->{
+        temp.forEach(str->{
             if (tempCache[0]){
                 return;
             }
