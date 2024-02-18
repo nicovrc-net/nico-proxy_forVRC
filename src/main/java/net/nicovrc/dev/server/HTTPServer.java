@@ -259,8 +259,31 @@ public class HTTPServer extends Thread {
                                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
                                     }
                                     if (isCache){
+                                        long eTime = -1;
+                                        if (Pattern.compile("([nb])\\.nicovrc\\.net").matcher(ResultURL).find()){
+                                            eTime = new Date().getTime() + 86400000;
+                                        } else if (Pattern.compile("dmc\\.nico").matcher(ResultURL).find()){
+                                            //System.out.println("test");
+                                            Request request = new Request.Builder()
+                                                    .url(TempURL)
+                                                    .build();
+                                            Response response = HttpClient.newCall(request).execute();
+                                            if (response.body() != null) {
+                                                String responseHtml = response.body().string();
+                                                Matcher matcher = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">").matcher(responseHtml);
+                                                if (matcher.find()){
+                                                    eTime = Long.parseLong(matcher.group(1)) * 1000;
+                                                    //System.out.println(Long.parseLong(matcher.group(1)) * 1000);
+                                                } else {
+                                                    eTime = 86400000;
+                                                }
+                                            }
+                                            response.close();
+                                            eTime = new Date().getTime() + eTime;
+                                        }
+
                                         CacheAPI.removeCache(TempURL);
-                                        CacheAPI.setCache(TempURL, ResultURL, Pattern.compile("([nb])\\.nicovrc.net").matcher(ResultURL).find() ? new Date().getTime() + 86400000 : -1);
+                                        CacheAPI.setCache(TempURL, ResultURL, eTime);
                                     }
                                 } catch (Exception e){
                                     SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage()+"\nDate: " + new Date() + "\n\n");
@@ -307,6 +330,7 @@ public class HTTPServer extends Thread {
                                         if (Pattern.compile("([nb])\\.nicovrc\\.net").matcher(ResultURL).find()){
                                             eTime = new Date().getTime() + 86400000;
                                         } else if (Pattern.compile("dmc\\.nico").matcher(ResultURL).find()){
+                                            //System.out.println("test");
                                             Request request = new Request.Builder()
                                                     .url(TempURL)
                                                     .build();
@@ -316,6 +340,7 @@ public class HTTPServer extends Thread {
                                                 Matcher matcher = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">").matcher(responseHtml);
                                                 if (matcher.find()){
                                                     eTime = Long.parseLong(matcher.group(1)) * 1000;
+                                                    //System.out.println(Long.parseLong(matcher.group(1)) * 1000);
                                                 } else {
                                                     eTime = 86400000;
                                                 }
