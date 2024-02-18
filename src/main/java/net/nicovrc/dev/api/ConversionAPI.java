@@ -126,7 +126,15 @@ public class ConversionAPI {
                         video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
                     } catch (Exception e){
                         if (e.getMessage().equals("www.nicovideo.jp Not Found")){
-                            video = Service.getLive(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                            try {
+                                video = Service.getLive(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                            } catch (Exception ex){
+                                if (ex.getMessage().equals("live.nicovideo.jp No WebSocket Found")){
+                                    throw new Exception("対応していない動画または配信です");
+                                } else {
+                                    throw e;
+                                }
+                            }
                         } else {
                             throw e;
                         }
