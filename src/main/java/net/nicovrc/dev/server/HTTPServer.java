@@ -50,7 +50,7 @@ public class HTTPServer extends Thread {
         this.HttpClient = client;
 
         String tWebhookURL;
-        boolean tWebhook = false;
+        boolean tWebhook;
         try {
             final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
             tWebhook = yamlMapping.string("DiscordWebhook").toLowerCase(Locale.ROOT).equals("true");
@@ -219,7 +219,7 @@ public class HTTPServer extends Thread {
                                     new Thread(()-> ConversionAPI.LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), httpRequest, "Cache", RequestURL, finalCacheUrl, null))).start();
                                     return;
                                 } else if (cacheUrl != null && (cacheUrl.startsWith("http://") || cacheUrl.startsWith("https://"))){
-                                    System.out.println("a-3");
+                                    //System.out.println("a-3");
                                     // 処理中ではなくURLが入っている場合はその結果を返す
                                     System.out.println("["+sdf.format(new Date())+"] リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
                                     SendWebhook(RequestURL, cacheUrl, true, false);
@@ -341,12 +341,12 @@ public class HTTPServer extends Thread {
                                                 if (matcher.find()){
                                                     eTime = Long.parseLong(matcher.group(1)) * 1000;
                                                     //System.out.println(Long.parseLong(matcher.group(1)) * 1000);
-                                                } else {
-                                                    eTime = 86400000;
                                                 }
                                             }
                                             response.close();
-                                            eTime = new Date().getTime() + eTime;
+                                            if (eTime != -1){
+                                                eTime = new Date().getTime() + eTime;
+                                            }
                                         }
 
                                         CacheAPI.removeCache(TempURL);
