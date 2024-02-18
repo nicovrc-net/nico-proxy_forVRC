@@ -76,21 +76,8 @@ public class CacheAPI {
         final HashMap<String, String> temp = new HashMap(TempList);
 
         // 連続でアクセスきたとき用
-        boolean[] tempCache = {false};
-        temp.forEach((req, res)->{
-            if (tempCache[0]){
-                return;
-            }
-
-            if (res.equals(data.getCacheUrl())){
-                tempCache[0] = true;
-            }
-        });
-
-        boolean cache = tempCache[0];
-
-        if (cache){
-            return cache;
+        if (temp.get(URL) != null){
+            return true;
         }
 
         if (data.getCacheUrl().startsWith("http://") || data.getCacheUrl().startsWith("https://")){
