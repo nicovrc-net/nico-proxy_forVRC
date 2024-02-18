@@ -28,9 +28,19 @@ public class ConversionAPI {
     private final String ver = "2.0-20240212";
 
     private final ProxyAPI proxyAPI;
+    private final String SocketIP;
 
     public ConversionAPI(ProxyAPI proxyAPI){
         this.proxyAPI = proxyAPI;
+        String temp = null;
+        try {
+            final Socket socket = new Socket("nicovrc.net", 80);
+            temp = socket.getInetAddress().getHostAddress();
+            socket.close();
+        } catch (Exception e){
+            temp = null;
+        }
+        SocketIP = temp;
     }
 
     /**
@@ -191,9 +201,7 @@ public class ConversionAPI {
                     }
 
                     final ResultVideoData finalVideo = video;
-                    final Socket socket = new Socket();
-                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, finalVideo.getVideoURL(), null))).start();
-                    socket.close();
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo.getVideoURL(), null))).start();
                     System.gc();
                     return video.getVideoURL();
                 }
@@ -231,9 +239,7 @@ public class ConversionAPI {
                 byte[] bytes = inputStream.readAllBytes();
                 sock.close();
 
-                final Socket socket = new Socket("nicovrc.net", 80);
-                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, new String(bytes, StandardCharsets.UTF_8), null))).start();
-                socket.close();
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, new String(bytes, StandardCharsets.UTF_8), null))).start();
                 System.gc();
                 return new String(bytes, StandardCharsets.UTF_8);
             }
@@ -288,9 +294,7 @@ public class ConversionAPI {
                     byte[] bytes = inputStream.readAllBytes();
                     final String url = new String(bytes, StandardCharsets.UTF_8);
 
-                    final Socket socket = new Socket("nicovrc.net", 80);
-                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, url, null))).start();
-                    socket.close();
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, url, null))).start();
                     System.gc();
                     return url;
                 }
@@ -319,10 +323,9 @@ public class ConversionAPI {
             ErrorMessage = ServiceName + " : " + e.getMessage();
             //e.printStackTrace();
 
-            final Socket socket = new Socket("nicovrc.net", 80);
+
             final String finalErrorMessage = ErrorMessage;
-            new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, socket.getInetAddress().getHostAddress(), RequestURL, null, finalErrorMessage))).start();
-            socket.close();
+            new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, null, finalErrorMessage))).start();
             throw new Exception(ErrorMessage);
         }
 
