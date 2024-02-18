@@ -73,7 +73,7 @@ public class CacheAPI {
             return false;
         }
 
-        final HashMap<String, String> temp = new HashMap(TempList);
+        final HashMap<String, String> temp = new HashMap<>(TempList);
 
         // 連続でアクセスきたとき用
         if (temp.get(URL) != null){
