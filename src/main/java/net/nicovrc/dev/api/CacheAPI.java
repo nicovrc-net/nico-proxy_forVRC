@@ -16,7 +16,7 @@ public class CacheAPI {
     private final ConcurrentHashMap<String, CacheData> CacheList;
     private final OkHttpClient client;
 
-    private final List<String> TempList = new ArrayList<>();
+    private final ConcurrentHashMap<String, String> TempList = new ConcurrentHashMap<>();
 
     /**
      * @param CacheList キャッシュリスト
@@ -73,16 +73,16 @@ public class CacheAPI {
             return false;
         }
 
-        List<String> temp = new ArrayList<>(TempList);
+        final HashMap<String, String> temp = new HashMap(TempList);
 
         // 連続でアクセスきたとき用
         boolean[] tempCache = {false};
-        temp.forEach(str->{
+        temp.forEach((req, res)->{
             if (tempCache[0]){
                 return;
             }
 
-            if (str.equals(data.getCacheUrl())){
+            if (res.equals(data.getCacheUrl())){
                 tempCache[0] = true;
             }
         });
@@ -108,7 +108,7 @@ public class CacheAPI {
             } catch (Exception e){
                 // e.printStackTrace();
             }
-            TempList.add(data.getCacheUrl());
+            TempList.put(URL, data.getCacheUrl());
         } else {
             return true;
         }
