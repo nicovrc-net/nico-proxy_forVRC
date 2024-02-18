@@ -303,8 +303,29 @@ public class HTTPServer extends Thread {
                                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
                                     }
                                     if (isCache){
+                                        long eTime = -1;
+                                        if (Pattern.compile("([nb])\\.nicovrc\\.net").matcher(ResultURL).find()){
+                                            eTime = new Date().getTime() + 86400000;
+                                        } else if (Pattern.compile("dmc\\.nico").matcher(ResultURL).find()){
+                                            Request request = new Request.Builder()
+                                                    .url(TempURL)
+                                                    .build();
+                                            Response response = HttpClient.newCall(request).execute();
+                                            if (response.body() != null) {
+                                                String responseHtml = response.body().string();
+                                                Matcher matcher = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">").matcher(responseHtml);
+                                                if (matcher.find()){
+                                                    eTime = Long.parseLong(matcher.group(1)) * 1000;
+                                                } else {
+                                                    eTime = 86400000;
+                                                }
+                                            }
+                                            response.close();
+                                            eTime = new Date().getTime() + eTime;
+                                        }
+
                                         CacheAPI.removeCache(TempURL);
-                                        CacheAPI.setCache(TempURL, ResultURL, Pattern.compile("([nb])\\.nicovrc.net").matcher(ResultURL).find() ? new Date().getTime() + 86400000 : -1);
+                                        CacheAPI.setCache(TempURL, ResultURL, eTime);
                                     }
                                 }
                             }
