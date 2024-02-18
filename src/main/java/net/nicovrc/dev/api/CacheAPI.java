@@ -80,6 +80,7 @@ public class CacheAPI {
             return true;
         }
 
+        boolean cache = false;
         if (data.getCacheUrl().startsWith("http://") || data.getCacheUrl().startsWith("https://")){
             Request request = new Request.Builder()
                     .url(data.getCacheUrl())
