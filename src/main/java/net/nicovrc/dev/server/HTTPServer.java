@@ -64,6 +64,14 @@ public class HTTPServer extends Thread {
         WebhookURL = tWebhookURL;
         isWebhook = tWebhook;
 
+        if (!isWebhook){
+            return;
+        }
+
+        if (WebhookURL.isEmpty()){
+            return;
+        }
+
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
