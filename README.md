@@ -20,28 +20,40 @@ sudo docker compose build
 ## 設定解説
 - config.yml
 ```
-# 受付ポート (HTTP/UDP両方)
+# 受付ポート (HTTP/UDP共通)
 Port: 25252
 # ログをRedisに書き出すときはtrue
-LogToRedis: false      
-              
+LogToRedis: false
+
 # HTTPで受付する場合はtrue
 HTTPServer: true
 # UDPで受付する場合はtrue
-UDPServer : false
+UDPServer: false
+
+# HTTPサーバー/UDPサーバーの受付ログをDiscordへWebhookで配信するかどうか
+DiscordWebhook: false
+# DiscordのWebhookのURL
+DiscordWebhookURL: ""
+
+# ログを強制的に書き出すときの合言葉
+# 普通に漏れると危ないので厳重管理すること。
+WriteLogPass: 'c41f30a58e09fa1a6618ed06d16f035e98821420bb0b6d70598be5df87f37725'
 
 # 他に処理鯖がある場合はそのリストを「IP:受付ポート」形式で記載する
-# (HTTP受付の鯖ではUDP受付をfalseにし他の処理鯖ではHTTP受付をfalse、UDP受付をtrueにすることを推奨)
+# (HTTP通信用を1つ、処理鯖(UDP通信)はn個という想定)
 ServerList:
-  - "127.0.0.1:25252"
+    - "127.0.0.1:25252"
 
 # ツイキャスの設定
 # https://twitcasting.tv/developer.phpでAPIキーを取得してください
 ClientID: ""
 ClientSecret: ""
 
-# bilibili変換システムのURL
-BiliBliSystem: "https://b.nicovrc.net"
+# bilibili変換システム
+BiliBiliSystemIP: "127.0.0.1"
+
+# ニコ動domand鯖の変換システム
+NicoVideoSystem: "127.0.0.1"
 
 # Redisの設定(LogToRedisをtrue)にしていない場合は設定不要
 # RedisサーバーIP

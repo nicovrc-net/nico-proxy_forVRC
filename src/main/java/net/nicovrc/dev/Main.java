@@ -65,6 +65,16 @@ RedisPort: 6379
 # パスワードがない場合は以下の通りに設定してください
 RedisPass: ""
 """;
+
+    private static final String DefaultProxy = """
+# 動画取得用 (ニコ動が見れればどこでも可)
+VideoProxy:
+  - "127.0.0.1:3128"
+# 公式動画、生放送用 (ニコ動が見れる国内IPならどこでも可)
+OfficialProxy:
+  - "127.0.0.1:3128"
+""";
+
     private static final OkHttpClient HttpClient = new OkHttpClient();
 
     private static final List<ProxyData> MainProxyList = new ArrayList<>();
@@ -110,6 +120,19 @@ RedisPass: ""
                 FileWriter file = new FileWriter("./config.yml");
                 PrintWriter pw = new PrintWriter(new BufferedWriter(file));
                 pw.print(DefaultConfig);
+                pw.close();
+                file.close();
+            } catch (Exception e){
+                e.printStackTrace();
+                return;
+            }
+        }
+
+        if (!new File("./config-proxy.yml").exists()){
+            try {
+                FileWriter file = new FileWriter("./config-proxy.yml");
+                PrintWriter pw = new PrintWriter(new BufferedWriter(file));
+                pw.print(DefaultProxy);
                 pw.close();
                 file.close();
             } catch (Exception e){
