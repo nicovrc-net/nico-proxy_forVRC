@@ -1,19 +1,20 @@
 package net.nicovrc.dev.api;
 
 import com.amihaiemil.eoyaml.Yaml;
+import com.amihaiemil.eoyaml.YamlInput;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import net.nicovrc.dev.data.*;
 import okhttp3.*;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import xyz.n7mn.nico_proxy.*;
 import xyz.n7mn.nico_proxy.data.RequestVideoData;
 import xyz.n7mn.nico_proxy.data.ResultVideoData;
 import xyz.n7mn.nico_proxy.data.TokenJSON;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
@@ -490,11 +491,17 @@ public class ConversionAPI {
 
     }
 
+    /**
+     * @return ログデータのキューの件数
+     */
     public int getLogDataListCount() {
         return LogDataList.size();
     }
 
-    public void ForceLogDataWrite(){
+    /**
+     * キューを強制的に書き出す
+     */
+    public void ForceLogDataWrite() {
         HashMap<String, LogData> map = new HashMap<>(LogDataList);
         LogDataList.clear();
 
@@ -502,14 +509,33 @@ public class ConversionAPI {
             return;
         }
 
+        boolean isRedis1;
+        try {
+            YamlMapping input = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+            isRedis1 = input.string("LogToRedis").toLowerCase(Locale.ROOT).equals("true");
+        } catch (IOException e) {
+            // e.printStackTrace();
+            isRedis1 = false;
+        }
+        final boolean isRedis = isRedis1;
+
         new Thread(()->{
             System.out.println("[Info] Log Write Start (Count : " + map.size() + ")");
             map.forEach((id, content)->{
-
+                try {
+                    if (isRedis){
+                        RedisWrite(content);
+                    } else {
+                        FileWrite(content);
+                    }
+                } catch (Exception e){
+                    LogDataList.put(id, content);
+                }
             });
             System.out.println("[Info] Log Write End ("+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +")");
+            map.clear();
         }).start();
-        map.clear();
+
     }
 
     /**
@@ -528,5 +554,68 @@ public class ConversionAPI {
         }
 
         return null;
+    }
+
+    private void RedisWrite(LogData logData) throws Exception {
+        YamlMapping input = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+
+        JedisPool jedisPool = new JedisPool(input.string("RedisServer"), input.integer("RedisPort"));
+        Jedis jedis = jedisPool.getResource();
+        if (!input.string("RedisPass").isEmpty()){
+            jedis.auth(input.string("RedisPass"));
+        }
+
+        boolean isFound = jedis.get(logData.getLogID()) != null;
+        while (isFound){
+            logData.setLogID(UUID.randomUUID() + "-" + new Date().getTime());
+
+            isFound = jedis.get(logData.getLogID()) != null;
+            try {
+                Thread.sleep(500L);
+            } catch (Exception e){
+                isFound = false;
+            }
+        }
+
+        jedis.set("nico-proxy:ExecuteLog:"+logData.getLogID(), new GsonBuilder().serializeNulls().setPrettyPrinting().create().toJson(logData));
+
+        jedis.close();
+        jedisPool.close();
+    }
+
+    private void FileWrite(LogData logData) throws Exception {
+        File logFolder = new File("./log");
+        if (!logFolder.exists()){
+            if (!new File("./log").mkdir()){
+                throw new Exception("Folder Not Created");
+            }
+        }
+        if (logFolder.isFile()){
+            if (!logFolder.delete() || !logFolder.mkdir()){
+                throw new Exception("Folder Not Created");
+            }
+        }
+
+        File file = new File("./log/" + logData.getLogID() + ".json");
+        boolean isFound = file.exists();
+        while (isFound){
+            logData.setLogID(UUID.randomUUID() + "-" + new Date().getTime());
+
+            file = new File("./log/" + logData.getLogID() + ".json");
+            isFound = file.exists();
+            try {
+                Thread.sleep(500L);
+            } catch (Exception e){
+                isFound = false;
+            }
+        }
+
+        if (!file.createNewFile()){
+            throw new Exception("File Not Created");
+        }
+        PrintWriter writer = new PrintWriter(file);
+        writer.print(new Gson().toJson(logData));
+        writer.close();
+
     }
 }

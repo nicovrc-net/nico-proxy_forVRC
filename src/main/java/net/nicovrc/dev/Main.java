@@ -37,7 +37,8 @@ DiscordWebhook: false
 DiscordWebhookURL: ""
 
 # ログを強制的に書き出すときの合言葉
-WriteLogPass: 'うおー！ダミーちゃんです！！'
+# 普通に漏れると危ないので厳重管理すること。
+WriteLogPass: 'c41f30a58e09fa1a6618ed06d16f035e98821420bb0b6d70598be5df87f37725'
 
 # 他に処理鯖がある場合はそのリストを「IP:受付ポート」形式で記載する
 # (HTTP通信用を1つ、処理鯖(UDP通信)はn個という想定)
