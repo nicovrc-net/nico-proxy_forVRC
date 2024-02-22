@@ -370,7 +370,8 @@ public class ConversionAPI {
      * @param data ログデータ
      */
     public void LogWrite(LogData data){
-        System.out.println(data.getRequestIP());
+        //System.out.println(data.getRequestIP());
+
     }
 
     /**

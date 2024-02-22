@@ -17,6 +17,7 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,6 +38,7 @@ public class HTTPServer extends Thread {
     private final boolean isWebhook;
     private final String WebhookURL;
 
+    private final ArrayList<String> WebhookList = new ArrayList<>();
 
     public HTTPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port){
         this.Port = Port;
@@ -61,6 +63,31 @@ public class HTTPServer extends Thread {
         }
         WebhookURL = tWebhookURL;
         isWebhook = tWebhook;
+
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                ArrayList<String> list = new ArrayList<>(WebhookList);
+                WebhookList.clear();
+                list.forEach(json -> {
+                    new Thread(()->{
+                        try {
+                            RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
+                            Request request = new Request.Builder()
+                                    .url(WebhookURL)
+                                    .post(body)
+                                    .build();
+
+                            Response response = HttpClient.newCall(request).execute();
+                            response.close();
+                        } catch (Exception e){
+                            //e.printStackTrace();
+                        }
+                    }).start();
+                });
+            }
+        }, 0L, 60000L);
     }
 
     @Override
@@ -205,6 +232,11 @@ public class HTTPServer extends Thread {
                                     // キャッシュにはあるが処理中の場合 一旦待機してから内容を返す
                                     while (cacheUrl == null || cacheUrl.equals("pre")){
                                         cacheUrl = CacheAPI.getCache(TempURL);
+                                        try {
+                                            Thread.sleep(500L);
+                                        } catch (Exception e){
+                                            //e.printStackTrace();
+                                        }
                                     }
 
                                     System.out.println("["+sdf.format(new Date())+"] リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
@@ -453,19 +485,6 @@ public class HTTPServer extends Thread {
                 "  ]" +
                 "}";
 
-        new Thread(()->{
-            try {
-                RequestBody body = RequestBody.create(jsonText, MediaType.get("application/json; charset=utf-8"));
-                Request request = new Request.Builder()
-                        .url(WebhookURL)
-                        .post(body)
-                        .build();
-
-                Response response = HttpClient.newCall(request).execute();
-                response.close();
-            } catch (Exception e){
-                //e.printStackTrace();
-            }
-        }).start();
+        WebhookList.add(jsonText);
     }
 }
