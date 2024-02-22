@@ -15,6 +15,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
@@ -192,33 +193,37 @@ public class HTTPServer extends Thread {
                             }
 
                             // ログ強制書き出し
-                            String LogWritePass = null;
-                            if (RequestURL.startsWith("force_queue")){
-                                try {
-                                    MessageDigest md = MessageDigest.getInstance("SHA-256");
-                                    YamlInput yamlInput = Yaml.createYamlInput(new File("./config.yml"));
-                                    YamlMapping yamlMapping = yamlInput.readYamlMapping();
-                                    byte[] digest = md.digest(yamlMapping.string("WriteLogPass").getBytes(StandardCharsets.UTF_8));
-                                    yamlMapping = null;
-                                    yamlInput = null;
-                                    LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
-                                    System.gc();
-                                } catch (Exception e){
-                                    LogWritePass = null;
-                                }
-                            }
-
                             try {
+                                String LogWritePass = null;
                                 MessageDigest md = MessageDigest.getInstance("SHA-256");
+                                if (RequestURL.startsWith("force_queue")){
+                                    try {
+
+                                        YamlInput yamlInput = Yaml.createYamlInput(new File("./config.yml"));
+                                        YamlMapping yamlMapping = yamlInput.readYamlMapping();
+                                        byte[] digest = md.digest(yamlMapping.string("WriteLogPass").getBytes(StandardCharsets.UTF_8));
+                                        yamlMapping = null;
+                                        yamlInput = null;
+                                        LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
+                                        System.gc();
+                                    } catch (Exception e){
+                                        LogWritePass = null;
+                                    }
+                                }
 
                                 if (RequestURL.startsWith("force_queue") && LogWritePass != null){
                                     Matcher matcher = Pattern.compile("force_queue=(.+)").matcher(RequestURL);
                                     if (matcher.find()){
-                                        byte[] digest = md.digest(matcher.group(1).getBytes(StandardCharsets.UTF_8));
-                                        digest = md.digest((RequestURL+new Date().getTime()+UUID.randomUUID()).getBytes(StandardCharsets.UTF_8));
+                                        String inputP = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
+                                        //System.out.println(inputP);
+                                        byte[] digest = md.digest(inputP.getBytes(StandardCharsets.UTF_8));
+
+                                        //System.out.println(LogWritePass + " : " + HexFormat.of().withLowerCase().formatHex(digest));
                                         if (HexFormat.of().withLowerCase().formatHex(digest).equals(LogWritePass)){
+                                            //System.out.println("ok");
                                             ConversionAPI.ForceLogDataWrite();
                                         }
+                                        digest = md.digest((RequestURL+new Date().getTime()+UUID.randomUUID()).getBytes(StandardCharsets.UTF_8));
                                         LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
                                     }
                                     String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n[]";
