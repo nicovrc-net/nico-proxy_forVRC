@@ -78,8 +78,13 @@ public class HTTPServer extends Thread {
             public void run() {
                 ArrayList<String> list = new ArrayList<>(WebhookList);
                 WebhookList.clear();
+                if (list.isEmpty()){
+                    return;
+                }
+
                 list.forEach(json -> {
                     new Thread(()->{
+                        System.out.println("[Info] Webhook Send Start");
                         try {
                             RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
                             Request request = new Request.Builder()
@@ -92,6 +97,7 @@ public class HTTPServer extends Thread {
                         } catch (Exception e){
                             //e.printStackTrace();
                         }
+                        System.out.println("[Info] Webhook Send End");
                     }).start();
                 });
             }
