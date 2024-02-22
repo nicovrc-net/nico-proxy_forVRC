@@ -1,6 +1,7 @@
 package net.nicovrc.dev.server;
 
 import com.amihaiemil.eoyaml.Yaml;
+import com.amihaiemil.eoyaml.YamlInput;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import net.nicovrc.dev.api.*;
@@ -15,6 +16,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,9 +84,9 @@ public class HTTPServer extends Thread {
                     return;
                 }
 
+                System.out.println("[Info] Webhook Send Start");
                 list.forEach(json -> {
                     new Thread(()->{
-                        System.out.println("[Info] Webhook Send Start");
                         try {
                             RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
                             Request request = new Request.Builder()
@@ -97,9 +99,9 @@ public class HTTPServer extends Thread {
                         } catch (Exception e){
                             //e.printStackTrace();
                         }
-                        System.out.println("[Info] Webhook Send End");
                     }).start();
                 });
+                System.out.println("[Info] Webhook Send End ("+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +")");
             }
         }, 0L, 60000L);
     }
@@ -162,7 +164,7 @@ public class HTTPServer extends Thread {
 
                             // 生死確認
                             if (RequestURL.equals("check_health")) {
-                                String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\nへるすちぇっくー！ (Ver "+ ConversionAPI.getVer() +")\n\n"+ProxyAPI.getListCount()+"\n\n" + ServerAPI.getListCount() + "\n\n" + CacheAPI.getListCount();
+                                String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\nへるすちぇっくー！ (Ver "+ ConversionAPI.getVer() +")\n\n"+ProxyAPI.getListCount()+"\n\n" + ServerAPI.getListCount() + "\n\n" + CacheAPI.getListCount() + "\n\nLogQueueCount : " + ConversionAPI.getLogDataListCount();
 
                                 out.write(Result.getBytes(StandardCharsets.UTF_8));
                                 out.flush();
@@ -178,7 +180,7 @@ public class HTTPServer extends Thread {
                                 final String Result;
                                 if (matcher.find()){
                                     boolean check = ServerAPI.isCheck(matcher.group(1));
-                                    Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n" + (check ? "OK" : "NG");
+                                    Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n{" + (check ? "OK" : "NG") + "}";
                                 } else {
                                     Result = "HTTP/" + httpVersion + " 404 Not Found\nContent-Type: text/plain; charset=utf-8\n\n404";
                                 }
@@ -189,6 +191,46 @@ public class HTTPServer extends Thread {
                                 return;
                             }
 
+                            // ログ強制書き出し
+                            String LogWritePass = null;
+                            if (RequestURL.startsWith("force_queue")){
+                                try {
+                                    MessageDigest md = MessageDigest.getInstance("SHA-256");
+                                    YamlInput yamlInput = Yaml.createYamlInput(new File("./config.yml"));
+                                    YamlMapping yamlMapping = yamlInput.readYamlMapping();
+                                    byte[] digest = md.digest(yamlMapping.string("WriteLogPass").getBytes(StandardCharsets.UTF_8));
+                                    yamlMapping = null;
+                                    yamlInput = null;
+                                    LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
+                                    System.gc();
+                                } catch (Exception e){
+                                    LogWritePass = null;
+                                }
+                            }
+
+                            try {
+                                MessageDigest md = MessageDigest.getInstance("SHA-256");
+
+                                if (RequestURL.startsWith("force_queue") && LogWritePass != null){
+                                    Matcher matcher = Pattern.compile("force_queue=(.+)").matcher(RequestURL);
+                                    if (matcher.find()){
+                                        byte[] digest = md.digest(matcher.group(1).getBytes(StandardCharsets.UTF_8));
+                                        digest = md.digest((RequestURL+new Date().getTime()+UUID.randomUUID()).getBytes(StandardCharsets.UTF_8));
+                                        if (HexFormat.of().withLowerCase().formatHex(digest).equals(LogWritePass)){
+                                            ConversionAPI.ForceLogDataWrite();
+                                        }
+                                        LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
+                                    }
+                                    String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n[]";
+                                    SendResult(out, Result);
+                                    out.close();
+                                    in.close();
+                                    sock.close();
+                                    return;
+                                }
+                            } catch (Exception e){
+                                // e.printStackTrace();
+                            }
                             // 加工用
                             //System.out.println(RequestURL);
                             String TempURL = JinnnaiAPI.replace(RequestURL);

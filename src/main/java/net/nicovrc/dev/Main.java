@@ -36,6 +36,9 @@ DiscordWebhook: false
 # DiscordのWebhookのURL
 DiscordWebhookURL: ""
 
+# ログを強制的に書き出すときの合言葉
+WriteLogPass: 'うおー！ダミーちゃんです！！'
+
 # 他に処理鯖がある場合はそのリストを「IP:受付ポート」形式で記載する
 # (HTTP通信用を1つ、処理鯖(UDP通信)はn個という想定)
 ServerList:

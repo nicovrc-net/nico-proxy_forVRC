@@ -19,16 +19,19 @@ import java.net.Proxy;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class ConversionAPI {
 
-    private final String ver = "2.0-20240218";
+    private final String ver = "2.0-20240222";
 
     private final ProxyAPI proxyAPI;
     private final String SocketIP;
+    private final ConcurrentHashMap<String, LogData> LogDataList = new ConcurrentHashMap<>();
 
     public ConversionAPI(ProxyAPI proxyAPI){
         this.proxyAPI = proxyAPI;
@@ -48,6 +51,15 @@ public class ConversionAPI {
             temp = null;
         }
         SocketIP = temp;
+
+        // 1hおきにログ出力をする
+        Timer timer = new Timer();
+        timer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                ForceLogDataWrite();
+            }
+        }, 0L, 3600000L);
     }
 
     /**
@@ -371,7 +383,7 @@ public class ConversionAPI {
      */
     public void LogWrite(LogData data){
         //System.out.println(data.getRequestIP());
-
+        LogDataList.put(data.getLogID(), data);
     }
 
     /**
@@ -476,6 +488,28 @@ public class ConversionAPI {
 
         return null;
 
+    }
+
+    public int getLogDataListCount() {
+        return LogDataList.size();
+    }
+
+    public void ForceLogDataWrite(){
+        HashMap<String, LogData> map = new HashMap<>(LogDataList);
+        LogDataList.clear();
+
+        if (map.isEmpty()){
+            return;
+        }
+
+        new Thread(()->{
+            System.out.println("[Info] Log Write Start (Count : " + map.size() + ")");
+            map.forEach((id, content)->{
+
+            });
+            System.out.println("[Info] Log Write End ("+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +")");
+        }).start();
+        map.clear();
     }
 
     /**
