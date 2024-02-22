@@ -34,9 +34,16 @@ public class ConversionAPI {
         this.proxyAPI = proxyAPI;
         String temp = null;
         try {
-            final Socket socket = new Socket("nicovrc.net", 80);
-            temp = socket.getInetAddress().getHostAddress();
-            socket.close();
+            //
+            OkHttpClient client = new OkHttpClient();
+            Request ip = new Request.Builder()
+                    .url("https://ipinfo.io/ip")
+                    .build();
+            Response response = client.newCall(ip).execute();
+            if (response.body() != null){
+                temp = response.body().string();
+            }
+            response.close();
         } catch (Exception e){
             temp = null;
         }
@@ -63,7 +70,6 @@ public class ConversionAPI {
             request = HTTPRequest;
         }
         String ErrorMessage = null;
-        String ResultURL = null;
 
         ShareService Service = getService(TempRequestURL);
         String ServiceName = null;
