@@ -70,10 +70,12 @@ public class ProxyAPI {
             if (isJP){
                 request_html = new Request.Builder()
                         .url("https://www.nicovideo.jp/watch/so38016254")
+                        .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0 nicovrc.net/2.0")
                         .build();
             } else {
                 request_html = new Request.Builder()
                         .url("https://www.google.co.jp/")
+                        .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0 nicovrc.net/2.0")
                         .build();
             }
             Response response = build.newCall(request_html).execute();

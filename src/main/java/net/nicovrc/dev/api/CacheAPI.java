@@ -84,7 +84,7 @@ public class CacheAPI {
         if (data.getCacheUrl().startsWith("http://") || data.getCacheUrl().startsWith("https://")){
             Request request = new Request.Builder()
                     .url(data.getCacheUrl())
-                    .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0")
+                    .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0 nicovrc.net/2.0")
                     .build();
 
             try {
