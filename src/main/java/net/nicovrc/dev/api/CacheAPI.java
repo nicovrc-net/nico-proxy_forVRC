@@ -113,14 +113,24 @@ public class CacheAPI {
         CacheList.put(RequestURL, new CacheData(ExpiryDate, CacheURL));
     }
 
+    /**
+     *
+     * @param RequestURL キャッシュ削除するURL
+     */
     public void removeCache(String RequestURL){
         CacheList.remove(RequestURL);
     }
 
+    /**
+     * リスト取得
+     */
     public HashMap<String, CacheData> getList(){
         return new HashMap<>(CacheList);
     }
 
+    /**
+     * リスト一斉更新
+     */
     public void ListRefresh(){
         final HashMap<String, CacheData> temp = new HashMap<>(CacheList);
 
