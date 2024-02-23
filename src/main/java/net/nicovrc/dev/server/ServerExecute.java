@@ -74,6 +74,12 @@ public class ServerExecute {
 
         Matcher getTitle = Pattern.compile("(x-nicovrc-titleget: yes|user-agent: unityplayer/)").matcher(httpRequest.toLowerCase(Locale.ROOT));
         boolean isTitleGet = getTitle.find();
+        try {
+            UDPPacket packet = new Gson().fromJson(httpRequest, UDPPacket.class);
+            isTitleGet = packet.isGetTitle();
+        } catch (Exception e){
+            //e.printStackTrace();
+        }
 
         if (isCache && !isTitleGet){
             // キャッシュ対象の場合はキャッシュチェック
@@ -102,6 +108,7 @@ public class ServerExecute {
                 } else {
                     UDPPacket packet = new UDPPacket();
                     packet.setResultURL(cacheUrl);
+                    packet.setGetTitle(false);
                     SendResult(socket, address, packet);
                 }
 
@@ -122,6 +129,7 @@ public class ServerExecute {
                 } else {
                     UDPPacket packet = new UDPPacket();
                     packet.setResultURL(cacheUrl);
+                    packet.setGetTitle(false);
                     SendResult(socket, address, packet);
                 }
 
@@ -153,6 +161,7 @@ public class ServerExecute {
                     } else {
                         UDPPacket packet = new UDPPacket();
                         packet.setResultURL(ResultURL);
+                        packet.setGetTitle(false);
                         SendResult(socket, address, packet);
                     }
                 } else {
@@ -163,6 +172,7 @@ public class ServerExecute {
                     } else {
                         UDPPacket packet = new UDPPacket();
                         packet.setResultURL(ResultURL);
+                        packet.setGetTitle(true);
                         SendResult(socket, address, packet);
                     }
                 }
@@ -199,6 +209,7 @@ public class ServerExecute {
                 } else {
                     UDPPacket packet = new UDPPacket();
                     packet.setResultURL("https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage());
+                    packet.setGetTitle(isTitleGet);
                     SendResult(socket, address, packet);
                 }
 
@@ -221,7 +232,8 @@ public class ServerExecute {
                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+result.getResultURL());
                     } else {
                         UDPPacket packet1 = new UDPPacket();
-                        packet.setResultURL(result.getResultURL());
+                        packet1.setResultURL(result.getResultURL());
+                        packet1.setGetTitle(true);
                         SendResult(socket, address, packet1);
                     }
                 } else {
@@ -231,7 +243,8 @@ public class ServerExecute {
                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+result.getResultURL()+"\nDate: " + new Date() + "\n\n");
                     } else {
                         UDPPacket packet1 = new UDPPacket();
-                        packet.setResultURL(result.getResultURL());
+                        packet1.setResultURL(result.getResultURL());
+                        packet1.setGetTitle(false);
                         SendResult(socket, address, packet1);
                     }
                 }
@@ -251,7 +264,8 @@ public class ServerExecute {
                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+ ResultURL +"\nDate: " + new Date() + "\n\n");
                     } else {
                         UDPPacket packet1 = new UDPPacket();
-                        packet.setResultURL(ResultURL);
+                        packet1.setResultURL(ResultURL);
+                        packet1.setGetTitle(false);
                         SendResult(socket, address, packet1);
                     }
                 } else {
@@ -261,7 +275,8 @@ public class ServerExecute {
                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
                     } else {
                         UDPPacket packet1 = new UDPPacket();
-                        packet.setResultURL(ResultURL);
+                        packet1.setResultURL(ResultURL);
+                        packet1.setGetTitle(true);
                         SendResult(socket, address, packet1);
                     }
                 }
