@@ -90,7 +90,7 @@ public class ServerAPI {
             if (list != null){
                 for (int i = 0; i < list.size(); i++){
                     String[] s = list.string(i).split(":");
-                    System.out.println(isCheck(s[0], Integer.parseInt(s[1])));
+                    //System.out.println(isCheck(s[0], Integer.parseInt(s[1])));
                     if (isCheck(s[0], Integer.parseInt(s[1]))){
                         addList("Server"+(i+1), s[0], Integer.parseInt(s[1]));
                     }
