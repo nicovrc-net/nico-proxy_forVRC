@@ -57,4 +57,12 @@ public class UDPPacket {
     public void setErrorMessage(String errorMessage) {
         ErrorMessage = errorMessage;
     }
+
+    public String getTempRequestURL() {
+        return TempRequestURL;
+    }
+
+    public void setTempRequestURL(String tempRequestURL) {
+        TempRequestURL = tempRequestURL;
+    }
 }
