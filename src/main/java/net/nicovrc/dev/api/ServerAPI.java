@@ -5,6 +5,7 @@ import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlSequence;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import net.nicovrc.dev.data.OutputJson;
 import net.nicovrc.dev.data.ServerData;
 import net.nicovrc.dev.data.UDPPacket;
 
@@ -47,8 +48,10 @@ public class ServerAPI {
             udp_sock.setSoTimeout(100);
             udp_sock.receive(udp_packet2);
 
-            //String result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+            String result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
             //System.out.println("受信 : " + result);
+            OutputJson json = new Gson().fromJson(result, OutputJson.class);
+
             udp_sock.close();
         } catch (Exception e){
             try {
@@ -87,6 +90,7 @@ public class ServerAPI {
             if (list != null){
                 for (int i = 0; i < list.size(); i++){
                     String[] s = list.string(i).split(":");
+                    System.out.println(isCheck(s[0], Integer.parseInt(s[1])));
                     if (isCheck(s[0], Integer.parseInt(s[1]))){
                         addList("Server"+(i+1), s[0], Integer.parseInt(s[1]));
                     }
@@ -177,10 +181,11 @@ public class ServerAPI {
                 DatagramPacket udp_packet2 = new DatagramPacket(temp1, temp1.length);
                 udp_sock.receive(udp_packet2);
 
-                JsonElement json = gson.fromJson(new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())), JsonElement.class);
+                UDPPacket json = gson.fromJson(new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())), UDPPacket.class);
 
-                if (json.getAsJsonObject().has("ResultURL")){
-                    result.setResultURL(json.getAsJsonObject().get("ResultURL").getAsString());
+                if (json.getResultURL() != null || json.getErrorMessage() != null){
+                    result.setResultURL(json.getResultURL());
+                    result.setErrorMessage(json.getErrorMessage());
                     temp.clear();
                 }
             } catch (Exception e){

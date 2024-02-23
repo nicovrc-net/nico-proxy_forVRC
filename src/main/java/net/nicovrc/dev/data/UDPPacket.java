@@ -6,6 +6,7 @@ public class UDPPacket {
     private String ResultURL;
     private boolean isGetTitle;
     private String HTTPRequest;
+    private String ErrorMessage;
 
     public UDPPacket(String requestURL, boolean isGetTitle){
         this.RequestURL = requestURL;
@@ -59,5 +60,13 @@ public class UDPPacket {
 
     public void setHTTPRequest(String HTTPRequest) {
         this.HTTPRequest = HTTPRequest;
+    }
+
+    public String getErrorMessage() {
+        return ErrorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        ErrorMessage = errorMessage;
     }
 }
