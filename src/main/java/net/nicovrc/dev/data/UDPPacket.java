@@ -9,6 +9,10 @@ public class UDPPacket {
     private String HTTPRequest;
     private String ErrorMessage;
 
+    public UDPPacket(){
+
+    }
+
     public UDPPacket(String requestURL){
         this.RequestURL = requestURL;
     }

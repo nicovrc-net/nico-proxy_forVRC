@@ -4,7 +4,6 @@ import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlSequence;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 import net.nicovrc.dev.data.OutputJson;
 import net.nicovrc.dev.data.ServerData;
 import net.nicovrc.dev.data.UDPPacket;
@@ -34,7 +33,7 @@ public class ServerAPI {
      * @return 接続できた場合はtrue
      */
     public boolean isCheck(String IP, int Port){
-        UDPPacket check = new UDPPacket("check");
+        UDPPacket check = new UDPPacket();
         DatagramSocket udp_sock = null;
         try {
             udp_sock = new DatagramSocket();
