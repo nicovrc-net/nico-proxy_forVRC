@@ -1,6 +1,7 @@
 package net.nicovrc.dev.server;
 
 import com.amihaiemil.eoyaml.Yaml;
+import com.amihaiemil.eoyaml.YamlInput;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import net.nicovrc.dev.api.*;
@@ -9,13 +10,13 @@ import net.nicovrc.dev.data.UDPPacket;
 import okhttp3.*;
 
 import java.io.File;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
-import java.net.SocketException;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class UDPServer extends Thread {
 
@@ -146,6 +147,47 @@ public class UDPServer extends Thread {
                         json.setResultURL("OK");
                         socket.send(new DatagramPacket(new Gson().toJson(json).getBytes(StandardCharsets.UTF_8), new Gson().toJson(json).getBytes(StandardCharsets.UTF_8).length, address));
                         continue;
+                    }
+
+                    try {
+                        String LogWritePass = null;
+                        MessageDigest md = MessageDigest.getInstance("SHA-256");
+                        if (RequestURL.startsWith("force_queue")){
+                            try {
+                                YamlInput yamlInput = Yaml.createYamlInput(new File("./config.yml"));
+                                YamlMapping yamlMapping = yamlInput.readYamlMapping();
+                                byte[] digest = md.digest(yamlMapping.string("WriteLogPass").getBytes(StandardCharsets.UTF_8));
+                                yamlMapping = null;
+                                yamlInput = null;
+                                LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
+                                System.gc();
+                            } catch (Exception e){
+                                LogWritePass = null;
+                            }
+                        }
+
+                        if (RequestURL.startsWith("force_queue") && LogWritePass != null){
+                            Matcher matcher = Pattern.compile("force_queue=(.+)").matcher(RequestURL);
+                            if (matcher.find()){
+                                String inputP = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
+                                //System.out.println(inputP);
+                                byte[] digest = md.digest(inputP.getBytes(StandardCharsets.UTF_8));
+
+                                //System.out.println(LogWritePass + " : " + HexFormat.of().withLowerCase().formatHex(digest));
+                                if (HexFormat.of().withLowerCase().formatHex(digest).equals(LogWritePass)){
+                                    //System.out.println("ok");
+                                    ConversionAPI.ForceLogDataWrite();
+                                }
+                                digest = md.digest((RequestURL+new Date().getTime()+UUID.randomUUID()).getBytes(StandardCharsets.UTF_8));
+                                LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
+                            }
+
+                            json.setResultURL("");
+                            socket.send(new DatagramPacket(new Gson().toJson(json).getBytes(StandardCharsets.UTF_8), new Gson().toJson(json).getBytes(StandardCharsets.UTF_8).length, address));
+                            continue;
+                        }
+                    } catch (Exception e){
+                        // e.printStackTrace();
                     }
 
                     //System.out.println(packetText);
