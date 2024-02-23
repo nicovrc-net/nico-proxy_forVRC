@@ -10,6 +10,7 @@ import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.ProxyData;
 import net.nicovrc.dev.data.ServerData;
 import net.nicovrc.dev.server.HTTPServer;
+import net.nicovrc.dev.server.UDPServer;
 import okhttp3.OkHttpClient;
 
 import java.io.BufferedWriter;
@@ -156,6 +157,10 @@ OfficialProxy:
 
         if (isHTTP){
             new HTTPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, port).start();
+        }
+
+        if (isUDP){
+            new UDPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, port).start();
         }
 
     }
