@@ -1,15 +1,9 @@
 package net.nicovrc.dev.data;
 
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 import xyz.n7mn.nico_proxy.ShareService;
 import xyz.n7mn.nico_proxy.data.RequestVideoData;
 import xyz.n7mn.nico_proxy.data.ResultVideoData;
-
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.util.Locale;
 
 public class Image implements ShareService {
     public final OkHttpClient.Builder builder = new OkHttpClient.Builder();

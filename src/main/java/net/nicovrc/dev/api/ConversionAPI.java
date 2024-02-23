@@ -1,7 +1,6 @@
 package net.nicovrc.dev.api;
 
 import com.amihaiemil.eoyaml.Yaml;
-import com.amihaiemil.eoyaml.YamlInput;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;

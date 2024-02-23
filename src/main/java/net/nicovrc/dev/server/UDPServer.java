@@ -130,8 +130,6 @@ public class UDPServer extends Thread {
                     }
 
                     final String RequestURL = json.getRequestURL();
-                    String tempRequestURL = json.getTempRequestURL();
-                    final boolean isGetTitle = json.isGetTitle();
 
                     if (RequestURL == null){
                         socket.send(new DatagramPacket("{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8), "{\"Bad Request\"}".getBytes(StandardCharsets.UTF_8).length, address));
