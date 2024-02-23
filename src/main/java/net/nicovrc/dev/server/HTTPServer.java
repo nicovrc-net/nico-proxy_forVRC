@@ -6,6 +6,7 @@ import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import net.nicovrc.dev.api.*;
 import net.nicovrc.dev.data.LogData;
+import net.nicovrc.dev.data.OutputJson;
 import net.nicovrc.dev.data.ServerData;
 import net.nicovrc.dev.data.UDPPacket;
 import okhttp3.*;
@@ -185,6 +186,19 @@ public class HTTPServer extends Thread {
                                 } else {
                                     Result = "HTTP/" + httpVersion + " 404 Not Found\nContent-Type: text/plain; charset=utf-8\n\n404";
                                 }
+                                SendResult(out, Result);
+                                out.close();
+                                in.close();
+                                sock.close();
+                                return;
+                            }
+
+                            // いろいろデータをjsonで書き出す
+                            if (RequestURL.equals("get_data")){
+                                String json = new Gson().toJson(new OutputJson(ServerAPI.getList().size(), ProxyAPI.getMainProxyList().size(), ProxyAPI.getJPProxyList().size(), CacheAPI.getList().size(), WebhookList.size(), ConversionAPI.getLogDataListCount()));
+
+                                String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n"+json;
+
                                 SendResult(out, Result);
                                 out.close();
                                 in.close();
