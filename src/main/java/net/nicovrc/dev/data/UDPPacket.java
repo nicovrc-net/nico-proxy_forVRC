@@ -3,31 +3,19 @@ package net.nicovrc.dev.data;
 public class UDPPacket {
 
     private String RequestURL;
+    private String TempRequestURL;
     private String ResultURL;
     private boolean isGetTitle;
     private String HTTPRequest;
     private String ErrorMessage;
 
-    public UDPPacket(String requestURL, boolean isGetTitle){
+    public UDPPacket(String requestURL){
         this.RequestURL = requestURL;
-        this.isGetTitle = isGetTitle;
     }
 
-    public UDPPacket(String requestURL, String HTTPRequest, boolean isGetTitle){
+    public UDPPacket(String requestURL, String tempRequestURL){
         this.RequestURL = requestURL;
-        this.HTTPRequest = HTTPRequest;
-        this.isGetTitle = isGetTitle;
-    }
-
-    public UDPPacket(String resultURL){
-        this.ResultURL = resultURL;
-    }
-
-    public UDPPacket(String requestURL, String resultURL, String HTTPRequest, boolean isGetTitle){
-        this.RequestURL = requestURL;
-        this.ResultURL = resultURL;
-        this.isGetTitle = isGetTitle;
-        this.HTTPRequest = HTTPRequest;
+        this.TempRequestURL = tempRequestURL;
     }
 
     public String getRequestURL() {

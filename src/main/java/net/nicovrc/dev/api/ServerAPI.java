@@ -34,7 +34,7 @@ public class ServerAPI {
      * @return 接続できた場合はtrue
      */
     public boolean isCheck(String IP, int Port){
-        UDPPacket check = new UDPPacket("check", false);
+        UDPPacket check = new UDPPacket("check");
         DatagramSocket udp_sock = null;
         try {
             udp_sock = new DatagramSocket();
@@ -150,7 +150,7 @@ public class ServerAPI {
 
     /**
      * @param packet 送信するデータ
-     * @return
+     * @return 送信結果
      */
     public UDPPacket SendServer(UDPPacket packet){
         if (ServerList.isEmpty() && !isRefresh){
@@ -166,7 +166,6 @@ public class ServerAPI {
 
         int i = new SecureRandom().nextInt(1, temp.size());
 
-        UDPPacket result = new UDPPacket("");
         while (!temp.isEmpty()){
             ServerData data = temp.get("Server" + i);
             try {
@@ -184,8 +183,8 @@ public class ServerAPI {
                 UDPPacket json = gson.fromJson(new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())), UDPPacket.class);
 
                 if (json.getResultURL() != null || json.getErrorMessage() != null){
-                    result.setResultURL(json.getResultURL());
-                    result.setErrorMessage(json.getErrorMessage());
+                    packet.setResultURL(json.getResultURL());
+                    packet.setErrorMessage(json.getErrorMessage());
                     temp.clear();
                 }
             } catch (Exception e){
@@ -193,6 +192,6 @@ public class ServerAPI {
             }
         }
 
-        return result;
+        return packet;
     }
 }

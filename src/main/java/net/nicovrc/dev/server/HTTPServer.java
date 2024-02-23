@@ -402,7 +402,9 @@ public class HTTPServer extends Thread {
                                 }
                             } else {
                                 // 処理鯖が設定されている場合は処理鯖へ投げてその結果を返す
-                                UDPPacket packet = new UDPPacket(TempURL, httpRequest, isTitleGet);
+                                UDPPacket packet = new UDPPacket(RequestURL, TempURL);
+                                packet.setGetTitle(isTitleGet);
+
                                 UDPPacket result = ServerAPI.SendServer(packet);
                                 if (result.getResultURL() != null){
                                     if (isTitleGet){
