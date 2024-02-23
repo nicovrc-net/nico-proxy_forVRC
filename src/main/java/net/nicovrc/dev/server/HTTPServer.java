@@ -177,7 +177,7 @@ public class HTTPServer extends Thread {
                                 final String Result;
                                 if (matcher.find()){
                                     boolean check = ServerAPI.isCheck(matcher.group(1));
-                                    Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n{" + (check ? "OK" : "NG") + "}";
+                                    Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n{\"check\": \"" + (check ? "OK" : "NG") + "\"}";
                                 } else {
                                     Result = "HTTP/" + httpVersion + " 404 Not Found\nContent-Type: text/plain; charset=utf-8\n\n404";
                                 }
