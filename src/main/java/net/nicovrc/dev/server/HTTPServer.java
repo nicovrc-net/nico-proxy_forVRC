@@ -77,7 +77,7 @@ public class HTTPServer extends Thread {
             public void run() {
                 WebhookSendAll();
             }
-        }, 0L, 60000L);
+        }, 0L, 3600000L);
     }
 
     @Override
@@ -304,6 +304,7 @@ public class HTTPServer extends Thread {
         ArrayList<String> list = new ArrayList<>(WebhookList);
         WebhookList.clear();
         if (list.isEmpty()){
+            file.delete();
             return;
         }
 

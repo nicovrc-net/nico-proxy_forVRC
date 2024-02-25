@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 public class ConversionAPI {
 
-    private static final String ver = "2.0-20240223";
+    private static final String ver = "2.0-20240225";
 
     private final ProxyAPI proxyAPI;
     private final String SocketIP;
@@ -516,6 +516,7 @@ public class ConversionAPI {
         LogDataList.clear();
 
         if (map.isEmpty()){
+            file.delete();
             return;
         }
 

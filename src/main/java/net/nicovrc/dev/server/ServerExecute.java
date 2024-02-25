@@ -330,7 +330,7 @@ public class ServerExecute {
         }
     }
 
-    private static void SendWebhook(boolean isWebhook, String WebhookURL, ArrayList<String>WebhookList, String RequestURL, String ResultURL, boolean isCache, boolean isTitle){
+    private static void SendWebhook(boolean isWebhook, String WebhookURL, ArrayList<String> WebhookList, String RequestURL, String ResultURL, boolean isCache, boolean isTitle){
 
         if (!isWebhook){
             return;
