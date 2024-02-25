@@ -502,6 +502,16 @@ public class ConversionAPI {
      * キューを強制的に書き出す
      */
     public void ForceLogDataWrite() {
+        File file = new File("./log-write-lock.txt");
+        if (file.exists()){
+            return;
+        }
+        try {
+            file.createNewFile();
+        } catch (Exception e){
+            //e.printStackTrace();
+        }
+
         HashMap<String, LogData> map = new HashMap<>(LogDataList);
         LogDataList.clear();
 
@@ -517,7 +527,9 @@ public class ConversionAPI {
             // e.printStackTrace();
             isRedis1 = false;
         }
+
         final boolean isRedis = isRedis1;
+        final File fiFile = file;
 
         new Thread(()->{
             System.out.println("[Info] Log Write Start (Count : " + map.size() + ")");
@@ -534,6 +546,7 @@ public class ConversionAPI {
             });
             System.out.println("[Info] Log Write End ("+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +")");
             map.clear();
+            fiFile.delete();
         }).start();
 
     }

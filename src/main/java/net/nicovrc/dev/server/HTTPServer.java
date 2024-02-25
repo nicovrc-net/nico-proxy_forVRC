@@ -292,12 +292,22 @@ public class HTTPServer extends Thread {
     }
 
     private void WebhookSendAll() {
+        File file = new File("./http-webhook-lock.txt");
+        if (file.exists()){
+            return;
+        }
+        try {
+            file.createNewFile();
+        } catch (Exception e){
+            //e.printStackTrace();
+        }
         ArrayList<String> list = new ArrayList<>(WebhookList);
         WebhookList.clear();
         if (list.isEmpty()){
             return;
         }
 
+        final File finalFile = file;
         new Thread(()->{
             System.out.println("[Info] Webhook Send Start");
             list.forEach(json -> {
@@ -315,6 +325,8 @@ public class HTTPServer extends Thread {
                 }
             });
             System.out.println("[Info] Webhook Send End ("+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +")");
+
+            finalFile.delete();
         }).start();
     }
 }
