@@ -69,30 +69,7 @@ public class UDPServer extends Thread {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                ArrayList<String> list = new ArrayList<>(WebhookList);
-                WebhookList.clear();
-                if (list.isEmpty()){
-                    return;
-                }
-
-                System.out.println("[Info] Webhook Send Start");
-                list.forEach(json -> {
-                    new Thread(()->{
-                        try {
-                            RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
-                            Request request = new Request.Builder()
-                                    .url(WebhookURL)
-                                    .post(body)
-                                    .build();
-
-                            Response response = Client.newCall(request).execute();
-                            response.close();
-                        } catch (Exception e){
-                            //e.printStackTrace();
-                        }
-                    }).start();
-                });
-                System.out.println("[Info] Webhook Send End ("+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +")");
+                WebhookSendAll();
             }
         }, 0L, 60000L);
     }
@@ -177,6 +154,7 @@ public class UDPServer extends Thread {
                                 if (HexFormat.of().withLowerCase().formatHex(digest).equals(LogWritePass)){
                                     //System.out.println("ok");
                                     ConversionAPI.ForceLogDataWrite();
+                                    WebhookSendAll();
                                 }
                                 digest = md.digest((RequestURL+new Date().getTime()+UUID.randomUUID()).getBytes(StandardCharsets.UTF_8));
                                 LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
@@ -205,5 +183,32 @@ public class UDPServer extends Thread {
             e.printStackTrace();
         }
 
+    }
+
+    private void WebhookSendAll() {
+        ArrayList<String> list = new ArrayList<>(WebhookList);
+        WebhookList.clear();
+        if (list.isEmpty()){
+            return;
+        }
+
+        System.out.println("[Info] Webhook Send Start");
+        list.forEach(json -> {
+            new Thread(()->{
+                try {
+                    RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
+                    Request request = new Request.Builder()
+                            .url(WebhookURL)
+                            .post(body)
+                            .build();
+
+                    Response response = Client.newCall(request).execute();
+                    response.close();
+                } catch (Exception e){
+                    //e.printStackTrace();
+                }
+            }).start();
+        });
+        System.out.println("[Info] Webhook Send End ("+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +")");
     }
 }
