@@ -298,9 +298,9 @@ public class HTTPServer extends Thread {
             return;
         }
 
-        System.out.println("[Info] Webhook Send Start");
-        list.forEach(json -> {
-            new Thread(()->{
+        new Thread(()->{
+            System.out.println("[Info] Webhook Send Start");
+            list.forEach(json -> {
                 try {
                     RequestBody body = RequestBody.create(json, MediaType.get("application/json; charset=utf-8"));
                     Request request = new Request.Builder()
@@ -313,8 +313,8 @@ public class HTTPServer extends Thread {
                 } catch (Exception e){
                     //e.printStackTrace();
                 }
-            }).start();
-        });
-        System.out.println("[Info] Webhook Send End ("+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +")");
+            });
+            System.out.println("[Info] Webhook Send End ("+new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()) +")");
+        }).start();
     }
 }
