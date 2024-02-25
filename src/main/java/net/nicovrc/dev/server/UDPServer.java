@@ -71,7 +71,7 @@ public class UDPServer extends Thread {
             public void run() {
                 WebhookSendAll();
             }
-        }, 0L, 3600000L);
+        }, 0L, 60000L);
     }
 
     @Override
