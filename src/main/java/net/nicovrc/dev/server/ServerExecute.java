@@ -62,10 +62,6 @@ public class ServerExecute {
             TempURL = TempURL.replaceAll("ext", "www").replaceAll("commons", "www").replaceAll("thumb", "watch").replaceAll("works", "watch");
         }
 
-        // Videoモードの場合の誘導
-        if (httpRequest != null && Pattern.compile("Chrome/91").matcher(httpRequest).find()){
-            TempURL = "https://r2.7mi.site/vrc/nico/v2.mp4";
-        }
         //System.out.println(TempURL);
 
         // 処理鯖に投げるための事前準備
