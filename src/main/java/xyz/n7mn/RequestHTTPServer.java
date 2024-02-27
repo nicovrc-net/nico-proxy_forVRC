@@ -358,9 +358,9 @@ public class RequestHTTPServer extends Thread{
 
 
                             // Videoモードの場合の誘導
-                            if (Pattern.compile("Chrome/91").matcher(httpRequest).find()){
-                                tempURL = "https://r2.7mi.site/vrc/nico/v2.mp4";
-                            }
+                            //if (Pattern.compile("Chrome/91").matcher(httpRequest).find()){
+                            //    tempURL = "https://r2.7mi.site/vrc/nico/v2.mp4";
+                            //}
 
                             // URLを処理鯖に投げる
                             boolean ServerListEmpty = ServerList.isEmpty();
