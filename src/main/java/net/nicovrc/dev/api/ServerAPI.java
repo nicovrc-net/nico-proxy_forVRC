@@ -164,7 +164,7 @@ public class ServerAPI {
 
         final HashMap<String, ServerData> temp = getList();
 
-        int i = new SecureRandom().nextInt(1, temp.size());
+        int i = temp.size() > 1 ? new SecureRandom().nextInt(1, temp.size()) : 1;
 
         while (!temp.isEmpty()){
             ServerData data = temp.get("Server" + i);
@@ -180,6 +180,7 @@ public class ServerAPI {
                 DatagramPacket udp_packet2 = new DatagramPacket(temp1, temp1.length);
                 udp_sock.receive(udp_packet2);
 
+                //System.out.println("受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
                 UDPPacket json = gson.fromJson(new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())), UDPPacket.class);
 
                 if (json.getResultURL() != null || json.getErrorMessage() != null){
