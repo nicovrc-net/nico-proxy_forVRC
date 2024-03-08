@@ -107,7 +107,7 @@ public class ConversionAPI {
             final List<ProxyData> list = proxyAPI.getMainProxyList();
             final List<ProxyData> list_jp = proxyAPI.getJPProxyList();
             int main_count = list.isEmpty() ? 0 : (list.size() > 1 ? new SecureRandom().nextInt(0, list.size() - 1) : 0);
-            int jp_count = list.isEmpty() ? 0 : (list.size() > 1 ? new SecureRandom().nextInt(0, list_jp.size() - 1) : 0);
+            int jp_count = list_jp.isEmpty() ? 0 : (list_jp.size() > 1 ? new SecureRandom().nextInt(0, list_jp.size() - 1) : 0);
             //System.out.println("Debug1-3 : " + ServiceName);
 
             final xyz.n7mn.nico_proxy.data.ProxyData proxyData = list.isEmpty() ? null : new xyz.n7mn.nico_proxy.data.ProxyData(list.get(main_count).getIP(), list.get(main_count).getPort());
