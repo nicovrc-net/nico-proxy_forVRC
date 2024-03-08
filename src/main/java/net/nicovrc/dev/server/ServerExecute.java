@@ -245,7 +245,11 @@ public class ServerExecute {
                     }
                 }
                 if (isCache){
-                    CacheAPI.setCache(TempURL, result.getResultURL(), Pattern.compile("([nb])\\.nicovrc.net").matcher(result.getResultURL()).find() ? new Date().getTime() + 86400000 : -1);
+                    if (!Pattern.compile("i2v\\.nicovrc\\.net").matcher(result.getResultURL()).find()){
+                        CacheAPI.setCache(TempURL, result.getResultURL(), Pattern.compile("([nb])\\.nicovrc.net").matcher(result.getResultURL()).find() ? new Date().getTime() + 86400000 : -1);
+                    } else {
+                        CacheAPI.removeCache(TempURL);
+                    }
                 }
             } else {
                 String ResultURL = ConversionAPI.get(httpRequest, RequestURL, TempURL, isTitleGet);
