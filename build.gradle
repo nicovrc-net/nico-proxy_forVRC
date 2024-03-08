@@ -5,7 +5,7 @@ plugins {
 
 
 group  "xyz.n7mn"
-version "1.0-SNAPSHOT"
+version "2.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -18,9 +18,9 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.1'
 
     implementation "com.squareup.okhttp3:okhttp:4.12.0"
-    implementation 'com.amihaiemil.web:eo-yaml:7.0.8'
+    implementation 'com.amihaiemil.web:eo-yaml:7.2.0'
 
-    implementation 'redis.clients:jedis:5.1.0'
+    implementation 'redis.clients:jedis:5.2.0-alpha2'
     implementation 'com.google.code.gson:gson:2.10.1'
 
     implementation 'com.github.7mi-site:nico-proxy:1.10.8'
@@ -40,6 +40,6 @@ shadowJar {
     }
 
     manifest {
-        attributes 'Main-Class': 'xyz.n7mn.Main'
+        attributes 'Main-Class': 'net.nicovrc.dev.Main'
     }
 }

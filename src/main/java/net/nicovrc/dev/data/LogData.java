@@ -1,8 +1,9 @@
-package xyz.n7mn.data;
+package net.nicovrc.dev.data;
 
 import java.util.Date;
 
 public class LogData {
+
     private String LogID;
     private Date Date;
     private String HTTPRequest;
@@ -11,11 +12,7 @@ public class LogData {
     private String ResultURL;
     private String ErrorMessage;
 
-    public LogData(){
-
-    }
-
-    public LogData(String logID, Date date, String HTTPRequest, String requestIP, String requestURL, String resultURL, String errorMessage){
+    public LogData(String logID, Date date, String HTTPRequest, String  requestIP, String requestURL, String resultURL, String errorMessage){
         this.LogID = logID;
         this.Date = date;
         this.HTTPRequest = HTTPRequest;

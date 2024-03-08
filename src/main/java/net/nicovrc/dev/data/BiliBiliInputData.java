@@ -1,6 +1,6 @@
-package xyz.n7mn.data;
+package net.nicovrc.dev.data;
 
-public class BiliBiliRequestJson {
+public class BiliBiliInputData {
     private String SiteType;
     private String VideoURL;
     private String AudioURL;

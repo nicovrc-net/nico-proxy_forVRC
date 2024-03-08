@@ -1,10 +1,11 @@
-package xyz.n7mn.data;
+package net.nicovrc.dev.data;
 
 public class NicoVideoInputData {
     private String VideoURL;
     private String AudioURL;
     private String Cookie;
     private String Proxy;
+
 
     public String getVideoURL() {
         return VideoURL;
