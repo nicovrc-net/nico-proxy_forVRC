@@ -106,12 +106,12 @@ public class ConversionAPI {
 
             final List<ProxyData> list = proxyAPI.getMainProxyList();
             final List<ProxyData> list_jp = proxyAPI.getJPProxyList();
-            int main_count = list.isEmpty() ? 0 : new SecureRandom().nextInt(0, list.size() - 1);
-            int jp_count = list.isEmpty() ? 0 : new SecureRandom().nextInt(0, list_jp.size() - 1);
+            int main_count = list.isEmpty() ? 0 : (list.size() > 1 ? new SecureRandom().nextInt(0, list.size() - 1) : 0);
+            int jp_count = list.isEmpty() ? 0 : (list.size() > 1 ? new SecureRandom().nextInt(0, list_jp.size() - 1) : 0);
             //System.out.println("Debug1-3 : " + ServiceName);
 
             final xyz.n7mn.nico_proxy.data.ProxyData proxyData = list.isEmpty() ? null : new xyz.n7mn.nico_proxy.data.ProxyData(list.get(main_count).getIP(), list.get(main_count).getPort());
-            final xyz.n7mn.nico_proxy.data.ProxyData proxyData_jp = list.isEmpty() ? null : new xyz.n7mn.nico_proxy.data.ProxyData(list.get(jp_count).getIP(), list.get(jp_count).getPort());
+            final xyz.n7mn.nico_proxy.data.ProxyData proxyData_jp = list_jp.isEmpty() ? null : new xyz.n7mn.nico_proxy.data.ProxyData(list_jp.get(jp_count).getIP(), list_jp.get(jp_count).getPort());
             boolean isUseJPProxy = false;
 
             final OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -122,9 +122,13 @@ public class ConversionAPI {
                     .build();
             Response response = client.newCall(img).execute();
             if (response.body() != null){
-                isUseJPProxy = Pattern.compile("この動画は投稿\\( アップロード \\)された地域と同じ地域からのみ視聴できます。").matcher(response.body().string()).find();
+                String temp = response.body().string();
+                //System.out.println(temp);
+                isUseJPProxy = Pattern.compile("fail-message").matcher(temp).find();
             }
             response.close();
+            //System.out.println(isUseJPProxy);
+            //System.out.println(proxyData_jp.getProxyIP());
 
             if (isTitleGet){
                 return Service.getTitle(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
