@@ -34,6 +34,7 @@ public class ServerAPI {
      */
     public boolean isCheck(String IP, int Port){
         UDPPacket check = new UDPPacket();
+        check.setRequestURL("check");
         DatagramSocket udp_sock = null;
         try {
             udp_sock = new DatagramSocket();
