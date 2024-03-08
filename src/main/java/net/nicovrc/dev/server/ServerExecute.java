@@ -223,7 +223,7 @@ public class ServerExecute {
             if (result.getResultURL() != null){
                 if (isTitleGet){
                     System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + result.getResultURL());
-                    SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, result.getResultURL(), false, true);
+                    //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, result.getResultURL(), false, true);
                     if (socket == null){
                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+result.getResultURL());
                     } else {
@@ -234,7 +234,7 @@ public class ServerExecute {
                     }
                 } else {
                     System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + result.getResultURL());
-                    SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, result.getResultURL(), false, false);
+                    //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, result.getResultURL(), false, false);
                     if (socket == null){
                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+result.getResultURL()+"\nDate: " + new Date() + "\n\n");
                     } else {
@@ -255,7 +255,7 @@ public class ServerExecute {
 
                 if (!isTitleGet){
                     System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + ResultURL);
-                    SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, ResultURL, false, false);
+                    //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, ResultURL, false, false);
                     if (socket == null){
                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+ ResultURL +"\nDate: " + new Date() + "\n\n");
                     } else {
@@ -266,7 +266,7 @@ public class ServerExecute {
                     }
                 } else {
                     System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + ResultURL);
-                    SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, ResultURL, false, true);
+                    //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, ResultURL, false, true);
                     if (socket == null){
                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
                     } else {
