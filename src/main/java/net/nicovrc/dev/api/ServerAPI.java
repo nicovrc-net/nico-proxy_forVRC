@@ -158,6 +158,7 @@ public class ServerAPI {
         }
 
         long l = 0;
+        //System.out.println(ServerList.isEmpty() + " / " + isRefresh);
         while (isRefresh && ServerList.isEmpty()){
             l++;
         }
@@ -190,6 +191,7 @@ public class ServerAPI {
                 }
             } catch (Exception e){
                 temp.remove("Server" + i);
+                i = temp.size() > 1 ? new SecureRandom().nextInt(1, temp.size()) : 1;
             }
         }
 

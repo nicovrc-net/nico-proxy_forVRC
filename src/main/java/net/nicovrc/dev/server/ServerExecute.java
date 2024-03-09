@@ -65,7 +65,7 @@ public class ServerExecute {
         //System.out.println(TempURL);
 
         // 処理鯖に投げるための事前準備
-        final Matcher CacheCheck = Pattern.compile("(nicovideo\\.jp|bilibili|tver\\.jp)").matcher(TempURL);
+        final Matcher CacheCheck = Pattern.compile("(nicovideo\\.jp|bilibili|tver\\.jp)").matcher(TempURL.split("\\?")[0]);
         final boolean isCache = CacheCheck.find();
 
         Matcher getTitle = Pattern.compile("(x-nicovrc-titleget: yes|user-agent: unityplayer/)").matcher(httpRequest.toLowerCase(Locale.ROOT));
@@ -79,13 +79,13 @@ public class ServerExecute {
 
         if (isCache && !isTitleGet){
             // キャッシュ対象の場合はキャッシュチェック
-            String cacheUrl = CacheAPI.getCache(TempURL);
+            String cacheUrl = CacheAPI.getCache(TempURL.split("\\?")[0]);
             //System.out.println("a");
             if (cacheUrl != null && cacheUrl.equals("pre")){
                 //System.out.println("a-2");
                 // キャッシュにはあるが処理中の場合 一旦待機してから内容を返す
                 while (cacheUrl == null || cacheUrl.equals("pre")){
-                    cacheUrl = CacheAPI.getCache(TempURL);
+                    cacheUrl = CacheAPI.getCache(TempURL.split("\\?")[0]);
                     try {
                         Thread.sleep(500L);
                     } catch (Exception e){
@@ -135,7 +135,7 @@ public class ServerExecute {
             }
             //System.out.println("b");
             // キャッシュない場合は処理中を表す「pre」をキャッシュリストに入れる
-            CacheAPI.setCache(TempURL, "pre", -1L);
+            CacheAPI.setCache(TempURL.split("\\?")[0], "pre", -1L);
         }
 
         HashMap<String, ServerData> list = ServerAPI.getList();
@@ -196,8 +196,11 @@ public class ServerExecute {
                         eTime = new Date().getTime() + eTime;
                     }
 
-                    CacheAPI.removeCache(TempURL);
-                    CacheAPI.setCache(TempURL, ResultURL, eTime);
+                    CacheAPI.removeCache(TempURL.split("\\?")[0]);
+
+                    if (!isTitleGet){
+                        CacheAPI.setCache(TempURL.split("\\?")[0], ResultURL, eTime);
+                    }
                 }
             } catch (Exception e){
                 if (socket == null){
@@ -210,7 +213,7 @@ public class ServerExecute {
                 }
 
                 if (isCache){
-                    CacheAPI.removeCache(TempURL);
+                    CacheAPI.removeCache(TempURL.split("\\?")[0]);
                 }
                 System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + e.getMessage());
             }
@@ -245,7 +248,12 @@ public class ServerExecute {
                     }
                 }
                 if (isCache){
-                    CacheAPI.setCache(TempURL, result.getResultURL(), Pattern.compile("([nb])\\.nicovrc.net").matcher(result.getResultURL()).find() ? new Date().getTime() + 86400000 : -1);
+                    if (!Pattern.compile("i2v\\.nicovrc\\.net").matcher(result.getResultURL()).find()){
+                        CacheAPI.removeCache(TempURL.split("\\?")[0]);
+                        CacheAPI.setCache(TempURL, result.getResultURL(), Pattern.compile("([nb])\\.nicovrc.net").matcher(result.getResultURL()).find() ? new Date().getTime() + 86400000 : -1);
+                    } else {
+                        CacheAPI.removeCache(TempURL.split("\\?")[0]);
+                    }
                 }
             } else {
                 String ResultURL = ConversionAPI.get(httpRequest, RequestURL, TempURL, isTitleGet);
@@ -300,8 +308,10 @@ public class ServerExecute {
                         }
                     }
 
-                    CacheAPI.removeCache(TempURL);
-                    CacheAPI.setCache(TempURL, ResultURL, eTime);
+                    CacheAPI.removeCache(TempURL.split("\\?")[0]);
+                    if (!isTitleGet){
+                        CacheAPI.setCache(TempURL.split("\\?")[0], ResultURL, eTime);
+                    }
                 }
             }
         }
