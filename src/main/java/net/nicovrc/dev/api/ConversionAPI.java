@@ -349,6 +349,11 @@ public class ConversionAPI {
                 }
             }
 
+            if (ServiceName.equals("画像") || ServiceName.equals("動画")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, null));
+                return video.getVideoURL();
+            }
+
         } catch (Exception e){
             ErrorMessage = ServiceName + " : " + e.getMessage();
             //e.printStackTrace();
