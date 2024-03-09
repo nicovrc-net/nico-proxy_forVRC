@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 public class ConversionAPI {
 
-    private static final String ver = "2.0-20240308";
+    private static final String ver = "2.0-20240309";
 
     private final ProxyAPI proxyAPI;
     private final String SocketIP;
