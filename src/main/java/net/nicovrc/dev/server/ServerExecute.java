@@ -250,7 +250,7 @@ public class ServerExecute {
                 if (isCache){
                     if (!Pattern.compile("i2v\\.nicovrc\\.net").matcher(result.getResultURL()).find()){
                         CacheAPI.removeCache(TempURL.split("\\?")[0]);
-                        CacheAPI.setCache(TempURL, result.getResultURL(), Pattern.compile("([nb])\\.nicovrc.net").matcher(result.getResultURL()).find() ? new Date().getTime() + 86400000 : -1);
+                        CacheAPI.setCache(TempURL.split("\\?")[0], result.getResultURL(), Pattern.compile("([nb])\\.nicovrc.net").matcher(result.getResultURL()).find() ? new Date().getTime() + 86400000 : -1);
                     } else {
                         CacheAPI.removeCache(TempURL.split("\\?")[0]);
                     }

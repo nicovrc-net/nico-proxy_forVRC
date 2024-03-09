@@ -169,6 +169,10 @@ public class ServerAPI {
 
         while (!temp.isEmpty()){
             ServerData data = temp.get("Server" + i);
+            if (data == null){
+                i = temp.size() > 1 ? new SecureRandom().nextInt(1, temp.size()) : 1;
+                continue;
+            }
             try {
                 DatagramSocket udp_sock = new DatagramSocket();
 
