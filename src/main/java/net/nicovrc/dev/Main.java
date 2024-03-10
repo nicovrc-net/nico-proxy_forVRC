@@ -107,14 +107,14 @@ OfficialProxy:
             public void run() {
                 serverAPI.ListRefresh();
             }
-        }, 0L, 15000L);
+        }, 0L, 60000L);
 
         CacheCheckTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 cacheAPI.ListRefresh();
             }
-        }, 0L, 5000L);
+        }, 0L, 15000L);
 
         if (!new File("./config.yml").exists()){
             try {
