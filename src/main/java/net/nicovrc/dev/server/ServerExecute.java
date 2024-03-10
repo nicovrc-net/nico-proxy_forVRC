@@ -135,7 +135,7 @@ public class ServerExecute {
             }
             //System.out.println("b");
             // キャッシュない場合は処理中を表す「pre」をキャッシュリストに入れる
-            CacheAPI.setCache(TempURL.split("\\?")[0], "pre", -1L);
+            CacheAPI.setCache(TempURL.split("\\?")[0], "pre", new Date().getTime() + 5000L);
         }
 
         HashMap<String, ServerData> list = ServerAPI.getList();
