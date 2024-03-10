@@ -114,7 +114,7 @@ OfficialProxy:
             public void run() {
                 cacheAPI.ListRefresh();
             }
-        }, 0L, 5000L);
+        }, 0L, 15000L);
 
         if (!new File("./config.yml").exists()){
             try {
