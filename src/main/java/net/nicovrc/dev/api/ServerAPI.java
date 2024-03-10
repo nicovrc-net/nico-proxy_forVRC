@@ -14,6 +14,7 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
@@ -164,15 +165,23 @@ public class ServerAPI {
         }
 
         final HashMap<String, ServerData> temp = getList();
-
+        //System.out.println(ServerList.size() + " / " + temp.size());
         int i = temp.size() > 1 ? new SecureRandom().nextInt(1, temp.size()) : 1;
+        //System.out.println(i);
+
+        final ArrayList<ServerData> tempList = new ArrayList<>();
+
+        temp.forEach(((s, serverData) -> {
+            tempList.add(serverData);
+        }));
 
         while (!temp.isEmpty()){
-            ServerData data = temp.get("Server" + i);
+            ServerData data = tempList.get(i);
             if (data == null){
                 i = temp.size() > 1 ? new SecureRandom().nextInt(1, temp.size()) : 1;
                 continue;
             }
+            //System.out.println("Server" + i);
             try {
                 DatagramSocket udp_sock = new DatagramSocket();
 
@@ -185,7 +194,7 @@ public class ServerAPI {
                 DatagramPacket udp_packet2 = new DatagramPacket(temp1, temp1.length);
                 udp_sock.receive(udp_packet2);
 
-                //System.out.println("受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
+                System.out.println("受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
                 UDPPacket json = gson.fromJson(new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())), UDPPacket.class);
 
                 if (json.getResultURL() != null || json.getErrorMessage() != null){
