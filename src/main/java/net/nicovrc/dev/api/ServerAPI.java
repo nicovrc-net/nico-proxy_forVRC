@@ -166,7 +166,7 @@ public class ServerAPI {
 
         final HashMap<String, ServerData> temp = getList();
         //System.out.println(ServerList.size() + " / " + temp.size());
-        int i = temp.size() > 1 ? new SecureRandom().nextInt(1, temp.size()) : 1;
+        int i = temp.size() > 1 ? new SecureRandom().nextInt(0, temp.size() - 1) : 0;
         //System.out.println(i);
 
         final ArrayList<ServerData> tempList = new ArrayList<>();
@@ -178,7 +178,7 @@ public class ServerAPI {
         while (!temp.isEmpty()){
             ServerData data = tempList.get(i);
             if (data == null){
-                i = temp.size() > 1 ? new SecureRandom().nextInt(1, temp.size()) : 1;
+                i = temp.size() > 1 ? new SecureRandom().nextInt(0, temp.size() - 1) : 0;
                 continue;
             }
             //System.out.println("Server" + i);
@@ -204,7 +204,7 @@ public class ServerAPI {
                 }
             } catch (Exception e){
                 temp.remove(i);
-                i = temp.size() > 1 ? new SecureRandom().nextInt(1, temp.size()) : 1;
+                i = temp.size() > 1 ? new SecureRandom().nextInt(0, temp.size() - 1) : 0;
             }
         }
 

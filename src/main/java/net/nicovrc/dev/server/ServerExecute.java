@@ -221,6 +221,7 @@ public class ServerExecute {
             // 処理鯖が設定されている場合は処理鯖へ投げてその結果を返す
             UDPPacket packet = new UDPPacket(RequestURL, TempURL);
             packet.setGetTitle(isTitleGet);
+            packet.setHTTPRequest(httpRequest);
 
             UDPPacket result = ServerAPI.SendServer(packet);
             if (result.getResultURL() != null){
