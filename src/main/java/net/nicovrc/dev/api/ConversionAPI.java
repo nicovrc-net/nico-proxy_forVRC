@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 public class ConversionAPI {
 
-    private static final String ver = "2.0-20240310";
+    private static final String ver = "2.0-20240312";
 
     private final ProxyAPI proxyAPI;
     private final String SocketIP;
@@ -163,7 +163,11 @@ public class ConversionAPI {
                     }
                 } else {
                     // 配信
-                    video = Service.getLive(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                    try {
+                        video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData));
+                    } catch (Exception e){
+                        video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
+                    }
                 }
 
                 if (Pattern.compile("dmc\\.nico").matcher(video.getVideoURL()).find()){
