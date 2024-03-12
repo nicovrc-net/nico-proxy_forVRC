@@ -65,7 +65,7 @@ public class ServerExecute {
         //System.out.println(TempURL);
 
         // 処理鯖に投げるための事前準備
-        final Matcher CacheCheck = Pattern.compile("(nicovideo\\.jp|bilibili|tver\\.jp)").matcher(TempURL.split("\\?")[0]);
+        final Matcher CacheCheck = Pattern.compile("(nicovideo\\.jp|bilibili|tver\\.jp|xvideos\\.com)").matcher(TempURL.split("\\?")[0]);
         final boolean isCache = CacheCheck.find();
 
         Matcher getTitle = Pattern.compile("(x-nicovrc-titleget: yes|user-agent: unityplayer/)").matcher(httpRequest.toLowerCase(Locale.ROOT));
