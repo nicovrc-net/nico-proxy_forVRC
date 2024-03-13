@@ -23,7 +23,7 @@ dependencies {
     implementation 'redis.clients:jedis:5.2.0-alpha2'
     implementation 'com.google.code.gson:gson:2.10.1'
 
-    implementation 'com.github.7mi-site:nico-proxy:1.10.8'
+    implementation 'com.github.7mi-site:nico-proxy:1.11.2'
 }
 
 tasks.test {

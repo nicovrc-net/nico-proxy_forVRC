@@ -417,6 +417,7 @@ public class ConversionAPI {
         Matcher matcher_TwicastURL = Pattern.compile("twitcasting\\.tv").matcher(URL);
         Matcher matcher_AbemaURL = Pattern.compile("abema\\.tv").matcher(URL);
         Matcher matcher_TVerURL = Pattern.compile("tver\\.jp").matcher(URL);
+        Matcher matcher_GimyURL = Pattern.compile("gimy\\.ai").matcher(URL);
 
         if (matcher_NicoVideoURL.find()){
             return new NicoNicoVideo();
@@ -498,6 +499,10 @@ public class ConversionAPI {
             response.close();
         } catch (Exception e){
             // e.printStackTrace();
+        }
+
+        if (matcher_GimyURL.find()){
+            return new Gimy();
         }
 
         return null;
