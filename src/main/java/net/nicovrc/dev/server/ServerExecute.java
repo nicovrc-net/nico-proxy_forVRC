@@ -65,7 +65,7 @@ public class ServerExecute {
         //System.out.println(TempURL);
 
         // 処理鯖に投げるための事前準備
-        final Matcher CacheCheck = Pattern.compile("(nicovideo\\.jp|bilibili|tver\\.jp)").matcher(TempURL.split("\\?")[0]);
+        final Matcher CacheCheck = Pattern.compile("(nicovideo\\.jp|bilibili|tver\\.jp|xvideos\\.com)").matcher(TempURL.split("\\?")[0]);
         final boolean isCache = CacheCheck.find();
 
         Matcher getTitle = Pattern.compile("(x-nicovrc-titleget: yes|user-agent: unityplayer/)").matcher(httpRequest.toLowerCase(Locale.ROOT));
@@ -94,7 +94,7 @@ public class ServerExecute {
                 }
 
                 System.out.println("["+sdf.format(new Date())+"] リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
-                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, cacheUrl, true, false);
+                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, cacheUrl, httpRequest, true, false);
 
                 if (socket == null){
                     SendResult(out,  "HTTP/" + httpVersion + " 302 Found\nLocation: " + cacheUrl + "\nDate: " + new Date() + "\n\n");
@@ -115,7 +115,7 @@ public class ServerExecute {
                 //System.out.println("a-3");
                 // 処理中ではなくURLが入っている場合はその結果を返す
                 System.out.println("["+sdf.format(new Date())+"] リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
-                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, cacheUrl, true, false);
+                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, cacheUrl, httpRequest, true, false);
 
                 if (socket == null){
                     SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: " + cacheUrl + "\nDate: " + new Date() + "\n\n");
@@ -151,7 +151,7 @@ public class ServerExecute {
 
                 if (!isTitleGet){
                     System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + ResultURL);
-                    SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, ResultURL, false, false);
+                    SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, ResultURL, httpRequest, false, false);
                     if (socket == null){
                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+ ResultURL +"\nDate: " + new Date() + "\n\n");
                     } else {
@@ -162,7 +162,7 @@ public class ServerExecute {
                     }
                 } else {
                     System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + ResultURL);
-                    SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, ResultURL, false, true);
+                    SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, ResultURL, httpRequest, false, true);
                     if (socket == null){
                         SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
                     } else {
@@ -337,38 +337,126 @@ public class ServerExecute {
         }
     }
 
-    private static void SendWebhook(boolean isWebhook, String WebhookURL, ArrayList<String> WebhookList, String RequestURL, String ResultURL, boolean isCache, boolean isTitle){
+    private static void SendWebhook(boolean isWebhook, String WebhookURL, ArrayList<String> WebhookList, String RequestURL, String ResultURL, String RequestHeader, boolean isCache, boolean isTitle) {
 
-        if (!isWebhook){
+        if (!isWebhook) {
             return;
         }
 
-        if (WebhookURL.isEmpty()){
+        if (WebhookURL.isEmpty()) {
             return;
         }
 
-        final String jsonText = "" +
-                "{"+
-                "  \"username\": \"nico-proxy_forVRC (Ver "+ConversionAPI.getVer()+")\","+
-                "  \"avatar_url\": \"https://r2.7mi.site/vrc/nico/nc296562.png\","+
-                "  \"content\": \"利用ログ\","+
-                "  \"embeds\": ["+
-                "    {"+
-                "      \"title\": \""+(isCache ? "キャッシュ" : "新規")+"\","+
-                "      \"description\": \""+sdf.format(new Date())+"\","+
-                "      \"fields\": ["+
-                "        {"+
-                "          \"name\": \"リクエストURL\","+
-                "          \"value\": \""+RequestURL+"\""+
-                "        },"+
-                "        {"+
-                "          \"name\": \"処理結果"+(isTitle ? "タイトル" : "URL")+"\","+
-                "          \"value\": \""+ResultURL+"\""+
-                "        }"+
-                "      ]"+
-                "    }"+
-                "  ]" +
-                "}";
+        final String jsonText;
+
+        Matcher referer = Pattern.compile("([Rr])eferer: (.+)").matcher(RequestHeader);
+        Matcher origin = Pattern.compile("([Oo])rigin: (.+)").matcher(RequestHeader);
+        Matcher access = Pattern.compile("\\?access=(.+)").matcher(RequestHeader);
+        if (referer.find()) {
+            jsonText = "" +
+                    "{" +
+                    "  \"username\": \"nico-proxy_forVRC (Ver " + ConversionAPI.getVer() + ")\"," +
+                    "  \"avatar_url\": \"https://r2.7mi.site/vrc/nico/nc296562.png\"," +
+                    "  \"content\": \"利用ログ\"," +
+                    "  \"embeds\": [" +
+                    "    {" +
+                    "      \"title\": \"" + (isCache ? "キャッシュ" : "新規") + "\"," +
+                    "      \"description\": \"" + sdf.format(new Date()) + "\"," +
+                    "      \"fields\": [" +
+                    "        {" +
+                    "          \"name\": \"リクエストURL\"," +
+                    "          \"value\": \"" + RequestURL + "\"" +
+                    "        }," +
+                    "        {" +
+                    "          \"name\": \"処理結果" + (isTitle ? "タイトル" : "URL") + "\"," +
+                    "          \"value\": \"" + ResultURL + "\"" +
+                    "        }," +
+                    "        {" +
+                    "          \"name\": \"リファラ\"," +
+                    "          \"value\": \"" + referer.group(2) + "\"" +
+                    "        }" +
+                    "      ]" +
+                    "    }" +
+                    "  ]" +
+                    "}";
+        } else if (origin.find()) {
+            jsonText = "" +
+                    "{" +
+                    "  \"username\": \"nico-proxy_forVRC (Ver " + ConversionAPI.getVer() + ")\"," +
+                    "  \"avatar_url\": \"https://r2.7mi.site/vrc/nico/nc296562.png\"," +
+                    "  \"content\": \"利用ログ\"," +
+                    "  \"embeds\": [" +
+                    "    {" +
+                    "      \"title\": \"" + (isCache ? "キャッシュ" : "新規") + "\"," +
+                    "      \"description\": \"" + sdf.format(new Date()) + "\"," +
+                    "      \"fields\": [" +
+                    "        {" +
+                    "          \"name\": \"リクエストURL\"," +
+                    "          \"value\": \"" + RequestURL + "\"" +
+                    "        }," +
+                    "        {" +
+                    "          \"name\": \"処理結果" + (isTitle ? "タイトル" : "URL") + "\"," +
+                    "          \"value\": \"" + ResultURL + "\"" +
+                    "        }," +
+                    "        {" +
+                    "          \"name\": \"オリジン\"," +
+                    "          \"value\": \"" + origin.group(2) + "\"" +
+                    "        }" +
+                    "      ]" +
+                    "    }" +
+                    "  ]" +
+                    "}";
+        } else if (access.find()){
+            jsonText = "" +
+                    "{" +
+                    "  \"username\": \"nico-proxy_forVRC (Ver " + ConversionAPI.getVer() + ")\"," +
+                    "  \"avatar_url\": \"https://r2.7mi.site/vrc/nico/nc296562.png\"," +
+                    "  \"content\": \"利用ログ\"," +
+                    "  \"embeds\": [" +
+                    "    {" +
+                    "      \"title\": \"" + (isCache ? "キャッシュ" : "新規") + "\"," +
+                    "      \"description\": \"" + sdf.format(new Date()) + "\"," +
+                    "      \"fields\": [" +
+                    "        {" +
+                    "          \"name\": \"リクエストURL\"," +
+                    "          \"value\": \"" + RequestURL + "\"" +
+                    "        }," +
+                    "        {" +
+                    "          \"name\": \"処理結果" + (isTitle ? "タイトル" : "URL") + "\"," +
+                    "          \"value\": \"" + ResultURL + "\"" +
+                    "        }," +
+                    "        {" +
+                    "          \"name\": \"アクセス識別子\"," +
+                    "          \"value\": \"" + access.group(1) + "\"" +
+                    "        }" +
+                    "      ]" +
+                    "    }" +
+                    "  ]" +
+                    "}";
+        } else {
+            jsonText = "" +
+                    "{"+
+                    "  \"username\": \"nico-proxy_forVRC (Ver "+ConversionAPI.getVer()+")\","+
+                    "  \"avatar_url\": \"https://r2.7mi.site/vrc/nico/nc296562.png\","+
+                    "  \"content\": \"利用ログ\","+
+                    "  \"embeds\": ["+
+                    "    {"+
+                    "      \"title\": \""+(isCache ? "キャッシュ" : "新規")+"\","+
+                    "      \"description\": \""+sdf.format(new Date())+"\","+
+                    "      \"fields\": ["+
+                    "        {"+
+                    "          \"name\": \"リクエストURL\","+
+                    "          \"value\": \""+RequestURL+"\""+
+                    "        },"+
+                    "        {"+
+                    "          \"name\": \"処理結果"+(isTitle ? "タイトル" : "URL")+"\","+
+                    "          \"value\": \""+ResultURL+"\""+
+                    "        }"+
+                    "      ]"+
+                    "    }"+
+                    "  ]" +
+                    "}";
+        }
 
         WebhookList.add(jsonText);
     }
