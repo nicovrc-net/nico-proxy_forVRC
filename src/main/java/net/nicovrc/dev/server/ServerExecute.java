@@ -194,6 +194,8 @@ public class ServerExecute {
                         }
                         response.close();
                         eTime = new Date().getTime() + eTime;
+                    } else if (Pattern.compile("ds-linear-abematv\\.akamaized\\.net").matcher(ResultURL).find()){
+                        eTime = new Date().getTime() + 86400000L;
                     }
 
                     CacheAPI.removeCache(TempURL.split("\\?")[0]);
