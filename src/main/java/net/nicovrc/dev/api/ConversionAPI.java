@@ -335,7 +335,7 @@ public class ConversionAPI {
             }
 
             // xvideos / TikTok / Twitter / Pornhub / Ameba / TVer
-            if (ServiceName.equals("XVIDEOS.com") || ServiceName.equals("TikTok") || ServiceName.equals("Twitter") || ServiceName.equals("Pornhub") || ServiceName.equals("Abema") || ServiceName.equals("TVer")){
+            if (ServiceName.equals("XVIDEOS.com") || ServiceName.equals("TikTok") || ServiceName.equals("Twitter") || ServiceName.equals("Pornhub") || ServiceName.equals("Abema") || ServiceName.equals("TVer") || ServiceName.equals("Gimy 劇迷")){
                 if (ServiceName.equals("Abema") && Pattern.compile("https://abema\\.tv/now-on-air/(.+)").matcher(TempRequestURL).find()){
                     video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
                 } else if (ServiceName.equals("TVer") && Pattern.compile("https://tver\\.jp/live/(.+)").matcher(TempRequestURL).find()) {
