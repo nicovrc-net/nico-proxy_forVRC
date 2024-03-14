@@ -65,9 +65,6 @@ public class ServerExecute {
         //System.out.println(TempURL);
 
         // 処理鯖に投げるための事前準備
-        final Matcher CacheCheck = Pattern.compile("(nicovideo\\.jp|bilibili|tver\\.jp|xvideos\\.com|abema\\.tv|tiktok\\.com)").matcher(TempURL.split("\\?")[0]);
-        final boolean isCache = CacheCheck.find();
-
         Matcher getTitle = Pattern.compile("(x-nicovrc-titleget: yes|user-agent: unityplayer/)").matcher(httpRequest.toLowerCase(Locale.ROOT));
         boolean isTitleGet = getTitle.find();
         try {
@@ -77,7 +74,7 @@ public class ServerExecute {
             //e.printStackTrace();
         }
 
-        if (isCache && !isTitleGet){
+        if (!isTitleGet){
             // キャッシュ対象の場合はキャッシュチェック
             String cacheUrl = CacheAPI.getCache(TempURL.split("\\?")[0]);
             //System.out.println("a");
@@ -172,12 +169,11 @@ public class ServerExecute {
                         SendResult(socket, address, packet);
                     }
                 }
-                if (isCache){
-                    long eTime = -1;
-                    if (Pattern.compile("([nb])\\.nicovrc\\.net").matcher(ResultURL).find()){
-                        eTime = new Date().getTime() + 86400000;
-                    } else if (Pattern.compile("dmc\\.nico").matcher(ResultURL).find()){
-                        //System.out.println("test");
+
+                long eTime = -1;
+                if (Pattern.compile("www\\.nicovideo\\.jp").matcher(TempURL).find()){
+                    eTime = new Date().getTime() + 86400000L;
+                    if (Pattern.compile("dmc\\.nico").matcher(ResultURL).find()){
                         Request request = new Request.Builder()
                                 .url(TempURL)
                                 .build();
@@ -186,24 +182,21 @@ public class ServerExecute {
                             String responseHtml = response.body().string();
                             Matcher matcher = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">").matcher(responseHtml);
                             if (matcher.find()){
-                                eTime = Long.parseLong(matcher.group(1)) * 1000;
+                                eTime = new Date().getTime() + Long.parseLong(matcher.group(1)) * 1000;
                                 //System.out.println(Long.parseLong(matcher.group(1)) * 1000);
-                            } else {
-                                eTime = 86400000;
                             }
                         }
                         response.close();
-                        eTime = new Date().getTime() + eTime;
-                    } else if (Pattern.compile("ds-linear-abematv\\.akamaized\\.net").matcher(ResultURL).find()){
-                        eTime = new Date().getTime() + 86400000L;
                     }
-
-                    CacheAPI.removeCache(TempURL.split("\\?")[0]);
-
-                    if (!isTitleGet){
-                        CacheAPI.setCache(TempURL.split("\\?")[0], ResultURL, eTime);
-                    }
+                } else if (Pattern.compile("(abema\\.tv|tiktok\\.com|tver\\.jp)").matcher(TempURL).find()) {
+                    eTime = new Date().getTime() + 86400000L;
                 }
+
+                CacheAPI.removeCache(TempURL.split("\\?")[0]);
+                if (!isTitleGet){
+                    CacheAPI.setCache(TempURL.split("\\?")[0], ResultURL, eTime);
+                }
+
             } catch (Exception e){
                 if (socket == null){
                     SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage()+"\nDate: " + new Date() + "\n\n");
@@ -214,9 +207,7 @@ public class ServerExecute {
                     SendResult(socket, address, packet);
                 }
 
-                if (isCache){
-                    CacheAPI.removeCache(TempURL.split("\\?")[0]);
-                }
+                CacheAPI.removeCache(TempURL.split("\\?")[0]);
                 System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + e.getMessage());
             }
         } else {
@@ -238,6 +229,9 @@ public class ServerExecute {
                         packet1.setGetTitle(true);
                         SendResult(socket, address, packet1);
                     }
+
+                    CacheAPI.removeCache(TempURL.split("\\?")[0]);
+
                 } else {
                     System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + result.getResultURL());
                     //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, result.getResultURL(), false, false);
@@ -249,14 +243,31 @@ public class ServerExecute {
                         packet1.setGetTitle(false);
                         SendResult(socket, address, packet1);
                     }
-                }
-                if (isCache){
-                    if (!Pattern.compile("i2v\\.nicovrc\\.net").matcher(result.getResultURL()).find()){
-                        CacheAPI.removeCache(TempURL.split("\\?")[0]);
-                        CacheAPI.setCache(TempURL.split("\\?")[0], result.getResultURL(), Pattern.compile("([nb])\\.nicovrc.net").matcher(result.getResultURL()).find() ? new Date().getTime() + 86400000 : -1);
-                    } else {
-                        CacheAPI.removeCache(TempURL.split("\\?")[0]);
+
+                    long eTime = -1;
+                    if (Pattern.compile("www\\.nicovideo\\.jp").matcher(TempURL).find()){
+                        eTime = new Date().getTime() + 86400000L;
+                        if (Pattern.compile("dmc\\.nico").matcher(result.getResultURL()).find()){
+                            Request request = new Request.Builder()
+                                    .url(TempURL)
+                                    .build();
+                            Response response = HttpClient.newCall(request).execute();
+                            if (response.body() != null) {
+                                String responseHtml = response.body().string();
+                                Matcher matcher = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">").matcher(responseHtml);
+                                if (matcher.find()){
+                                    eTime = new Date().getTime() + Long.parseLong(matcher.group(1)) * 1000;
+                                    //System.out.println(Long.parseLong(matcher.group(1)) * 1000);
+                                }
+                            }
+                            response.close();
+                        }
+                    } else if (Pattern.compile("(abema\\.tv|tiktok\\.com|tver\\.jp)").matcher(TempURL).find()) {
+                        eTime = new Date().getTime() + 86400000L;
                     }
+
+                    CacheAPI.removeCache(TempURL.split("\\?")[0]);
+                    CacheAPI.setCache(TempURL.split("\\?")[0], result.getResultURL(), eTime);
                 }
             } else {
                 String ResultURL = ConversionAPI.get(httpRequest, RequestURL, TempURL, isTitleGet);
@@ -287,12 +298,11 @@ public class ServerExecute {
                         SendResult(socket, address, packet1);
                     }
                 }
-                if (isCache){
-                    long eTime = -1;
-                    if (Pattern.compile("([nb])\\.nicovrc\\.net").matcher(ResultURL).find()){
-                        eTime = new Date().getTime() + 86400000;
-                    } else if (Pattern.compile("dmc\\.nico").matcher(ResultURL).find()){
-                        //System.out.println("test");
+
+                long eTime = -1;
+                if (Pattern.compile("www\\.nicovideo\\.jp").matcher(TempURL).find()){
+                    eTime = new Date().getTime() + 86400000L;
+                    if (Pattern.compile("dmc\\.nico").matcher(ResultURL).find()){
                         Request request = new Request.Builder()
                                 .url(TempURL)
                                 .build();
@@ -301,20 +311,19 @@ public class ServerExecute {
                             String responseHtml = response.body().string();
                             Matcher matcher = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">").matcher(responseHtml);
                             if (matcher.find()){
-                                eTime = Long.parseLong(matcher.group(1)) * 1000;
+                                eTime = new Date().getTime() + Long.parseLong(matcher.group(1)) * 1000;
                                 //System.out.println(Long.parseLong(matcher.group(1)) * 1000);
                             }
                         }
                         response.close();
-                        if (eTime != -1){
-                            eTime = new Date().getTime() + eTime;
-                        }
                     }
+                } else if (Pattern.compile("(abema\\.tv|tiktok\\.com|tver\\.jp)").matcher(TempURL).find()) {
+                    eTime = new Date().getTime() + 86400000L;
+                }
 
-                    CacheAPI.removeCache(TempURL.split("\\?")[0]);
-                    if (!isTitleGet){
-                        CacheAPI.setCache(TempURL.split("\\?")[0], ResultURL, eTime);
-                    }
+                CacheAPI.removeCache(TempURL.split("\\?")[0]);
+                if (!isTitleGet){
+                    CacheAPI.setCache(TempURL.split("\\?")[0], ResultURL, eTime);
                 }
             }
         }
