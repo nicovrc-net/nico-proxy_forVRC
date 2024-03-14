@@ -193,7 +193,7 @@ public class ServerExecute {
                 }
 
                 CacheAPI.removeCache(TempURL.split("\\?")[0]);
-                if (!isTitleGet){
+                if (!isTitleGet && !ResultURL.startsWith("https://i2v.nicovrc.net")){
                     CacheAPI.setCache(TempURL.split("\\?")[0], ResultURL, eTime);
                 }
 
@@ -267,7 +267,9 @@ public class ServerExecute {
                     }
 
                     CacheAPI.removeCache(TempURL.split("\\?")[0]);
-                    CacheAPI.setCache(TempURL.split("\\?")[0], result.getResultURL(), eTime);
+                    if (!result.getResultURL().startsWith("https://i2v.nicovrc.net")){
+                        CacheAPI.setCache(TempURL.split("\\?")[0], result.getResultURL(), eTime);
+                    }
                 }
             } else {
                 String ResultURL = ConversionAPI.get(httpRequest, RequestURL, TempURL, isTitleGet);
@@ -322,7 +324,7 @@ public class ServerExecute {
                 }
 
                 CacheAPI.removeCache(TempURL.split("\\?")[0]);
-                if (!isTitleGet){
+                if (!isTitleGet && !ResultURL.startsWith("https://i2v.nicovrc.net")){
                     CacheAPI.setCache(TempURL.split("\\?")[0], ResultURL, eTime);
                 }
             }
