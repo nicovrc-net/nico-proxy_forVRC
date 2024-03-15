@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 public class ConversionAPI {
 
-    private static final String ver = "2.0.3";
+    private static final String ver = "2.0.4";
 
     private final ProxyAPI proxyAPI;
     private final String SocketIP;
@@ -135,9 +135,18 @@ public class ConversionAPI {
             }
 
             //System.out.println("Debug3 : "+TempRequestURL);
-            TempRequestURL = TempRequestURL.split("\\?")[0];
+            if (!Pattern.compile("\\?v=").matcher(TempRequestURL).find()){
+                TempRequestURL = TempRequestURL.split("\\?")[0];
+            } else {
+                Matcher matcher = Pattern.compile("\\?v=(.+)").matcher(TempRequestURL);
+                if (matcher.find()){
+                    TempRequestURL = "https://nico.ms/"+matcher.group(1);
+                }
+            }
 
             ResultVideoData video = null;
+            //System.out.println("debug : " + TempRequestURL);
+            //System.out.println("debug : " + ServiceName);
             if (ServiceName.equals("ニコニコ動画")){
                 if (Pattern.compile("sm|nm").matcher(TempRequestURL).find()){
                     // 通常動画
