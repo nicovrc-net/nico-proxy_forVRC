@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 public class ConversionAPI {
 
-    private static final String ver = "2.0.4";
+    private static final String ver = "2.1.0";
 
     private final ProxyAPI proxyAPI;
     private final String SocketIP;
@@ -360,6 +360,13 @@ public class ConversionAPI {
                     System.gc();
                     return video.getVideoURL();
                 }
+            }
+
+            // OPENREC
+            if (ServiceName.equals("Openrec")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+
+                return video.getVideoURL().replaceAll("d3cfw2mckicdfw\\.cloudfront\\.net", "o.nicovrc.net");
             }
 
             if (ServiceName.equals("画像") || ServiceName.equals("動画")){
