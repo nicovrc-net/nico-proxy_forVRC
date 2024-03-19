@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 public class ConversionAPI {
 
-    private static final String ver = "2.0.3";
+    private static final String ver = "2.1.0";
 
     private final ProxyAPI proxyAPI;
     private final String SocketIP;
@@ -135,9 +135,18 @@ public class ConversionAPI {
             }
 
             //System.out.println("Debug3 : "+TempRequestURL);
-            TempRequestURL = TempRequestURL.split("\\?")[0];
+            if (!Pattern.compile("\\?v=").matcher(TempRequestURL).find()){
+                TempRequestURL = TempRequestURL.split("\\?")[0];
+            } else {
+                Matcher matcher = Pattern.compile("\\?v=(.+)").matcher(TempRequestURL);
+                if (matcher.find()){
+                    TempRequestURL = "https://nico.ms/"+matcher.group(1);
+                }
+            }
 
             ResultVideoData video = null;
+            //System.out.println("debug : " + TempRequestURL);
+            //System.out.println("debug : " + ServiceName);
             if (ServiceName.equals("ニコニコ動画")){
                 if (Pattern.compile("sm|nm").matcher(TempRequestURL).find()){
                     // 通常動画
@@ -351,6 +360,18 @@ public class ConversionAPI {
                     System.gc();
                     return video.getVideoURL();
                 }
+            }
+
+            // OPENREC
+            if (ServiceName.equals("Openrec")){
+                try {
+                    video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                } catch (Exception e){
+                    video = Service.getLive(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                }
+
+
+                return video.getVideoURL().replaceAll("d3cfw2mckicdfw\\.cloudfront\\.net", "o.nicovrc.net");
             }
 
             if (ServiceName.equals("画像") || ServiceName.equals("動画")){
