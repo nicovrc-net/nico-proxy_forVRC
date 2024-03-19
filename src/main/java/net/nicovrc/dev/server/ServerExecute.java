@@ -208,6 +208,7 @@ public class ServerExecute {
                 }
 
                 CacheAPI.removeCache(TempURL.split("\\?")[0]);
+                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage(), httpRequest, false, false);
                 System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + e.getMessage());
             }
         } else {
