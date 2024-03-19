@@ -27,7 +27,7 @@ import java.util.regex.Pattern;
 
 public class ConversionAPI {
 
-    private static final String ver = "2.1.0";
+    private static final String ver = "2.1.1";
 
     private final ProxyAPI proxyAPI;
     private final String SocketIP;
@@ -347,11 +347,22 @@ public class ConversionAPI {
             if (ServiceName.equals("XVIDEOS.com") || ServiceName.equals("TikTok") || ServiceName.equals("Twitter") || ServiceName.equals("Pornhub") || ServiceName.equals("Abema") || ServiceName.equals("TVer") || ServiceName.equals("Gimy 劇迷")){
                 if (ServiceName.equals("Abema") && Pattern.compile("https://abema\\.tv/now-on-air/(.+)").matcher(TempRequestURL).find()){
                     video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
+
+                    ResultVideoData finalVideo1 = video;
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
                 } else if (ServiceName.equals("TVer") && Pattern.compile("https://tver\\.jp/live/(.+)").matcher(TempRequestURL).find()) {
                     video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
+
+                    ResultVideoData finalVideo1 = video;
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
                 } else {
                     video = Service.getVideo(new RequestVideoData(TempRequestURL, proxyData));
+
+                    ResultVideoData finalVideo1 = video;
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
                 }
+
+
 
                 if (ServiceName.equals("Twitter")) {
                     System.gc();
@@ -370,14 +381,21 @@ public class ConversionAPI {
                     video = Service.getLive(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
                 }
 
-
+                ResultVideoData finalVideo3 = video;
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo3.getVideoURL().replaceAll("d3cfw2mckicdfw\\.cloudfront\\.net", "o.nicovrc.net"), null))).start();
                 return video.getVideoURL().replaceAll("d3cfw2mckicdfw\\.cloudfront\\.net", "o.nicovrc.net");
             }
 
             if (ServiceName.equals("画像") || ServiceName.equals("動画")){
                 video = Service.getVideo(new RequestVideoData(TempRequestURL, null));
+
+                ResultVideoData finalVideo2 = video;
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo2.getVideoURL(), null))).start();
                 return video.getVideoURL();
             }
+
+            new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, null, null))).start();
+
 
         } catch (Exception e){
             ErrorMessage = ServiceName + " : " + e.getMessage();

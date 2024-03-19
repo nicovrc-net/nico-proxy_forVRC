@@ -36,10 +36,16 @@ public class ServerExecute {
         if (TempURL.startsWith("sm") || TempURL.startsWith("nm") || TempURL.startsWith("so") || TempURL.startsWith("lv") || Pattern.compile("^\\d+").matcher(TempURL).find()){
             TempURL = "https://nico.ms/"+TempURL;
         }
+
+        // 公式チャンネルのIDの場合はlive.nicovideo.jpを追加
+        if (TempURL.startsWith("ch")){
+            TempURL = "https://live.nicovideo.jp/watch/" + TempURL;
+        }
+
         //System.out.println(TempURL);
 
         // リダイレクト先のURLを渡す
-        final Matcher redirectUrl = Pattern.compile("(api\\.nicoad\\.nicovideo\\.jp|b23\\.tv|nico\\.ms|cas\\.nicovideo\\.jp)").matcher(TempURL);
+        final Matcher redirectUrl = Pattern.compile("(api\\.nicoad\\.nicovideo\\.jp|b23\\.tv|nico\\.ms|cas\\.nicovideo\\.jp|live2\\.nicovideo\\.jp)").matcher(TempURL);
         if (redirectUrl.find()){
             try {
                 Request request = new Request.Builder()
@@ -208,6 +214,7 @@ public class ServerExecute {
                 }
 
                 CacheAPI.removeCache(TempURL.split("\\?")[0]);
+                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage(), httpRequest, false, false);
                 System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + e.getMessage());
             }
         } else {
