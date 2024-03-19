@@ -364,7 +364,12 @@ public class ConversionAPI {
 
             // OPENREC
             if (ServiceName.equals("Openrec")){
-                video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                try {
+                    video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                } catch (Exception e){
+                    video = Service.getLive(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                }
+
 
                 return video.getVideoURL().replaceAll("d3cfw2mckicdfw\\.cloudfront\\.net", "o.nicovrc.net");
             }
