@@ -36,6 +36,12 @@ public class ServerExecute {
         if (TempURL.startsWith("sm") || TempURL.startsWith("nm") || TempURL.startsWith("so") || TempURL.startsWith("lv") || Pattern.compile("^\\d+").matcher(TempURL).find()){
             TempURL = "https://nico.ms/"+TempURL;
         }
+
+        // 公式チャンネルのIDの場合はlive.nicovideo.jpを追加
+        if (TempURL.startsWith("ch")){
+            TempURL = "https://live.nicovideo.jp/watch/" + TempURL;
+        }
+
         //System.out.println(TempURL);
 
         // リダイレクト先のURLを渡す
