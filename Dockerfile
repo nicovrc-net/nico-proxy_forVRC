@@ -1,4 +1,4 @@
-FROM alpine:3.18.4
+FROM alpine:3.19.1
 RUN apk add git openjdk17
 
 RUN git clone https://github.com/7mi-site/nico-proxy_forVRC.git
