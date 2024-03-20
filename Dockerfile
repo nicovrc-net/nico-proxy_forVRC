@@ -7,10 +7,10 @@ WORKDIR /opt/nico-proxy_forVRC
 RUN chmod +x ./gradlew && ./gradlew shadowJar
 
 RUN mkdir /nico-proxy/
-RUN mv /opt/nico-proxy_forVRC/build/libs/NicoVideoPlayForVRC-1.0-SNAPSHOT-all.jar /nico-proxy/
+RUN mv /opt/nico-proxy_forVRC/build/libs/NicoVideoPlayForVRC-2.0-SNAPSHOT-all.jar /nico-proxy/
 RUN rm /opt/nico-proxy_forVRC -rf
 
-RUN printf "#!/bin/sh\njava -jar /nico-proxy/NicoVideoPlayForVRC-1.0-SNAPSHOT-all.jar" > /nico-proxy/start && chmod +x /nico-proxy/start
+RUN printf "#!/bin/sh\njava -jar /nico-proxy/NicoVideoPlayForVRC-2.0-SNAPSHOT-all.jar" > /nico-proxy/start && chmod +x /nico-proxy/start
 
 WORKDIR /nico-proxy
-RUN java -jar /nico-proxy/NicoVideoPlayForVRC-1.0-SNAPSHOT-all.jar
+RUN java -jar /nico-proxy/NicoVideoPlayForVRC-2.0-SNAPSHOT-all.jar
