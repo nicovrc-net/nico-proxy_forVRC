@@ -394,6 +394,12 @@ public class ConversionAPI {
                 return video.getVideoURL();
             }
 
+            // Youtube
+            if (ServiceName.equals("Youtube")){
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, "https://yt.8uro.net/r?v="+RequestURL, null))).start();
+                return "https://yt.8uro.net/r?v="+RequestURL;
+            }
+
             new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, null, null))).start();
 
 
