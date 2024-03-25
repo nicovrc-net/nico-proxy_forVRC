@@ -271,6 +271,8 @@ public class ServerExecute {
                         }
                     } else if (Pattern.compile("(abema\\.tv|tiktok\\.com|tver\\.jp)").matcher(TempURL).find()) {
                         eTime = new Date().getTime() + 86400000L;
+                    } else if (Pattern.compile("(youtu\\.be|youtube\\.com)").matcher(TempURL).find()) {
+                        eTime = new Date().getTime() + 86400000L;
                     }
 
                     CacheAPI.removeCache(TempURL.split("\\?")[0]);
