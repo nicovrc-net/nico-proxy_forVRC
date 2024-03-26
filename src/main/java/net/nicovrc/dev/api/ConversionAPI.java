@@ -32,6 +32,7 @@ public class ConversionAPI {
     private final ProxyAPI proxyAPI;
     private final String SocketIP;
     private final ConcurrentHashMap<String, LogData> LogDataList = new ConcurrentHashMap<>();
+    private final List<String> ServiceURLList = new ArrayList<>();
 
     public ConversionAPI(ProxyAPI proxyAPI){
         this.proxyAPI = proxyAPI;
@@ -60,6 +61,22 @@ public class ConversionAPI {
                 ForceLogDataWrite();
             }
         }, 0L, 3600000L);
+
+        // 対応サービスリスト
+        ServiceURLList.add("nicovideo.jp");
+        ServiceURLList.add("nico.ms");
+        ServiceURLList.add("bilibili.com");
+        ServiceURLList.add("bilibili.tv");
+        ServiceURLList.add("youtu.be");
+        ServiceURLList.add("youtube.com");
+        ServiceURLList.add("xvideos.com");
+        ServiceURLList.add("tiktok.com");
+        ServiceURLList.add("x.com");
+        ServiceURLList.add("twitter.com");
+        ServiceURLList.add("openrec.tv");
+        ServiceURLList.add("pornhub.com");
+        ServiceURLList.add("tver.jp");
+        ServiceURLList.add("gimy.ai");
     }
 
     /**
@@ -448,16 +465,17 @@ public class ConversionAPI {
      * @param URL 処理するURL
      * @return 対応する処理サービスのオブジェクト
      */
+
     private ShareService getService(String URL){
 
-        Matcher matcher_NicoVideoURL = Pattern.compile("(\\.nicovideo\\.jp|nico\\.ms)").matcher(URL);
+        Matcher matcher_NicoVideoURL = Pattern.compile("()").matcher(URL);
         Matcher matcher_BilibiliComURL = Pattern.compile("bilibili\\.com").matcher(URL);
         Matcher matcher_BilibiliTvURL = Pattern.compile("bilibili\\.tv").matcher(URL);
         Matcher matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)").matcher(URL);
-        Matcher matcher_XvideoURL = Pattern.compile("xvideo").matcher(URL);
-        Matcher matcher_TikTokURL = Pattern.compile("tiktok").matcher(URL);
+        Matcher matcher_XvideoURL = Pattern.compile("xvideos\\.com").matcher(URL);
+        Matcher matcher_TikTokURL = Pattern.compile("tiktok\\.com").matcher(URL);
         Matcher matcher_TwitterURL = Pattern.compile("(x|twitter)\\.com/(.*)/status/(.*)").matcher(URL);
-        Matcher matcher_OpenrecURL = Pattern.compile("openrec").matcher(URL);
+        Matcher matcher_OpenrecURL = Pattern.compile("openrec\\.tv").matcher(URL);
         Matcher matcher_PornhubURL = Pattern.compile("pornhub\\.com").matcher(URL);
         Matcher matcher_TwicastURL = Pattern.compile("twitcasting\\.tv").matcher(URL);
         Matcher matcher_AbemaURL = Pattern.compile("abema\\.tv").matcher(URL);
@@ -631,6 +649,14 @@ public class ConversionAPI {
         }
 
         return null;
+    }
+
+    /**
+     *
+     * @return 対応サービスURLリスト
+     */
+    public List<String> getServiceURLList() {
+        return ServiceURLList;
     }
 
     private void RedisWrite(LogData logData) throws Exception {

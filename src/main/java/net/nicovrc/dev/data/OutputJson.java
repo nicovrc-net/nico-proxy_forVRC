@@ -1,5 +1,7 @@
 package net.nicovrc.dev.data;
 
+import java.util.List;
+
 public class OutputJson {
 
     private long ServerCount;
@@ -8,14 +10,16 @@ public class OutputJson {
     private long CacheCount;
     private long WaitingWebhookSendCount;
     private long WaitingLogWriteCount;
+    private List<String> ServiceURLList;
 
-    public OutputJson(long serverCount, long mainProxyCount, long subProxyCount, long cacheCount, long waitingWebhookSendCount, long waitingLogWriteCount) {
+    public OutputJson(long serverCount, long mainProxyCount, long subProxyCount, long cacheCount, long waitingWebhookSendCount, long waitingLogWriteCount, List<String> serviceURLList) {
         ServerCount = serverCount;
         MainProxyCount = mainProxyCount;
         SubProxyCount = subProxyCount;
         CacheCount = cacheCount;
         WaitingWebhookSendCount = waitingWebhookSendCount;
         WaitingLogWriteCount = waitingLogWriteCount;
+        ServiceURLList = serviceURLList;
     }
 
     public long getServerCount() {
@@ -64,5 +68,13 @@ public class OutputJson {
 
     public void setWaitingLogWriteCount(long waitingLogWriteCount) {
         WaitingLogWriteCount = waitingLogWriteCount;
+    }
+
+    public List<String> getServiceURLList() {
+        return ServiceURLList;
+    }
+
+    public void setServiceURLList(List<String> serviceURLList) {
+        ServiceURLList = serviceURLList;
     }
 }

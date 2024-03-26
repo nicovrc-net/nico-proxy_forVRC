@@ -167,7 +167,7 @@ public class HTTPServer extends Thread {
 
                             // いろいろデータをjsonで書き出す
                             if (RequestURL.equals("get_data")){
-                                String json = new Gson().toJson(new OutputJson(ServerAPI.getList().size(), ProxyAPI.getMainProxyList().size(), ProxyAPI.getJPProxyList().size(), CacheAPI.getList().size(), WebhookList.size(), ConversionAPI.getLogDataListCount()));
+                                String json = new Gson().toJson(new OutputJson(ServerAPI.getList().size(), ProxyAPI.getMainProxyList().size(), ProxyAPI.getJPProxyList().size(), CacheAPI.getList().size(), WebhookList.size(), ConversionAPI.getLogDataListCount(), ConversionAPI.getServiceURLList()));
 
                                 String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n"+json;
 
