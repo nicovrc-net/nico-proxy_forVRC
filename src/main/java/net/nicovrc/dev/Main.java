@@ -2,13 +2,11 @@ package net.nicovrc.dev;
 
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
-import net.nicovrc.dev.api.CacheAPI;
-import net.nicovrc.dev.api.JinnnaiSystemURL_API;
-import net.nicovrc.dev.api.ProxyAPI;
-import net.nicovrc.dev.api.ServerAPI;
-import net.nicovrc.dev.data.CacheData;
-import net.nicovrc.dev.data.ProxyData;
-import net.nicovrc.dev.data.ServerData;
+import com.amihaiemil.eoyaml.YamlSequence;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import net.nicovrc.dev.api.*;
+import net.nicovrc.dev.data.*;
 import net.nicovrc.dev.server.HTTPServer;
 import net.nicovrc.dev.server.UDPServer;
 import okhttp3.OkHttpClient;
@@ -17,6 +15,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -161,6 +163,61 @@ OfficialProxy:
 
         if (isUDP){
             new UDPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, port).start();
+        }
+
+        // 処理鯖があったらキャッシュリストを構築する
+        try {
+            Thread.sleep(1000L);
+            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+            final YamlSequence list = yamlMapping.yamlSequence("ServerList");
+
+            if (list != null){
+                //System.out.println("a");
+                UDPPacket check = new UDPPacket();
+                check.setRequestURL("get_cache");
+                Gson gson = new Gson();
+
+                for (int x = 0; x < list.size(); x++){
+                    String[] split = list.string(x).split(":");
+                    String s_ip = split[0];
+                    int s_port = Integer.parseInt(split[1]);
+
+                    DatagramSocket udp_sock = null;
+                    try {
+                        udp_sock = new DatagramSocket();
+
+                        byte[] textByte = gson.toJson(check).getBytes(StandardCharsets.UTF_8);
+                        DatagramPacket udp_packet = new DatagramPacket(textByte, textByte.length,new InetSocketAddress(s_ip, s_port));
+                        udp_sock.send(udp_packet);
+
+                        byte[] temp1 = new byte[104857600];
+                        DatagramPacket udp_packet2 = new DatagramPacket(temp1, temp1.length);
+                        udp_sock.setSoTimeout(100);
+                        udp_sock.receive(udp_packet2);
+
+                        String result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+                        //System.out.println("受信 : " + result);
+                        //OutputJson json = new Gson().fromJson(result, OutputJson.class);
+                        JsonElement json = gson.fromJson(result, JsonElement.class);
+                        HashMap<String, CacheData> temp = new HashMap<>();
+                        json.getAsJsonObject().asMap().forEach((i, value) -> temp.put(i, new CacheData(value.getAsJsonObject().get("ExpiryDate").getAsLong(), value.getAsJsonObject().get("CacheUrl").getAsString())));
+                        CacheList.putAll(temp);
+
+                        udp_sock.close();
+                    } catch (Exception e){
+                        e.printStackTrace();
+                        try {
+                            if (udp_sock != null){
+                                udp_sock.close();
+                            }
+                        } catch (Exception ex){
+                            //ex.printStackTrace();
+                        }
+                    }
+                }
+            }
+        } catch (Exception e){
+            //e.printStackTrace();
         }
 
     }
