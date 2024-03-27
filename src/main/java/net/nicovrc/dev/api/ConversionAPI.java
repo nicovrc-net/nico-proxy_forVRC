@@ -75,6 +75,7 @@ public class ConversionAPI {
         ServiceURLList.add("twitter.com");
         ServiceURLList.add("openrec.tv");
         ServiceURLList.add("pornhub.com");
+        ServiceURLList.add("twitcasting.tv");
         ServiceURLList.add("tver.jp");
         ServiceURLList.add("gimy.ai");
     }
