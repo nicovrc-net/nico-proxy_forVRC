@@ -390,6 +390,50 @@ public class ConversionAPI {
                 }
             }
 
+            if (ServiceName.equals("ツイキャス")){
+                video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData));
+
+                if (video.isStream()) {
+                    ResultVideoData finalVideo1 = video;
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
+
+                    return video.getVideoURL();
+                } else {
+                    // アーカイブはReferer付きじゃないとアクセスできないので
+                    Request twicast = new Request.Builder()
+                            .url(video.getVideoURL())
+                            .addHeader("Referer", "https://twitcasting.tv/")
+                            .build();
+
+                    Response response_twicast = client.newCall(twicast).execute();
+
+                    if (response_twicast.code() == 200) {
+                        if (response_twicast.body() != null) {
+
+                            Matcher tempUrl = Pattern.compile("https://(.+)/tc.vod.v2").matcher(video.getVideoURL());
+
+                            String baseUrl = "";
+                            if (tempUrl.find()) {
+                                baseUrl = "https://" + tempUrl.group(1);
+                            }
+
+                            String str = response_twicast.body().string();
+                            for (String s : str.split("\n")) {
+                                if (s.startsWith("#")) {
+                                    continue;
+                                }
+
+                                String s1 = baseUrl + s;
+                                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, s1, null))).start();
+
+                                return s1;
+                            }
+                        }
+                    }
+                    response_twicast.close();
+                }
+            }
+
             // OPENREC
             if (ServiceName.equals("Openrec")){
                 try {
@@ -468,7 +512,7 @@ public class ConversionAPI {
 
     private ShareService getService(String URL){
 
-        Matcher matcher_NicoVideoURL = Pattern.compile("()").matcher(URL);
+        Matcher matcher_NicoVideoURL = Pattern.compile("(nico\\.ms|nicovideo\\.jp)").matcher(URL);
         Matcher matcher_BilibiliComURL = Pattern.compile("bilibili\\.com").matcher(URL);
         Matcher matcher_BilibiliTvURL = Pattern.compile("bilibili\\.tv").matcher(URL);
         Matcher matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)").matcher(URL);
