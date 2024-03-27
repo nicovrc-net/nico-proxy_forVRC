@@ -5,6 +5,7 @@ import com.amihaiemil.eoyaml.YamlInput;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import net.nicovrc.dev.api.*;
+import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.OutputJson;
 import net.nicovrc.dev.data.UDPPacket;
 import okhttp3.*;
@@ -126,8 +127,9 @@ public class UDPServer extends Thread {
                         continue;
                     }
 
-                    if (RequestURL.equals("list")){
-                        socket.send(new DatagramPacket(new Gson().toJson(CacheAPI.getList()).getBytes(StandardCharsets.UTF_8), new Gson().toJson(json).getBytes(StandardCharsets.UTF_8).length, address));
+                    if (RequestURL.equals("get_cache")){
+                        HashMap<String, CacheData> list = CacheAPI.getList();
+                        socket.send(new DatagramPacket(new Gson().toJson(list).getBytes(StandardCharsets.UTF_8), new Gson().toJson(list).getBytes(StandardCharsets.UTF_8).length, address));
                         continue;
                     }
 
