@@ -45,7 +45,7 @@ public class ServerExecute {
         //System.out.println(TempURL);
 
         // リダイレクト先のURLを渡す
-        final Matcher redirectUrl = Pattern.compile("(api\\.nicoad\\.nicovideo\\.jp|b23\\.tv|nico\\.ms|cas\\.nicovideo\\.jp|live2\\.nicovideo\\.jp)").matcher(TempURL);
+        final Matcher redirectUrl = Pattern.compile("(api\\.nicoad\\.nicovideo\\.jp|b23\\.tv|nico\\.ms|cas\\.nicovideo\\.jp|live2\\.nicovideo\\.jp|abema\\.app)").matcher(TempURL);
         if (redirectUrl.find()){
             try {
                 Request request = new Request.Builder()
