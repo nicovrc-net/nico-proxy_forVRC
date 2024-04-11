@@ -38,8 +38,9 @@ public class HTTPServer extends Thread {
     private final String WebhookURL;
 
     private final ArrayList<String> WebhookList = new ArrayList<>();
+    private Boolean isStop;
 
-    public HTTPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port){
+    public HTTPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port, Boolean isStop){
         this.Port = Port;
 
         this.CacheAPI = cacheAPI;
@@ -49,6 +50,7 @@ public class HTTPServer extends Thread {
         this.ConversionAPI = new ConversionAPI(ProxyAPI);
 
         this.HttpClient = client;
+        this.isStop = isStop;
 
         String tWebhookURL;
         boolean tWebhook;
@@ -89,7 +91,7 @@ public class HTTPServer extends Thread {
             final boolean[] temp = {true};
             while (temp[0]) {
                 try {
-                    System.gc();
+                    //System.gc();
                     Socket sock = svSock.accept();
                     new Thread(() -> {
                         try {
@@ -232,10 +234,16 @@ public class HTTPServer extends Thread {
                         } catch (Exception e){
                             e.printStackTrace();
                             temp[0] = false;
+                            isStop = true;
                         }
                     }).start();
                 } catch (Exception e){
                     e.printStackTrace();
+                    temp[0] = false;
+                    isStop = true;
+                }
+
+                if (isStop){
                     temp[0] = false;
                 }
             }

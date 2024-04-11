@@ -35,7 +35,9 @@ public class UDPServer extends Thread {
     private final boolean isWebhook;
     private final String WebhookURL;
 
-    public UDPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port){
+    private Boolean isStop;
+
+    public UDPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port, Boolean isStop){
         this.CacheAPI = cacheAPI;
         this.ProxyAPI = proxyAPI;
         this.ServerAPI = serverAPI;
@@ -44,6 +46,8 @@ public class UDPServer extends Thread {
 
         this.Client = client;
         this.Port = Port;
+
+        this.isStop = isStop;
 
         String tWebhookURL;
         boolean tWebhook;
@@ -182,14 +186,19 @@ public class UDPServer extends Thread {
 
                 } catch (Exception e){
                     isTrue[0] = false;
+                    isStop = true;
                     e.printStackTrace();
+                }
+
+
+                if (isStop){
+                    isTrue[0] = false;
                 }
             }
             socket.close();
         } catch (SocketException e) {
             e.printStackTrace();
         }
-
     }
 
     private void WebhookSendAll() {

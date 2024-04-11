@@ -96,6 +96,8 @@ OfficialProxy:
     private static final ServerAPI serverAPI = new ServerAPI(ServerList);
     private static final JinnnaiSystemURL_API jinnnaiAPI = new JinnnaiSystemURL_API();
 
+    private static Boolean isStop = false;
+
     public static void main(String[] args) {
         ProxyCheckTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -158,11 +160,11 @@ OfficialProxy:
         }
 
         if (isHTTP){
-            new HTTPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, port).start();
+            new HTTPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, port, isStop).start();
         }
 
         if (isUDP){
-            new UDPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, port).start();
+            new UDPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, port, isStop).start();
         }
 
         // 処理鯖があったらキャッシュリストを構築する
