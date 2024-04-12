@@ -117,6 +117,52 @@ OfficialProxy:
             @Override
             public void run() {
                 cacheAPI.ListRefresh();
+
+                UDPPacket check = new UDPPacket();
+                check.setRequestURL("get_cache");
+                Gson gson = new Gson();
+
+                // 処理鯖から改めてキャッシュをゲットしてくる
+                ServerList.forEach((ID, ServerData)-> {
+                    String ServerIP = ServerData.getIP();
+                    int ServerPort = ServerData.getPort();
+
+                    DatagramSocket udp_sock = null;
+                    try {
+                        udp_sock = new DatagramSocket();
+
+                        byte[] textByte = gson.toJson(check).getBytes(StandardCharsets.UTF_8);
+                        DatagramPacket udp_packet = new DatagramPacket(textByte, textByte.length, new InetSocketAddress(ServerIP, ServerPort));
+                        udp_sock.send(udp_packet);
+
+                        byte[] temp1 = new byte[104857600];
+                        DatagramPacket udp_packet2 = new DatagramPacket(temp1, temp1.length);
+                        udp_sock.setSoTimeout(100);
+                        udp_sock.receive(udp_packet2);
+
+                        String result = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+                        //System.out.println("受信 : " + result);
+                        //OutputJson json = new Gson().fromJson(result, OutputJson.class);
+                        JsonElement json = gson.fromJson(result, JsonElement.class);
+
+                        json.getAsJsonObject().asMap().forEach((i, value) -> {
+                            if (CacheList.get(i) == null){
+                                CacheList.put(i, new CacheData(value.getAsJsonObject().get("ExpiryDate").getAsLong(), value.getAsJsonObject().get("CacheUrl").getAsString()));
+                            }
+                        });
+
+                        udp_sock.close();
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                        try {
+                            if (udp_sock != null) {
+                                udp_sock.close();
+                            }
+                        } catch (Exception ex) {
+                            //ex.printStackTrace();
+                        }
+                    }
+                });
             }
         }, 0L, 15000L);
 
