@@ -4,6 +4,7 @@ import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import net.nicovrc.dev.Main;
 import net.nicovrc.dev.data.*;
 import okhttp3.*;
 import redis.clients.jedis.Jedis;
@@ -27,7 +28,7 @@ import java.util.regex.Pattern;
 
 public class ConversionAPI {
 
-    private static final String ver = "2.2.0-beta";
+    private static final String ver = Main.version;
 
     private final ProxyAPI proxyAPI;
     private final String SocketIP;
@@ -496,6 +497,7 @@ public class ConversionAPI {
     /**
      * @return 処理プログラムのバージョン
      */
+    @Deprecated
     public static String getVer(){
         return ver;
     }

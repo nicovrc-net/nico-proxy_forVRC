@@ -96,6 +96,8 @@ OfficialProxy:
     private static final ServerAPI serverAPI = new ServerAPI(ServerList);
     private static final JinnnaiSystemURL_API jinnnaiAPI = new JinnnaiSystemURL_API();
 
+    public static final String version = "2.2.0";
+
     private static Boolean isStop = false;
 
     public static void main(String[] args) {
