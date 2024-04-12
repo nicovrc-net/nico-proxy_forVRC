@@ -166,10 +166,10 @@ public class ConversionAPI {
             //System.out.println("debug : " + TempRequestURL);
             //System.out.println("debug : " + ServiceName);
             if (ServiceName.equals("ニコニコ動画")){
-                if (Pattern.compile("sm|nm").matcher(TempRequestURL).find()){
+                if (Pattern.compile("sm|nm|am|fz|ut|dm").matcher(TempRequestURL).find()){
                     // 通常動画
                     video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
-                } else if (Pattern.compile("so").matcher(TempRequestURL).find()){
+                } else if (Pattern.compile("so|ax|ca|cd|cw|fx|ig|na|om|sd|sk|yk|yo|za|zb|zc|zd|ze|nl|(\\d+)").matcher(TempRequestURL).find()){
                     // 公式動画 or 配信
                     try {
                         video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
@@ -188,13 +188,15 @@ public class ConversionAPI {
                             throw e;
                         }
                     }
-                } else {
+                } else if (Pattern.compile("lv|ch").matcher(TempRequestURL).find()) {
                     // 配信
                     try {
                         video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData));
                     } catch (Exception e){
                         video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
                     }
+                } else {
+                    throw new Exception("対応していない動画または配信です。\n※URLが間違っていないか再度確認ください。");
                 }
 
                 if (Pattern.compile("dmc\\.nico").matcher(video.getVideoURL()).find()){
