@@ -167,10 +167,11 @@ public class ConversionAPI {
             //System.out.println("debug : " + TempRequestURL);
             //System.out.println("debug : " + ServiceName);
             if (ServiceName.equals("ニコニコ動画")){
+                //System.out.println(TempRequestURL);
                 if (Pattern.compile("sm|nm|am|fz|ut|dm").matcher(TempRequestURL).find()){
                     // 通常動画
                     video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
-                } else if (Pattern.compile("so|ax|ca|cd|cw|fx|ig|na|om|sd|sk|yk|yo|za|zb|zc|zd|ze|nl|(\\d+)").matcher(TempRequestURL).find()){
+                } else if (Pattern.compile("so|ax|ca|cd|cw|fx|ig|na|om|sd|sk|yk|yo|za|zb|zc|zd|ze|nl|watch/(\\d+)|^(\\d+)").matcher(TempRequestURL).find()){
                     // 公式動画 or 配信
                     try {
                         video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
