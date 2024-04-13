@@ -112,19 +112,12 @@ OfficialProxy:
             @Override
             public void run() {
                 serverAPI.ListRefresh();
-            }
-        }, 0L, 60000L);
 
-        CacheCheckTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                cacheAPI.ListRefresh();
-
+                // 処理鯖から改めてキャッシュをゲットしてくる
                 UDPPacket check = new UDPPacket();
                 check.setRequestURL("get_cache");
                 Gson gson = new Gson();
 
-                // 処理鯖から改めてキャッシュをゲットしてくる
                 ServerList.forEach((ID, ServerData)-> {
                     String ServerIP = ServerData.getIP();
                     int ServerPort = ServerData.getPort();
@@ -165,6 +158,13 @@ OfficialProxy:
                         }
                     }
                 });
+            }
+        }, 0L, 60000L);
+
+        CacheCheckTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                cacheAPI.ListRefresh();
             }
         }, 0L, 15000L);
 
