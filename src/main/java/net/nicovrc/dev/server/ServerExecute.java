@@ -82,7 +82,8 @@ public class ServerExecute {
 
         if (!isTitleGet){
             // キャッシュ対象の場合はキャッシュチェック
-            String cacheUrl = CacheAPI.getCache(TempURL.split("\\?")[0]);
+            String[] split = TempURL.split("\\?");
+            String cacheUrl = CacheAPI.getCache(split[0] + (Pattern.compile("youtube\\.com").matcher(TempURL).find() ? "?" + split[1] : ""));
             //System.out.println("a");
             if (cacheUrl != null && cacheUrl.equals("pre")){
                 //System.out.println("a-2");
@@ -177,6 +178,7 @@ public class ServerExecute {
                 }
 
                 long eTime = -1;
+                boolean isYoutube = Pattern.compile("youtube\\.com").matcher(TempURL).find();
                 if (Pattern.compile("www\\.nicovideo\\.jp").matcher(TempURL).find()){
                     eTime = new Date().getTime() + 86400000L;
                     if (Pattern.compile("dmc\\.nico").matcher(ResultURL).find()){
@@ -200,7 +202,8 @@ public class ServerExecute {
 
                 CacheAPI.removeCache(TempURL.split("\\?")[0]);
                 if (!isTitleGet && !ResultURL.startsWith("https://i2v.nicovrc.net")){
-                    CacheAPI.setCache(TempURL.split("\\?")[0], ResultURL, eTime);
+                    String[] s = TempURL.split("\\?");
+                    CacheAPI.setCache(s[0] + (isYoutube ? "?" + s[1] : ""), ResultURL, eTime);
                 }
 
             } catch (Exception e){
