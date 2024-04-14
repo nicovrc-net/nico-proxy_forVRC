@@ -28,7 +28,7 @@ import java.util.regex.Pattern;
 
 public class ConversionAPI {
 
-    private static final String ver = Main.version;
+    private static final String ver = Constant.getVersion();
 
     private final ProxyAPI proxyAPI;
     private final String SocketIP;
@@ -599,7 +599,7 @@ public class ConversionAPI {
 
             Request html = new Request.Builder()
                     .url(URL)
-                    .addHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0 nicovrc.net/2.0")
+                    .addHeader("User-Agent", Constant.getUserAgent())
                     .build();
             Response response = client.newCall(html).execute();
             if (response.body() != null && response.body().contentType().toString().startsWith("image")) {

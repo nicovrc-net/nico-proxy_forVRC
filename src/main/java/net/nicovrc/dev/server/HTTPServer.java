@@ -140,7 +140,7 @@ public class HTTPServer extends Thread {
 
                             // 生死確認
                             if (RequestURL.equals("check_health")) {
-                                String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\nへるすちぇっくー！ (Ver "+ ConversionAPI.getVer() +")\n\n"+ProxyAPI.getListCount()+"\n\n" + ServerAPI.getListCount() + "\n\n" + CacheAPI.getListCount() + "\n\nLogQueueCount : " + ConversionAPI.getLogDataListCount();
+                                String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\nへるすちぇっくー！ (Ver "+ Constant.getVersion() +")\n\n"+ProxyAPI.getListCount()+"\n\n" + ServerAPI.getListCount() + "\n\n" + CacheAPI.getListCount() + "\n\nLogQueueCount : " + ConversionAPI.getLogDataListCount();
 
                                 out.write(Result.getBytes(StandardCharsets.UTF_8));
                                 out.flush();

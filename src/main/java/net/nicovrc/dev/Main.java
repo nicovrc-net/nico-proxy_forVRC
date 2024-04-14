@@ -83,7 +83,6 @@ OfficialProxy:
     private static final List<ProxyData> MainProxyList = new ArrayList<>();
     private static final List<ProxyData> JPProxyList = new ArrayList<>();
 
-
     private static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, ServerData> ServerList = new ConcurrentHashMap<>();
 
@@ -96,9 +95,12 @@ OfficialProxy:
     private static final ServerAPI serverAPI = new ServerAPI(ServerList);
     private static final JinnnaiSystemURL_API jinnnaiAPI = new JinnnaiSystemURL_API();
 
-    public static final String version = "2.2.0";
+    @Deprecated
+    public static final String version = Constant.getVersion();
 
     private static Boolean isStop = false;
+
+
 
     public static void main(String[] args) {
         ProxyCheckTimer.scheduleAtFixedRate(new TimerTask() {

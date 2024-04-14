@@ -380,7 +380,7 @@ public class ServerExecute {
         if (referer.find()) {
             jsonText = "" +
                     "{" +
-                    "  \"username\": \"nico-proxy_forVRC (Ver " + ConversionAPI.getVer() + ")\"," +
+                    "  \"username\": \"nico-proxy_forVRC (Ver " + Constant.getVersion() + ")\"," +
                     "  \"avatar_url\": \"https://r2.7mi.site/vrc/nico/nc296562.png\"," +
                     "  \"content\": \"利用ログ\"," +
                     "  \"embeds\": [" +
@@ -407,7 +407,7 @@ public class ServerExecute {
         } else if (origin.find()) {
             jsonText = "" +
                     "{" +
-                    "  \"username\": \"nico-proxy_forVRC (Ver " + ConversionAPI.getVer() + ")\"," +
+                    "  \"username\": \"nico-proxy_forVRC (Ver " + Constant.getVersion() + ")\"," +
                     "  \"avatar_url\": \"https://r2.7mi.site/vrc/nico/nc296562.png\"," +
                     "  \"content\": \"利用ログ\"," +
                     "  \"embeds\": [" +
@@ -434,7 +434,7 @@ public class ServerExecute {
         } else if (access.find()){
             jsonText = "" +
                     "{" +
-                    "  \"username\": \"nico-proxy_forVRC (Ver " + ConversionAPI.getVer() + ")\"," +
+                    "  \"username\": \"nico-proxy_forVRC (Ver " + Constant.getVersion() + ")\"," +
                     "  \"avatar_url\": \"https://r2.7mi.site/vrc/nico/nc296562.png\"," +
                     "  \"content\": \"利用ログ\"," +
                     "  \"embeds\": [" +
@@ -461,7 +461,7 @@ public class ServerExecute {
         } else {
             jsonText = "" +
                     "{"+
-                    "  \"username\": \"nico-proxy_forVRC (Ver "+ConversionAPI.getVer()+")\","+
+                    "  \"username\": \"nico-proxy_forVRC (Ver " + Constant.getVersion() + ")\","+
                     "  \"avatar_url\": \"https://r2.7mi.site/vrc/nico/nc296562.png\","+
                     "  \"content\": \"利用ログ\","+
                     "  \"embeds\": ["+
