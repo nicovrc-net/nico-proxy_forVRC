@@ -2,7 +2,6 @@ package net.nicovrc.dev;
 
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
-import com.amihaiemil.eoyaml.YamlSequence;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.api.*;
@@ -97,9 +96,6 @@ OfficialProxy:
 
     @Deprecated
     public static final String version = Constant.getVersion();
-
-    private static Boolean isStop = false;
-
 
 
     public static void main(String[] args) {
@@ -209,6 +205,7 @@ OfficialProxy:
             // e.printStackTrace();
         }
 
+        Boolean isStop = false;
         if (isHTTP){
             new HTTPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, port, isStop).start();
         }

@@ -4,7 +4,6 @@ import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.nicovrc.dev.Main;
 import net.nicovrc.dev.data.*;
 import okhttp3.*;
 import redis.clients.jedis.Jedis;
@@ -100,7 +99,7 @@ public class ConversionAPI {
         } else {
             request = HTTPRequest;
         }
-        String ErrorMessage = null;
+        String ErrorMessage;
 
         ShareService Service = getService(TempRequestURL);
         String ServiceName = null;
@@ -163,7 +162,7 @@ public class ConversionAPI {
                 }
             }
 
-            ResultVideoData video = null;
+            ResultVideoData video;
             //System.out.println("debug : " + TempRequestURL);
             //System.out.println("debug : " + ServiceName);
             if (ServiceName.equals("ニコニコ動画")){
@@ -602,10 +601,10 @@ public class ConversionAPI {
                     .addHeader("User-Agent", Constant.getUserAgent())
                     .build();
             Response response = client.newCall(html).execute();
-            if (response.body() != null && response.body().contentType().toString().startsWith("image")) {
+            if (response.body() != null && response.body().contentType() != null && response.body().contentType().toString().startsWith("image")) {
                 response.close();
                 return new Image();
-            } else if (response.body() != null && response.body().contentType().toString().startsWith("video")) {
+            } else if (response.body() != null && response.body().contentType() != null && response.body().contentType().toString().startsWith("video")) {
                 response.close();
                 return new Video();
             }
