@@ -42,7 +42,7 @@ public class JinnnaiSystemURL_API {
         JinnnaiSystem_URL.put("https://qst\\.akakitune87\\.net/q\\?url=(.+)", "");
         JinnnaiSystem_URL.put("http://u2b\\.cx/(.+)", "");
         JinnnaiSystem_URL.put("https://u2b\\.cx/(.+)", "");
-        JinnnaiSystem_URL.put("https://k\\.0cm\\.org/?url=(.+)", "");
+        JinnnaiSystem_URL.put("https://k\\.0cm\\.org/\\?url=(.+)", "");
 
         JinnnaiSystem_URL.put("http://shay\\.loan/(.+)", "https://youtu.be/");
         JinnnaiSystem_URL.put("https://shay\\.loan/(.+)", "https://youtu.be/");
@@ -58,8 +58,9 @@ public class JinnnaiSystemURL_API {
         JinnnaiSystem_URL.put("http://live\\.nicovideo\\.life/watch?v=(.+)", "https://nico.ms/");
         JinnnaiSystem_URL.put("https://live\\.nicovideo\\.life/watch?v=(.+)", "https://nico.ms/");
         JinnnaiSystem_URL.put("https://shinchan\\.biz/player\\.html\\?video_id=(.+)", "https://nico.ms/");
-        JinnnaiSystem_URL.put("https://k\\.0cm\\.org/?u=nico\\.ms%2F(.+)", "https://nico.ms/");
+        JinnnaiSystem_URL.put("https://k\\.0cm\\.org/\\?u=nico\\.ms%2F(.+)", "https://nico.ms/");
         JinnnaiSystem_URL.put("https://www\\.nicozon\\.net/player\\.html?video_id=(.+)", "https://nico.ms/");
+        JinnnaiSystem_URL.put("http://suzumebachi\\.xyz:1323/go/(.+)", "https://nico.ms/");
 
     }
 
