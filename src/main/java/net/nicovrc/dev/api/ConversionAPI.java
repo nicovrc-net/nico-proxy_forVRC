@@ -78,6 +78,7 @@ public class ConversionAPI {
         ServiceURLList.add("twitcasting.tv");
         ServiceURLList.add("tver.jp");
         ServiceURLList.add("gimy.ai");
+        ServiceURLList.add("iwara.tv");
     }
 
     /**
@@ -451,6 +452,11 @@ public class ConversionAPI {
                 return video.getVideoURL().replaceAll("d3cfw2mckicdfw\\.cloudfront\\.net", "o.nicovrc.net");
             }
 
+            // Iwara
+            if (ServiceName.equals("iwara")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+            }
+
             if (ServiceName.equals("画像") || ServiceName.equals("動画")){
                 video = Service.getVideo(new RequestVideoData(TempRequestURL, null));
 
@@ -530,6 +536,7 @@ public class ConversionAPI {
         Matcher matcher_AbemaURL = Pattern.compile("abema\\.tv").matcher(URL);
         Matcher matcher_TVerURL = Pattern.compile("tver\\.jp").matcher(URL);
         Matcher matcher_GimyURL = Pattern.compile("gimy\\.ai").matcher(URL);
+        Matcher matcher_IwaraURL = Pattern.compile("iwara\\.tv").matcher(URL);
 
         if (matcher_NicoVideoURL.find()){
             return new NicoNicoVideo();
@@ -582,6 +589,10 @@ public class ConversionAPI {
 
         if (matcher_TVerURL.find()){
             return new TVer();
+        }
+
+        if (matcher_IwaraURL.find()){
+            return new Iwara();
         }
 
         try {
