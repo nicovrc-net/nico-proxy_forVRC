@@ -129,101 +129,111 @@ public class HTTPServer extends Thread {
                             }
 
 
-                            // どれだけ溜まっているかのチェック用 (check_queueは過去のverの互換用)
-                            if (RequestURL.equals("check_queue") || RequestURL.equals("check_cache")) {
-                                SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n" + gson.toJson(CacheAPI.getList()));
-                                out.close();
-                                in.close();
-                                sock.close();
-                                return;
-                            }
-
-                            // 生死確認
-                            if (RequestURL.equals("check_health")) {
-                                String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\nへるすちぇっくー！ (Ver "+ Constant.getVersion() +")\n\n"+ProxyAPI.getListCount()+"\n\n" + ServerAPI.getListCount() + "\n\n" + CacheAPI.getListCount() + "\n\nLogQueueCount : " + ConversionAPI.getLogDataListCount();
-
-                                out.write(Result.getBytes(StandardCharsets.UTF_8));
-                                out.flush();
-                                out.close();
-                                in.close();
-                                sock.close();
-                                return;
-                            }
-
-                            // 生死確認その2
-                            if (RequestURL.startsWith("check_server=")) {
-                                Matcher matcher = Pattern.compile("check_server=(.+)").matcher(RequestURL);
-                                final String Result;
-                                if (matcher.find()){
-                                    boolean check = ServerAPI.isCheck(matcher.group(1));
-                                    Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n{\"check\": \"" + (check ? "OK" : "NG") + "\"}";
-                                } else {
-                                    Result = "HTTP/" + httpVersion + " 404 Not Found\nContent-Type: text/plain; charset=utf-8\n\n404";
-                                }
-                                SendResult(out, Result);
-                                out.close();
-                                in.close();
-                                sock.close();
-                                return;
-                            }
-
-                            // いろいろデータをjsonで書き出す
-                            if (RequestURL.equals("get_data")){
-                                String json = new Gson().toJson(new OutputJson(ServerAPI.getList().size(), ProxyAPI.getMainProxyList().size(), ProxyAPI.getJPProxyList().size(), CacheAPI.getList().size(), WebhookList.size(), ConversionAPI.getLogDataListCount(), ConversionAPI.getServiceURLList()));
-
-                                String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n"+json;
-
-                                SendResult(out, Result);
-                                out.close();
-                                in.close();
-                                sock.close();
-                                return;
-                            }
-
-                            // ログ強制書き出し
-                            try {
-                                String LogWritePass = null;
-                                MessageDigest md = MessageDigest.getInstance("SHA-256");
-                                if (RequestURL.startsWith("force_queue")){
-                                    try {
-
-                                        YamlInput yamlInput = Yaml.createYamlInput(new File("./config.yml"));
-                                        YamlMapping yamlMapping = yamlInput.readYamlMapping();
-                                        byte[] digest = md.digest(yamlMapping.string("WriteLogPass").getBytes(StandardCharsets.UTF_8));
-                                        yamlMapping = null;
-                                        yamlInput = null;
-                                        LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
-                                        System.gc();
-                                    } catch (Exception e){
-                                        LogWritePass = null;
-                                    }
+                            if  (!RequestURL.startsWith("http")){
+                                if (RequestURL.equals("check_queue")){
+                                    SendResult(out, "HTTP/" + httpVersion + " 404 Not Found\nContent-Type: text/plain; charset=utf-8\n\n404");
+                                    out.close();
+                                    in.close();
+                                    sock.close();
+                                    return;
                                 }
 
-                                if (RequestURL.startsWith("force_queue") && LogWritePass != null){
-                                    Matcher matcher = Pattern.compile("force_queue=(.+)").matcher(RequestURL);
+                                // どれだけ溜まっているかのチェック用
+                                if (RequestURL.equals("check_cache")) {
+                                    SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n" + gson.toJson(CacheAPI.getList()));
+                                    out.close();
+                                    in.close();
+                                    sock.close();
+                                    return;
+                                }
+
+                                // 生死確認
+                                if (RequestURL.equals("check_health")) {
+                                    String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\nへるすちぇっくー！ (Ver "+ Constant.getVersion() +")\n\n"+ProxyAPI.getListCount()+"\n\n" + ServerAPI.getListCount() + "\n\n" + CacheAPI.getListCount() + "\n\nLogQueueCount : " + ConversionAPI.getLogDataListCount();
+
+                                    out.write(Result.getBytes(StandardCharsets.UTF_8));
+                                    out.flush();
+                                    out.close();
+                                    in.close();
+                                    sock.close();
+                                    return;
+                                }
+
+                                // 生死確認その2
+                                if (RequestURL.startsWith("check_server=")) {
+                                    Matcher matcher = Pattern.compile("check_server=(.+)").matcher(RequestURL);
+                                    final String Result;
                                     if (matcher.find()){
-                                        String inputP = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
-                                        //System.out.println(inputP);
-                                        byte[] digest = md.digest(inputP.getBytes(StandardCharsets.UTF_8));
-
-                                        //System.out.println(LogWritePass + " : " + HexFormat.of().withLowerCase().formatHex(digest));
-                                        if (HexFormat.of().withLowerCase().formatHex(digest).equals(LogWritePass)){
-                                            //System.out.println("ok");
-                                            ConversionAPI.ForceLogDataWrite();
-                                            WebhookSendAll();
-                                        }
-                                        digest = md.digest((RequestURL+new Date().getTime()+UUID.randomUUID()).getBytes(StandardCharsets.UTF_8));
-                                        LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
+                                        boolean check = ServerAPI.isCheck(matcher.group(1));
+                                        Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n{\"check\": \"" + (check ? "OK" : "NG") + "\"}";
+                                    } else {
+                                        Result = "HTTP/" + httpVersion + " 404 Not Found\nContent-Type: text/plain; charset=utf-8\n\n404";
                                     }
-                                    String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n[]";
                                     SendResult(out, Result);
                                     out.close();
                                     in.close();
                                     sock.close();
                                     return;
                                 }
-                            } catch (Exception e){
-                                // e.printStackTrace();
+
+                                // いろいろデータをjsonで書き出す
+                                if (RequestURL.equals("get_data")){
+                                    String json = new Gson().toJson(new OutputJson(ServerAPI.getList().size(), ProxyAPI.getMainProxyList().size(), ProxyAPI.getJPProxyList().size(), CacheAPI.getList().size(), WebhookList.size(), ConversionAPI.getLogDataListCount(), ConversionAPI.getServiceURLList()));
+
+                                    String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n"+json;
+
+                                    SendResult(out, Result);
+                                    out.close();
+                                    in.close();
+                                    sock.close();
+                                    return;
+                                }
+
+                                // ログ強制書き出し
+                                try {
+                                    String LogWritePass = null;
+                                    MessageDigest md = MessageDigest.getInstance("SHA-256");
+                                    if (RequestURL.startsWith("force_queue")){
+                                        try {
+
+                                            YamlInput yamlInput = Yaml.createYamlInput(new File("./config.yml"));
+                                            YamlMapping yamlMapping = yamlInput.readYamlMapping();
+                                            byte[] digest = md.digest(yamlMapping.string("WriteLogPass").getBytes(StandardCharsets.UTF_8));
+                                            yamlMapping = null;
+                                            yamlInput = null;
+                                            LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
+                                            System.gc();
+                                        } catch (Exception e){
+                                            LogWritePass = null;
+                                        }
+                                    }
+
+                                    if (RequestURL.startsWith("force_queue") && LogWritePass != null){
+                                        Matcher matcher = Pattern.compile("force_queue=(.+)").matcher(RequestURL);
+                                        if (matcher.find()){
+                                            String inputP = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
+                                            //System.out.println(inputP);
+                                            byte[] digest = md.digest(inputP.getBytes(StandardCharsets.UTF_8));
+
+                                            //System.out.println(LogWritePass + " : " + HexFormat.of().withLowerCase().formatHex(digest));
+                                            if (HexFormat.of().withLowerCase().formatHex(digest).equals(LogWritePass)){
+                                                //System.out.println("ok");
+                                                ConversionAPI.ForceLogDataWrite();
+                                                WebhookSendAll();
+                                            }
+                                            digest = md.digest((RequestURL+new Date().getTime()+UUID.randomUUID()).getBytes(StandardCharsets.UTF_8));
+                                            LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
+                                        }
+                                        String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n[]";
+                                        SendResult(out, Result);
+                                        out.close();
+                                        in.close();
+                                        sock.close();
+                                        return;
+                                    }
+                                } catch (Exception e){
+                                    // e.printStackTrace();
+                                }
                             }
 
                             ServerExecute.run(CacheAPI, ConversionAPI, ServerAPI, JinnnaiAPI, HttpClient, in, out, sock, null, null, httpRequest, httpVersion, RequestURL, isWebhook, WebhookURL, WebhookList);
