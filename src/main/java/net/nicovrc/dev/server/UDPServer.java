@@ -119,22 +119,24 @@ public class UDPServer extends Thread {
                         continue;
                     }
 
-                    if (RequestURL.equals("check")){
-                        OutputJson outputJson = new OutputJson(0, ProxyAPI.getMainProxyList().size(), ProxyAPI.getJPProxyList().size(), CacheAPI.getList().size(), WebhookList.size(), ConversionAPI.getLogDataListCount(), ConversionAPI.getServiceURLList());
-                        socket.send(new DatagramPacket(new Gson().toJson(outputJson).getBytes(StandardCharsets.UTF_8), new Gson().toJson(outputJson).getBytes(StandardCharsets.UTF_8).length, address));
-                        continue;
-                    }
+                    if (RequestURL.startsWith("http")){
+                        if (RequestURL.equals("check")){
+                            OutputJson outputJson = new OutputJson(0, ProxyAPI.getMainProxyList().size(), ProxyAPI.getJPProxyList().size(), CacheAPI.getList().size(), WebhookList.size(), ConversionAPI.getLogDataListCount(), ConversionAPI.getServiceURLList());
+                            socket.send(new DatagramPacket(new Gson().toJson(outputJson).getBytes(StandardCharsets.UTF_8), new Gson().toJson(outputJson).getBytes(StandardCharsets.UTF_8).length, address));
+                            continue;
+                        }
 
-                    if (RequestURL.equals("health")){
-                        json.setResultURL("OK");
-                        socket.send(new DatagramPacket(new Gson().toJson(json).getBytes(StandardCharsets.UTF_8), new Gson().toJson(json).getBytes(StandardCharsets.UTF_8).length, address));
-                        continue;
-                    }
+                        if (RequestURL.equals("health")){
+                            json.setResultURL("OK");
+                            socket.send(new DatagramPacket(new Gson().toJson(json).getBytes(StandardCharsets.UTF_8), new Gson().toJson(json).getBytes(StandardCharsets.UTF_8).length, address));
+                            continue;
+                        }
 
-                    if (RequestURL.equals("get_cache")){
-                        HashMap<String, CacheData> list = CacheAPI.getList();
-                        socket.send(new DatagramPacket(new Gson().toJson(list).getBytes(StandardCharsets.UTF_8), new Gson().toJson(list).getBytes(StandardCharsets.UTF_8).length, address));
-                        continue;
+                        if (RequestURL.equals("get_cache")){
+                            HashMap<String, CacheData> list = CacheAPI.getList();
+                            socket.send(new DatagramPacket(new Gson().toJson(list).getBytes(StandardCharsets.UTF_8), new Gson().toJson(list).getBytes(StandardCharsets.UTF_8).length, address));
+                            continue;
+                        }
                     }
 
                     try {
