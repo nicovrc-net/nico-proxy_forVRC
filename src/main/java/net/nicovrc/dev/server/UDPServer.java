@@ -119,7 +119,7 @@ public class UDPServer extends Thread {
                         continue;
                     }
 
-                    if (RequestURL.startsWith("http")){
+                    if (RequestURL.startsWith("check") || RequestURL.startsWith("force")){
                         if (RequestURL.equals("check")){
                             OutputJson outputJson = new OutputJson(0, ProxyAPI.getMainProxyList().size(), ProxyAPI.getJPProxyList().size(), CacheAPI.getList().size(), WebhookList.size(), ConversionAPI.getLogDataListCount(), ConversionAPI.getServiceURLList());
                             socket.send(new DatagramPacket(new Gson().toJson(outputJson).getBytes(StandardCharsets.UTF_8), new Gson().toJson(outputJson).getBytes(StandardCharsets.UTF_8).length, address));
@@ -137,48 +137,46 @@ public class UDPServer extends Thread {
                             socket.send(new DatagramPacket(new Gson().toJson(list).getBytes(StandardCharsets.UTF_8), new Gson().toJson(list).getBytes(StandardCharsets.UTF_8).length, address));
                             continue;
                         }
-                    }
 
-                    try {
-                        String LogWritePass = null;
-                        MessageDigest md = MessageDigest.getInstance("SHA-256");
-                        if (RequestURL.startsWith("force_queue")){
-                            try {
-                                YamlInput yamlInput = Yaml.createYamlInput(new File("./config.yml"));
-                                YamlMapping yamlMapping = yamlInput.readYamlMapping();
-                                byte[] digest = md.digest(yamlMapping.string("WriteLogPass").getBytes(StandardCharsets.UTF_8));
-                                yamlMapping = null;
-                                yamlInput = null;
-                                LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
-                                System.gc();
-                            } catch (Exception e){
-                                LogWritePass = null;
-                            }
-                        }
+                        try {
+                            String LogWritePass = null;
+                            MessageDigest md = MessageDigest.getInstance("SHA-256");
+                            if (RequestURL.startsWith("force_queue")){
+                                try {
+                                    YamlInput yamlInput = Yaml.createYamlInput(new File("./config.yml"));
+                                    YamlMapping yamlMapping = yamlInput.readYamlMapping();
+                                    byte[] digest = md.digest(yamlMapping.string("WriteLogPass").getBytes(StandardCharsets.UTF_8));
+                                    yamlMapping = null;
+                                    yamlInput = null;
+                                    LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
+                                    System.gc();
 
-                        if (RequestURL.startsWith("force_queue") && LogWritePass != null){
-                            Matcher matcher = Pattern.compile("force_queue=(.+)").matcher(RequestURL);
-                            if (matcher.find()){
-                                String inputP = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
-                                //System.out.println(inputP);
-                                byte[] digest = md.digest(inputP.getBytes(StandardCharsets.UTF_8));
+                                    Matcher matcher = Pattern.compile("force_queue=(.+)").matcher(RequestURL);
+                                    if (matcher.find()){
+                                        String inputP = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
+                                        //System.out.println(inputP);
+                                        byte[] digest1 = md.digest(inputP.getBytes(StandardCharsets.UTF_8));
 
-                                //System.out.println(LogWritePass + " : " + HexFormat.of().withLowerCase().formatHex(digest));
-                                if (HexFormat.of().withLowerCase().formatHex(digest).equals(LogWritePass)){
-                                    //System.out.println("ok");
-                                    ConversionAPI.ForceLogDataWrite();
-                                    WebhookSendAll();
+                                        //System.out.println(LogWritePass + " : " + HexFormat.of().withLowerCase().formatHex(digest));
+                                        if (HexFormat.of().withLowerCase().formatHex(digest1).equals(LogWritePass)){
+                                            //System.out.println("ok");
+                                            ConversionAPI.ForceLogDataWrite();
+                                            WebhookSendAll();
+                                        }
+                                        digest1 = md.digest((RequestURL+new Date().getTime()+UUID.randomUUID()).getBytes(StandardCharsets.UTF_8));
+                                        LogWritePass = HexFormat.of().withLowerCase().formatHex(digest1);
+                                    }
+
+                                    json.setResultURL("");
+                                    socket.send(new DatagramPacket(new Gson().toJson(json).getBytes(StandardCharsets.UTF_8), new Gson().toJson(json).getBytes(StandardCharsets.UTF_8).length, address));
+                                    continue;
+                                } catch (Exception e){
+                                    LogWritePass = null;
                                 }
-                                digest = md.digest((RequestURL+new Date().getTime()+UUID.randomUUID()).getBytes(StandardCharsets.UTF_8));
-                                LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
                             }
-
-                            json.setResultURL("");
-                            socket.send(new DatagramPacket(new Gson().toJson(json).getBytes(StandardCharsets.UTF_8), new Gson().toJson(json).getBytes(StandardCharsets.UTF_8).length, address));
-                            continue;
+                        } catch (Exception e){
+                            // e.printStackTrace();
                         }
-                    } catch (Exception e){
-                        // e.printStackTrace();
                     }
 
                     //System.out.println(packetText);

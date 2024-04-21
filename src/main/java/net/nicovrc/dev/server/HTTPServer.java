@@ -129,7 +129,7 @@ public class HTTPServer extends Thread {
                             }
 
 
-                            if  (!RequestURL.startsWith("http")){
+                            if  (RequestURL.startsWith("check") || RequestURL.startsWith("get") || RequestURL.startsWith("force")){
                                 if (RequestURL.equals("check_queue")){
                                     SendResult(out, "HTTP/" + httpVersion + " 404 Not Found\nContent-Type: text/plain; charset=utf-8\n\n404");
                                     out.close();

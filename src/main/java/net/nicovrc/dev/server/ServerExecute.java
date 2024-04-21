@@ -29,27 +29,31 @@ public class ServerExecute {
 
         // 加工用
         //System.out.println(RequestURL);
+        //long start1 = new Date().getTime();
         String TempURL = JinnnaiAPI.replace(RequestURL);
         //System.out.println(TempURL);
 
-        // 先頭がsm/nm/so/lv/数字のみの場合は先頭に「https://nico.ms/」を追加する
+        // sm|nm|am|fz|ut|dm
         if (TempURL.startsWith("sm") || TempURL.startsWith("nm") || TempURL.startsWith("so") || TempURL.startsWith("lv") || Pattern.compile("^\\d+").matcher(TempURL).find()){
+            // 先頭がsm/nm/so/lv/数字のみの場合は先頭に「https://nico.ms/」を追加する
             TempURL = "https://nico.ms/"+TempURL;
-        }
-
-        // 公式チャンネルのIDの場合はlive.nicovideo.jpを追加
-        if (TempURL.startsWith("ch")){
+        } else if (TempURL.startsWith("ch")){
+            // 公式チャンネルのIDの場合はlive.nicovideo.jpを追加
             TempURL = "https://live.nicovideo.jp/watch/" + TempURL;
         }
+        //long end1 = new Date().getTime();
+        //System.out.println("jinnai : " + (end1 - start1));
 
         //System.out.println(TempURL);
 
         // リダイレクト先のURLを渡す
+        //long start2 = new Date().getTime();
         final Matcher redirectUrl = Pattern.compile("(api\\.nicoad\\.nicovideo\\.jp|b23\\.tv|nico\\.ms|cas\\.nicovideo\\.jp|live2\\.nicovideo\\.jp|abema\\.app)").matcher(TempURL);
         if (redirectUrl.find()){
             try {
                 Request request = new Request.Builder()
                         .url(TempURL)
+                        .head()
                         .build();
                 Response response = HttpClient.newCall(request).execute();
                 if (response.body() != null) {
@@ -60,6 +64,8 @@ public class ServerExecute {
                 e.printStackTrace();
             }
         }
+        //long end2 = new Date().getTime();
+        //System.out.println("redirect : " + (end2 - start2));
         //System.out.println(TempURL);
 
         // 置き換え用
