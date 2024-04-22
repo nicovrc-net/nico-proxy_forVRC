@@ -41,11 +41,39 @@ public class ServerExecute {
 
     public static void run(CacheAPI CacheAPI, ConversionAPI ConversionAPI, ServerAPI ServerAPI, JinnnaiSystemURL_API JinnnaiAPI, OkHttpClient HttpClient, InputStream in, OutputStream out, Socket sock, DatagramSocket socket, InetSocketAddress address, String httpRequest, String httpVersion, String RequestURL, boolean isWebhook, String WebhookURL, ArrayList<String> WebhookList) throws Exception{
 
+        // 処理鯖に投げるための事前準備
+        Matcher getTitle = matcher4.matcher(httpRequest.toLowerCase(Locale.ROOT));
+        boolean isTitleGet = getTitle.find();
+        try {
+            UDPPacket packet = new Gson().fromJson(httpRequest, UDPPacket.class);
+            isTitleGet = packet.isGetTitle();
+        } catch (Exception e){
+            //e.printStackTrace();
+        }
+
         // 加工用
         //System.out.println(RequestURL);
         //long start1 = new Date().getTime();
         String TempURL = JinnnaiAPI.replace(RequestURL);
         //System.out.println(TempURL);
+
+        // RequestURL(処理しようとしているURL)が空だったらさっさと301リダイレクトしてしまう
+        if (RequestURL.isEmpty()){
+            if (socket == null){
+                SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=Not Found"+"\nDate: " + new Date() + "\n\n");
+            } else {
+                UDPPacket packet = new UDPPacket();
+                packet.setResultURL("https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=Not Found");
+                packet.setGetTitle(isTitleGet);
+                SendResult(socket, address, packet);
+            }
+
+            CacheAPI.removeCache(TempURL.split("\\?")[0]);
+            SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=Not Found", httpRequest, false, false);
+            System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> Not Found");
+
+            return;
+        }
 
         // sm|nm|am|fz|ut|dm
         if (TempURL.startsWith("sm") || TempURL.startsWith("nm") || TempURL.startsWith("so") || TempURL.startsWith("lv") || matcher1.matcher(TempURL).find()){
@@ -90,15 +118,6 @@ public class ServerExecute {
 
         //System.out.println(TempURL);
 
-        // 処理鯖に投げるための事前準備
-        Matcher getTitle = matcher4.matcher(httpRequest.toLowerCase(Locale.ROOT));
-        boolean isTitleGet = getTitle.find();
-        try {
-            UDPPacket packet = new Gson().fromJson(httpRequest, UDPPacket.class);
-            isTitleGet = packet.isGetTitle();
-        } catch (Exception e){
-            //e.printStackTrace();
-        }
 
         if (!isTitleGet){
             // キャッシュ対象の場合はキャッシュチェック
