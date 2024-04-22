@@ -8,59 +8,59 @@ import java.util.regex.Pattern;
 
 public class JinnnaiSystemURL_API {
 
-    private final HashMap<String, String> JinnnaiSystem_URL = new HashMap<>();
+    private final HashMap<Pattern, String> JinnnaiSystem_URL = new HashMap<>();
 
     public JinnnaiSystemURL_API(){
         // 陣内システムのURL挿入
-        JinnnaiSystem_URL.put("http://yt\\.8uro\\.net/r\\?v=(.+)", "");
-        JinnnaiSystem_URL.put("https://yt\\.8uro\\.net/r\\?v=(.+)", "");
-        JinnnaiSystem_URL.put("http://nextnex\\.com/\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("https://nextnex\\.com/\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("http://vrc\\.kuroneko6423\\.com/proxy\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("https://vrc\\.kuroneko6423\\.com/proxy\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("http://kvvs\\.net/proxy\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("https://kvvs\\.net/proxy\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("http://questify\\.dev/\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("https://questify\\.dev/\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("http://questing\\.thetechnolus\\.com/v\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("https://questing\\.thetechnolus\\.com/v\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("http://questing\\.thetechnolus\\.com/(.+)", "");
-        JinnnaiSystem_URL.put("https://questing\\.thetechnolus\\.com/(.+)", "");
-        JinnnaiSystem_URL.put("http://vq\\.vrcprofile\\.com/\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("https://vq\\.vrcprofile\\.com/\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("http://api\\.yamachan\\.moe/proxy\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("https://api\\.yamachan\\.moe/proxy\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("http://nicovrc\\.net/proxy/\\?(.+)", "");
-        JinnnaiSystem_URL.put("https://nicovrc\\.net/proxy/\\?(.+)", "");
-        JinnnaiSystem_URL.put("http://nicovrc\\.net/proxy/dummy\\.m3u8\\?(.+)", "");
-        JinnnaiSystem_URL.put("https://nicovrc\\.net/proxy/dummy\\.m3u8\\?(.+)", "");
-        JinnnaiSystem_URL.put("http://nico\\.7mi\\.site/proxy/\\?(.+)", "");
-        JinnnaiSystem_URL.put("https://nico\\.7mi\\.site/proxy/\\?(.+)", "");
-        JinnnaiSystem_URL.put("http://nico\\.7mi\\.site/proxy/dummy\\.m3u8\\?(.+)", "");
-        JinnnaiSystem_URL.put("https://nico\\.7mi\\.site/proxy/dummy\\.m3u8\\?(.+)", "");
-        JinnnaiSystem_URL.put("http://qst\\.akakitune87\\.net/q\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("https://qst\\.akakitune87\\.net/q\\?url=(.+)", "");
-        JinnnaiSystem_URL.put("http://u2b\\.cx/(.+)", "");
-        JinnnaiSystem_URL.put("https://u2b\\.cx/(.+)", "");
-        JinnnaiSystem_URL.put("https://k\\.0cm\\.org/\\?url=(.+)", "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://yt\\.8uro\\.net/r\\?v=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://yt\\.8uro\\.net/r\\?v=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://nextnex\\.com/\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://nextnex\\.com/\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://vrc\\.kuroneko6423\\.com/proxy\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://vrc\\.kuroneko6423\\.com/proxy\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://kvvs\\.net/proxy\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://kvvs\\.net/proxy\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://questify\\.dev/\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://questify\\.dev/\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://questing\\.thetechnolus\\.com/v\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://questing\\.thetechnolus\\.com/v\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://questing\\.thetechnolus\\.com/(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://questing\\.thetechnolus\\.com/(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://vq\\.vrcprofile\\.com/\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://vq\\.vrcprofile\\.com/\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://api\\.yamachan\\.moe/proxy\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://api\\.yamachan\\.moe/proxy\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://nicovrc\\.net/proxy/\\?(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://nicovrc\\.net/proxy/\\?(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://nicovrc\\.net/proxy/dummy\\.m3u8\\?(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://nicovrc\\.net/proxy/dummy\\.m3u8\\?(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://nico\\.7mi\\.site/proxy/\\?(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://nico\\.7mi\\.site/proxy/\\?(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://nico\\.7mi\\.site/proxy/dummy\\.m3u8\\?(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://nico\\.7mi\\.site/proxy/dummy\\.m3u8\\?(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://qst\\.akakitune87\\.net/q\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://qst\\.akakitune87\\.net/q\\?url=(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("http://u2b\\.cx/(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://u2b\\.cx/(.+)"), "");
+        JinnnaiSystem_URL.put(Pattern.compile("https://k\\.0cm\\.org/\\?url=(.+)"), "");
 
-        JinnnaiSystem_URL.put("http://shay\\.loan/(.+)", "https://youtu.be/");
-        JinnnaiSystem_URL.put("https://shay\\.loan/(.+)", "https://youtu.be/");
-        JinnnaiSystem_URL.put("http://questing\\.thetechnolus.com/watch\\?v=(.+)", "https://youtu.be/");
-        JinnnaiSystem_URL.put("https://questing\\.thetechnolus.com/watch\\?v=(.+)", "https://youtu.be/");
-        JinnnaiSystem_URL.put("http://questing\\.thetechnolus.com/v/(.+)", "https://youtu.be/");
-        JinnnaiSystem_URL.put("https://questing\\.thetechnolus.com/v/(.+)", "https://youtu.be/");
-        JinnnaiSystem_URL.put("http://youtube\\.irunu.co/watch\\?v=(.+)", "https://youtu.be/");
-        JinnnaiSystem_URL.put("https://youtube\\.irunu.co/watch\\?v=(.+)", "https://youtu.be/");
+        JinnnaiSystem_URL.put(Pattern.compile("http://shay\\.loan/(.+)"), "https://youtu.be/");
+        JinnnaiSystem_URL.put(Pattern.compile("https://shay\\.loan/(.+)"), "https://youtu.be/");
+        JinnnaiSystem_URL.put(Pattern.compile("http://questing\\.thetechnolus.com/watch\\?v=(.+)"), "https://youtu.be/");
+        JinnnaiSystem_URL.put(Pattern.compile("https://questing\\.thetechnolus.com/watch\\?v=(.+)"), "https://youtu.be/");
+        JinnnaiSystem_URL.put(Pattern.compile("http://questing\\.thetechnolus.com/v/(.+)"), "https://youtu.be/");
+        JinnnaiSystem_URL.put(Pattern.compile("https://questing\\.thetechnolus.com/v/(.+)"), "https://youtu.be/");
+        JinnnaiSystem_URL.put(Pattern.compile("http://youtube\\.irunu.co/watch\\?v=(.+)"), "https://youtu.be/");
+        JinnnaiSystem_URL.put(Pattern.compile("https://youtube\\.irunu.co/watch\\?v=(.+)"), "https://youtu.be/");
 
-        JinnnaiSystem_URL.put("http://www\\.nicovideo\\.life/watch\\?v=(.+)", "https://nico.ms/");
-        JinnnaiSystem_URL.put("https://www\\.nicovideo\\.life/watch\\?v=(.+)", "https://nico.ms/");
-        JinnnaiSystem_URL.put("http://live\\.nicovideo\\.life/watch\\?v=(.+)", "https://nico.ms/");
-        JinnnaiSystem_URL.put("https://live\\.nicovideo\\.life/watch\\?v=(.+)", "https://nico.ms/");
-        JinnnaiSystem_URL.put("https://shinchan\\.biz/player\\.html\\?video_id=(.+)", "https://nico.ms/");
-        JinnnaiSystem_URL.put("https://k\\.0cm\\.org/\\?u=nico\\.ms%2F(.+)", "https://nico.ms/");
-        JinnnaiSystem_URL.put("https://www\\.nicozon\\.net/player\\.html\\?video_id=(.+)", "https://nico.ms/");
-        JinnnaiSystem_URL.put("http://suzumebachi\\.xyz:1323/go/(.+)", "https://nico.ms/");
+        JinnnaiSystem_URL.put(Pattern.compile("http://www\\.nicovideo\\.life/watch\\?v=(.+)"), "https://nico.ms/");
+        JinnnaiSystem_URL.put(Pattern.compile("https://www\\.nicovideo\\.life/watch\\?v=(.+)"), "https://nico.ms/");
+        JinnnaiSystem_URL.put(Pattern.compile("http://live\\.nicovideo\\.life/watch\\?v=(.+)"), "https://nico.ms/");
+        JinnnaiSystem_URL.put(Pattern.compile("https://live\\.nicovideo\\.life/watch\\?v=(.+)"), "https://nico.ms/");
+        JinnnaiSystem_URL.put(Pattern.compile("https://shinchan\\.biz/player\\.html\\?video_id=(.+)"), "https://nico.ms/");
+        JinnnaiSystem_URL.put(Pattern.compile("https://k\\.0cm\\.org/\\?u=nico\\.ms%2F(.+)"), "https://nico.ms/");
+        JinnnaiSystem_URL.put(Pattern.compile("https://www\\.nicozon\\.net/player\\.html\\?video_id=(.+)"), "https://nico.ms/");
+        JinnnaiSystem_URL.put(Pattern.compile("http://suzumebachi\\.xyz:1323/go/(.+)"), "https://nico.ms/");
 
     }
 
@@ -84,7 +84,7 @@ public class JinnnaiSystemURL_API {
             }
 
             // http://api.yamachan.moe/proxy?url=https://nico.ms/sm9
-            Matcher matcher = Pattern.compile(ji).matcher(tempUrl);
+            Matcher matcher = ji.matcher(tempUrl);
             if (matcher.find()){
                 //System.out.println(ji + " is found!!");
                 //System.out.println(re + matcher.group(1));

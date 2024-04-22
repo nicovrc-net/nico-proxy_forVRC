@@ -40,6 +40,12 @@ public class HTTPServer extends Thread {
     private final ArrayList<String> WebhookList = new ArrayList<>();
     private Boolean isStop;
 
+    private final Pattern matcher_1 = Pattern.compile("HTTP/1\\.(\\d)");
+    private final Pattern matcher_2 = Pattern.compile("HTTP/2\\.(\\d)");
+    private final Pattern matcher_3 = Pattern.compile("(GET|HEAD) /\\?vi=(.*) HTTP");
+    private final Pattern matcher_4 = Pattern.compile("check_server=(.+)");
+    private final Pattern matcher_5 = Pattern.compile("force_queue=(.+)");
+
     public HTTPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port, Boolean isStop){
         this.Port = Port;
 
@@ -161,7 +167,7 @@ public class HTTPServer extends Thread {
 
                                 // 生死確認その2
                                 if (RequestURL.startsWith("check_server=")) {
-                                    Matcher matcher = Pattern.compile("check_server=(.+)").matcher(RequestURL);
+                                    Matcher matcher = matcher_4.matcher(RequestURL);
                                     final String Result;
                                     if (matcher.find()){
                                         boolean check = ServerAPI.isCheck(matcher.group(1));
@@ -209,7 +215,7 @@ public class HTTPServer extends Thread {
                                     }
 
                                     if (RequestURL.startsWith("force_queue") && LogWritePass != null){
-                                        Matcher matcher = Pattern.compile("force_queue=(.+)").matcher(RequestURL);
+                                        Matcher matcher = matcher_5.matcher(RequestURL);
                                         if (matcher.find()){
                                             String inputP = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
                                             //System.out.println(inputP);
@@ -280,8 +286,10 @@ public class HTTPServer extends Thread {
     }
 
     private String getHttpVersion(String HttpRequest){
-        Matcher matcher1 = Pattern.compile("HTTP/1\\.(\\d)").matcher(HttpRequest);
-        Matcher matcher2 = Pattern.compile("HTTP/2\\.(\\d)").matcher(HttpRequest);
+
+        Matcher matcher1 = matcher_1.matcher(HttpRequest);
+        Matcher matcher2 = matcher_2.matcher(HttpRequest);
+
         if (matcher1.find()){
             return "1."+matcher1.group(1);
         }
@@ -292,8 +300,9 @@ public class HTTPServer extends Thread {
         return "unknown";
     }
 
+
     private String getRequestURL(String HttpRequest){
-        Matcher requestMatch = Pattern.compile("(GET|HEAD) /\\?vi=(.*) HTTP").matcher(HttpRequest);
+        Matcher requestMatch = matcher_3.matcher(HttpRequest);
         if (requestMatch.find()){
             return requestMatch.group(2);
         }

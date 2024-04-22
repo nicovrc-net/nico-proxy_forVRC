@@ -34,6 +34,33 @@ public class ConversionAPI {
     private final ConcurrentHashMap<String, LogData> LogDataList = new ConcurrentHashMap<>();
     private final List<String> ServiceURLList = new ArrayList<>();
 
+    private final Pattern matcher_1 = Pattern.compile("fail-message");
+    private final Pattern matcher_2 = Pattern.compile("\\?v=");
+    private final Pattern matcher_3 = Pattern.compile("sm|nm|am|fz|ut|dm");
+    private final Pattern matcher_4 = Pattern.compile("so|ax|ca|cd|cw|fx|ig|na|om|sd|sk|yk|yo|za|zb|zc|zd|ze|nl|watch/(\\d+)|^(\\d+)");
+    private final Pattern matcher_5 = Pattern.compile("lv|ch");
+    private final Pattern matcher_6 = Pattern.compile("dmc\\.nico");
+    private final Pattern matcher_7 = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">");
+    private final Pattern matcher_8 = Pattern.compile("\"dash\":\\{\"duration\":(\\d+)");
+    private final Pattern matcher_9 = Pattern.compile("https://abema\\.tv/now-on-air/(.+)");
+    private final Pattern matcher_10 = Pattern.compile("https://tver\\.jp/live/(.+)");
+    private final Pattern matcher_11 = Pattern.compile("https://(.+)/tc\\.vod\\.v2");
+
+    private final Pattern matcher_12 = Pattern.compile("(nico\\.ms|nicovideo\\.jp)");
+    private final Pattern matcher_13 = Pattern.compile("bilibili\\.com");
+    private final Pattern matcher_14 = Pattern.compile("bilibili\\.tv");
+    private final Pattern matcher_15 = Pattern.compile("(youtu\\.be|youtube\\.com)");
+    private final Pattern matcher_16 = Pattern.compile("xvideos\\.com");
+    private final Pattern matcher_17 = Pattern.compile("tiktok\\.com");
+    private final Pattern matcher_18 = Pattern.compile("(x|twitter)\\.com/(.*)/status/(.*)");
+    private final Pattern matcher_19 = Pattern.compile("openrec\\.tv");
+    private final Pattern matcher_20 = Pattern.compile("pornhub\\.com");
+    private final Pattern matcher_21 = Pattern.compile("twitcasting\\.tv");
+    private final Pattern matcher_22 = Pattern.compile("abema\\.tv");
+    private final Pattern matcher_23 = Pattern.compile("tver\\.jp");
+    private final Pattern matcher_24 = Pattern.compile("gimy\\.ai");
+    private final Pattern matcher_25 = Pattern.compile("iwara\\.tv");
+
     public ConversionAPI(ProxyAPI proxyAPI){
         this.proxyAPI = proxyAPI;
         String temp = null;
@@ -143,7 +170,7 @@ public class ConversionAPI {
             if (response.body() != null){
                 String temp = response.body().string();
                 //System.out.println(temp);
-                isUseJPProxy = Pattern.compile("fail-message").matcher(temp).find();
+                isUseJPProxy = matcher_1.matcher(temp).find();
             }
             response.close();
             //System.out.println(isUseJPProxy);
@@ -154,13 +181,13 @@ public class ConversionAPI {
             }
 
             //System.out.println("Debug3 : "+TempRequestURL);
-            if (!Pattern.compile("\\?v=").matcher(TempRequestURL).find()){
+            Matcher matcher1 = matcher_2.matcher(TempRequestURL);
+            boolean b = matcher1.find();
+
+            if (!b){
                 TempRequestURL = TempRequestURL.split("\\?")[0];
             } else {
-                Matcher matcher = Pattern.compile("\\?v=(.+)").matcher(TempRequestURL);
-                if (matcher.find()){
-                    TempRequestURL = "https://nico.ms/"+matcher.group(1);
-                }
+                TempRequestURL = "https://nico.ms/"+matcher1.group(1);
             }
 
             ResultVideoData video;
@@ -168,10 +195,10 @@ public class ConversionAPI {
             //System.out.println("debug : " + ServiceName);
             if (ServiceName.equals("ニコニコ動画")){
                 //System.out.println(TempRequestURL);
-                if (Pattern.compile("sm|nm|am|fz|ut|dm").matcher(TempRequestURL).find()){
+                if (matcher_3.matcher(TempRequestURL).find()){
                     // 通常動画
                     video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
-                } else if (Pattern.compile("so|ax|ca|cd|cw|fx|ig|na|om|sd|sk|yk|yo|za|zb|zc|zd|ze|nl|watch/(\\d+)|^(\\d+)").matcher(TempRequestURL).find()){
+                } else if (matcher_4.matcher(TempRequestURL).find()){
                     // 公式動画 or 配信
                     try {
                         video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
@@ -190,7 +217,7 @@ public class ConversionAPI {
                             throw e;
                         }
                     }
-                } else if (Pattern.compile("lv|ch").matcher(TempRequestURL).find()) {
+                } else if (matcher_5.matcher(TempRequestURL).find()) {
                     // 配信
                     try {
                         video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData));
@@ -201,7 +228,7 @@ public class ConversionAPI {
                     throw new Exception("対応していない動画または配信です。\n※URLが間違っていないか再度確認ください。");
                 }
 
-                if (Pattern.compile("dmc\\.nico").matcher(video.getVideoURL()).find()){
+                if (matcher_6.matcher(video.getVideoURL()).find()){
                     if (!video.isStream()) {
                         final String JsonData = video.getTokenJson();
                         String finalTempRequestURL = TempRequestURL;
@@ -220,7 +247,7 @@ public class ConversionAPI {
                                 }
                                 response1.close();
 
-                                Matcher matcher_video = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">").matcher(HtmlText);
+                                Matcher matcher_video = matcher_7.matcher(HtmlText);
 
                                 final long videoTime;
                                 if (matcher_video.find()) {
@@ -339,7 +366,7 @@ public class ConversionAPI {
                                 .build();
                         Response response1 = client.newCall(request_html).execute();
                         if (response1.body() != null) {
-                            Matcher matcher = Pattern.compile("\"dash\":\\{\"duration\":(\\d+)").matcher(response1.body().string());
+                            Matcher matcher = matcher_8.matcher(response1.body().string());
                             if (matcher.find()) {
                                 duration = Long.parseLong(matcher.group(1));
                             }
@@ -367,12 +394,12 @@ public class ConversionAPI {
 
             // xvideos / TikTok / Twitter / Pornhub / Ameba / TVer
             if (ServiceName.equals("XVIDEOS.com") || ServiceName.equals("TikTok") || ServiceName.equals("Twitter") || ServiceName.equals("Pornhub") || ServiceName.equals("Abema") || ServiceName.equals("TVer") || ServiceName.equals("Gimy 劇迷")){
-                if (ServiceName.equals("Abema") && Pattern.compile("https://abema\\.tv/now-on-air/(.+)").matcher(TempRequestURL).find()){
+                if (ServiceName.equals("Abema") && matcher_9.matcher(TempRequestURL).find()){
                     video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
 
                     ResultVideoData finalVideo1 = video;
                     new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
-                } else if (ServiceName.equals("TVer") && Pattern.compile("https://tver\\.jp/live/(.+)").matcher(TempRequestURL).find()) {
+                } else if (ServiceName.equals("TVer") && matcher_10.matcher(TempRequestURL).find()) {
                     video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
 
                     ResultVideoData finalVideo1 = video;
@@ -415,7 +442,7 @@ public class ConversionAPI {
                     if (response_twicast.code() == 200) {
                         if (response_twicast.body() != null) {
 
-                            Matcher tempUrl = Pattern.compile("https://(.+)/tc.vod.v2").matcher(video.getVideoURL());
+                            Matcher tempUrl = matcher_11.matcher(video.getVideoURL());
 
                             String baseUrl = "";
                             if (tempUrl.find()) {
@@ -523,20 +550,20 @@ public class ConversionAPI {
 
     private ShareService getService(String URL){
 
-        Matcher matcher_NicoVideoURL = Pattern.compile("(nico\\.ms|nicovideo\\.jp)").matcher(URL);
-        Matcher matcher_BilibiliComURL = Pattern.compile("bilibili\\.com").matcher(URL);
-        Matcher matcher_BilibiliTvURL = Pattern.compile("bilibili\\.tv").matcher(URL);
-        Matcher matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)").matcher(URL);
-        Matcher matcher_XvideoURL = Pattern.compile("xvideos\\.com").matcher(URL);
-        Matcher matcher_TikTokURL = Pattern.compile("tiktok\\.com").matcher(URL);
-        Matcher matcher_TwitterURL = Pattern.compile("(x|twitter)\\.com/(.*)/status/(.*)").matcher(URL);
-        Matcher matcher_OpenrecURL = Pattern.compile("openrec\\.tv").matcher(URL);
-        Matcher matcher_PornhubURL = Pattern.compile("pornhub\\.com").matcher(URL);
-        Matcher matcher_TwicastURL = Pattern.compile("twitcasting\\.tv").matcher(URL);
-        Matcher matcher_AbemaURL = Pattern.compile("abema\\.tv").matcher(URL);
-        Matcher matcher_TVerURL = Pattern.compile("tver\\.jp").matcher(URL);
-        Matcher matcher_GimyURL = Pattern.compile("gimy\\.ai").matcher(URL);
-        Matcher matcher_IwaraURL = Pattern.compile("iwara\\.tv").matcher(URL);
+        Matcher matcher_NicoVideoURL = matcher_12.matcher(URL);
+        Matcher matcher_BilibiliComURL = matcher_13.matcher(URL);
+        Matcher matcher_BilibiliTvURL = matcher_14.matcher(URL);
+        Matcher matcher_YoutubeURL = matcher_15.matcher(URL);
+        Matcher matcher_XvideoURL = matcher_16.matcher(URL);
+        Matcher matcher_TikTokURL = matcher_17.matcher(URL);
+        Matcher matcher_TwitterURL = matcher_18.matcher(URL);
+        Matcher matcher_OpenrecURL = matcher_19.matcher(URL);
+        Matcher matcher_PornhubURL = matcher_20.matcher(URL);
+        Matcher matcher_TwicastURL = matcher_21.matcher(URL);
+        Matcher matcher_AbemaURL = matcher_22.matcher(URL);
+        Matcher matcher_TVerURL = matcher_23.matcher(URL);
+        Matcher matcher_GimyURL = matcher_24.matcher(URL);
+        Matcher matcher_IwaraURL = matcher_25.matcher(URL);
 
         if (matcher_NicoVideoURL.find()){
             return new NicoNicoVideo();
@@ -698,8 +725,8 @@ public class ConversionAPI {
      * @return サービスの名前
      */
     private String getServiceName(String URL){
-        Matcher matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)").matcher(URL);
-        Matcher matcher_TVerURL = Pattern.compile("tver\\.jp").matcher(URL);
+        Matcher matcher_YoutubeURL = matcher_15.matcher(URL);
+        Matcher matcher_TVerURL = matcher_23.matcher(URL);
 
         if (matcher_YoutubeURL.find()){
             return "Youtube";

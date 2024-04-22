@@ -19,7 +19,9 @@ public class ProxyAPI {
     private final List<ProxyData> MainProxyList;
     private final List<ProxyData> JPProxyList;
 
-    public final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+    private final OkHttpClient.Builder builder = new OkHttpClient.Builder();
+
+    private final Pattern matcher_1 = Pattern.compile("この動画は投稿\\( アップロード \\)された地域と同じ地域からのみ視聴できます。");
 
     public ProxyAPI(List<ProxyData> MainProxyList, List<ProxyData> JPProxyList){
         this.MainProxyList = MainProxyList;
@@ -80,7 +82,7 @@ public class ProxyAPI {
             }
             Response response = build.newCall(request_html).execute();
             if (isJP){
-                if (response.body() != null && Pattern.compile("この動画は投稿\\( アップロード \\)された地域と同じ地域からのみ視聴できます。").matcher(response.body().string()).find()){
+                if (response.body() != null && matcher_1.matcher(response.body().string()).find()){
                     response.close();
                     return false;
                 }
