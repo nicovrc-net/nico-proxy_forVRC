@@ -121,7 +121,7 @@ public class UDPServer extends Thread {
                         continue;
                     }
 
-                    if (RequestURL.startsWith("check") || RequestURL.startsWith("force")){
+                    if (RequestURL.startsWith("get") || RequestURL.startsWith("check") || RequestURL.startsWith("force")){
                         if (RequestURL.equals("check")){
                             OutputJson outputJson = new OutputJson(0, ProxyAPI.getMainProxyList().size(), ProxyAPI.getJPProxyList().size(), CacheAPI.getList().size(), WebhookList.size(), ConversionAPI.getLogDataListCount(), ConversionAPI.getServiceURLList());
                             socket.send(new DatagramPacket(new Gson().toJson(outputJson).getBytes(StandardCharsets.UTF_8), new Gson().toJson(outputJson).getBytes(StandardCharsets.UTF_8).length, address));
