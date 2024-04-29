@@ -143,9 +143,11 @@ public class ConversionAPI {
 
         try {
             if (Service == null){
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, null, null))).start();
                 return null;
             }
             if (ServiceName == null){
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, null, null))).start();
                 return null;
             }
             //System.out.println("Debug1-2 : " + ServiceName);
@@ -482,6 +484,11 @@ public class ConversionAPI {
             // Iwara
             if (ServiceName.equals("iwara")){
                 video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+
+                ResultVideoData finalVideo2 = video;
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo2.getVideoURL(), null))).start();
+                return video.getVideoURL();
+
             }
 
             if (ServiceName.equals("画像") || ServiceName.equals("動画")){

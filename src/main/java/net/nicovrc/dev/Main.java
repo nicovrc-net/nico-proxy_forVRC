@@ -156,6 +156,8 @@ OfficialProxy:
                         }
                     }
                 });
+
+                System.gc();
             }
         }, 0L, 60000L);
 
