@@ -165,16 +165,18 @@ public class ConversionAPI {
             final OkHttpClient.Builder builder = new OkHttpClient.Builder();
             OkHttpClient client = proxyData == null ? new OkHttpClient() : builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(list.get(main_count).getIP(), list.get(main_count).getPort()))).build();
 
-            Request img = new Request.Builder()
-                    .url(TempRequestURL)
-                    .build();
-            Response response = client.newCall(img).execute();
-            if (response.body() != null){
-                String temp = response.body().string();
-                //System.out.println(temp);
-                isUseJPProxy = matcher_1.matcher(temp).find();
+            if (!ServiceName.startsWith("動画") && !ServiceName.startsWith("画像")){
+                Request img = new Request.Builder()
+                        .url(TempRequestURL)
+                        .build();
+                Response response = client.newCall(img).execute();
+                if (response.body() != null){
+                    String temp = response.body().string();
+                    //System.out.println(temp);
+                    isUseJPProxy = matcher_1.matcher(temp).find();
+                }
+                response.close();
             }
-            response.close();
             //System.out.println(isUseJPProxy);
             //System.out.println(proxyData_jp.getProxyIP());
 
@@ -653,7 +655,6 @@ public class ConversionAPI {
                 response.close();
                 return new Video();
             }
-            response.close();
         } catch (Exception e){
             // e.printStackTrace();
         }
