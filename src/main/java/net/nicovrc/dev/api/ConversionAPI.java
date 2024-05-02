@@ -107,6 +107,7 @@ public class ConversionAPI {
         ServiceURLList.add("tver.jp");
         ServiceURLList.add("gimy.ai");
         ServiceURLList.add("iwara.tv");
+        ServiceURLList.add("piapro.jp");
     }
 
     /**
