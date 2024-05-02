@@ -60,6 +60,7 @@ public class ConversionAPI {
     private final Pattern matcher_23 = Pattern.compile("tver\\.jp");
     private final Pattern matcher_24 = Pattern.compile("gimy\\.ai");
     private final Pattern matcher_25 = Pattern.compile("iwara\\.tv");
+    private final Pattern matcher_26 = Pattern.compile("piapro\\.jp");
 
     public ConversionAPI(ProxyAPI proxyAPI){
         this.proxyAPI = proxyAPI;
@@ -493,6 +494,15 @@ public class ConversionAPI {
 
             }
 
+            // piapro
+            if (ServiceName.equals("piapro")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+
+                ResultVideoData finalVideo2 = video;
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo2.getAudioURL(), null))).start();
+                return video.getAudioURL();
+            }
+
             if (ServiceName.equals("画像") || ServiceName.equals("動画")){
                 video = Service.getVideo(new RequestVideoData(TempRequestURL, null));
 
@@ -573,6 +583,7 @@ public class ConversionAPI {
         Matcher matcher_TVerURL = matcher_23.matcher(URL);
         Matcher matcher_GimyURL = matcher_24.matcher(URL);
         Matcher matcher_IwaraURL = matcher_25.matcher(URL);
+        Matcher matcher_PiaproURL = matcher_26.matcher(URL);
 
         if (matcher_NicoVideoURL.find()){
             return new NicoNicoVideo();
@@ -629,6 +640,10 @@ public class ConversionAPI {
 
         if (matcher_IwaraURL.find()){
             return new Iwara();
+        }
+
+        if (matcher_PiaproURL.find()){
+            return new Piapro();
         }
 
         try {
