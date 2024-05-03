@@ -61,6 +61,7 @@ public class ConversionAPI {
     private final Pattern matcher_24 = Pattern.compile("gimy\\.ai");
     private final Pattern matcher_25 = Pattern.compile("iwara\\.tv");
     private final Pattern matcher_26 = Pattern.compile("piapro\\.jp");
+    private final Pattern matcher_27 = Pattern.compile("soundcloud\\.com");
 
     public ConversionAPI(ProxyAPI proxyAPI){
         this.proxyAPI = proxyAPI;
@@ -108,6 +109,7 @@ public class ConversionAPI {
         ServiceURLList.add("gimy.ai");
         ServiceURLList.add("iwara.tv");
         ServiceURLList.add("piapro.jp");
+        ServiceURLList.add("soundcloud.com");
     }
 
     /**
@@ -495,8 +497,8 @@ public class ConversionAPI {
 
             }
 
-            // piapro
-            if (ServiceName.equals("piapro")){
+            // piapro、SoundCloud
+            if (ServiceName.equals("piapro") || ServiceName.equals("SoundCloud")){
                 video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
 
                 ResultVideoData finalVideo2 = video;
@@ -585,6 +587,7 @@ public class ConversionAPI {
         Matcher matcher_GimyURL = matcher_24.matcher(URL);
         Matcher matcher_IwaraURL = matcher_25.matcher(URL);
         Matcher matcher_PiaproURL = matcher_26.matcher(URL);
+        Matcher matcher_SoundCloudURL = matcher_27.matcher(URL);
 
         if (matcher_NicoVideoURL.find()){
             return new NicoNicoVideo();
@@ -645,6 +648,10 @@ public class ConversionAPI {
 
         if (matcher_PiaproURL.find()){
             return new Piapro();
+        }
+
+        if (matcher_SoundCloudURL.find()){
+            return new SoundCloud();
         }
 
         try {
