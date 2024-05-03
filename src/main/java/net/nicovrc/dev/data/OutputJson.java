@@ -1,9 +1,12 @@
 package net.nicovrc.dev.data;
 
+import net.nicovrc.dev.api.Constant;
+
 import java.util.List;
 
 public class OutputJson {
 
+    private String Version = Constant.getVersion();
     private long ServerCount;
     private long MainProxyCount;
     private long SubProxyCount;
@@ -20,6 +23,10 @@ public class OutputJson {
         WaitingWebhookSendCount = waitingWebhookSendCount;
         WaitingLogWriteCount = waitingLogWriteCount;
         ServiceURLList = serviceURLList;
+    }
+
+    public String getVersion() {
+        return Version;
     }
 
     public long getServerCount() {
