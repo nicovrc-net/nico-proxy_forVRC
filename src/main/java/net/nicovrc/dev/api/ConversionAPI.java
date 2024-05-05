@@ -17,6 +17,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.Socket;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.text.SimpleDateFormat;
@@ -400,8 +401,8 @@ public class ConversionAPI {
                 }
             }
 
-            // xvideos / TikTok / Twitter / Pornhub / Ameba / TVer
-            if (ServiceName.equals("XVIDEOS.com") || ServiceName.equals("TikTok") || ServiceName.equals("Twitter") || ServiceName.equals("Pornhub") || ServiceName.equals("Abema") || ServiceName.equals("TVer") || ServiceName.equals("Gimy 劇迷")){
+            // xvideos / Twitter / Pornhub / Ameba / TVer
+            if (ServiceName.equals("XVIDEOS.com") || ServiceName.equals("Twitter") || ServiceName.equals("Pornhub") || ServiceName.equals("Abema") || ServiceName.equals("TVer") || ServiceName.equals("Gimy 劇迷")){
                 if (ServiceName.equals("Abema") && matcher_9.matcher(TempRequestURL).find()){
                     video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
 
@@ -428,6 +429,16 @@ public class ConversionAPI {
                     System.gc();
                     return video.getVideoURL();
                 }
+            }
+
+            // TikTok
+            if (ServiceName.equals("TikTok")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, proxyData));
+
+                ResultVideoData finalVideo1 = video;
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, "https://t.nicovrc.net/?url=" + URLEncoder.encode(finalVideo1.getVideoURL()+"&cookiee="+finalVideo1.getTokenJson(), StandardCharsets.UTF_8), null))).start();
+
+                return "https://t.nicovrc.net/?url=" + URLEncoder.encode(video.getVideoURL()+"&cookiee="+video.getTokenJson(), StandardCharsets.UTF_8);
             }
 
             if (ServiceName.equals("ツイキャス")){
