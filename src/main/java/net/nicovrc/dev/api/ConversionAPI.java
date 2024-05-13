@@ -436,9 +436,9 @@ public class ConversionAPI {
                 video = Service.getVideo(new RequestVideoData(TempRequestURL, proxyData));
 
                 ResultVideoData finalVideo1 = video;
-                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, "https://t.nicovrc.net/?url=" + URLEncoder.encode(finalVideo1.getVideoURL()+"&cookiee="+finalVideo1.getTokenJson(), StandardCharsets.UTF_8), null))).start();
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, ("https://t.nicovrc.net/?url=" + URLEncoder.encode(finalVideo1.getVideoURL()+"&cookiee="+finalVideo1.getTokenJson(), StandardCharsets.UTF_8)), null))).start();
 
-                return "https://t.nicovrc.net/?url=" + URLEncoder.encode(video.getVideoURL()+"&cookiee="+video.getTokenJson(), StandardCharsets.UTF_8);
+                return ("https://t.nicovrc.net/?url=" + URLEncoder.encode(video.getVideoURL()+"&cookiee="+video.getTokenJson(), StandardCharsets.UTF_8));
             }
 
             if (ServiceName.equals("ツイキャス")){
