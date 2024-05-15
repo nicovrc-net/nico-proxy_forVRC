@@ -767,12 +767,8 @@ public class ConversionAPI {
      * @return サービスの名前
      */
     private String getServiceName(String URL){
-        Matcher matcher_YoutubeURL = matcher_15.matcher(URL);
         Matcher matcher_TVerURL = matcher_23.matcher(URL);
 
-        if (matcher_YoutubeURL.find()){
-            return "Youtube";
-        }
         if (matcher_TVerURL.find()){
             return "TVer";
         }
