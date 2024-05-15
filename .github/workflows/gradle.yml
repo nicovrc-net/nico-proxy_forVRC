@@ -11,7 +11,7 @@ on:
   push:
     branches: [ "master", "v0", "v1", "v2" ]
   pull_request:
-    branches: [ "master", "v2" ]
+    branches: [ "master", "v0", "v1", "v2" ]
 
 jobs:
   build:
@@ -35,4 +35,4 @@ jobs:
     - name: Make gradlew executable
       run: chmod +x ./gradlew
     - name: Build with Gradle Wrapper
-      run: ./gradlew build
+      run: ./gradlew shadowJar
