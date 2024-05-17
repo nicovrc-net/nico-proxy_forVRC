@@ -413,7 +413,16 @@ public class ConversionAPI {
 
                     ResultVideoData finalVideo1 = video;
                     new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
+                } else if (ServiceName.equals("Pornhub")) {
+
+                    //System.out.println(TempRequestURL);
+                    video = Service.getVideo(new RequestVideoData(RequestURL, proxyData));
+
+                    ResultVideoData finalVideo1 = video;
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
+
                 } else {
+
                     video = Service.getVideo(new RequestVideoData(TempRequestURL, proxyData));
 
                     ResultVideoData finalVideo1 = video;
