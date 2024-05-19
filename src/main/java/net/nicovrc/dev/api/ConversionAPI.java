@@ -622,7 +622,7 @@ public class ConversionAPI {
         }
 
         if (matcher_YoutubeURL.find()){
-            return new Youtube();
+            return new YoutubeHLS();
         }
 
         if (matcher_XvideoURL.find()){
