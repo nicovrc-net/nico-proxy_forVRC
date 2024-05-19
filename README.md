@@ -5,7 +5,15 @@
 ## あれば嬉しいもの
 - HTTPS接続ができるHTTP Proxy
 - Redis
-## Dockerでの起動の仕方
+
+## このプロジェクトのbranch
+(適当に運用なのでたまーにmasterに直コミットする場合あり)
+- master : nicovrc.netに適用時に下記記載のブランチからmargeされる
+- v0     : ver 0.x (開発終了)
+- v1     : ver 1.x (開発終了)
+- v2     : ver 2.x (開発中ブランチ)
+
+## Dockerでの起動の仕方 (非推奨)
 ※Redisでログ管理を行わない場合は`docker-compose.yml`のlinks、depends_onの部分をコメントアウトしてください
 ```
 git clone https://github.com/7mi-site/nico-proxy_forVRC.git
