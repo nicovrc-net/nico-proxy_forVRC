@@ -36,7 +36,7 @@ public class ConversionAPI {
     private final List<String> ServiceURLList = new ArrayList<>();
 
     private final Pattern matcher_1 = Pattern.compile("fail-message");
-    private final Pattern matcher_2 = Pattern.compile("\\?v=");
+    private final Pattern matcher_2 = Pattern.compile("\\?v=(.+)");
     private final Pattern matcher_3 = Pattern.compile("sm|nm|am|fz|ut|dm");
     private final Pattern matcher_4 = Pattern.compile("so|ax|ca|cd|cw|fx|ig|na|om|sd|sk|yk|yo|za|zb|zc|zd|ze|nl|watch/(\\d+)|^(\\d+)");
     private final Pattern matcher_5 = Pattern.compile("lv|ch");
@@ -195,8 +195,10 @@ public class ConversionAPI {
 
             if (!b){
                 TempRequestURL = TempRequestURL.split("\\?")[0];
-            } else {
+            } else if (matcher_12.matcher(TempRequestURL).find()) {
                 TempRequestURL = "https://nico.ms/"+matcher1.group(1);
+            } else {
+                TempRequestURL = "https://youtu.be/"+matcher1.group(1);
             }
 
             ResultVideoData video;
