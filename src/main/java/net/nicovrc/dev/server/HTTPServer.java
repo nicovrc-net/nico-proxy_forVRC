@@ -45,6 +45,7 @@ public class HTTPServer extends Thread {
     private final Pattern matcher_3 = Pattern.compile("(GET|HEAD) /\\?vi=(.*) HTTP");
     private final Pattern matcher_4 = Pattern.compile("check_server=(.+)");
     private final Pattern matcher_5 = Pattern.compile("force_queue=(.+)");
+    private final Pattern matcher_6 = Pattern.compile("https://discordapp\\.com");
 
     public HTTPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port, Boolean isStop){
         this.Port = Port;
@@ -128,6 +129,21 @@ public class HTTPServer extends Thread {
                             final String RequestURL = getRequestURL(httpRequest);
                             if (RequestURL == null){
                                 SendResult(out, "HTTP/" + httpVersion + " 400 Bad Request\nContent-Type: text/plain; charset=utf-8\n\nbad request");
+                                out.close();
+                                in.close();
+                                sock.close();
+                                return;
+                            }
+
+                            // Discord Bot(Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com))
+                            if (matcher_6.matcher(httpRequest).find() && RequestURL.startsWith("http")){
+                                SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+RequestURL+"\n\n");
+                                out.close();
+                                in.close();
+                                sock.close();
+                                return;
+                            } else if (matcher_6.matcher(httpRequest).find() && !RequestURL.startsWith("http")){
+                                SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://nico.ms/"+RequestURL+"\n\n");
                                 out.close();
                                 in.close();
                                 sock.close();
