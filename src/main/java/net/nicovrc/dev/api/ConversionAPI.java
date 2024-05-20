@@ -106,6 +106,8 @@ public class ConversionAPI {
         ServiceURLList.add("openrec.tv");
         ServiceURLList.add("pornhub.com");
         ServiceURLList.add("twitcasting.tv");
+        ServiceURLList.add("abema.tv");
+        ServiceURLList.add("abema.app");
         ServiceURLList.add("tver.jp");
         ServiceURLList.add("gimy.ai");
         ServiceURLList.add("iwara.tv");
