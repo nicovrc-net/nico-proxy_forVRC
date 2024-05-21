@@ -37,7 +37,7 @@ public class ServerExecute {
     private static final Pattern matcher10 = Pattern.compile("(youtu\\.be|youtube\\.com)");
     private static final Pattern matcher11 = Pattern.compile("([Rr])eferer: (.+)");
     private static final Pattern matcher12 = Pattern.compile("([Oo])rigin: (.+)");
-    private static final Pattern matcher13 = Pattern.compile("\\?access=(.+)");
+    private static final Pattern matcher13 = Pattern.compile("\\?access=(.+) HTTP");
 
     public static void run(CacheAPI CacheAPI, ConversionAPI ConversionAPI, ServerAPI ServerAPI, JinnnaiSystemURL_API JinnnaiAPI, OkHttpClient HttpClient, InputStream in, OutputStream out, Socket sock, DatagramSocket socket, InetSocketAddress address, String httpRequest, String httpVersion, String RequestURL, boolean isWebhook, String WebhookURL, ArrayList<String> WebhookList) throws Exception{
 
