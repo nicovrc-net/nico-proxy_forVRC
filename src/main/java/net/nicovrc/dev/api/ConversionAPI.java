@@ -46,6 +46,8 @@ public class ConversionAPI {
     private final Pattern matcher_9 = Pattern.compile("https://abema\\.tv/now-on-air/(.+)");
     private final Pattern matcher_10 = Pattern.compile("https://tver\\.jp/live/(.+)");
     private final Pattern matcher_11 = Pattern.compile("https://(.+)/tc\\.vod\\.v2");
+    private final Pattern matcher_29 = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio-high\",NAME=\"Original\",DEFAULT=YES,AUTOSELECT=YES,CHANNELS=\"2\",URI=\"(.+)\"");
+    private final Pattern matcher_30 = Pattern.compile("#EXT-X-STREAM-INF:CLOSED-CAPTIONS=(.+),BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),RESOLUTION=(.+),FRAME-RATE=(.+),CODECS=\"(.+)\",AUDIO=\"(.+)\"");
 
     private final Pattern matcher_12 = Pattern.compile("(nico\\.ms|nicovideo\\.jp)");
     private final Pattern matcher_13 = Pattern.compile("bilibili\\.com");
@@ -463,9 +465,63 @@ public class ConversionAPI {
             if (ServiceName.equals("vimeo")){
                 video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
 
-                ResultVideoData finalVideo2 = video;
-                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo2.getAudioURL(), null))).start();
+                String vimeoSystem = "";
+                try {
+                    YamlMapping mapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+                    vimeoSystem = mapping.string("VimeoSystemIP");
+                } catch (Exception e) {
+                    //e.printStackTrace();
+                }
 
+                if (!vimeoSystem.isEmpty()){
+
+                    String temp = "";
+                    Request tempRequest = new Request.Builder()
+                            .url(video.getVideoURL())
+                            .build();
+                    Response response = client.newCall(tempRequest).execute();
+                    if (response.body() != null) {
+                        temp = response.body().string();
+                    }
+                    response.close();
+                    VimeoData data = new VimeoData();
+
+                    long bitrate = 0;
+                    int bitrate_c = 0;
+                    int i = 0;
+                    String[] split = temp.split("\n");
+                    for (String str : split){
+                        Matcher matcher = matcher_30.matcher(str);
+                        if (matcher.find()){
+                            String bit = matcher.group(2);
+                            if (Long.parseLong(bit) >= bitrate){
+                                bitrate = Long.parseLong(bit);
+                                bitrate_c = i + 1;
+                            }
+                        }
+                        i++;
+                    }
+                    data.setVideoURL(split[bitrate_c]);
+                    Matcher matcher = matcher_29.matcher(temp);
+                    if (matcher.find()){
+                        data.setAudioURL(matcher.group(1));
+                    }
+                    String[] s = video.getVideoURL().split("/");
+                    data.setBaseURL("https://"+s[2]+"/"+s[3]+"/"+s[4]+"/"+s[5]);
+
+                    String json = new Gson().toJson(data);
+                    Socket sock = new Socket(vimeoSystem, 22222);
+                    sock.setSoTimeout(4000);
+                    OutputStream outputStream = sock.getOutputStream();
+                    InputStream inputStream = sock.getInputStream();
+                    outputStream.write(json.getBytes(StandardCharsets.UTF_8));
+                    outputStream.flush();
+
+                    byte[] bytes = inputStream.readAllBytes();
+                    final String url = new String(bytes, StandardCharsets.UTF_8);
+
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, url, null))).start();
+                }
             }
 
             // Youtube
@@ -546,7 +602,6 @@ public class ConversionAPI {
         Matcher matcher_TwicastURL = matcher_21.matcher(URL);
         Matcher matcher_AbemaURL = matcher_22.matcher(URL);
         Matcher matcher_TVerURL = matcher_23.matcher(URL);
-        //Matcher matcher_GimyURL = matcher_24.matcher(URL);
         Matcher matcher_IwaraURL = matcher_25.matcher(URL);
         Matcher matcher_PiaproURL = matcher_26.matcher(URL);
         Matcher matcher_SoundCloudURL = matcher_27.matcher(URL);

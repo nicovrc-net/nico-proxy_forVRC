@@ -58,6 +58,9 @@ BiliBiliSystemIP: "127.0.0.1"
 # ニコ動domand鯖の変換システム
 NicoVideoSystem: "127.0.0.1"
 
+# vimeo変換システム
+VimeoSystemIP: "127.0.0.1"
+
 # Redisの設定(LogToRedisをtrue)にしていない場合は設定不要
 # RedisサーバーIP
 RedisServer: 127.0.0.1
