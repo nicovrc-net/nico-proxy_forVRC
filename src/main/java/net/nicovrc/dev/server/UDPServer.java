@@ -8,6 +8,7 @@ import net.nicovrc.dev.api.*;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.OutputJson;
 import net.nicovrc.dev.data.UDPPacket;
+import net.nicovrc.dev.test.SiteCheck;
 import okhttp3.*;
 
 import java.io.File;
@@ -137,6 +138,12 @@ public class UDPServer extends Thread {
                         if (RequestURL.equals("get_cache")){
                             HashMap<String, CacheData> list = CacheAPI.getList();
                             socket.send(new DatagramPacket(new Gson().toJson(list).getBytes(StandardCharsets.UTF_8), new Gson().toJson(list).getBytes(StandardCharsets.UTF_8).length, address));
+                            continue;
+                        }
+                        // サイトチェック
+                        if (RequestURL.equals("check_site")){
+                            String json1 = new Gson().toJson(SiteCheck.Run(ProxyAPI.getMainProxyList(), ProxyAPI.getJPProxyList()));
+                            socket.send(new DatagramPacket(new Gson().toJson(json1).getBytes(StandardCharsets.UTF_8), new Gson().toJson(json1).getBytes(StandardCharsets.UTF_8).length, address));
                             continue;
                         }
 

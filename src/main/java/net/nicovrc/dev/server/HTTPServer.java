@@ -6,6 +6,7 @@ import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import net.nicovrc.dev.api.*;
 import net.nicovrc.dev.data.OutputJson;
+import net.nicovrc.dev.test.SiteCheck;
 import okhttp3.*;
 
 import java.io.File;
@@ -202,6 +203,18 @@ public class HTTPServer extends Thread {
                                 if (RequestURL.equals("get_data")){
                                     String json = new Gson().toJson(new OutputJson(ServerAPI.getList().size(), ProxyAPI.getMainProxyList().size(), ProxyAPI.getJPProxyList().size(), CacheAPI.getList().size(), WebhookList.size(), ConversionAPI.getLogDataListCount(), ConversionAPI.getServiceURLList()));
 
+                                    String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n"+json;
+
+                                    SendResult(out, Result);
+                                    out.close();
+                                    in.close();
+                                    sock.close();
+                                    return;
+                                }
+
+                                // サイトチェック
+                                if (RequestURL.equals("check_site")){
+                                    String json = new Gson().toJson(SiteCheck.Run(ProxyAPI.getMainProxyList(), ProxyAPI.getJPProxyList()));
                                     String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n"+json;
 
                                     SendResult(out, Result);
