@@ -74,20 +74,10 @@ public class SiteCheck {
         try {
             video = new YoutubeHLS().getVideo(new RequestVideoData("https://www.youtube.com/watch?v=HRaqMxo7YeM", proxyData));
 
-            final OkHttpClient.Builder builder = new OkHttpClient.Builder();
-            final OkHttpClient client = proxyData == null ? new OkHttpClient() : builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyData.getProxyIP(), proxyData.getPort()))).build();
-            Request build = new Request.Builder()
-                    .url("https://www.youtube.com/channel/UCq85Ke7_2X_Zu28OTnfLKsA/live")
-                    .build();
-
-            Response response = client.newCall(build).execute();
-            String url = response.request().url().toString();
-            response.close();
-
-            video = new YoutubeHLS().getLive(new RequestVideoData(url, proxyData));
             list.put("youtube.com", "OK");
         } catch (Exception e){
             list.put("youtube.com", "NG");
+            //e.printStackTrace();
         }
 
         try {
@@ -123,11 +113,12 @@ public class SiteCheck {
         }
 
         try {
-            video = new Xvideos().getVideo(new RequestVideoData("https://jp.pornhub.com/view_video.php?viewkey=ph630e13a63f969", proxyData));
+            video = new Pornhub().getVideo(new RequestVideoData("https://jp.pornhub.com/view_video.php?viewkey=ph630e13a63f969", proxyData));
 
             list.put("pornhub.com", "OK");
         } catch (Exception e){
             list.put("pornhub.com", "NG");
+            e.printStackTrace();
         }
 
         try {
@@ -140,19 +131,21 @@ public class SiteCheck {
         }
 
         try {
-            video = new Abema().getVideo(new RequestVideoData("https://abema.tv/now-on-air/abema-news", proxyData));
+            video = new Abema().getLive(new RequestVideoData("https://abema.tv/now-on-air/abema-news", proxyData));
 
             list.put("abema.tv", "OK");
         } catch (Exception e){
             list.put("abema.tv", "NG");
+            //e.printStackTrace();
         }
 
         try {
-            video = new TVer().getVideo(new RequestVideoData("https://tver.jp/live/ntv", proxyData));
+            video = new TVer().getLive(new RequestVideoData("https://tver.jp/live/ntv", proxyData_jp));
 
             list.put("tver.jp", "OK");
         } catch (Exception e){
             list.put("tver.jp", "NG");
+            //e.printStackTrace();
         }
 
         try {
