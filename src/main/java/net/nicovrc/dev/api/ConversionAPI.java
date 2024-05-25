@@ -59,10 +59,10 @@ public class ConversionAPI {
     private final Pattern matcher_21 = Pattern.compile("twitcasting\\.tv");
     private final Pattern matcher_22 = Pattern.compile("abema\\.tv");
     private final Pattern matcher_23 = Pattern.compile("tver\\.jp");
-    private final Pattern matcher_24 = Pattern.compile("gimy\\.ai");
     private final Pattern matcher_25 = Pattern.compile("iwara\\.tv");
     private final Pattern matcher_26 = Pattern.compile("piapro\\.jp");
     private final Pattern matcher_27 = Pattern.compile("soundcloud\\.com");
+    private final Pattern matcher_28 = Pattern.compile("vimeo\\.com");
 
     public ConversionAPI(ProxyAPI proxyAPI){
         this.proxyAPI = proxyAPI;
@@ -109,10 +109,10 @@ public class ConversionAPI {
         ServiceURLList.add("abema.tv");
         ServiceURLList.add("abema.app");
         ServiceURLList.add("tver.jp");
-        ServiceURLList.add("gimy.ai");
         ServiceURLList.add("iwara.tv");
         ServiceURLList.add("piapro.jp");
         ServiceURLList.add("soundcloud.com");
+        ServiceURLList.add("vimeo.com");
     }
 
     /**
@@ -406,7 +406,7 @@ public class ConversionAPI {
             }
 
             // xvideos / Twitter / Pornhub / Ameba / TVer
-            if (ServiceName.equals("XVIDEOS.com") || ServiceName.equals("Twitter") || ServiceName.equals("Pornhub") || ServiceName.equals("Abema") || ServiceName.equals("TVer") || ServiceName.equals("Gimy 劇迷")){
+            if (ServiceName.equals("XVIDEOS.com") || ServiceName.equals("Twitter") || ServiceName.equals("Pornhub") || ServiceName.equals("Abema") || ServiceName.equals("TVer")){
                 if (ServiceName.equals("Abema") && matcher_9.matcher(TempRequestURL).find()){
                     video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
 
@@ -530,18 +530,27 @@ public class ConversionAPI {
                 return video.getAudioURL();
             }
 
-            if (ServiceName.equals("画像") || ServiceName.equals("動画")){
-                video = Service.getVideo(new RequestVideoData(TempRequestURL, null));
+            // vimeo
+            if (ServiceName.equals("vimeo")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
 
                 ResultVideoData finalVideo2 = video;
-                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo2.getVideoURL(), null))).start();
-                return video.getVideoURL();
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo2.getAudioURL(), null))).start();
+
             }
 
             // Youtube
             if (ServiceName.equals("Youtube")){
                 new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, "https://yt.8uro.net/r?v="+RequestURL, null))).start();
                 return "https://yt.8uro.net/r?v="+RequestURL;
+            }
+
+            if (ServiceName.equals("画像") || ServiceName.equals("動画")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, null));
+
+                ResultVideoData finalVideo2 = video;
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo2.getVideoURL(), null))).start();
+                return video.getVideoURL();
             }
 
             new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, null, null))).start();
@@ -608,10 +617,11 @@ public class ConversionAPI {
         Matcher matcher_TwicastURL = matcher_21.matcher(URL);
         Matcher matcher_AbemaURL = matcher_22.matcher(URL);
         Matcher matcher_TVerURL = matcher_23.matcher(URL);
-        Matcher matcher_GimyURL = matcher_24.matcher(URL);
+        //Matcher matcher_GimyURL = matcher_24.matcher(URL);
         Matcher matcher_IwaraURL = matcher_25.matcher(URL);
         Matcher matcher_PiaproURL = matcher_26.matcher(URL);
         Matcher matcher_SoundCloudURL = matcher_27.matcher(URL);
+        Matcher matcher_VimeoURL = matcher_28.matcher(URL);
 
         if (matcher_NicoVideoURL.find()){
             return new NicoNicoVideo();
@@ -678,6 +688,10 @@ public class ConversionAPI {
             return new SoundCloud();
         }
 
+        if (matcher_VimeoURL.find()){
+            return new Vimeo();
+        }
+
         try {
             List<ProxyData> list = proxyAPI.getMainProxyList();
             int i = list.isEmpty() ? 0 : new SecureRandom().nextInt(0, list.size() - 1);
@@ -706,9 +720,6 @@ public class ConversionAPI {
             // e.printStackTrace();
         }
 
-        if (matcher_GimyURL.find()){
-            return new Gimy();
-        }
 
         return null;
 
