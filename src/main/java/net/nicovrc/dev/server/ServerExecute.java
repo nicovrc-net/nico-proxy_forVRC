@@ -118,10 +118,11 @@ public class ServerExecute {
         //System.out.println(TempURL);
 
 
+        Matcher matcher1 = matcher_AccessIdentifier.matcher(httpRequest);
         if (!isTitleGet){
             // キャッシュ対象の場合はキャッシュチェック
             String[] split = TempURL.split("\\?");
-            String cacheUrl = CacheAPI.getCache(split[0] + (matcher_YoutubeURL.matcher(TempURL).find() ? "?" + split[1] : ""));
+            String cacheUrl = CacheAPI.getCache(split[0] + (matcher_YoutubeURL.matcher(TempURL).find() || (matcher1.find() && matcher1.group(1).equals("no_vrc")) ? "?" + split[1] : ""));
             //System.out.println("a");
             if (cacheUrl != null && cacheUrl.equals("pre")){
                 //System.out.println("a-2");
@@ -238,6 +239,9 @@ public class ServerExecute {
                     eTime = new Date().getTime() + 86400000L;
                 }
 
+                if (matcher1.find() && matcher1.group(1).equals("no_vrc")){
+                    isYoutube = true;
+                }
                 CacheAPI.removeCache(TempURL.split("\\?")[0]);
                 if (!isTitleGet && !ResultURL.startsWith("https://i2v.nicovrc.net")){
                     String[] s = TempURL.split("\\?");
