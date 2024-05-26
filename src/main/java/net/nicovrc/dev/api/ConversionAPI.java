@@ -516,6 +516,7 @@ public class ConversionAPI {
                     }
                     String[] s = video.getVideoURL().split("/");
                     data.setBaseURL("https://"+s[2]+"/"+s[3]+"/"+s[4]+"/"+s[5]);
+                    data.setBandwidth(bitrate);
                     data.setAverageBandwidth(aveBitRate);
                     data.setResolution(Resolution);
                     data.setFrameRate(FrameRate);
