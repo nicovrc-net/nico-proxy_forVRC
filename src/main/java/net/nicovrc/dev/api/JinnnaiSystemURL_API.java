@@ -61,6 +61,7 @@ public class JinnnaiSystemURL_API {
         JinnnaiSystem_URL.put(Pattern.compile("https://k\\.0cm\\.org/\\?u=nico\\.ms%2F(.+)"), "https://nico.ms/");
         JinnnaiSystem_URL.put(Pattern.compile("https://www\\.nicozon\\.net/player\\.html\\?video_id=(.+)"), "https://nico.ms/");
         JinnnaiSystem_URL.put(Pattern.compile("http://suzumebachi\\.xyz:1323/go/(.+)"), "https://nico.ms/");
+        JinnnaiSystem_URL.put(Pattern.compile("http://suzumebachi\\.xyz:1323/tmsk/(.+)"), "https://nico.ms/");
 
     }
 
