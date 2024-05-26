@@ -40,8 +40,6 @@ public class ConversionAPI {
     private final Pattern matcher_3 = Pattern.compile("sm|nm|am|fz|ut|dm");
     private final Pattern matcher_4 = Pattern.compile("so|ax|ca|cd|cw|fx|ig|na|om|sd|sk|yk|yo|za|zb|zc|zd|ze|nl|watch/(\\d+)|^(\\d+)");
     private final Pattern matcher_5 = Pattern.compile("lv|ch");
-    private final Pattern matcher_6 = Pattern.compile("dmc\\.nico");
-    private final Pattern matcher_7 = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">");
     private final Pattern matcher_8 = Pattern.compile("\"dash\":\\{\"duration\":(\\d+)");
     private final Pattern matcher_9 = Pattern.compile("https://abema\\.tv/now-on-air/(.+)");
     private final Pattern matcher_10 = Pattern.compile("https://tver\\.jp/live/(.+)");
