@@ -535,6 +535,8 @@ public class ConversionAPI {
                     final String url = new String(bytes, StandardCharsets.UTF_8);
 
                     new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, url, null))).start();
+
+                    return url;
                 }
             }
 
