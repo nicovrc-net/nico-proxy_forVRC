@@ -41,12 +41,11 @@ public class HTTPServer extends Thread {
     private final ArrayList<String> WebhookList = new ArrayList<>();
     private Boolean isStop;
 
-    private final Pattern matcher_1 = Pattern.compile("HTTP/1\\.(\\d)");
-    private final Pattern matcher_2 = Pattern.compile("HTTP/2\\.(\\d)");
-    private final Pattern matcher_3 = Pattern.compile("(GET|HEAD) /\\?vi=(.*) HTTP");
-    private final Pattern matcher_4 = Pattern.compile("check_server=(.+)");
-    private final Pattern matcher_5 = Pattern.compile("force_queue=(.+)");
-    private final Pattern matcher_6 = Pattern.compile("https://discordapp\\.com");
+    private final Pattern matcher_HTTPVer = Pattern.compile("HTTP/(\\d)\\.(\\d)");
+    private final Pattern matcher_Request = Pattern.compile("(GET|HEAD) /\\?vi=(.*) HTTP");
+    private final Pattern matcher_CheckServer = Pattern.compile("check_server=(.+)");
+    private final Pattern matcher_ForceQueue = Pattern.compile("force_queue=(.+)");
+    private final Pattern matcher_DiscordURL = Pattern.compile("https://discordapp\\.com");
 
     public HTTPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port, Boolean isStop){
         this.Port = Port;
@@ -137,13 +136,13 @@ public class HTTPServer extends Thread {
                             }
 
                             // Discord Bot(Mozilla/5.0 (compatible; Discordbot/2.0; +https://discordapp.com))
-                            if (matcher_6.matcher(httpRequest).find() && RequestURL.startsWith("http")){
+                            if (matcher_DiscordURL.matcher(httpRequest).find() && RequestURL.startsWith("http")){
                                 SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+RequestURL+"\n\n");
                                 out.close();
                                 in.close();
                                 sock.close();
                                 return;
-                            } else if (matcher_6.matcher(httpRequest).find() && !RequestURL.startsWith("http")){
+                            } else if (matcher_DiscordURL.matcher(httpRequest).find() && !RequestURL.startsWith("http")){
                                 SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://nico.ms/"+RequestURL+"\n\n");
                                 out.close();
                                 in.close();
@@ -184,7 +183,7 @@ public class HTTPServer extends Thread {
 
                                 // 生死確認その2
                                 if (RequestURL.startsWith("check_server=")) {
-                                    Matcher matcher = matcher_4.matcher(RequestURL);
+                                    Matcher matcher = matcher_CheckServer.matcher(RequestURL);
                                     final String Result;
                                     if (matcher.find()){
                                         boolean check = ServerAPI.isCheck(matcher.group(1));
@@ -244,7 +243,7 @@ public class HTTPServer extends Thread {
                                     }
 
                                     if (RequestURL.startsWith("force_queue") && LogWritePass != null){
-                                        Matcher matcher = matcher_5.matcher(RequestURL);
+                                        Matcher matcher = matcher_ForceQueue.matcher(RequestURL);
                                         if (matcher.find()){
                                             String inputP = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
                                             //System.out.println(inputP);
@@ -316,14 +315,10 @@ public class HTTPServer extends Thread {
 
     private String getHttpVersion(String HttpRequest){
 
-        Matcher matcher1 = matcher_1.matcher(HttpRequest);
-        Matcher matcher2 = matcher_2.matcher(HttpRequest);
+        Matcher matcher1 = matcher_HTTPVer.matcher(HttpRequest);
 
         if (matcher1.find()){
-            return "1."+matcher1.group(1);
-        }
-        if (matcher2.find()){
-            return "2."+matcher1.group(1);
+            return matcher1.group(1) + "." + matcher1.group(2);
         }
 
         return "unknown";
@@ -331,7 +326,7 @@ public class HTTPServer extends Thread {
 
 
     private String getRequestURL(String HttpRequest){
-        Matcher requestMatch = matcher_3.matcher(HttpRequest);
+        Matcher requestMatch = matcher_Request.matcher(HttpRequest);
         if (requestMatch.find()){
             return requestMatch.group(2);
         }

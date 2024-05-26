@@ -25,24 +25,23 @@ public class ServerExecute {
 
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    private static final Pattern matcher1 = Pattern.compile("^\\d+");
-    private static final Pattern matcher2 = Pattern.compile("(api\\.nicoad\\.nicovideo\\.jp|b23\\.tv|nico\\.ms|cas\\.nicovideo\\.jp|live2\\.nicovideo\\.jp|abema\\.app)");
-    private static final Pattern matcher3 = Pattern.compile("(ext|commons)\\.nicovideo\\.jp");
-    private static final Pattern matcher4 = Pattern.compile("(x-nicovrc-titleget: yes|user-agent: unityplayer/)");
-    private static final Pattern matcher5 = Pattern.compile("youtube\\.com");
-    private static final Pattern matcher6 = Pattern.compile("www\\.nicovideo\\.jp");
-    private static final Pattern matcher7 = Pattern.compile("dmc\\.nico");
-    private static final Pattern matcher8 = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">");
-    private static final Pattern matcher9 = Pattern.compile("(abema\\.tv|tiktok\\.com|tver\\.jp)");
-    private static final Pattern matcher10 = Pattern.compile("(youtu\\.be|youtube\\.com)");
-    private static final Pattern matcher11 = Pattern.compile("([Rr])eferer: (.+)");
-    private static final Pattern matcher12 = Pattern.compile("([Oo])rigin: (.+)");
-    private static final Pattern matcher13 = Pattern.compile("\\?access=(.+) HTTP");
+    private static final Pattern matcher_NicoID = Pattern.compile("^\\d+");
+    private static final Pattern matcher_RedirectURL = Pattern.compile("(api\\.nicoad\\.nicovideo\\.jp|b23\\.tv|nico\\.ms|cas\\.nicovideo\\.jp|live2\\.nicovideo\\.jp|abema\\.app)");
+    private static final Pattern matcher_NicovideoURL = Pattern.compile("(ext|commons)\\.nicovideo\\.jp");
+    private static final Pattern matcher_TitleUA = Pattern.compile("(x-nicovrc-titleget: yes|user-agent: unityplayer/)");
+    private static final Pattern matcher_YoutubeURL = Pattern.compile("youtube\\.com");
+    private static final Pattern matcher_NicoVideoURL = Pattern.compile("www\\.nicovideo\\.jp");
+    private static final Pattern matcher_dmcnico = Pattern.compile("dmc\\.nico");
+    private static final Pattern matcher_NicoDuration = Pattern.compile("<meta property=\"video:duration\" content=\"(\\d+)\">");
+    private static final Pattern matcher_Cache1dayURL = Pattern.compile("(abema\\.tv|tiktok\\.com|tver\\.jp|youtu\\.be|youtube\\.com)");
+    private static final Pattern matcher_Referer = Pattern.compile("([Rr])eferer: (.+)");
+    private static final Pattern matcher_Origin = Pattern.compile("([Oo])rigin: (.+)");
+    private static final Pattern matcher_AccessIdentifier = Pattern.compile("\\?access=(.+) HTTP");
 
     public static void run(CacheAPI CacheAPI, ConversionAPI ConversionAPI, ServerAPI ServerAPI, JinnnaiSystemURL_API JinnnaiAPI, OkHttpClient HttpClient, InputStream in, OutputStream out, Socket sock, DatagramSocket socket, InetSocketAddress address, String httpRequest, String httpVersion, String RequestURL, boolean isWebhook, String WebhookURL, ArrayList<String> WebhookList) throws Exception{
 
         // 処理鯖に投げるための事前準備
-        Matcher getTitle = matcher4.matcher(httpRequest.toLowerCase(Locale.ROOT));
+        Matcher getTitle = matcher_TitleUA.matcher(httpRequest.toLowerCase(Locale.ROOT));
         boolean isTitleGet = getTitle.find();
         try {
             UDPPacket packet = new Gson().fromJson(httpRequest, UDPPacket.class);
@@ -76,7 +75,7 @@ public class ServerExecute {
         }
 
         // sm|nm|am|fz|ut|dm
-        if (TempURL.startsWith("sm") || TempURL.startsWith("nm") || TempURL.startsWith("so") || TempURL.startsWith("lv") || matcher1.matcher(TempURL).find()){
+        if (TempURL.startsWith("sm") || TempURL.startsWith("nm") || TempURL.startsWith("so") || TempURL.startsWith("lv") || matcher_NicoID.matcher(TempURL).find()){
             // 先頭がsm/nm/so/lv/数字のみの場合は先頭に「https://nico.ms/」を追加する
             TempURL = "https://nico.ms/"+TempURL;
         } else if (TempURL.startsWith("ch")){
@@ -90,7 +89,7 @@ public class ServerExecute {
 
         // リダイレクト先のURLを渡す
         //long start2 = new Date().getTime();
-        final Matcher redirectUrl = matcher2.matcher(TempURL);
+        final Matcher redirectUrl = matcher_RedirectURL.matcher(TempURL);
         if (redirectUrl.find()){
             try {
                 Request request = new Request.Builder()
@@ -111,7 +110,7 @@ public class ServerExecute {
         //System.out.println(TempURL);
 
         // 置き換え用
-        final Matcher replaceUrl = matcher3.matcher(TempURL);
+        final Matcher replaceUrl = matcher_NicovideoURL.matcher(TempURL);
         if (replaceUrl.find()){
             TempURL = TempURL.replaceAll("ext", "www").replaceAll("commons", "www").replaceAll("thumb", "watch").replaceAll("works", "watch");
         }
@@ -122,7 +121,7 @@ public class ServerExecute {
         if (!isTitleGet){
             // キャッシュ対象の場合はキャッシュチェック
             String[] split = TempURL.split("\\?");
-            String cacheUrl = CacheAPI.getCache(split[0] + (matcher5.matcher(TempURL).find() ? "?" + split[1] : ""));
+            String cacheUrl = CacheAPI.getCache(split[0] + (matcher_YoutubeURL.matcher(TempURL).find() ? "?" + split[1] : ""));
             //System.out.println("a");
             if (cacheUrl != null && cacheUrl.equals("pre")){
                 //System.out.println("a-2");
@@ -217,17 +216,17 @@ public class ServerExecute {
                 }
 
                 long eTime = -1;
-                boolean isYoutube = matcher5.matcher(TempURL).find();
-                if (matcher6.matcher(TempURL).find()){
+                boolean isYoutube = matcher_YoutubeURL.matcher(TempURL).find();
+                if (matcher_NicoVideoURL.matcher(TempURL).find()){
                     eTime = new Date().getTime() + 86400000L;
-                    if (matcher7.matcher(ResultURL).find()){
+                    if (matcher_dmcnico.matcher(ResultURL).find()){
                         Request request = new Request.Builder()
                                 .url(TempURL)
                                 .build();
                         Response response = HttpClient.newCall(request).execute();
                         if (response.body() != null) {
                             String responseHtml = response.body().string();
-                            Matcher matcher = matcher8.matcher(responseHtml);
+                            Matcher matcher = matcher_NicoDuration.matcher(responseHtml);
                             if (matcher.find()){
                                 eTime = new Date().getTime() + Long.parseLong(matcher.group(1)) * 1000;
                                 //System.out.println(Long.parseLong(matcher.group(1)) * 1000);
@@ -235,9 +234,7 @@ public class ServerExecute {
                         }
                         response.close();
                     }
-                } else if (matcher9.matcher(TempURL).find()) {
-                    eTime = new Date().getTime() + 86400000L;
-                } else if (matcher10.matcher(TempURL).find()) {
+                } else if (matcher_Cache1dayURL.matcher(TempURL).find()) {
                     eTime = new Date().getTime() + 86400000L;
                 }
 
@@ -296,16 +293,16 @@ public class ServerExecute {
                     }
 
                     long eTime = -1;
-                    if (matcher6.matcher(TempURL).find()){
+                    if (matcher_NicoVideoURL.matcher(TempURL).find()){
                         eTime = new Date().getTime() + 86400000L;
-                        if (matcher7.matcher(result.getResultURL()).find()){
+                        if (matcher_dmcnico.matcher(result.getResultURL()).find()){
                             Request request = new Request.Builder()
                                     .url(TempURL)
                                     .build();
                             Response response = HttpClient.newCall(request).execute();
                             if (response.body() != null) {
                                 String responseHtml = response.body().string();
-                                Matcher matcher = matcher8.matcher(responseHtml);
+                                Matcher matcher = matcher_NicoDuration.matcher(responseHtml);
                                 if (matcher.find()){
                                     eTime = new Date().getTime() + Long.parseLong(matcher.group(1)) * 1000;
                                     //System.out.println(Long.parseLong(matcher.group(1)) * 1000);
@@ -313,9 +310,7 @@ public class ServerExecute {
                             }
                             response.close();
                         }
-                    } else if (matcher9.matcher(TempURL).find()) {
-                        eTime = new Date().getTime() + 86400000L;
-                    } else if (matcher10.matcher(TempURL).find()) {
+                    } else if (matcher_Cache1dayURL.matcher(TempURL).find()) {
                         eTime = new Date().getTime() + 86400000L;
                     }
 
@@ -355,16 +350,16 @@ public class ServerExecute {
                 }
 
                 long eTime = -1;
-                if (matcher6.matcher(TempURL).find()){
+                if (matcher_NicoVideoURL.matcher(TempURL).find()){
                     eTime = new Date().getTime() + 86400000L;
-                    if (matcher7.matcher(ResultURL).find()){
+                    if (matcher_dmcnico.matcher(ResultURL).find()){
                         Request request = new Request.Builder()
                                 .url(TempURL)
                                 .build();
                         Response response = HttpClient.newCall(request).execute();
                         if (response.body() != null) {
                             String responseHtml = response.body().string();
-                            Matcher matcher = matcher8.matcher(responseHtml);
+                            Matcher matcher = matcher_NicoDuration.matcher(responseHtml);
                             if (matcher.find()){
                                 eTime = new Date().getTime() + Long.parseLong(matcher.group(1)) * 1000;
                                 //System.out.println(Long.parseLong(matcher.group(1)) * 1000);
@@ -372,9 +367,7 @@ public class ServerExecute {
                         }
                         response.close();
                     }
-                } else if (matcher9.matcher(TempURL).find()) {
-                    eTime = new Date().getTime() + 86400000L;
-                } else if (matcher10.matcher(TempURL).find()) {
+                } else if (matcher_Cache1dayURL.matcher(TempURL).find()) {
                     eTime = new Date().getTime() + 86400000L;
                 }
 
@@ -417,9 +410,9 @@ public class ServerExecute {
 
         final String jsonText;
 
-        Matcher referer = matcher11.matcher(RequestHeader);
-        Matcher origin = matcher12.matcher(RequestHeader);
-        Matcher access = matcher13.matcher(RequestHeader);
+        Matcher referer = matcher_Referer.matcher(RequestHeader);
+        Matcher origin = matcher_Origin.matcher(RequestHeader);
+        Matcher access = matcher_AccessIdentifier.matcher(RequestHeader);
         if (referer.find()) {
             jsonText = "" +
                     "{" +

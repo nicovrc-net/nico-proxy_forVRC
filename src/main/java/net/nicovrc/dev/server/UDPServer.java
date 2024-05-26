@@ -38,7 +38,7 @@ public class UDPServer extends Thread {
 
     private Boolean isStop;
 
-    private final Pattern matcher_1 = Pattern.compile("force_queue=(.+)");
+    private final Pattern matcher_ForceQueue = Pattern.compile("force_queue=(.+)");
 
     public UDPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port, Boolean isStop){
         this.CacheAPI = cacheAPI;
@@ -160,7 +160,7 @@ public class UDPServer extends Thread {
                                     LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
                                     System.gc();
 
-                                    Matcher matcher = matcher_1.matcher(RequestURL);
+                                    Matcher matcher = matcher_ForceQueue.matcher(RequestURL);
                                     if (matcher.find()){
                                         String inputP = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
                                         //System.out.println(inputP);
