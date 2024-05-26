@@ -217,7 +217,6 @@ public class ServerExecute {
                 }
 
                 long eTime = -1;
-                boolean isYoutube = matcher_YoutubeURL.matcher(TempURL).find();
                 if (matcher_NicoVideoURL.matcher(TempURL).find()){
                     eTime = new Date().getTime() + 86400000L;
                     if (matcher_dmcnico.matcher(ResultURL).find()){
@@ -239,12 +238,14 @@ public class ServerExecute {
                     eTime = new Date().getTime() + 86400000L;
                 }
 
+                boolean isYoutube = matcher_YoutubeURL.matcher(TempURL).find();
                 if (matcher1.find() && matcher1.group(1).equals("no_vrc")){
                     isYoutube = true;
                 }
-                CacheAPI.removeCache(TempURL.split("\\?")[0]);
+                String[] s = TempURL.split("\\?");
+                CacheAPI.removeCache(s[0] + (isYoutube ? "?" + s[1] : ""));
                 if (!isTitleGet && !ResultURL.startsWith("https://i2v.nicovrc.net")){
-                    String[] s = TempURL.split("\\?");
+
                     CacheAPI.setCache(s[0] + (isYoutube ? "?" + s[1] : ""), ResultURL, eTime);
                 }
 
@@ -318,9 +319,14 @@ public class ServerExecute {
                         eTime = new Date().getTime() + 86400000L;
                     }
 
-                    CacheAPI.removeCache(TempURL.split("\\?")[0]);
+                    boolean isYoutube = matcher_YoutubeURL.matcher(TempURL).find();
+                    if (matcher1.find() && matcher1.group(1).equals("no_vrc")){
+                        isYoutube = true;
+                    }
+                    String[] s = TempURL.split("\\?");
+                    CacheAPI.removeCache(s[0] + (isYoutube ? "?" + s[1] : ""));
                     if (!result.getResultURL().startsWith("https://i2v.nicovrc.net")){
-                        CacheAPI.setCache(TempURL.split("\\?")[0], result.getResultURL(), eTime);
+                        CacheAPI.setCache(s[0] + (isYoutube ? "?" + s[1] : ""), result.getResultURL(), eTime);
                     }
                 }
             } else {
@@ -375,9 +381,14 @@ public class ServerExecute {
                     eTime = new Date().getTime() + 86400000L;
                 }
 
-                CacheAPI.removeCache(TempURL.split("\\?")[0]);
-                if (!isTitleGet && !ResultURL.startsWith("https://i2v.nicovrc.net")){
-                    CacheAPI.setCache(TempURL.split("\\?")[0], ResultURL, eTime);
+                boolean isYoutube = matcher_YoutubeURL.matcher(TempURL).find();
+                if (matcher1.find() && matcher1.group(1).equals("no_vrc")){
+                    isYoutube = true;
+                }
+                String[] s = TempURL.split("\\?");
+                CacheAPI.removeCache(s[0] + (isYoutube ? "?" + s[1] : ""));
+                if (!result.getResultURL().startsWith("https://i2v.nicovrc.net")){
+                    CacheAPI.setCache(s[0] + (isYoutube ? "?" + s[1] : ""), result.getResultURL(), eTime);
                 }
             }
         }
