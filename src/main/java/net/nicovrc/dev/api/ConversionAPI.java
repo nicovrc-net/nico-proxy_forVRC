@@ -11,7 +11,6 @@ import redis.clients.jedis.JedisPool;
 import xyz.n7mn.nico_proxy.*;
 import xyz.n7mn.nico_proxy.data.RequestVideoData;
 import xyz.n7mn.nico_proxy.data.ResultVideoData;
-import xyz.n7mn.nico_proxy.data.TokenJSON;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -485,6 +484,12 @@ public class ConversionAPI {
                     VimeoData data = new VimeoData();
 
                     long bitrate = 0;
+                    long aveBitRate = 0;
+                    String Codecs = null;
+                    String Resolution = null;
+                    String FrameRate = null;
+                    String Audio = null;
+
                     int bitrate_c = 0;
                     int i = 0;
                     String[] split = temp.split("\n");
@@ -494,6 +499,11 @@ public class ConversionAPI {
                             String bit = matcher.group(2);
                             if (Long.parseLong(bit) >= bitrate){
                                 bitrate = Long.parseLong(bit);
+                                aveBitRate = Long.parseLong(matcher.group(3));
+                                Resolution = matcher.group(4);
+                                FrameRate = matcher.group(5);
+                                Codecs = matcher.group(6);
+                                Audio = matcher.group(7);
                                 bitrate_c = i + 1;
                             }
                         }
@@ -506,6 +516,11 @@ public class ConversionAPI {
                     }
                     String[] s = video.getVideoURL().split("/");
                     data.setBaseURL("https://"+s[2]+"/"+s[3]+"/"+s[4]+"/"+s[5]);
+                    data.setAverageBandwidth(aveBitRate);
+                    data.setResolution(Resolution);
+                    data.setFrameRate(FrameRate);
+                    data.setCodecs(Codecs);
+                    data.setAudio(Audio);
 
                     String json = new Gson().toJson(data);
                     Socket sock = new Socket(vimeoSystem, 22222);
