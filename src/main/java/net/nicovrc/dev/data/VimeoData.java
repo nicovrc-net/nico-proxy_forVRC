@@ -12,6 +12,8 @@ public class VimeoData {
     private String FrameRate;
     private String Audio;
 
+    private boolean novrc;
+
     public String getVideoURL() {
         return VideoURL;
     }
@@ -82,5 +84,13 @@ public class VimeoData {
 
     public void setAudio(String audio) {
         Audio = audio;
+    }
+
+    public void setNovrc(boolean VRC) {
+        novrc = VRC;
+    }
+
+    public boolean isNovrc() {
+        return novrc;
     }
 }

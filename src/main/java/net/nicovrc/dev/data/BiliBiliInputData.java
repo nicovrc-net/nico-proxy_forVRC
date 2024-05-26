@@ -7,6 +7,8 @@ public class BiliBiliInputData {
     private String Proxy;
     private long VideoDuration;
 
+    private boolean isVRC;
+
     public String getSiteType() {
         return SiteType;
     }
@@ -45,5 +47,13 @@ public class BiliBiliInputData {
 
     public void setVideoDuration(long videoDuration) {
         VideoDuration = videoDuration;
+    }
+
+    public boolean isVRC() {
+        return isVRC;
+    }
+
+    public void setVRC(boolean VRC) {
+        isVRC = VRC;
     }
 }

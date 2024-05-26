@@ -35,17 +35,24 @@ public class ConversionAPI {
     private final List<String> ServiceURLList = new ArrayList<>();
 
     private final Pattern matcher_errorNico = Pattern.compile("fail-message");
+
     private final Pattern matcher_YoutubeID = Pattern.compile("\\?v=(.+)");
+
     private final Pattern matcher_NicoVideo = Pattern.compile("sm|nm|am|fz|ut|dm");
     private final Pattern matcher_NicoVideo2 = Pattern.compile("so|ax|ca|cd|cw|fx|ig|na|om|sd|sk|yk|yo|za|zb|zc|zd|ze|nl|watch/(\\d+)|^(\\d+)");
     private final Pattern matcher_NicoLive = Pattern.compile("lv|ch");
     private final Pattern matcher_dmcnico = Pattern.compile("dmc\\.nico");
+
     private final Pattern matcher_bilibiliDuration = Pattern.compile("\"dash\":\\{\"duration\":(\\d+)");
+
     private final Pattern matcher_abemaURL = Pattern.compile("https://abema\\.tv/now-on-air/(.+)");
     private final Pattern matcher_TVerLiveURL = Pattern.compile("https://tver\\.jp/live/(.+)");
     private final Pattern matcher_TwicastArchiveURL = Pattern.compile("https://(.+)/tc\\.vod\\.v2");
+
     private final Pattern matcher_Vimeo1 = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio-high\",NAME=\"Original\",DEFAULT=YES,AUTOSELECT=YES,CHANNELS=\"2\",URI=\"(.+)\"");
     private final Pattern matcher_Vimeo2 = Pattern.compile("#EXT-X-STREAM-INF:CLOSED-CAPTIONS=(.+),BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),RESOLUTION=(.+),FRAME-RATE=(.+),CODECS=\"(.+)\",AUDIO=\"(.+)\"");
+
+    private final Pattern matcher_Access = Pattern.compile("\\?access=(.+) HTTP");
 
     private final Pattern matcher_NicoNicoVideoURL = Pattern.compile("(nico\\.ms|nicovideo\\.jp)");
     private final Pattern matcher_BiliBiliComURL = Pattern.compile("bilibili\\.com");
@@ -148,6 +155,14 @@ public class ConversionAPI {
         }
         //System.out.println("Debug1-1 : " + ServiceName);
 
+        Matcher matcher_a = matcher_Access.matcher(request);
+        boolean isNotVRC = false;
+        if (matcher_a.find()){
+            if (matcher_a.group(1).equals("no_vrc")){
+                isNotVRC = true;
+            }
+        }
+
         try {
             if (Service == null){
                 new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, null, null))).start();
@@ -165,8 +180,8 @@ public class ConversionAPI {
             int jp_count = list_jp.isEmpty() ? 0 : (list_jp.size() > 1 ? new SecureRandom().nextInt(0, list_jp.size() - 1) : 0);
             //System.out.println("Debug1-3 : " + ServiceName);
 
-            final xyz.n7mn.nico_proxy.data.ProxyData proxyData = list.isEmpty() ? null : new xyz.n7mn.nico_proxy.data.ProxyData(list.get(main_count).getIP(), list.get(main_count).getPort());
-            final xyz.n7mn.nico_proxy.data.ProxyData proxyData_jp = list_jp.isEmpty() ? null : new xyz.n7mn.nico_proxy.data.ProxyData(list_jp.get(jp_count).getIP(), list_jp.get(jp_count).getPort());
+            final ProxyData proxyData = list.isEmpty() ? null : new ProxyData(list.get(main_count).getIP(), list.get(main_count).getPort());
+            final ProxyData proxyData_jp = list_jp.isEmpty() ? null : new ProxyData(list_jp.get(jp_count).getIP(), list_jp.get(jp_count).getPort());
             boolean isUseJPProxy = false;
 
             final OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -249,10 +264,11 @@ public class ConversionAPI {
                 }
 
 
-                    NicoVideoInputData nicoVideoInputData = new NicoVideoInputData();
+                NicoVideoInputData nicoVideoInputData = new NicoVideoInputData();
                 nicoVideoInputData.setVideoURL(video.getVideoURL());
                 nicoVideoInputData.setAudioURL(video.getAudioURL());
                 nicoVideoInputData.setCookie(video.getTokenJson());
+                nicoVideoInputData.setVRC(!isNotVRC);
 
                 if (proxyData != null && !isUseJPProxy){
                     nicoVideoInputData.setProxy(proxyData.getProxyIP() + ":" + proxyData.getPort());
@@ -302,6 +318,7 @@ public class ConversionAPI {
                     jsonText.setSiteType(ServiceName.split("\\.")[1]);
                     jsonText.setVideoURL(video.getVideoURL());
                     jsonText.setAudioURL(video.getAudioURL());
+                    jsonText.setVRC(!isNotVRC);
                     if (proxyData != null && !isUseJPProxy){
                         jsonText.setProxy(proxyData.getProxyIP() + ":" + proxyData.getPort());
                     }
@@ -531,6 +548,7 @@ public class ConversionAPI {
                     data.setFrameRate(FrameRate);
                     data.setCodecs(Codecs);
                     data.setAudio(Audio);
+                    data.setNovrc(isNotVRC);
 
                     String json = new Gson().toJson(data);
                     Socket sock = new Socket(vimeoSystem, 22222);

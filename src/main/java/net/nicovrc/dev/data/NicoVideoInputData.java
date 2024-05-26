@@ -6,6 +6,8 @@ public class NicoVideoInputData {
     private String Cookie;
     private String Proxy;
 
+    private boolean isVRC;
+
 
     public String getVideoURL() {
         return VideoURL;
@@ -37,5 +39,13 @@ public class NicoVideoInputData {
 
     public void setProxy(String proxy) {
         Proxy = proxy;
+    }
+
+    public boolean isVRC() {
+        return isVRC;
+    }
+
+    public void setVRC(boolean VRC) {
+        isVRC = VRC;
     }
 }

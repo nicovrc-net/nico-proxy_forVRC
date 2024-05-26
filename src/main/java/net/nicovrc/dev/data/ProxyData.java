@@ -1,6 +1,6 @@
 package net.nicovrc.dev.data;
 
-public class ProxyData {
+public class ProxyData extends xyz.n7mn.nico_proxy.data.ProxyData {
     private String IP;
     private int Port;
 
@@ -20,11 +20,24 @@ public class ProxyData {
         this.IP = IP;
     }
 
+    @Override
     public int getPort() {
         return Port;
     }
 
+    @Override
     public void setPort(int port) {
         Port = port;
     }
+
+    @Override
+    public String getProxyIP() {
+        return IP;
+    }
+
+    @Override
+    public void setProxyIP(String proxyIP) {
+        this.IP = proxyIP;
+    }
+
 }
