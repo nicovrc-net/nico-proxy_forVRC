@@ -56,6 +56,7 @@ public class ServerExecute {
         String TempURL = JinnnaiAPI.replace(RequestURL);
         //System.out.println(TempURL);
 
+
         // RequestURL(処理しようとしているURL)が空だったらさっさと301リダイレクトしてしまう
         if (RequestURL.isEmpty()){
             if (socket == null){
@@ -67,7 +68,6 @@ public class ServerExecute {
                 SendResult(socket, address, packet);
             }
 
-            CacheAPI.removeCache(TempURL.split("\\?")[0]);
             SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=Not Found", httpRequest, false, false);
             System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> Not Found");
 
@@ -115,16 +115,17 @@ public class ServerExecute {
             TempURL = TempURL.replaceAll("ext", "www").replaceAll("commons", "www").replaceAll("thumb", "watch").replaceAll("works", "watch");
         }
 
-        //System.out.println(TempURL);
+        final Matcher matcher1 = matcher_AccessIdentifier.matcher(httpRequest);
+        final boolean isNotVRCFlag = matcher1.find() && matcher1.group(1).equals("no_vrc");
+        final String[] split = TempURL.split("\\?");
+        final String cacheTempURL = split[0] + ((matcher_YoutubeURL.matcher(TempURL).find() || isNotVRCFlag) ? "?" + split[1] : "");
 
+        System.out.println(cacheTempURL);
 
-        Matcher matcher1 = matcher_AccessIdentifier.matcher(httpRequest);
-        boolean isNotVRCFlag = matcher1.find() && matcher1.group(1).equals("no_vrc");
         if (!isTitleGet){
             // キャッシュ対象の場合はキャッシュチェック
-            String[] split = TempURL.split("\\?");
-            String cacheUrl = CacheAPI.getCache(split[0] + (matcher_YoutubeURL.matcher(TempURL).find() || isNotVRCFlag ? "?" + split[1] : ""));
-            //System.out.println(split[0] + (matcher_YoutubeURL.matcher(TempURL).find() || isNotVRCFlag ? "?" + split[1] : ""));
+            String cacheUrl = CacheAPI.getCache(cacheTempURL);
+            //System.out.println("cache : " + cacheUrl + " / " + cacheTempURL);
             //System.out.println("a");
             if (cacheUrl != null && cacheUrl.equals("pre")){
                 //System.out.println("a-2");
@@ -180,7 +181,7 @@ public class ServerExecute {
             }
             //System.out.println("b");
             // キャッシュない場合は処理中を表す「pre」をキャッシュリストに入れる
-            CacheAPI.setCache(split[0] + (matcher_YoutubeURL.matcher(TempURL).find() || isNotVRCFlag ? "?" + split[1] : ""), "pre", new Date().getTime() + 5000L);
+            CacheAPI.setCache(cacheTempURL, "pre", new Date().getTime() + 5000L);
         }
 
         HashMap<String, ServerData> list = ServerAPI.getList();
@@ -240,15 +241,11 @@ public class ServerExecute {
                     eTime = new Date().getTime() + 86400000L;
                 }
 
-                boolean isYoutube = matcher_YoutubeURL.matcher(TempURL).find();
-                if (matcher1.find() && matcher1.group(1).equals("no_vrc")){
-                    isYoutube = true;
-                }
-                String[] s = TempURL.split("\\?");
-                CacheAPI.removeCache(s[0] + (isYoutube ? "?" + s[1] : ""));
+                //System.out.println(cacheTempURL);
+                CacheAPI.removeCache(cacheTempURL);
                 if (!isTitleGet && !ResultURL.startsWith("https://i2v.nicovrc.net")){
 
-                    CacheAPI.setCache(s[0] + (isYoutube ? "?" + s[1] : ""), ResultURL, eTime);
+                    CacheAPI.setCache(cacheTempURL, ResultURL, eTime);
                 }
 
             } catch (Exception e){
@@ -261,7 +258,7 @@ public class ServerExecute {
                     SendResult(socket, address, packet);
                 }
 
-                CacheAPI.removeCache(TempURL.split("\\?")[0]);
+                CacheAPI.removeCache(cacheTempURL);
                 SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage(), httpRequest, false, false);
                 System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + e.getMessage());
             }
@@ -285,7 +282,7 @@ public class ServerExecute {
                         SendResult(socket, address, packet1);
                     }
 
-                    CacheAPI.removeCache(TempURL.split("\\?")[0]);
+                    CacheAPI.removeCache(cacheTempURL);
 
                 } else {
                     System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + result.getResultURL());
@@ -321,14 +318,9 @@ public class ServerExecute {
                         eTime = new Date().getTime() + 86400000L;
                     }
 
-                    boolean isYoutube = matcher_YoutubeURL.matcher(TempURL).find();
-                    if (matcher1.find() && matcher1.group(1).equals("no_vrc")){
-                        isYoutube = true;
-                    }
-                    String[] s = TempURL.split("\\?");
-                    CacheAPI.removeCache(s[0] + (isYoutube ? "?" + s[1] : ""));
+                    CacheAPI.removeCache(cacheTempURL);
                     if (!result.getResultURL().startsWith("https://i2v.nicovrc.net")){
-                        CacheAPI.setCache(s[0] + (isYoutube ? "?" + s[1] : ""), result.getResultURL(), eTime);
+                        CacheAPI.setCache(cacheTempURL, result.getResultURL(), eTime);
                     }
                 }
             } else {
@@ -383,14 +375,9 @@ public class ServerExecute {
                     eTime = new Date().getTime() + 86400000L;
                 }
 
-                boolean isYoutube = matcher_YoutubeURL.matcher(TempURL).find();
-                if (matcher1.find() && matcher1.group(1).equals("no_vrc")){
-                    isYoutube = true;
-                }
-                String[] s = TempURL.split("\\?");
-                CacheAPI.removeCache(s[0] + (isYoutube ? "?" + s[1] : ""));
+                CacheAPI.removeCache(cacheTempURL);
                 if (!result.getResultURL().startsWith("https://i2v.nicovrc.net")){
-                    CacheAPI.setCache(s[0] + (isYoutube ? "?" + s[1] : ""), result.getResultURL(), eTime);
+                    CacheAPI.setCache(cacheTempURL, result.getResultURL(), eTime);
                 }
             }
         }
