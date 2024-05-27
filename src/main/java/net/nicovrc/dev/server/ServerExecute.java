@@ -120,7 +120,7 @@ public class ServerExecute {
         final String[] split = TempURL.split("\\?");
         final String cacheTempURL = split[0] + ((matcher_YoutubeURL.matcher(TempURL).find() || isNotVRCFlag) ? "?" + split[1] : "");
 
-        System.out.println(cacheTempURL);
+        //System.out.println(cacheTempURL);
 
         if (!isTitleGet){
             // キャッシュ対象の場合はキャッシュチェック
