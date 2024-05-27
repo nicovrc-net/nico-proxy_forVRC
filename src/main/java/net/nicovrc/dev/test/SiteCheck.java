@@ -172,6 +172,14 @@ public class SiteCheck {
             list.put("soundcloud.com", "NG");
         }
 
+        try {
+            video = new Vimeo().getVideo(new RequestVideoData("https://vimeo.com/944027008?share=copy", proxyData));
+
+            list.put("vimeo.com", "OK");
+        } catch (Exception e){
+            list.put("vimeo.com", "NG");
+        }
+
         video = null;
         System.gc();
         return list;
