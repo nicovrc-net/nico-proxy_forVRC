@@ -162,6 +162,7 @@ public class ConversionAPI {
                 isNotVRC = true;
             }
         }
+        //System.out.println(isNotVRC);
 
         try {
             if (Service == null){
@@ -269,6 +270,7 @@ public class ConversionAPI {
                 nicoVideoInputData.setAudioURL(video.getAudioURL());
                 nicoVideoInputData.setCookie(video.getTokenJson());
                 nicoVideoInputData.setVRC(!isNotVRC);
+                //System.out.println(!isNotVRC);
 
                 if (proxyData != null && !isUseJPProxy){
                     nicoVideoInputData.setProxy(proxyData.getProxyIP() + ":" + proxyData.getPort());

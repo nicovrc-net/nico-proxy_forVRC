@@ -119,10 +119,12 @@ public class ServerExecute {
 
 
         Matcher matcher1 = matcher_AccessIdentifier.matcher(httpRequest);
+        boolean isNotVRCFlag = matcher1.find() && matcher1.group(1).equals("no_vrc");
         if (!isTitleGet){
             // キャッシュ対象の場合はキャッシュチェック
             String[] split = TempURL.split("\\?");
-            String cacheUrl = CacheAPI.getCache(split[0] + (matcher_YoutubeURL.matcher(TempURL).find() || (matcher1.find() && matcher1.group(1).equals("no_vrc")) ? "?" + split[1] : ""));
+            String cacheUrl = CacheAPI.getCache(split[0] + (matcher_YoutubeURL.matcher(TempURL).find() || isNotVRCFlag ? "?" + split[1] : ""));
+            //System.out.println(split[0] + (matcher_YoutubeURL.matcher(TempURL).find() || isNotVRCFlag ? "?" + split[1] : ""));
             //System.out.println("a");
             if (cacheUrl != null && cacheUrl.equals("pre")){
                 //System.out.println("a-2");
@@ -178,7 +180,7 @@ public class ServerExecute {
             }
             //System.out.println("b");
             // キャッシュない場合は処理中を表す「pre」をキャッシュリストに入れる
-            CacheAPI.setCache(TempURL.split("\\?")[0], "pre", new Date().getTime() + 5000L);
+            CacheAPI.setCache(split[0] + (matcher_YoutubeURL.matcher(TempURL).find() || isNotVRCFlag ? "?" + split[1] : ""), "pre", new Date().getTime() + 5000L);
         }
 
         HashMap<String, ServerData> list = ServerAPI.getList();
