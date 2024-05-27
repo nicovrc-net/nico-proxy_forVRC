@@ -376,7 +376,9 @@ public class ConversionAPI {
                 } else if (ServiceName.equals("Pornhub")) {
 
                     //System.out.println(TempRequestURL);
-                    video = Service.getVideo(new RequestVideoData(RequestURL, proxyData));
+                    String[] split = RequestURL.split("\\?");
+                    System.out.println(split[0] + split[1]);
+                    video = Service.getVideo(new RequestVideoData(split[0] + split[1], proxyData));
 
                     ResultVideoData finalVideo1 = video;
                     new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
