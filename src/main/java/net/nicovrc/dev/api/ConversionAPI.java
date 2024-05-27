@@ -377,8 +377,8 @@ public class ConversionAPI {
 
                     //System.out.println(TempRequestURL);
                     String[] split = RequestURL.split("\\?");
-                    //System.out.println(split[0] + split[1]);
-                    video = Service.getVideo(new RequestVideoData(split[0] + split[1], proxyData));
+                    //System.out.println(split[0] +"?"+ split[1]);
+                    video = Service.getVideo(new RequestVideoData(split[0] +"?"+ split[1], proxyData));
 
                     ResultVideoData finalVideo1 = video;
                     new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
