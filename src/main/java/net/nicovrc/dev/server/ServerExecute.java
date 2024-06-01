@@ -223,19 +223,7 @@ public class ServerExecute {
                 if (matcher_NicoVideoURL.matcher(TempURL).find()){
                     eTime = new Date().getTime() + 86400000L;
                     if (matcher_dmcnico.matcher(ResultURL).find()){
-                        Request request = new Request.Builder()
-                                .url(TempURL)
-                                .build();
-                        Response response = HttpClient.newCall(request).execute();
-                        if (response.body() != null) {
-                            String responseHtml = response.body().string();
-                            Matcher matcher = matcher_NicoDuration.matcher(responseHtml);
-                            if (matcher.find()){
-                                eTime = new Date().getTime() + Long.parseLong(matcher.group(1)) * 1000;
-                                //System.out.println(Long.parseLong(matcher.group(1)) * 1000);
-                            }
-                        }
-                        response.close();
+                        eTime = -1;
                     }
                 } else if (matcher_Cache1dayURL.matcher(TempURL).find()) {
                     eTime = new Date().getTime() + 86400000L;
@@ -357,19 +345,7 @@ public class ServerExecute {
                 if (matcher_NicoVideoURL.matcher(TempURL).find()){
                     eTime = new Date().getTime() + 86400000L;
                     if (matcher_dmcnico.matcher(ResultURL).find()){
-                        Request request = new Request.Builder()
-                                .url(TempURL)
-                                .build();
-                        Response response = HttpClient.newCall(request).execute();
-                        if (response.body() != null) {
-                            String responseHtml = response.body().string();
-                            Matcher matcher = matcher_NicoDuration.matcher(responseHtml);
-                            if (matcher.find()){
-                                eTime = new Date().getTime() + Long.parseLong(matcher.group(1)) * 1000;
-                                //System.out.println(Long.parseLong(matcher.group(1)) * 1000);
-                            }
-                        }
-                        response.close();
+                        eTime = -1;
                     }
                 } else if (matcher_Cache1dayURL.matcher(TempURL).find()) {
                     eTime = new Date().getTime() + 86400000L;
