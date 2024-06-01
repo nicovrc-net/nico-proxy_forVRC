@@ -219,7 +219,7 @@ public class ServerExecute {
                     }
                 }
 
-                long eTime = -1;
+                long eTime = 3600000L;
                 if (matcher_NicoVideoURL.matcher(TempURL).find()){
                     eTime = new Date().getTime() + 86400000L;
                     if (matcher_dmcnico.matcher(ResultURL).find()){
@@ -296,7 +296,7 @@ public class ServerExecute {
                         SendResult(socket, address, packet1);
                     }
 
-                    long eTime = -1;
+                    long eTime = 3600000L;
                     if (matcher_NicoVideoURL.matcher(TempURL).find()){
                         eTime = new Date().getTime() + 86400000L;
                         if (matcher_dmcnico.matcher(result.getResultURL()).find()){
@@ -353,7 +353,7 @@ public class ServerExecute {
                     }
                 }
 
-                long eTime = -1;
+                long eTime = 3600000L;
                 if (matcher_NicoVideoURL.matcher(TempURL).find()){
                     eTime = new Date().getTime() + 86400000L;
                     if (matcher_dmcnico.matcher(ResultURL).find()){
