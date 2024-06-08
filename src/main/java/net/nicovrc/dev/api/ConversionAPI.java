@@ -204,7 +204,9 @@ public class ConversionAPI {
             //System.out.println(proxyData_jp.getProxyIP());
 
             if (isTitleGet){
-                return Service.getTitle(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                final String title = Service.getTitle(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, title, null))).start();
+                return title;
             }
 
             //System.out.println("Debug3 : "+TempRequestURL);
