@@ -35,6 +35,7 @@ public class ConversionAPI {
     private final List<String> ServiceURLList = new ArrayList<>();
 
     private final Pattern matcher_errorNico = Pattern.compile("fail-message");
+    private final Pattern matcher_maintenanceNico = Pattern.compile("(メンテナンス|[m|M]aintenance|一時的に停止)");
 
     private final Pattern matcher_YoutubeID = Pattern.compile("\\?v=(.+)");
 
@@ -225,6 +226,18 @@ public class ConversionAPI {
             //System.out.println("debug : " + TempRequestURL);
             //System.out.println("debug : " + ServiceName);
             if (ServiceName.equals("ニコニコ動画")){
+                Request check = new Request.Builder()
+                        .url(TempRequestURL)
+                        .build();
+                Response response = client.newCall(check).execute();
+                //System.out.println(response.body().string());
+                if (response.body() != null && matcher_maintenanceNico.matcher(response.body().string()).find()){
+                    response.close();
+                    throw new Exception("メンテナンス中です。");
+                }
+                response.close();
+
+
                 //System.out.println(TempRequestURL);
                 if (matcher_NicoVideo.matcher(TempRequestURL).find()){
                     // 通常動画
@@ -239,6 +252,7 @@ public class ConversionAPI {
                                 video = Service.getLive(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
                             } catch (Exception ex){
                                 if (ex.getMessage().equals("live.nicovideo.jp No WebSocket Found")){
+
                                     throw new Exception("対応していない動画または配信です");
                                 } else {
                                     throw e;

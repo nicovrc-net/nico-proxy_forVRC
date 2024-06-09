@@ -24,6 +24,6 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - タイトル取得時にRedisにログが書き込まれないのを修正
+            - メンテナンス中の際はメンテナンス中とわかるようにする
           draft: false
           prerelease: false
