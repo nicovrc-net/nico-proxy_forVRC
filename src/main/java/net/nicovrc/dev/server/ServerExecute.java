@@ -118,7 +118,7 @@ public class ServerExecute {
         final Matcher matcher1 = matcher_AccessIdentifier.matcher(httpRequest);
         final boolean isNotVRCFlag = matcher1.find() && matcher1.group(1).equals("no_vrc");
         final String[] split = TempURL.split("\\?");
-        final String cacheTempURL = split[0] + ((matcher_YoutubeURL.matcher(TempURL).find() || isNotVRCFlag) ? "?" + split[1] : "");
+        final String cacheTempURL = split.length >= 2 ? (split[0] + ((matcher_YoutubeURL.matcher(TempURL).find() || isNotVRCFlag) ? "?" + split[1] : "")) : split[0];
 
         //System.out.println(cacheTempURL);
 
