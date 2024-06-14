@@ -24,6 +24,6 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - メンテナンス中の際はメンテナンス中とわかるようにする
+            - ニコニコ動画(Re:仮)に対応
           draft: false
           prerelease: false
