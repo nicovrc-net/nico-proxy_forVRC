@@ -225,7 +225,7 @@ public class ConversionAPI {
             ResultVideoData video;
             //System.out.println("debug : " + TempRequestURL);
             //System.out.println("debug : " + ServiceName);
-            if (ServiceName.equals("ニコニコ動画")){
+            if (ServiceName.equals("ニコニコ動画") || ServiceName.equals("ニコニコ動画(Re:仮)")){
                 Request check = new Request.Builder()
                         .url(TempRequestURL)
                         .build();
@@ -671,7 +671,8 @@ public class ConversionAPI {
         Matcher matcher_VimeoURL = this.matcher_VimeoURL.matcher(URL);
 
         if (matcher_NicoVideoURL.find()){
-            return new NicoNicoVideo();
+            //return new NicoNicoVideo();
+            return new NicoNicoVideoRekari();
         }
 
         if (matcher_BilibiliComURL.find()){
