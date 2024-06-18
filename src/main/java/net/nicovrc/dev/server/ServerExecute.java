@@ -26,7 +26,7 @@ public class ServerExecute {
     private static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     private static final Pattern matcher_NicoID = Pattern.compile("^\\d+");
-    private static final Pattern matcher_RedirectURL = Pattern.compile("(api\\.nicoad\\.nicovideo\\.jp|b23\\.tv|nico\\.ms|cas\\.nicovideo\\.jp|live2\\.nicovideo\\.jp|abema\\.app)");
+    private static final Pattern matcher_RedirectURL = Pattern.compile("(api\\.nicoad\\.nicovideo\\.jp|b23\\.tv|nico\\.ms|cas\\.nicovideo\\.jp|live2\\.nicovideo\\.jp|abema\\.app|goo\\.gl)");
     private static final Pattern matcher_NicovideoURL = Pattern.compile("(ext|commons)\\.nicovideo\\.jp");
     private static final Pattern matcher_TitleUA = Pattern.compile("(x-nicovrc-titleget: yes|user-agent: unityplayer/)");
     private static final Pattern matcher_YoutubeURL = Pattern.compile("youtube\\.com");
