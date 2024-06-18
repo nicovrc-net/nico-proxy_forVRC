@@ -71,6 +71,9 @@ public class ConversionAPI {
     private final Pattern matcher_piaproURL = Pattern.compile("piapro\\.jp");
     private final Pattern matcher_SoundCloudURL = Pattern.compile("soundcloud\\.com");
     private final Pattern matcher_VimeoURL = Pattern.compile("vimeo\\.com");
+    private final Pattern matcher_fc2VideoURL = Pattern.compile("video\\.fc2\\.com");
+    private final Pattern matcher_fc2VideoAdultURL = Pattern.compile("video\\.fc2\\.com/a");
+    private final Pattern matcher_fc2LiveURL = Pattern.compile("live\\.fc2\\.com");
 
     public ConversionAPI(ProxyAPI proxyAPI){
         this.proxyAPI = proxyAPI;
@@ -121,6 +124,8 @@ public class ConversionAPI {
         ServiceURLList.add("piapro.jp");
         ServiceURLList.add("soundcloud.com");
         ServiceURLList.add("vimeo.com");
+        ServiceURLList.add("video.fc2.com");
+        ServiceURLList.add("live.fc2.com");
     }
 
     /**
@@ -587,6 +592,19 @@ public class ConversionAPI {
                 }
             }
 
+            // fc2
+            if (ServiceName.equals("FC2動画") || ServiceName.equals("FC2動画 アダルト")){
+                if (matcher_fc2LiveURL.matcher(TempRequestURL).find()){
+                    video = Service.getLive(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                } else {
+                    video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                }
+
+                final ResultVideoData finalVideo = video;
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo.getVideoURL(), null))).start();
+                return video.getVideoURL();
+            }
+
             // Youtube
             if (ServiceName.equals("Youtube")){
                 new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, "https://yt.8uro.net/r?v="+RequestURL, null))).start();
@@ -669,6 +687,9 @@ public class ConversionAPI {
         Matcher matcher_PiaproURL = matcher_piaproURL.matcher(URL);
         Matcher matcher_SoundCloudURL = this.matcher_SoundCloudURL.matcher(URL);
         Matcher matcher_VimeoURL = this.matcher_VimeoURL.matcher(URL);
+        Matcher matcher_fc2VideoURL = this.matcher_fc2VideoURL.matcher(URL);
+        Matcher matcher_fc2VideoAdultURL = this.matcher_fc2VideoAdultURL.matcher(URL);
+        Matcher matcher_fc2LiveURL = this.matcher_fc2LiveURL.matcher(URL);
 
         if (matcher_NicoVideoURL.find()){
             //return new NicoNicoVideo();
@@ -738,6 +759,18 @@ public class ConversionAPI {
 
         if (matcher_VimeoURL.find()){
             return new Vimeo();
+        }
+
+        if (matcher_fc2VideoAdultURL.find()){
+            return new FC2Adult();
+        }
+
+        if (matcher_fc2VideoURL.find()){
+            return new FC2();
+        }
+
+        if (matcher_fc2LiveURL.find()){
+            return new FC2();
         }
 
         try {
