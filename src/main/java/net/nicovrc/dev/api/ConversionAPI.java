@@ -35,7 +35,7 @@ public class ConversionAPI {
     private final List<String> ServiceURLList = new ArrayList<>();
 
     private final Pattern matcher_errorNico = Pattern.compile("fail-message");
-    private final Pattern matcher_maintenanceNico = Pattern.compile("(メンテナンス|[m|M]aintenance|一時的に停止)");
+    private final Pattern matcher_maintenanceNico = Pattern.compile("(メンテナンス|[m|M]aintenance)");
 
     private final Pattern matcher_YoutubeID = Pattern.compile("\\?v=(.+)");
 
