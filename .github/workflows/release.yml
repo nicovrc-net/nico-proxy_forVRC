@@ -24,6 +24,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - ニコニコ動画(Re:仮)に対応
+            - goo.glも一応リダイレクト対象に
+            -
           draft: false
           prerelease: false
