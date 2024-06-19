@@ -35,14 +35,15 @@ public class ConversionAPI {
     private final List<String> ServiceURLList = new ArrayList<>();
 
     private final Pattern matcher_errorNico = Pattern.compile("fail-message");
-    private final Pattern matcher_maintenanceNico = Pattern.compile("(メンテナンス|[m|M]aintenance)");
+    //private final Pattern matcher_maintenanceNico = Pattern.compile("(メンテナンス|[m|M]aintenance)");
 
     private final Pattern matcher_YoutubeID = Pattern.compile("\\?v=(.+)");
 
     private final Pattern matcher_NicoVideo = Pattern.compile("sm|nm|am|fz|ut|dm");
     private final Pattern matcher_NicoVideo2 = Pattern.compile("so|ax|ca|cd|cw|fx|ig|na|om|sd|sk|yk|yo|za|zb|zc|zd|ze|nl|watch/(\\d+)|^(\\d+)");
-    private final Pattern matcher_NicoLive = Pattern.compile("lv|ch");
+    private final Pattern matcher_NicoLive = Pattern.compile("lv|ch|kl");
     private final Pattern matcher_dmcnico = Pattern.compile("dmc\\.nico");
+    private final Pattern matcher_cloudfrontNico = Pattern.compile("da6m4xhw634qw\\.cloudfront\\.net");
 
     private final Pattern matcher_bilibiliDuration = Pattern.compile("\"dash\":\\{\"duration\":(\\d+)");
 
@@ -231,16 +232,18 @@ public class ConversionAPI {
             //System.out.println("debug : " + TempRequestURL);
             //System.out.println("debug : " + ServiceName);
             if (ServiceName.equals("ニコニコ動画") || ServiceName.equals("ニコニコ動画(Re:仮)")){
-                Request check = new Request.Builder()
+                /*Request check = new Request.Builder()
                         .url(TempRequestURL)
                         .build();
                 Response response = client.newCall(check).execute();
                 //System.out.println(response.body().string());
+
                 if (response.body() != null && matcher_maintenanceNico.matcher(response.body().string()).find()){
                     response.close();
                     throw new Exception("メンテナンス中です。");
                 }
-                response.close();
+
+                response.close();*/
 
 
                 //System.out.println(TempRequestURL);
@@ -278,7 +281,8 @@ public class ConversionAPI {
                     throw new Exception("対応していない動画または配信です。\n※URLが間違っていないか再度確認ください。");
                 }
 
-                if (matcher_dmcnico.matcher(video.getVideoURL()).find()) {
+                System.out.println(video.getVideoURL());
+                if (matcher_dmcnico.matcher(video.getVideoURL()).find() || matcher_cloudfrontNico.matcher(video.getVideoURL()).find()) {
                     final ResultVideoData finalVideo = video;
                     new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo.getVideoURL(), null))).start();
                     System.gc();
