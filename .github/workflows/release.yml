@@ -24,6 +24,6 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - ニコニコ生放送 (Re:仮) 対応
+            - PeerTube 対応
           draft: false
           prerelease: false

@@ -75,6 +75,7 @@ public class ConversionAPI {
     private final Pattern matcher_fc2VideoURL = Pattern.compile("video\\.fc2\\.com");
     private final Pattern matcher_fc2VideoAdultURL = Pattern.compile("video\\.fc2\\.com/a");
     private final Pattern matcher_fc2LiveURL = Pattern.compile("live\\.fc2\\.com");
+    private final Pattern matcher_PeerTube = Pattern.compile("window\\.PeerTubeServerConfig");
 
     public ConversionAPI(ProxyAPI proxyAPI){
         this.proxyAPI = proxyAPI;
@@ -609,6 +610,16 @@ public class ConversionAPI {
                 return video.getVideoURL();
             }
 
+            // PeerTube
+            if (ServiceName.equals("PeerTube")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+
+                final ResultVideoData finalVideo = video;
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo.getVideoURL(), null))).start();
+
+                return finalVideo.getVideoURL();
+            }
+
             // Youtube
             if (ServiceName.equals("Youtube")){
                 new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, "https://yt.8uro.net/r?v="+RequestURL, null))).start();
@@ -800,6 +811,11 @@ public class ConversionAPI {
             } else if (response.body() != null && response.body().contentType() != null && response.body().contentType().toString().startsWith("video")) {
                 response.close();
                 return new Video();
+            } else if (response.body() != null && response.code() >= 200 && response.code() <= 299) {
+                Matcher matcher_peerTube = this.matcher_PeerTube.matcher(response.body().string());
+                if (matcher_peerTube.find()){
+                    return new PeerTube();
+                }
             }
         } catch (Exception e){
             // e.printStackTrace();
