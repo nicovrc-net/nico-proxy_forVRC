@@ -16,6 +16,7 @@ import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -255,6 +256,19 @@ public class ServerExecute {
             UDPPacket packet = new UDPPacket(RequestURL, TempURL);
             packet.setGetTitle(isTitleGet);
             packet.setHTTPRequest(httpRequest);
+
+            final String s = UUID.randomUUID().toString().split("-")[0] + "_" + new Date().getTime() + "_" + Constant.getVersion();
+            String temp = "";
+            try {
+                MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+                byte[] sha256Byte = sha256.digest(s.getBytes());
+                HexFormat hex = HexFormat.of().withLowerCase();
+
+                temp = hex.formatHex(sha256Byte);
+            } catch (Exception e){
+                temp = s;
+            }
+            packet.setRequestID(temp);
 
             UDPPacket result = ServerAPI.SendServer(packet);
             if (result.getResultURL() != null){

@@ -38,6 +38,8 @@ public class UDPServer extends Thread {
 
     private Boolean isStop;
 
+    private final HashMap<String, String> RequestIdList = new HashMap<>();
+
     private final Pattern matcher_ForceQueue = Pattern.compile("force_queue=(.+)");
 
     public UDPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port, Boolean isStop){
@@ -78,6 +80,7 @@ public class UDPServer extends Thread {
             @Override
             public void run() {
                 WebhookSendAll();
+                RequestIdList.clear();
             }
         }, 0L, 60000L);
     }
@@ -104,7 +107,7 @@ public class UDPServer extends Thread {
                     try {
                         json = new Gson().fromJson(packetText, UDPPacket.class);
                     } catch (Exception e){
-                        socket.send(new DatagramPacket("{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8), "{\"Bad Request\"}".getBytes(StandardCharsets.UTF_8).length, address));
+                        socket.send(new DatagramPacket("{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8), "{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8).length, address));
                         continue;
                     }
 
@@ -115,10 +118,17 @@ public class UDPServer extends Thread {
                         Request = packetText;
                     }
 
+                    if (RequestIdList.get(json.getRequestID()) != null) {
+                        socket.send(new DatagramPacket("{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8), "{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8).length, address));
+                        continue;
+                    }
+
+                    RequestIdList.put(json.getRequestID(), json.getRequestID());
+
                     final String RequestURL = json.getRequestURL();
 
                     if (RequestURL == null){
-                        socket.send(new DatagramPacket("{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8), "{\"Bad Request\"}".getBytes(StandardCharsets.UTF_8).length, address));
+                        socket.send(new DatagramPacket("{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8), "{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8).length, address));
                         continue;
                     }
 

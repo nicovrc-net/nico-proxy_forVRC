@@ -1,5 +1,13 @@
 package net.nicovrc.dev.data;
 
+import net.nicovrc.dev.api.Constant;
+
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Date;
+import java.util.HexFormat;
+import java.util.UUID;
+
 public class UDPPacket {
 
     private String RequestURL;
@@ -8,6 +16,8 @@ public class UDPPacket {
     private boolean isGetTitle;
     private String HTTPRequest;
     private String ErrorMessage;
+
+    private String RequestID;
 
     public UDPPacket(){
 
@@ -20,6 +30,7 @@ public class UDPPacket {
     public UDPPacket(String requestURL, String tempRequestURL){
         this.RequestURL = requestURL;
         this.TempRequestURL = tempRequestURL;
+
     }
 
     public String getRequestURL() {
@@ -68,5 +79,13 @@ public class UDPPacket {
 
     public void setTempRequestURL(String tempRequestURL) {
         TempRequestURL = tempRequestURL;
+    }
+
+    public void setRequestID(String requestID) {
+        RequestID = requestID;
+    }
+
+    public String getRequestID() {
+        return RequestID;
     }
 }
