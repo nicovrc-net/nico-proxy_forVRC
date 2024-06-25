@@ -118,12 +118,15 @@ public class UDPServer extends Thread {
                         Request = packetText;
                     }
 
-                    if (RequestIdList.get(json.getRequestID()) != null) {
-                        socket.send(new DatagramPacket("{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8), "{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8).length, address));
-                        continue;
+                    if (json.getRequestID() != null){
+                        if (RequestIdList.get(json.getRequestID()) != null) {
+                            socket.send(new DatagramPacket("{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8), "{\"Error\": \"Bad Request\"}".getBytes(StandardCharsets.UTF_8).length, address));
+                            continue;
+                        }
+
+                        RequestIdList.put(json.getRequestID(), json.getRequestID());
                     }
 
-                    RequestIdList.put(json.getRequestID(), json.getRequestID());
 
                     final String RequestURL = json.getRequestURL();
 
