@@ -103,6 +103,9 @@ public class UDPServer extends Thread {
                     final InetSocketAddress address = new InetSocketAddress(packet.getAddress(), packet.getPort());
 
                     String packetText = new String(Arrays.copyOf(packet.getData(), packet.getLength()));
+
+                    //System.out.println("UDP : "+packetText);
+
                     final UDPPacket json;
                     try {
                         json = new Gson().fromJson(packetText, UDPPacket.class);
@@ -111,7 +114,6 @@ public class UDPServer extends Thread {
                         continue;
                     }
 
-                    //System.out.println(packetText);
 
                     String Request = json.getHTTPRequest();
                     if (Request == null || Request.isEmpty()){

@@ -202,6 +202,7 @@ public class ServerExecute {
                     if (socket == null){
                         SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+ ResultURL +"\nDate: " + new Date() + "\n\n");
                     } else {
+                        //System.out.println("udp send");
                         UDPPacket packet = new UDPPacket();
                         packet.setResultURL(ResultURL);
                         packet.setGetTitle(false);
@@ -271,6 +272,7 @@ public class ServerExecute {
             packet.setRequestID(temp);
 
             UDPPacket result = ServerAPI.SendServer(packet);
+            System.out.println(result.getErrorMessage());
             if (result.getResultURL() != null){
                 if (isTitleGet){
                     System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + result.getResultURL());

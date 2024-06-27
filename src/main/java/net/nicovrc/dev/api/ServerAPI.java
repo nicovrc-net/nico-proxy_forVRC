@@ -175,10 +175,12 @@ public class ServerAPI {
             tempList.add(serverData);
         }));
 
-        while (!temp.isEmpty()){
-            ServerData data = tempList.get(i);
+
+        while (!tempList.isEmpty()){
+            //System.out.println(tempList.size());
+            ServerData data = tempList.get(0);
             if (data == null){
-                i = temp.size() > 1 ? new SecureRandom().nextInt(0, temp.size() - 1) : 0;
+                tempList.remove(0);
                 continue;
             }
             //System.out.println("Server" + i);
@@ -188,25 +190,28 @@ public class ServerAPI {
                 String jsonText = gson.toJson(packet);
                 DatagramPacket udp_packet = new DatagramPacket(jsonText.getBytes(StandardCharsets.UTF_8), jsonText.getBytes(StandardCharsets.UTF_8).length, new InetSocketAddress(data.getIP(), data.getPort()));
                 udp_sock.send(udp_packet);
-                udp_sock.setSoTimeout(2000);
+                //System.out.println("送信 : " + jsonText + " ---> " + data.getIP()+":"+data.getPort());
+                udp_sock.setSoTimeout(5000);
 
                 byte[] temp1 = new byte[100000];
                 DatagramPacket udp_packet2 = new DatagramPacket(temp1, temp1.length);
                 udp_sock.receive(udp_packet2);
 
-                //System.out.println("受信 : " + new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())));
-                UDPPacket json = gson.fromJson(new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength())), UDPPacket.class);
+                String s = new String(Arrays.copyOf(udp_packet2.getData(), udp_packet2.getLength()));
+                //System.out.println("受信 : " + s);
+                UDPPacket json = gson.fromJson(s, UDPPacket.class);
 
                 if (json.getResultURL() != null || json.getErrorMessage() != null){
                     packet.setResultURL(json.getResultURL());
                     packet.setErrorMessage(json.getErrorMessage());
-                    temp.clear();
+                    tempList.clear();
                 }
             } catch (Exception e){
-                temp.remove(i);
-                i = temp.size() > 1 ? new SecureRandom().nextInt(0, temp.size() - 1) : 0;
+                //e.printStackTrace();
+                tempList.remove(0);
             }
         }
+        //System.out.println(0);
 
         return packet;
     }
