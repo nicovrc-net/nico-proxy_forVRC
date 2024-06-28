@@ -43,7 +43,7 @@ public class ConversionAPI {
     private final Pattern matcher_NicoVideo2 = Pattern.compile("so|ax|ca|cd|cw|fx|ig|na|om|sd|sk|yk|yo|za|zb|zc|zd|ze|nl|watch/(\\d+)|^(\\d+)");
     private final Pattern matcher_NicoLive = Pattern.compile("lv|ch|kl");
     private final Pattern matcher_dmcnico = Pattern.compile("dmc\\.nico");
-    private final Pattern matcher_cloudfrontNico = Pattern.compile("da6m4xhw634qw\\.cloudfront\\.net");
+    private final Pattern matcher_cloudfrontNico = Pattern.compile("\\.cloudfront\\.net");
 
     private final Pattern matcher_bilibiliDuration = Pattern.compile("\"dash\":\\{\"duration\":(\\d+)");
 
@@ -248,6 +248,7 @@ public class ConversionAPI {
 
 
                 //System.out.println(TempRequestURL);
+                //System.out.println("debug1 : "+TempRequestURL);
                 if (matcher_NicoVideo.matcher(TempRequestURL).find()){
                     // 通常動画
                     video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
@@ -282,7 +283,7 @@ public class ConversionAPI {
                     throw new Exception("対応していない動画または配信です。\n※URLが間違っていないか再度確認ください。");
                 }
 
-                System.out.println(video.getVideoURL());
+                //System.out.println("debug : "+video.getVideoURL());
                 if (matcher_dmcnico.matcher(video.getVideoURL()).find() || matcher_cloudfrontNico.matcher(video.getVideoURL()).find()) {
                     final ResultVideoData finalVideo = video;
                     new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo.getVideoURL(), null))).start();
