@@ -25,5 +25,8 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - UDP通信にIDを追加して同じIDから2度目の通信が来たときはBad Request扱いとするように
+            - 他処理鯖へ送信する順番をリスト順に
+            - ニコ生(Re:仮)での不具合修正
+            - OPENRECでの不具合修正
           draft: false
           prerelease: false

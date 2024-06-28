@@ -51,6 +51,8 @@ public class ConversionAPI {
     private final Pattern matcher_TVerLiveURL = Pattern.compile("https://tver\\.jp/live/(.+)");
     private final Pattern matcher_TwicastArchiveURL = Pattern.compile("https://(.+)/tc\\.vod\\.v2");
 
+    private final Pattern matcher_OPENRECLiveURL = Pattern.compile("https://(.+)\\.cloudfront\\.net");
+
     private final Pattern matcher_Vimeo1 = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio-high\",NAME=\"Original\",DEFAULT=YES,AUTOSELECT=YES,CHANNELS=\"2\",URI=\"(.+)\"");
     private final Pattern matcher_Vimeo2 = Pattern.compile("#EXT-X-STREAM-INF:CLOSED-CAPTIONS=(.+),BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),RESOLUTION=(.+),FRAME-RATE=(.+),CODECS=\"(.+)\",AUDIO=\"(.+)\"");
 
@@ -491,9 +493,17 @@ public class ConversionAPI {
                     video = Service.getLive(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
                 }
 
-                ResultVideoData finalVideo3 = video;
-                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo3.getVideoURL().replaceAll("d3cfw2mckicdfw\\.cloudfront\\.net", "o.nicovrc.net"), null))).start();
-                return video.getVideoURL().replaceAll("d3cfw2mckicdfw\\.cloudfront\\.net", "o.nicovrc.net");
+                Matcher matcher = matcher_OPENRECLiveURL.matcher(video.getVideoURL());
+                if (matcher.find()){
+                    String host = matcher.group(1) + ".cloudfront.net";
+
+                    ResultVideoData finalVideo3 = video;
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo3.getVideoURL().replaceAll(host.replaceAll("\\.","\\\\."), "o.nicovrc.net") + "&host="+host, null))).start();
+
+                    return video.getVideoURL().replaceAll(host.replaceAll("\\.","\\\\."), "o.nicovrc.net") + "&host="+host;
+                } else {
+                    throw new Exception("対応していない動画または配信です。\n※URLが間違っていないか再度確認ください。");
+                }
             }
 
             // Iwara
