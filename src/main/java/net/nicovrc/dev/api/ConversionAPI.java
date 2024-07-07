@@ -59,7 +59,7 @@ public class ConversionAPI {
     private final Pattern matcher_Access = Pattern.compile("\\?access=(.+) HTTP");
 
     private final Pattern matcher_NicoNicoVideoURL = Pattern.compile("(nico\\.ms|nicovideo\\.jp)");
-    private final Pattern matcher_NicoNicoVideoURL2 = Pattern.compile("(nicovideo\\.jp)(rekari|watch_tmp)");
+    private final Pattern matcher_NicoNicoVideoURL2 = Pattern.compile("nicovideo\\.jp/(rekari|watch_tmp)");
     private final Pattern matcher_BiliBiliComURL = Pattern.compile("bilibili\\.com");
     private final Pattern matcher_BiliBiliTvURL = Pattern.compile("bilibili\\.tv");
     private final Pattern matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)");
