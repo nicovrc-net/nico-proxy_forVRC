@@ -24,7 +24,6 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - ニコ動Re仮で一部動画が見れない問題の修正
-            - ニコ動Re仮が終わっても大丈夫なように
+            - YouJizz対応
           draft: false
           prerelease: false
