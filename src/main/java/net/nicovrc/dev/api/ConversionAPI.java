@@ -79,6 +79,8 @@ public class ConversionAPI {
     private final Pattern matcher_fc2VideoAdultURL = Pattern.compile("video\\.fc2\\.com/a");
     private final Pattern matcher_fc2LiveURL = Pattern.compile("live\\.fc2\\.com");
     private final Pattern matcher_youjizzURL = Pattern.compile("youjizz\\.com");
+    private final Pattern matcher_sonicbowlURL = Pattern.compile("player\\.sonicbowl\\.cloud");
+    private final Pattern matcher_mixcloudURL = Pattern.compile("mixcloud\\.com");
     private final Pattern matcher_PeerTube = Pattern.compile("window\\.PeerTubeServerConfig");
 
     public ConversionAPI(ProxyAPI proxyAPI){
@@ -133,6 +135,8 @@ public class ConversionAPI {
         ServiceURLList.add("video.fc2.com");
         ServiceURLList.add("live.fc2.com");
         ServiceURLList.add("youjizz.com");
+        ServiceURLList.add("player.sonicbowl.cloud");
+        ServiceURLList.add("mixcloud.com");
     }
 
     /**
@@ -634,6 +638,7 @@ public class ConversionAPI {
                 return finalVideo.getVideoURL();
             }
 
+
             // Youjizz
             if (ServiceName.equals("Youjizz")){
                 video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
@@ -642,6 +647,26 @@ public class ConversionAPI {
                 new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo.getVideoURL(), null))).start();
 
                 return finalVideo.getVideoURL();
+            }
+
+            // Sonicbowl
+            if (ServiceName.equals("Sonicbowl")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+
+                final ResultVideoData finalVideo = video;
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo.getVideoURL(), null))).start();
+
+                return finalVideo.getAudioURL();
+            }
+
+            // Mixcloud
+            if (ServiceName.equals("Mixcloud")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+
+                final ResultVideoData finalVideo = video;
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo.getVideoURL(), null))).start();
+
+                return finalVideo.getAudioURL();
             }
 
             // Youtube
@@ -731,6 +756,8 @@ public class ConversionAPI {
         Matcher matcher_fc2VideoAdultURL = this.matcher_fc2VideoAdultURL.matcher(URL);
         Matcher matcher_fc2LiveURL = this.matcher_fc2LiveURL.matcher(URL);
         Matcher matcher_youjizzURL = this.matcher_youjizzURL.matcher(URL);
+        Matcher matcher_sonicbowlURL = this.matcher_sonicbowlURL.matcher(URL);
+        Matcher matcher_mixcloudURL = this.matcher_mixcloudURL.matcher(URL);
 
         if (matcher_NicoVideoRekariURL.find()){
             return new NicoNicoVideoRekari();
@@ -820,6 +847,14 @@ public class ConversionAPI {
 
         if (matcher_youjizzURL.find()){
             return new Youjizz();
+        }
+
+        if (matcher_sonicbowlURL.find()){
+            return new Sonicbowl();
+        }
+
+        if (matcher_mixcloudURL.find()){
+            return new Mixcloud();
         }
 
         try {

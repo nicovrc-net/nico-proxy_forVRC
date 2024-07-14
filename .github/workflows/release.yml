@@ -24,6 +24,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - YouJizz対応
+            - Sonicbowl対応
+            - Mixcloud対応
           draft: false
           prerelease: false
