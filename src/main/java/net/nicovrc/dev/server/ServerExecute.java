@@ -272,7 +272,7 @@ public class ServerExecute {
             packet.setRequestID(temp);
 
             UDPPacket result = ServerAPI.SendServer(packet);
-            System.out.println(result.getErrorMessage());
+            //System.out.println(result.getErrorMessage());
             if (result.getResultURL() != null){
                 if (isTitleGet){
                     System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + result.getResultURL());
