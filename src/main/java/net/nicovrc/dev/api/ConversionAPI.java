@@ -242,22 +242,7 @@ public class ConversionAPI {
             //System.out.println("debug : " + TempRequestURL);
             //System.out.println("debug : " + ServiceName);
             if (ServiceName.equals("ニコニコ動画") || ServiceName.equals("ニコニコ動画(Re:仮)")){
-                /*Request check = new Request.Builder()
-                        .url(TempRequestURL)
-                        .build();
-                Response response = client.newCall(check).execute();
-                //System.out.println(response.body().string());
 
-                if (response.body() != null && matcher_maintenanceNico.matcher(response.body().string()).find()){
-                    response.close();
-                    throw new Exception("メンテナンス中です。");
-                }
-
-                response.close();*/
-
-
-                //System.out.println(TempRequestURL);
-                //System.out.println("debug1 : "+TempRequestURL);
                 if (matcher_NicoVideo.matcher(TempRequestURL).find()){
                     // 通常動画
                     video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));

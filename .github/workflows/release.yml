@@ -24,7 +24,6 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - Sonicbowl対応
-            - Mixcloud対応
+            - SoundCloudの再生できない問題の修正
           draft: false
           prerelease: false
