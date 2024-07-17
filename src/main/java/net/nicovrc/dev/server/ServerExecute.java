@@ -254,56 +254,103 @@ public class ServerExecute {
             }
         } else {
             // 処理鯖が設定されている場合は処理鯖へ投げてその結果を返す
-            UDPPacket packet = new UDPPacket(RequestURL, TempURL);
-            packet.setGetTitle(isTitleGet);
-            packet.setHTTPRequest(httpRequest);
-
-            final String s = UUID.randomUUID().toString().split("-")[0] + "_" + new Date().getTime() + "_" + Constant.getVersion();
-            String temp = "";
             try {
-                MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-                byte[] sha256Byte = sha256.digest(s.getBytes());
-                HexFormat hex = HexFormat.of().withLowerCase();
+                UDPPacket packet = new UDPPacket(RequestURL, TempURL);
+                packet.setGetTitle(isTitleGet);
+                packet.setHTTPRequest(httpRequest);
 
-                temp = hex.formatHex(sha256Byte);
-            } catch (Exception e){
-                temp = s;
-            }
-            packet.setRequestID(temp);
+                final String s = UUID.randomUUID().toString().split("-")[0] + "_" + new Date().getTime() + "_" + Constant.getVersion();
+                String temp = "";
+                try {
+                    MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
+                    byte[] sha256Byte = sha256.digest(s.getBytes());
+                    HexFormat hex = HexFormat.of().withLowerCase();
 
-            UDPPacket result = ServerAPI.SendServer(packet);
-            //System.out.println(result.getErrorMessage());
-            if (result.getResultURL() != null){
-                if (isTitleGet){
-                    System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + result.getResultURL());
-                    //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, result.getResultURL(), false, true);
-                    if (socket == null){
-                        SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+result.getResultURL());
+                    temp = hex.formatHex(sha256Byte);
+                } catch (Exception e){
+                    temp = s;
+                }
+                packet.setRequestID(temp);
+
+                UDPPacket result = ServerAPI.SendServer(packet);
+                //System.out.println("aaaa");
+                //System.out.println(result.getErrorMessage());
+                if (result != null && result.getResultURL() != null){
+                    if (isTitleGet){
+                        System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + result.getResultURL());
+                        //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, result.getResultURL(), false, true);
+                        if (socket == null){
+                            SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+result.getResultURL());
+                        } else {
+                            UDPPacket packet1 = new UDPPacket();
+                            packet1.setResultURL(result.getResultURL());
+                            packet1.setGetTitle(true);
+                            SendResult(socket, address, packet1);
+                        }
+
+                        CacheAPI.removeCache(cacheTempURL);
+
                     } else {
-                        UDPPacket packet1 = new UDPPacket();
-                        packet1.setResultURL(result.getResultURL());
-                        packet1.setGetTitle(true);
-                        SendResult(socket, address, packet1);
+                        System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + result.getResultURL());
+                        //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, result.getResultURL(), false, false);
+                        if (socket == null){
+                            SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+result.getResultURL()+"\nDate: " + new Date() + "\n\n");
+                        } else {
+                            UDPPacket packet1 = new UDPPacket();
+                            packet1.setResultURL(result.getResultURL());
+                            packet1.setGetTitle(false);
+                            SendResult(socket, address, packet1);
+                        }
+
+                        long eTime = 3600000L;
+                        if (matcher_NicoVideoURL.matcher(TempURL).find()){
+                            eTime = new Date().getTime() + 86400000L;
+                            if (matcher_dmcnico.matcher(result.getResultURL()).find()){
+                                eTime = -1;
+                            }
+                        } else if (matcher_Cache1dayURL.matcher(TempURL).find()) {
+                            eTime = new Date().getTime() + 86400000L;
+                        }
+
+                        CacheAPI.removeCache(cacheTempURL);
+                        if (!result.getResultURL().startsWith("https://i2v.nicovrc.net")){
+                            CacheAPI.setCache(cacheTempURL, result.getResultURL(), eTime);
+                        }
+                    }
+                } else {
+                    String ResultURL = ConversionAPI.get(httpRequest, RequestURL, TempURL, isTitleGet);
+                    if (ResultURL == null){
+                        throw new Exception("Not Found");
                     }
 
-                    CacheAPI.removeCache(cacheTempURL);
-
-                } else {
-                    System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + result.getResultURL());
-                    //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, result.getResultURL(), false, false);
-                    if (socket == null){
-                        SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+result.getResultURL()+"\nDate: " + new Date() + "\n\n");
+                    if (!isTitleGet){
+                        System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + ResultURL);
+                        //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, ResultURL, false, false);
+                        if (socket == null){
+                            SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+ ResultURL +"\nDate: " + new Date() + "\n\n");
+                        } else {
+                            UDPPacket packet1 = new UDPPacket();
+                            packet1.setResultURL(ResultURL);
+                            packet1.setGetTitle(false);
+                            SendResult(socket, address, packet1);
+                        }
                     } else {
-                        UDPPacket packet1 = new UDPPacket();
-                        packet1.setResultURL(result.getResultURL());
-                        packet1.setGetTitle(false);
-                        SendResult(socket, address, packet1);
+                        System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + ResultURL);
+                        //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, ResultURL, false, true);
+                        if (socket == null){
+                            SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
+                        } else {
+                            UDPPacket packet1 = new UDPPacket();
+                            packet1.setResultURL(ResultURL);
+                            packet1.setGetTitle(true);
+                            SendResult(socket, address, packet1);
+                        }
                     }
 
                     long eTime = 3600000L;
                     if (matcher_NicoVideoURL.matcher(TempURL).find()){
                         eTime = new Date().getTime() + 86400000L;
-                        if (matcher_dmcnico.matcher(result.getResultURL()).find()){
+                        if (matcher_dmcnico.matcher(ResultURL).find()){
                             eTime = -1;
                         }
                     } else if (matcher_Cache1dayURL.matcher(TempURL).find()) {
@@ -315,50 +362,19 @@ public class ServerExecute {
                         CacheAPI.setCache(cacheTempURL, result.getResultURL(), eTime);
                     }
                 }
-            } else {
-                String ResultURL = ConversionAPI.get(httpRequest, RequestURL, TempURL, isTitleGet);
-                if (ResultURL == null){
-                    throw new Exception("Not Found");
-                }
-
-                if (!isTitleGet){
-                    System.out.println("["+sdf.format(new Date())+"] リクエスト : " + RequestURL + " ---> " + ResultURL);
-                    //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, ResultURL, false, false);
-                    if (socket == null){
-                        SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: "+ ResultURL +"\nDate: " + new Date() + "\n\n");
-                    } else {
-                        UDPPacket packet1 = new UDPPacket();
-                        packet1.setResultURL(ResultURL);
-                        packet1.setGetTitle(false);
-                        SendResult(socket, address, packet1);
-                    }
+            } catch (Exception e){
+                if (socket == null){
+                    SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage()+"\nDate: " + new Date() + "\n\n");
                 } else {
-                    System.out.println("["+sdf.format(new Date())+"] リクエスト (タイトル取得) : " + RequestURL + " ---> " + ResultURL);
-                    //SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, ResultURL, false, true);
-                    if (socket == null){
-                        SendResult(out, "HTTP/" + httpVersion + " 200 OK\nContent-Type: text/plain; charset=utf-8\n\n"+ResultURL);
-                    } else {
-                        UDPPacket packet1 = new UDPPacket();
-                        packet1.setResultURL(ResultURL);
-                        packet1.setGetTitle(true);
-                        SendResult(socket, address, packet1);
-                    }
-                }
-
-                long eTime = 3600000L;
-                if (matcher_NicoVideoURL.matcher(TempURL).find()){
-                    eTime = new Date().getTime() + 86400000L;
-                    if (matcher_dmcnico.matcher(ResultURL).find()){
-                        eTime = -1;
-                    }
-                } else if (matcher_Cache1dayURL.matcher(TempURL).find()) {
-                    eTime = new Date().getTime() + 86400000L;
+                    UDPPacket packet = new UDPPacket();
+                    packet.setResultURL("https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage());
+                    packet.setGetTitle(isTitleGet);
+                    SendResult(socket, address, packet);
                 }
 
                 CacheAPI.removeCache(cacheTempURL);
-                if (!result.getResultURL().startsWith("https://i2v.nicovrc.net")){
-                    CacheAPI.setCache(cacheTempURL, result.getResultURL(), eTime);
-                }
+                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage(), httpRequest, false, false);
+                System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage());
             }
         }
 

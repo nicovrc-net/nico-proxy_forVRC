@@ -25,5 +25,6 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - bandcamp対応
+            - 一部のパターンで結果が戻ってこないのを修正
           draft: false
           prerelease: false
