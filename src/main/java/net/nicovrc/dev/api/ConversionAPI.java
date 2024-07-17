@@ -81,6 +81,7 @@ public class ConversionAPI {
     private final Pattern matcher_youjizzURL = Pattern.compile("youjizz\\.com");
     private final Pattern matcher_sonicbowlURL = Pattern.compile("player\\.sonicbowl\\.cloud");
     private final Pattern matcher_mixcloudURL = Pattern.compile("mixcloud\\.com");
+    private final Pattern matcher_bandcampURL = Pattern.compile("bandcamp\\.com");
     private final Pattern matcher_PeerTube = Pattern.compile("window\\.PeerTubeServerConfig");
 
     public ConversionAPI(ProxyAPI proxyAPI){
@@ -137,6 +138,7 @@ public class ConversionAPI {
         ServiceURLList.add("youjizz.com");
         ServiceURLList.add("player.sonicbowl.cloud");
         ServiceURLList.add("mixcloud.com");
+        ServiceURLList.add("bandcamp.com");
     }
 
     /**
@@ -654,6 +656,16 @@ public class ConversionAPI {
                 return finalVideo.getAudioURL();
             }
 
+            // bandcamp
+            if (ServiceName.equals("bandcamp")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+
+                final ResultVideoData finalVideo = video;
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo.getVideoURL(), null))).start();
+
+                return finalVideo.getAudioURL();
+            }
+
             // Youtube
             if (ServiceName.equals("Youtube")){
                 new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, "https://yt.8uro.net/r?v="+RequestURL, null))).start();
@@ -743,6 +755,7 @@ public class ConversionAPI {
         Matcher matcher_youjizzURL = this.matcher_youjizzURL.matcher(URL);
         Matcher matcher_sonicbowlURL = this.matcher_sonicbowlURL.matcher(URL);
         Matcher matcher_mixcloudURL = this.matcher_mixcloudURL.matcher(URL);
+        Matcher matcher_bandcampURL = this.matcher_bandcampURL.matcher(URL);
 
         if (matcher_NicoVideoRekariURL.find()){
             return new NicoNicoVideoRekari();
@@ -840,6 +853,10 @@ public class ConversionAPI {
 
         if (matcher_mixcloudURL.find()){
             return new Mixcloud();
+        }
+
+        if (matcher_bandcampURL.find()){
+            return new Bandcamp();
         }
 
         try {
