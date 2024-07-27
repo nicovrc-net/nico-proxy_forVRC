@@ -358,7 +358,7 @@ public class ServerExecute {
                     }
 
                     CacheAPI.removeCache(cacheTempURL);
-                    if (!result.getResultURL().startsWith("https://i2v.nicovrc.net")){
+                    if (result != null && !result.getResultURL().startsWith("https://i2v.nicovrc.net")){
                         CacheAPI.setCache(cacheTempURL, result.getResultURL(), eTime);
                     }
                 }
