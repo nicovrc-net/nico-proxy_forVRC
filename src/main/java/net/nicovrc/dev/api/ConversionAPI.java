@@ -71,6 +71,7 @@ public class ConversionAPI {
     private final Pattern matcher_TwitcastingURL = Pattern.compile("twitcasting\\.tv");
     private final Pattern matcher_AbemaURL = Pattern.compile("abema\\.tv");
     private final Pattern matcher_TVerURL = Pattern.compile("tver\\.jp");
+    private final Pattern matcher_TVerURL2 = Pattern.compile("tver\\.jp/olympic");
     private final Pattern matcher_iwaraURL = Pattern.compile("iwara\\.tv");
     private final Pattern matcher_piaproURL = Pattern.compile("piapro\\.jp");
     private final Pattern matcher_SoundCloudURL = Pattern.compile("soundcloud\\.com");
@@ -385,7 +386,7 @@ public class ConversionAPI {
             }
 
             // xvideos / Twitter / Pornhub / Ameba / TVer
-            if (ServiceName.equals("XVIDEOS.com") || ServiceName.equals("Twitter") || ServiceName.equals("Pornhub") || ServiceName.equals("Abema") || ServiceName.equals("TVer")){
+            if (ServiceName.equals("XVIDEOS.com") || ServiceName.equals("Twitter") || ServiceName.equals("Pornhub") || ServiceName.equals("Abema") || ServiceName.equals("TVer") || ServiceName.equals("TVer (オリンピック)")){
                 if (ServiceName.equals("Abema") && matcher_abemaURL.matcher(TempRequestURL).find()){
                     video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
 
@@ -405,6 +406,14 @@ public class ConversionAPI {
 
                     ResultVideoData finalVideo1 = video;
                     new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
+
+                } else if (ServiceName.equals("TVer (オリンピック)")){
+                    video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
+
+                    ResultVideoData finalVideo1 = video;
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL().replaceAll("par-jba-live-f\\.ovpobs\\.tv", "tv.nicovrc.net"), null))).start();
+
+                    return video.getVideoURL().replaceAll("par-jba-live-f\\.ovpobs\\.tv", "tv.nicovrc.net");
 
                 } else {
 
@@ -745,6 +754,7 @@ public class ConversionAPI {
         Matcher matcher_TwicastURL = matcher_TwitcastingURL.matcher(URL);
         Matcher matcher_AbemaURL = this.matcher_AbemaURL.matcher(URL);
         Matcher matcher_TVerURL = this.matcher_TVerURL.matcher(URL);
+        Matcher matcher_TVerURL2 = this.matcher_TVerURL2.matcher(URL);
         Matcher matcher_IwaraURL = matcher_iwaraURL.matcher(URL);
         Matcher matcher_PiaproURL = matcher_piaproURL.matcher(URL);
         Matcher matcher_SoundCloudURL = this.matcher_SoundCloudURL.matcher(URL);
@@ -809,6 +819,10 @@ public class ConversionAPI {
 
         if (matcher_AbemaURL.find()){
             return new Abema();
+        }
+
+        if (matcher_TVerURL2.find()){
+            return new TVer_Olympic();
         }
 
         if (matcher_TVerURL.find()){
