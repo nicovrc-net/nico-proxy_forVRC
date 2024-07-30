@@ -147,4 +147,3 @@ jobs:
             echo "Expected HTTP status 302 but got $HTTP_STATUS"
             exit 1
           fi
-          EOF
