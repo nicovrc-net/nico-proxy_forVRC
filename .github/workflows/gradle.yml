@@ -58,8 +58,8 @@ jobs:
         run: chmod +x ./gradlew
       - name: Build with Gradle Wrapper
         run: ./gradlew shadowJar
+  autotest:
 
-  test:
     runs-on: ubuntu-latest
     permissions:
       contents: write
