@@ -142,7 +142,6 @@ jobs:
 
       - name: Check if the application is running and returns 301
         run: |
-        #  HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9
           HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:25252/?vi=https://www.youtube.com/watch?v=dQw4w9WgXcQ
           if [ "$HTTP_STATUS" -ne 302 ]; then
             echo "Expected HTTP status 302 but got $HTTP_STATUS"
