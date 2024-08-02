@@ -49,6 +49,7 @@ public class ConversionAPI {
 
     private final Pattern matcher_abemaURL = Pattern.compile("https://abema\\.tv/now-on-air/(.+)");
     private final Pattern matcher_TVerLiveURL = Pattern.compile("https://tver\\.jp/live/(.+)");
+    private final Pattern matcher_TVerOlympicLive = Pattern.compile("par-jba-live-f\\.ovpobs\\.tv");
     private final Pattern matcher_TwicastArchiveURL = Pattern.compile("https://(.+)/tc\\.vod\\.v2");
 
     private final Pattern matcher_OPENRECLiveURL = Pattern.compile("https://(.+)\\.cloudfront\\.net");
@@ -410,10 +411,18 @@ public class ConversionAPI {
                 } else if (ServiceName.equals("TVer (オリンピック)")){
                     video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
 
-                    ResultVideoData finalVideo1 = video;
-                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL().replaceAll("par-jba-live-f\\.ovpobs\\.tv", "tv.nicovrc.net"), null))).start();
+                    if (matcher_TVerOlympicLive.matcher(video.getVideoURL()).find()){
+                        ResultVideoData finalVideo1 = video;
+                        new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL().replaceAll("par-jba-live-f\\.ovpobs\\.tv", "tv.nicovrc.net"), null))).start();
 
-                    return video.getVideoURL().replaceAll("par-jba-live-f\\.ovpobs\\.tv", "tv.nicovrc.net");
+                        return video.getVideoURL().replaceAll("par-jba-live-f\\.ovpobs\\.tv", "tv.nicovrc.net");
+                    } else {
+                        ResultVideoData finalVideo1 = video;
+                        new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
+
+                        return video.getVideoURL();
+                    }
+
 
                 } else {
 
