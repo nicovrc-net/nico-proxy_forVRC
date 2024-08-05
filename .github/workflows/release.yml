@@ -24,6 +24,6 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - TVerのオリンピック特集に対応
+            - ニコ動対応
           draft: false
           prerelease: false
