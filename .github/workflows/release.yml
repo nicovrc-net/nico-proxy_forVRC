@@ -24,6 +24,6 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - ニコ動対応
+            - ニコ動 新バージョン対応
           draft: false
           prerelease: false
