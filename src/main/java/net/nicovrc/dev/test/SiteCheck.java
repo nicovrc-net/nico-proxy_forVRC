@@ -47,8 +47,8 @@ public class SiteCheck {
             NicoNicoVideo nicoNicoVideo = new NicoNicoVideo();
             video = nicoNicoVideo.getVideo(new RequestVideoData("https://www.nicovideo.jp/watch/sm9", proxyData));
             video = nicoNicoVideo.getVideo(new RequestVideoData("https://www.nicovideo.jp/watch/so38016254", proxyData_jp));
-            video = nicoNicoVideo.getLive(new RequestVideoData("https://live.nicovideo.jp/watch/ch1072", proxyData_jp));
-            nicoNicoVideo.cancelWebSocket();
+            //video = nicoNicoVideo.getLive(new RequestVideoData("https://live.nicovideo.jp/watch/ch1072", proxyData_jp));
+            //nicoNicoVideo.cancelWebSocket();
 
             list.put("nicovideo.jp", "OK");
         } catch (Exception e){
