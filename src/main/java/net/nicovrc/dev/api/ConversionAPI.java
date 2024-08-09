@@ -684,6 +684,16 @@ public class ConversionAPI {
                 return finalVideo.getAudioURL();
             }
 
+            // SpankBang
+            if (ServiceName.equals("SpankBang")){
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+
+                final ResultVideoData finalVideo = video;
+                new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo.getVideoURL(), null))).start();
+
+                return finalVideo.getVideoURL();
+            }
+
             // Youtube
             if (ServiceName.equals("Youtube")){
                 new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, "https://yt.8uro.net/r?v="+RequestURL, null))).start();
