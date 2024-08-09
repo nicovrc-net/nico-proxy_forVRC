@@ -84,6 +84,7 @@ public class ConversionAPI {
     private final Pattern matcher_sonicbowlURL = Pattern.compile("player\\.sonicbowl\\.cloud");
     private final Pattern matcher_mixcloudURL = Pattern.compile("mixcloud\\.com");
     private final Pattern matcher_bandcampURL = Pattern.compile("bandcamp\\.com");
+    private final Pattern matcher_SpankBangURL = Pattern.compile("spankbang\\.com");
     private final Pattern matcher_PeerTube = Pattern.compile("window\\.PeerTubeServerConfig");
 
     public ConversionAPI(ProxyAPI proxyAPI){
@@ -141,6 +142,7 @@ public class ConversionAPI {
         ServiceURLList.add("player.sonicbowl.cloud");
         ServiceURLList.add("mixcloud.com");
         ServiceURLList.add("bandcamp.com");
+        ServiceURLList.add("spankbang.com");
     }
 
     /**
@@ -785,6 +787,7 @@ public class ConversionAPI {
         Matcher matcher_sonicbowlURL = this.matcher_sonicbowlURL.matcher(URL);
         Matcher matcher_mixcloudURL = this.matcher_mixcloudURL.matcher(URL);
         Matcher matcher_bandcampURL = this.matcher_bandcampURL.matcher(URL);
+        Matcher matcher_SpankBangURL = this.matcher_SpankBangURL.matcher(URL);
 
         if (matcher_NicoVideoRekariURL.find()){
             return new NicoNicoVideoRekari();
@@ -890,6 +893,10 @@ public class ConversionAPI {
 
         if (matcher_bandcampURL.find()){
             return new Bandcamp();
+        }
+
+        if (matcher_SpankBangURL.find()){
+            return new SpankBang();
         }
 
         try {
