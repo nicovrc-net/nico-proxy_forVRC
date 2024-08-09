@@ -688,7 +688,7 @@ public class ConversionAPI {
 
             // SpankBang
             if (ServiceName.equals("SpankBang")){
-                video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                video = Service.getVideo(new RequestVideoData(TempRequestURL, proxyData_jp));
 
                 final ResultVideoData finalVideo = video;
                 new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo.getVideoURL(), null))).start();
