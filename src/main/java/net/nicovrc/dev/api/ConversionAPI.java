@@ -409,6 +409,11 @@ public class ConversionAPI {
 
                     ResultVideoData finalVideo1 = video;
                     new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
+                } else if (ServiceName.equals("TVer")) {
+                    video = Service.getVideo(new RequestVideoData(TempRequestURL, proxyData_jp));
+
+                    ResultVideoData finalVideo1 = video;
+                    new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, finalVideo1.getVideoURL(), null))).start();
 
                 } else if (ServiceName.equals("TVer (オリンピック)")){
                     video = Service.getLive(new RequestVideoData(TempRequestURL, proxyData_jp));
