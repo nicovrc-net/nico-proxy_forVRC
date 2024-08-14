@@ -11,10 +11,7 @@ import okhttp3.Response;
 
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetSocketAddress;
-import java.net.Socket;
+import java.net.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
@@ -61,15 +58,15 @@ public class ServerExecute {
         // RequestURL(処理しようとしているURL)が空だったらさっさと301リダイレクトしてしまう
         if (RequestURL.isEmpty()){
             if (socket == null){
-                SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=Not Found"+"\nDate: " + new Date() + "\n\n");
+                SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+ URLEncoder.encode("Not Found", StandardCharsets.UTF_8)+"\nDate: " + new Date() + "\n\n");
             } else {
                 UDPPacket packet = new UDPPacket();
-                packet.setResultURL("https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=Not Found");
+                packet.setResultURL("https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode("Not Found", StandardCharsets.UTF_8));
                 packet.setGetTitle(isTitleGet);
                 SendResult(socket, address, packet);
             }
 
-            SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg=Not Found", httpRequest, false, false);
+            SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode("Not Found", StandardCharsets.UTF_8), httpRequest, false, false);
             System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> Not Found");
 
             return;
@@ -240,16 +237,16 @@ public class ServerExecute {
 
             } catch (Exception e){
                 if (socket == null){
-                    SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage()+"\nDate: " + new Date() + "\n\n");
+                    SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8)+"\nDate: " + new Date() + "\n\n");
                 } else {
                     UDPPacket packet = new UDPPacket();
-                    packet.setResultURL("https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage());
+                    packet.setResultURL("https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
                     packet.setGetTitle(isTitleGet);
                     SendResult(socket, address, packet);
                 }
 
                 CacheAPI.removeCache(cacheTempURL);
-                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage(), httpRequest, false, false);
+                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8), httpRequest, false, false);
                 System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + e.getMessage());
             }
         } else {
@@ -364,17 +361,17 @@ public class ServerExecute {
                 }
             } catch (Exception e){
                 if (socket == null){
-                    SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage()+"\nDate: " + new Date() + "\n\n");
+                    SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8)+"\nDate: " + new Date() + "\n\n");
                 } else {
                     UDPPacket packet = new UDPPacket();
-                    packet.setResultURL("https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage());
+                    packet.setResultURL("https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
                     packet.setGetTitle(isTitleGet);
                     SendResult(socket, address, packet);
                 }
 
                 CacheAPI.removeCache(cacheTempURL);
-                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage(), httpRequest, false, false);
-                System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+e.getMessage());
+                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8), httpRequest, false, false);
+                System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
             }
         }
 
