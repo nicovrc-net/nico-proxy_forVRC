@@ -360,8 +360,9 @@ public class ServerExecute {
                     }
                 }
             } catch (Exception e){
+
                 if (socket == null){
-                    SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8)+"\nDate: " + new Date() + "\n\n");
+                    SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+(e.getMessage().isEmpty() ? "" : URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8))+"\nDate: " + new Date() + "\n\n");
                 } else {
                     UDPPacket packet = new UDPPacket();
                     packet.setResultURL("https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
@@ -370,8 +371,8 @@ public class ServerExecute {
                 }
 
                 CacheAPI.removeCache(cacheTempURL);
-                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8), httpRequest, false, false);
-                System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
+                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+(e.getMessage().isEmpty() ? "" : URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8)), httpRequest, false, false);
+                System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+(e.getMessage().isEmpty() ? "" : URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8)));
             }
         }
 
