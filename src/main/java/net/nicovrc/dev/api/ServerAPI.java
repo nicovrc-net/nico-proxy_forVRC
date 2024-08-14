@@ -16,6 +16,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -178,6 +179,8 @@ public class ServerAPI {
 
         while (!tempList.isEmpty()){
             //System.out.println(tempList.size());
+            Collections.shuffle(tempList);
+
             ServerData data = tempList.get(0);
             if (data == null){
                 tempList.remove(0);
