@@ -220,9 +220,15 @@ public class ConversionAPI {
                     String temp = response.body().string();
                     //System.out.println(temp);
                     isUseJPProxy = matcher_errorNico.matcher(temp).find();
+                    if (!matcher_errorNico.matcher(temp).find()) {
+                        isUseJPProxy = matcher_TVerURL.matcher(TempRequestURL).find();
+                    }
                 }
+
                 response.close();
             }
+
+
             //System.out.println(isUseJPProxy);
             //System.out.println(proxyData_jp.getProxyIP());
 
