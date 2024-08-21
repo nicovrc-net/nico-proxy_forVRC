@@ -60,7 +60,6 @@ public class ConversionAPI {
     private final Pattern matcher_Access = Pattern.compile("\\?access=(.+) HTTP");
 
     private final Pattern matcher_NicoNicoVideoURL = Pattern.compile("(nico\\.ms|nicovideo\\.jp)");
-    private final Pattern matcher_NicoNicoVideoURL2 = Pattern.compile("nicovideo\\.jp/(rekari|watch_tmp)");
     private final Pattern matcher_BiliBiliComURL = Pattern.compile("bilibili\\.com");
     private final Pattern matcher_BiliBiliTvURL = Pattern.compile("bilibili\\.tv");
     private final Pattern matcher_YoutubeURL = Pattern.compile("(youtu\\.be|youtube\\.com)");
@@ -777,7 +776,6 @@ public class ConversionAPI {
     private ShareService getService(String URL){
 
         Matcher matcher_NicoVideoURL = matcher_NicoNicoVideoURL.matcher(URL);
-        Matcher matcher_NicoVideoRekariURL = matcher_NicoNicoVideoURL2.matcher(URL);
         Matcher matcher_BilibiliComURL = matcher_BiliBiliComURL.matcher(URL);
         Matcher matcher_BilibiliTvURL = matcher_BiliBiliTvURL.matcher(URL);
         Matcher matcher_YoutubeURL = this.matcher_YoutubeURL.matcher(URL);
@@ -802,10 +800,6 @@ public class ConversionAPI {
         Matcher matcher_mixcloudURL = this.matcher_mixcloudURL.matcher(URL);
         Matcher matcher_bandcampURL = this.matcher_bandcampURL.matcher(URL);
         Matcher matcher_SpankBangURL = this.matcher_SpankBangURL.matcher(URL);
-
-        if (matcher_NicoVideoRekariURL.find()){
-            return new NicoNicoVideoRekari();
-        }
 
         if (matcher_NicoVideoURL.find()){
             return new NicoNicoVideo();

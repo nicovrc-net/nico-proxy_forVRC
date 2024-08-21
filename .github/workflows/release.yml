@@ -24,7 +24,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - SoundCloud、Vimeoが再生できない問題を修正
-            - 内部的な挙動を修正
+            - ビルドエラーになるのを修正
+            - UA最新化
           draft: false
           prerelease: false
