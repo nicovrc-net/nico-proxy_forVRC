@@ -223,6 +223,9 @@ public class ConversionAPI {
                     if (!matcher_errorNico.matcher(temp).find()) {
                         isUseJPProxy = matcher_TVerURL.matcher(TempRequestURL).find();
                     }
+                    if (!matcher_TVerURL.matcher(temp).find()) {
+                        isUseJPProxy = matcher_AbemaURL.matcher(TempRequestURL).find();
+                    }
                 }
 
                 response.close();
