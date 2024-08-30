@@ -24,6 +24,6 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - SoundCloud、Vimeoで再生できないのを修正
+            - 一から作り直し
           draft: false
-          prerelease: false
+          prerelease: true
