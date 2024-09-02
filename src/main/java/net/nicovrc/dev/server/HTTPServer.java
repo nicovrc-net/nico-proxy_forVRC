@@ -307,6 +307,7 @@ public class HTTPServer extends Thread {
             }
             data = Arrays.copyOf(data, readSize);
 
+            System.out.println(new String(data, StandardCharsets.UTF_8));
             return new String(data, StandardCharsets.UTF_8);
         } catch (Exception e){
             return null;
@@ -338,7 +339,7 @@ public class HTTPServer extends Thread {
             out.write(Result.getBytes(StandardCharsets.UTF_8));
             out.flush();
         } catch (Exception e){
-            // e.printStackTrace();
+            e.printStackTrace();
         }
     }
 
