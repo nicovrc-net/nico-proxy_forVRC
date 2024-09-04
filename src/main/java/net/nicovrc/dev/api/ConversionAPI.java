@@ -4,6 +4,7 @@ import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
 import net.nicovrc.dev.data.*;
 import okhttp3.*;
 import redis.clients.jedis.Jedis;
@@ -299,7 +300,6 @@ public class ConversionAPI {
                     return video.getVideoURL();
                 }
 
-
                 NicoVideoInputData nicoVideoInputData = new NicoVideoInputData();
                 nicoVideoInputData.setVideoURL(video.getVideoURL());
                 nicoVideoInputData.setAudioURL(video.getAudioURL());
@@ -307,12 +307,100 @@ public class ConversionAPI {
                 nicoVideoInputData.setVRC(!isNotVRC);
                 //System.out.println(!isNotVRC);
 
+                nicoVideoInputData.setProxy(null);
                 if (proxyData != null && !isUseJPProxy){
                     nicoVideoInputData.setProxy(proxyData.getProxyIP() + ":" + proxyData.getPort());
                 }
                 if (proxyData_jp != null && isUseJPProxy){
                     nicoVideoInputData.setProxy(proxyData_jp.getProxyIP() + ":" + proxyData_jp.getPort());
                 }
+
+                // HLSがちゃんと再生できるかチェック
+                client = nicoVideoInputData.getProxy() != null ? builder.proxy(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(nicoVideoInputData.getProxy().split(":")[0], Integer.parseInt(nicoVideoInputData.getProxy().split(":")[1])))).build() : new OkHttpClient();
+
+                JsonElement json = new Gson().fromJson(video.getTokenJson(), JsonElement.class);
+
+                final Pattern matcher_keyUri = Pattern.compile("#EXT-X-KEY:METHOD=AES-128,URI=\"(.+)\",IV=(.+)");
+
+                boolean isOK = false;
+                while (!isOK){
+                    Request request0 = new Request.Builder()
+                            .url(video.getVideoURL())
+                            .addHeader("Cookie", "nicosid="+json.getAsJsonObject().get("nicosid").getAsString()+"; domand_bid=" + json.getAsJsonObject().get("domand_bid").getAsString())
+                            .build();
+                    Response response0 = client.newCall(request0).execute();
+
+                    String keyUri = null;
+                    if (response0.body() != null){
+                        Matcher matcher = matcher_keyUri.matcher(response0.body().string());
+                        if (matcher.find()){
+                            keyUri = matcher.group(1);
+                        }
+                    }
+                    response0.close();
+
+                    Request request1 = new Request.Builder()
+                            .url(keyUri)
+                            .addHeader("Cookie", "nicosid="+json.getAsJsonObject().get("nicosid").getAsString()+"; domand_bid=" + json.getAsJsonObject().get("domand_bid").getAsString())
+                            .build();
+                    Response response1 = client.newCall(request1).execute();
+                    if (response1.code() < 200 || response1.code() > 299) {
+                        // 再取得
+                        if (matcher_NicoVideo.matcher(TempRequestURL).find()) {
+                            // 通常動画
+                            video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                        } else if (matcher_NicoVideo2.matcher(TempRequestURL).find()) {
+                            // 公式動画 or 配信
+                            video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                        }
+
+                        nicoVideoInputData.setVideoURL(video.getVideoURL());
+                        nicoVideoInputData.setAudioURL(video.getAudioURL());
+                        nicoVideoInputData.setCookie(video.getTokenJson());
+                    } else {
+                        isOK = true;
+                    }
+                    response1.close();
+
+                    Request request0_2 = new Request.Builder()
+                            .url(video.getAudioURL())
+                            .addHeader("Cookie", "nicosid="+json.getAsJsonObject().get("nicosid").getAsString()+"; domand_bid=" + json.getAsJsonObject().get("domand_bid").getAsString())
+                            .build();
+                    Response response0_2 = client.newCall(request0_2).execute();
+
+                    keyUri = null;
+                    if (response0_2.body() != null){
+                        Matcher matcher = matcher_keyUri.matcher(response0_2.body().string());
+                        if (matcher.find()){
+                            keyUri = matcher.group(1);
+                        }
+                    }
+                    response0_2.close();
+
+                    Request request1_2 = new Request.Builder()
+                            .url(keyUri)
+                            .addHeader("Cookie", "nicosid="+json.getAsJsonObject().get("nicosid").getAsString()+"; domand_bid=" + json.getAsJsonObject().get("domand_bid").getAsString())
+                            .build();
+                    Response response1_2 = client.newCall(request1_2).execute();
+                    if (response1_2.code() < 200 || response1_2.code() > 299) {
+                        // 再取得
+                        if (matcher_NicoVideo.matcher(TempRequestURL).find()) {
+                            // 通常動画
+                            video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                        } else if (matcher_NicoVideo2.matcher(TempRequestURL).find()) {
+                            // 公式動画 or 配信
+                            video = Service.getVideo(new RequestVideoData(TempRequestURL, isUseJPProxy ? proxyData_jp : proxyData));
+                        }
+
+                        nicoVideoInputData.setVideoURL(video.getVideoURL());
+                        nicoVideoInputData.setAudioURL(video.getAudioURL());
+                        nicoVideoInputData.setCookie(video.getTokenJson());
+                    } else {
+                        isOK = true;
+                    }
+                    response1_2.close();
+                }
+
 
                 String jsonText = new Gson().toJson(nicoVideoInputData);
                 String SystemIP = "";
