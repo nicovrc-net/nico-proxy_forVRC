@@ -800,7 +800,7 @@ public class ConversionAPI {
             // Youtube
             if (ServiceName.equals("Youtube")){
                 new Thread(() -> LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), request, SocketIP, RequestURL, "https://yt.8uro.net/r?v="+RequestURL, null))).start();
-                return "https://yt.8uro.net/r?v="+RequestURL;
+                return "https://yt.8uro.net/r?v="+RequestURL + "&o=nicovrc";
             }
 
             if (ServiceName.equals("画像") || ServiceName.equals("動画")){
