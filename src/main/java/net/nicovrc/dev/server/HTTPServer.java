@@ -224,49 +224,45 @@ public class HTTPServer extends Thread {
                                 }
 
                                 // ログ強制書き出し
-                                try {
-                                    String LogWritePass = null;
-                                    MessageDigest md = MessageDigest.getInstance("SHA-256");
-                                    if (RequestURL.startsWith("force_queue")){
-                                        try {
+                                String LogWritePass = null;
+                                MessageDigest md = MessageDigest.getInstance("SHA-256");
+                                if (RequestURL.startsWith("force_queue")){
+                                    try {
 
-                                            YamlInput yamlInput = Yaml.createYamlInput(new File("./config.yml"));
-                                            YamlMapping yamlMapping = yamlInput.readYamlMapping();
-                                            byte[] digest = md.digest(yamlMapping.string("WriteLogPass").getBytes(StandardCharsets.UTF_8));
-                                            yamlMapping = null;
-                                            yamlInput = null;
-                                            LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
-                                            System.gc();
-                                        } catch (Exception e){
-                                            LogWritePass = null;
-                                        }
+                                        YamlInput yamlInput = Yaml.createYamlInput(new File("./config.yml"));
+                                        YamlMapping yamlMapping = yamlInput.readYamlMapping();
+                                        byte[] digest = md.digest(yamlMapping.string("WriteLogPass").getBytes(StandardCharsets.UTF_8));
+                                        yamlMapping = null;
+                                        yamlInput = null;
+                                        LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
+                                        System.gc();
+                                    } catch (Exception e){
+                                        LogWritePass = null;
                                     }
+                                }
 
-                                    if (RequestURL.startsWith("force_queue") && LogWritePass != null){
-                                        Matcher matcher = matcher_ForceQueue.matcher(RequestURL);
-                                        if (matcher.find()){
-                                            String inputP = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
-                                            //System.out.println(inputP);
-                                            byte[] digest = md.digest(inputP.getBytes(StandardCharsets.UTF_8));
+                                if (RequestURL.startsWith("force_queue") && LogWritePass != null){
+                                    Matcher matcher = matcher_ForceQueue.matcher(RequestURL);
+                                    if (matcher.find()){
+                                        String inputP = URLDecoder.decode(matcher.group(1), StandardCharsets.UTF_8);
+                                        //System.out.println(inputP);
+                                        byte[] digest = md.digest(inputP.getBytes(StandardCharsets.UTF_8));
 
-                                            //System.out.println(LogWritePass + " : " + HexFormat.of().withLowerCase().formatHex(digest));
-                                            if (HexFormat.of().withLowerCase().formatHex(digest).equals(LogWritePass)){
-                                                //System.out.println("ok");
-                                                ConversionAPI.ForceLogDataWrite();
-                                                WebhookSendAll();
-                                            }
-                                            digest = md.digest((RequestURL+new Date().getTime()+UUID.randomUUID()).getBytes(StandardCharsets.UTF_8));
-                                            LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
+                                        //System.out.println(LogWritePass + " : " + HexFormat.of().withLowerCase().formatHex(digest));
+                                        if (HexFormat.of().withLowerCase().formatHex(digest).equals(LogWritePass)){
+                                            //System.out.println("ok");
+                                            ConversionAPI.ForceLogDataWrite();
+                                            WebhookSendAll();
                                         }
-                                        String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n[]";
-                                        SendResult(out, Result);
-                                        out.close();
-                                        in.close();
-                                        sock.close();
-                                        return;
+                                        digest = md.digest((RequestURL+new Date().getTime()+UUID.randomUUID()).getBytes(StandardCharsets.UTF_8));
+                                        LogWritePass = HexFormat.of().withLowerCase().formatHex(digest);
                                     }
-                                } catch (Exception e){
-                                    // e.printStackTrace();
+                                    String Result = "HTTP/" + httpVersion + " 200 OK\nContent-Type: application/json; charset=utf-8\n\n[]";
+                                    SendResult(out, Result);
+                                    out.close();
+                                    in.close();
+                                    sock.close();
+                                    return;
                                 }
                             }
 
