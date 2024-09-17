@@ -46,6 +46,7 @@ public class ServerExecute {
             isTitleGet = packet.isGetTitle();
         } catch (Exception e){
             //e.printStackTrace();
+            throw e;
         }
 
         // 加工用
@@ -121,65 +122,81 @@ public class ServerExecute {
         //System.out.println(cacheTempURL);
 
         if (!isTitleGet){
-            // キャッシュ対象の場合はキャッシュチェック
-            String cacheUrl = CacheAPI.getCache(cacheTempURL);
-            //System.out.println("cache : " + cacheUrl + " / " + cacheTempURL);
-            //System.out.println("a");
-            if (cacheUrl != null && cacheUrl.equals("pre")){
-                //System.out.println("a-2");
-                // キャッシュにはあるが処理中の場合 一旦待機してから内容を返す
-                while (cacheUrl == null || cacheUrl.equals("pre")){
-                    cacheUrl = CacheAPI.getCache(TempURL.split("\\?")[0]);
-                    try {
-                        Thread.sleep(100L);
-                    } catch (Exception e){
-                        //e.printStackTrace();
+            String cacheUrl = "";
+            try {
+                // キャッシュ対象の場合はキャッシュチェック
+                cacheUrl = CacheAPI.getCache(cacheTempURL);
+                //System.out.println("cache : " + cacheUrl + " / " + cacheTempURL);
+                //System.out.println("a");
+                if (cacheUrl != null && cacheUrl.equals("pre")){
+                    //System.out.println("a-2");
+                    // キャッシュにはあるが処理中の場合 一旦待機してから内容を返す
+                    while (cacheUrl == null || cacheUrl.equals("pre")){
+                        cacheUrl = CacheAPI.getCache(TempURL.split("\\?")[0]);
+                        try {
+                            Thread.sleep(100L);
+                        } catch (Exception e){
+                            //e.printStackTrace();
+                        }
                     }
+
+                    System.out.println("["+sdf.format(new Date())+"] リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
+                    SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, cacheUrl, httpRequest, true, false);
+
+                    if (socket == null){
+                        SendResult(out,  "HTTP/" + httpVersion + " 302 Found\nLocation: " + cacheUrl + "\nDate: " + new Date() + "\n\n");
+                        out.close();
+                        in.close();
+                        sock.close();
+                    } else {
+                        UDPPacket packet = new UDPPacket();
+                        packet.setResultURL(cacheUrl);
+                        packet.setGetTitle(false);
+                        SendResult(socket, address, packet);
+                    }
+
+                    final String finalCacheUrl = cacheUrl;
+                    new Thread(()-> ConversionAPI.LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), httpRequest, "Cache", RequestURL, finalCacheUrl, null))).start();
+                    return;
+                } else if (cacheUrl != null && (cacheUrl.startsWith("http://") || cacheUrl.startsWith("https://"))){
+                    //System.out.println("a-3");
+                    // 処理中ではなくURLが入っている場合はその結果を返す
+                    System.out.println("["+sdf.format(new Date())+"] リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
+                    SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, cacheUrl, httpRequest, true, false);
+
+                    if (socket == null){
+                        SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: " + cacheUrl + "\nDate: " + new Date() + "\n\n");
+                        out.close();
+                        in.close();
+                        sock.close();
+                    } else {
+                        UDPPacket packet = new UDPPacket();
+                        packet.setResultURL(cacheUrl);
+                        packet.setGetTitle(false);
+                        SendResult(socket, address, packet);
+                    }
+
+                    final String finalCacheUrl = cacheUrl;
+                    new Thread(() -> ConversionAPI.LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), httpRequest, "Cache", RequestURL, finalCacheUrl, null))).start();
+                    return;
                 }
-
-                System.out.println("["+sdf.format(new Date())+"] リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
-                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, cacheUrl, httpRequest, true, false);
-
+                //System.out.println("b");
+                // キャッシュない場合は処理中を表す「pre」をキャッシュリストに入れる
+                CacheAPI.setCache(cacheTempURL, "pre", new Date().getTime() + 5000L);
+            } catch (Exception e){
                 if (socket == null){
-                    SendResult(out,  "HTTP/" + httpVersion + " 302 Found\nLocation: " + cacheUrl + "\nDate: " + new Date() + "\n\n");
-                    out.close();
-                    in.close();
-                    sock.close();
+                    SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8)+"\nDate: " + new Date() + "\n\n");
                 } else {
                     UDPPacket packet = new UDPPacket();
-                    packet.setResultURL(cacheUrl);
-                    packet.setGetTitle(false);
+                    packet.setResultURL("https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
+                    packet.setGetTitle(isTitleGet);
                     SendResult(socket, address, packet);
                 }
 
-                final String finalCacheUrl = cacheUrl;
-                new Thread(()-> ConversionAPI.LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), httpRequest, "Cache", RequestURL, finalCacheUrl, null))).start();
-                return;
-            } else if (cacheUrl != null && (cacheUrl.startsWith("http://") || cacheUrl.startsWith("https://"))){
-                //System.out.println("a-3");
-                // 処理中ではなくURLが入っている場合はその結果を返す
-                System.out.println("["+sdf.format(new Date())+"] リクエスト (キャッシュ) : " + RequestURL + " ---> " + cacheUrl);
-                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, cacheUrl, httpRequest, true, false);
-
-                if (socket == null){
-                    SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: " + cacheUrl + "\nDate: " + new Date() + "\n\n");
-                    out.close();
-                    in.close();
-                    sock.close();
-                } else {
-                    UDPPacket packet = new UDPPacket();
-                    packet.setResultURL(cacheUrl);
-                    packet.setGetTitle(false);
-                    SendResult(socket, address, packet);
-                }
-
-                final String finalCacheUrl = cacheUrl;
-                new Thread(() -> ConversionAPI.LogWrite(new LogData(UUID.randomUUID() + "-" + new Date().getTime(), new Date(), httpRequest, "Cache", RequestURL, finalCacheUrl, null))).start();
-                return;
+                CacheAPI.removeCache(cacheTempURL);
+                SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8), httpRequest, false, false);
+                System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> " + e.getMessage());
             }
-            //System.out.println("b");
-            // キャッシュない場合は処理中を表す「pre」をキャッシュリストに入れる
-            CacheAPI.setCache(cacheTempURL, "pre", new Date().getTime() + 5000L);
         }
 
         HashMap<String, ServerData> list = ServerAPI.getList();
