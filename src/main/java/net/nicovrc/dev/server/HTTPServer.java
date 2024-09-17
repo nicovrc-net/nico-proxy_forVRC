@@ -303,7 +303,7 @@ public class HTTPServer extends Thread {
             }
             data = Arrays.copyOf(data, readSize);
 
-            System.out.println(new String(data, StandardCharsets.UTF_8));
+            //System.out.println(new String(data, StandardCharsets.UTF_8));
             return new String(data, StandardCharsets.UTF_8);
         } catch (Exception e){
             return null;
