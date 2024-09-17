@@ -46,7 +46,6 @@ public class ServerExecute {
             isTitleGet = packet.isGetTitle();
         } catch (Exception e){
             //e.printStackTrace();
-            throw e;
         }
 
         // 加工用
