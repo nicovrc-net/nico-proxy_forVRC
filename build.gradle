@@ -19,7 +19,7 @@ dependencies {
     implementation "com.squareup.okhttp3:okhttp:4.12.0"
     implementation 'com.amihaiemil.web:eo-yaml:8.0.6'
 
-    implementation 'redis.clients:jedis:5.2.0-beta5'
+    implementation 'redis.clients:jedis:5.2.0'
     implementation 'com.google.code.gson:gson:2.11.0'
 
     implementation 'com.github.7mi-site:nico-proxy:1.22.4'
