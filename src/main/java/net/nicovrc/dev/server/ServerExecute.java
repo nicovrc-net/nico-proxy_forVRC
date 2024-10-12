@@ -51,12 +51,12 @@ public class ServerExecute {
         // 加工用
         //System.out.println(RequestURL);
         //long start1 = new Date().getTime();
-        String TempURL = JinnnaiAPI.replace(RequestURL);
+        String TempURL = JinnnaiAPI.replace(RequestURL != null ? RequestURL : "");
         //System.out.println(TempURL);
 
 
         // RequestURL(処理しようとしているURL)が空だったらさっさと301リダイレクトしてしまう
-        if (RequestURL.isEmpty()){
+        if (RequestURL == null || RequestURL.isEmpty()) {
             if (socket == null){
                 SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+ URLEncoder.encode("Not Found", StandardCharsets.UTF_8)+"\nDate: " + new Date() + "\n\n");
             } else {
