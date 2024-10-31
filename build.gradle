@@ -14,7 +14,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.3'
 
     implementation "com.squareup.okhttp3:okhttp:4.12.0"
     implementation 'com.amihaiemil.web:eo-yaml:8.0.6'
