@@ -1015,9 +1015,9 @@ public class ConversionAPI {
             if (response.body() != null && response.body().contentType() != null && response.body().contentType().toString().startsWith("image")) {
                 response.close();
                 return new Image();
-            } else if (response.body() != null && response.body().contentType() != null && response.body().contentType().toString().startsWith("video")) {
-                response.close();
-                return new Video();
+            //} else if (response.body() != null && response.body().contentType() != null && response.body().contentType().toString().startsWith("video")) {
+                //response.close();
+                //return new Video();
             } else if (response.body() != null && response.code() >= 200 && response.code() <= 299) {
                 Matcher matcher_peerTube = this.matcher_PeerTube.matcher(response.body().string());
                 if (matcher_peerTube.find()){
