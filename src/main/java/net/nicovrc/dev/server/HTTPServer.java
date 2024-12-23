@@ -272,16 +272,12 @@ public class HTTPServer extends Thread {
                             } catch (Exception e){
                                 String Result = "HTTP/" + httpVersion + " 503 Service Unavailable\nContent-Type: text/plain; charset=utf-8\n\n503";
                                 SendResult(out, Result);
-                                out.close();
-                                in.close();
-                                sock.close();
 
                                 PrintWriter io = new PrintWriter("./error-"+new SimpleDateFormat("yyyy_MM_dd__HH_mm_ss").format(new Date())+".txt");
-
                                 e.printStackTrace(io);
-
                                 io.close();
-                                return;
+                                temp[0] = false;
+                                isStop = true;
                             }
 
                             in.close();
