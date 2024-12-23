@@ -48,13 +48,6 @@ public class ServerExecute {
             //e.printStackTrace();
         }
 
-        // 加工用
-        //System.out.println(RequestURL);
-        //long start1 = new Date().getTime();
-        String TempURL = JinnnaiAPI.replace(RequestURL != null ? RequestURL : "");
-        //System.out.println(TempURL);
-
-
         // RequestURL(処理しようとしているURL)が空だったらさっさと301リダイレクトしてしまう
         if (RequestURL == null || RequestURL.isEmpty()) {
             if (socket == null){
@@ -72,13 +65,40 @@ public class ServerExecute {
             return;
         }
 
-        // sm|nm|am|fz|ut|dm
-        if (TempURL.startsWith("sm") || TempURL.startsWith("nm") || TempURL.startsWith("so") || TempURL.startsWith("lv") || matcher_NicoID.matcher(TempURL).find()){
-            // 先頭がsm/nm/so/lv/数字のみの場合は先頭に「https://nico.ms/」を追加する
-            TempURL = "https://nico.ms/"+TempURL;
-        } else if (TempURL.startsWith("ch")){
-            // 公式チャンネルのIDの場合はlive.nicovideo.jpを追加
-            TempURL = "https://live.nicovideo.jp/watch/" + TempURL;
+        // 加工用
+        //System.out.println(RequestURL);
+        //long start1 = new Date().getTime();
+        String TempURL = "";
+        try {
+            TempURL = JinnnaiAPI.replace(RequestURL);
+        } catch (Exception e){
+            // e.printStackTrace();
+        }
+        //System.out.println(TempURL);
+
+        try {
+            // sm|nm|am|fz|ut|dm
+            if (TempURL.startsWith("sm") || TempURL.startsWith("nm") || TempURL.startsWith("so") || TempURL.startsWith("lv") || matcher_NicoID.matcher(TempURL).find()){
+                // 先頭がsm/nm/so/lv/数字のみの場合は先頭に「https://nico.ms/」を追加する
+                TempURL = "https://nico.ms/"+TempURL;
+            } else if (TempURL.startsWith("ch")){
+                // 公式チャンネルのIDの場合はlive.nicovideo.jpを追加
+                TempURL = "https://live.nicovideo.jp/watch/" + TempURL;
+            }
+        } catch (Exception e){
+            if (socket == null){
+                SendResult(out, "HTTP/" + httpVersion + " 302 Found\nLocation: https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+ URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8)+"\nDate: " + new Date() + "\n\n");
+            } else {
+                UDPPacket packet = new UDPPacket();
+                packet.setResultURL("https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8));
+                packet.setGetTitle(isTitleGet);
+                SendResult(socket, address, packet);
+            }
+
+            SendWebhook(isWebhook, WebhookURL, WebhookList, RequestURL, "https://i2v.nicovrc.net/?url=https://nicovrc.net/php/mojimg.php?msg="+URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8), httpRequest, false, false);
+            System.out.println("["+sdf.format(new Date())+"] リクエスト (エラー) : " + RequestURL + " ---> Not Found");
+
+            return;
         }
         //long end1 = new Date().getTime();
         //System.out.println("jinnai : " + (end1 - start1));

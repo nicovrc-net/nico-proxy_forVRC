@@ -12,6 +12,7 @@ import okhttp3.*;
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URLDecoder;
@@ -266,7 +267,22 @@ public class HTTPServer extends Thread {
                                 }
                             }
 
-                            ServerExecute.run(CacheAPI, ConversionAPI, ServerAPI, JinnnaiAPI, HttpClient, in, out, sock, null, null, httpRequest, httpVersion, RequestURL, isWebhook, WebhookURL, WebhookList);
+                            try {
+                                ServerExecute.run(CacheAPI, ConversionAPI, ServerAPI, JinnnaiAPI, HttpClient, in, out, sock, null, null, httpRequest, httpVersion, RequestURL, isWebhook, WebhookURL, WebhookList);
+                            } catch (Exception e){
+                                String Result = "HTTP/" + httpVersion + " 503 Service Unavailable\nContent-Type: text/plain; charset=utf-8\n\n503";
+                                SendResult(out, Result);
+                                out.close();
+                                in.close();
+                                sock.close();
+
+                                PrintWriter io = new PrintWriter("./error-"+new SimpleDateFormat("yyyy_MM_dd__HH_mm_ss").format(new Date())+".txt");
+
+                                e.printStackTrace(io);
+
+                                io.close();
+                                return;
+                            }
 
                             in.close();
                             out.close();
