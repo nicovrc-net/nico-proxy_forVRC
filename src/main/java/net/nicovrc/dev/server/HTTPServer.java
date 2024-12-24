@@ -48,6 +48,8 @@ public class HTTPServer extends Thread {
     private final Pattern matcher_ForceQueue = Pattern.compile("force_queue=(.+)");
     private final Pattern matcher_DiscordURL = Pattern.compile("https://discordapp\\.com");
 
+    private final Timer timer = new Timer();
+
     public HTTPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port, Boolean isStop){
         this.Port = Port;
 
@@ -81,7 +83,6 @@ public class HTTPServer extends Thread {
             return;
         }
 
-        Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -300,6 +301,10 @@ public class HTTPServer extends Thread {
                 }
             }
             svSock.close();
+
+            WebhookSendAll();
+            timer.cancel();
+
         } catch (Exception e){
             e.printStackTrace();
         }

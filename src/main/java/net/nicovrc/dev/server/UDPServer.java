@@ -42,6 +42,8 @@ public class UDPServer extends Thread {
 
     private final Pattern matcher_ForceQueue = Pattern.compile("force_queue=(.+)");
 
+    private final Timer timer = new Timer();
+
     public UDPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port, Boolean isStop){
         this.CacheAPI = cacheAPI;
         this.ProxyAPI = proxyAPI;
@@ -75,7 +77,6 @@ public class UDPServer extends Thread {
             return;
         }
 
-        Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -220,6 +221,10 @@ public class UDPServer extends Thread {
                 }
             }
             socket.close();
+
+            WebhookSendAll();
+            RequestIdList.clear();
+            timer.cancel();
         } catch (SocketException e) {
             e.printStackTrace();
         }
