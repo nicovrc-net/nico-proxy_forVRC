@@ -219,5 +219,17 @@ OfficialProxy:
             new UDPServer(cacheAPI, proxyAPI, serverAPI, jinnnaiAPI, HttpClient, port, isStop).start();
         }
 
+        long i = 0;
+        while (!isStop){
+            i++;
+            if (i >= Integer.MAX_VALUE){
+                i = 0;
+            }
+        }
+
+        ProxyCheckTimer.cancel();
+        ServerCheckTimer.cancel();
+        CacheCheckTimer.cancel();
+
     }
 }
