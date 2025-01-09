@@ -94,6 +94,11 @@ public class UDPServer extends Thread {
 
             boolean[] isTrue = {true};
             while (isTrue[0]){
+
+                if (isStop) {
+                    return;
+                }
+
                 try {
                     byte[] data = new byte[1000000];
                     DatagramPacket packet = new DatagramPacket(data, data.length);
