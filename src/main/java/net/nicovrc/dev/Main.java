@@ -225,6 +225,11 @@ OfficialProxy:
             if (i >= Integer.MAX_VALUE){
                 i = 0;
             }
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
 
         ProxyCheckTimer.cancel();
