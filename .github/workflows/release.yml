@@ -27,5 +27,6 @@ jobs:
             - とある条件でプログラムが異常停止する問題を修正？
             - CloudSoundで一部再生できない問題の修正
             - 動画リンク リダイレクトを廃止
+            - TikTokで見れない動画あるのを修正
           draft: false
           prerelease: false
