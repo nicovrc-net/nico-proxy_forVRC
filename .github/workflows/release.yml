@@ -2,14 +2,14 @@ on:
   push:
     # Sequence of patterns matched against refs/tags
     tags:
-      - '*' # Push events to matching v*, i.e. v1.0, v20.15.10
+      - '3.*' # Push events to matching v*, i.e. v1.0, v20.15.10
 
 name: Create Release
 
 jobs:
   build:
     name: Create Release
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
@@ -24,9 +24,6 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - とある条件でプログラムが異常停止する問題を修正？
-            - CloudSoundで一部再生できない問題の修正
-            - 動画リンク リダイレクトを廃止
-            - TikTokで見れない動画あるのを修正
+            -
           draft: false
-          prerelease: false
+          prerelease: true
