@@ -49,7 +49,6 @@ public class HTTPServer extends Thread {
     private final Pattern matcher_DiscordURL = Pattern.compile("https://discordapp\\.com");
 
     private final Timer timer = new Timer();
-    private final Timer timer2 = new Timer();
 
     public HTTPServer(CacheAPI cacheAPI, ProxyAPI proxyAPI, ServerAPI serverAPI, JinnnaiSystemURL_API jinnnaiAPI, OkHttpClient client, int Port, Boolean isStop){
         this.Port = Port;
