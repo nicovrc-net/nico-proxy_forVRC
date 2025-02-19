@@ -16,13 +16,10 @@ repositories {
 dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
 
-    implementation "com.squareup.okhttp3:okhttp:4.12.0"
     implementation 'com.amihaiemil.web:eo-yaml:8.0.6'
 
     implementation 'redis.clients:jedis:5.2.0'
     implementation 'com.google.code.gson:gson:2.12.1'
-
-    implementation 'com.github.7mi-site:nico-proxy:1.22.13'
 }
 
 tasks.test {
