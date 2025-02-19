@@ -41,7 +41,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jar
-          path: ./build/libs/Image2Resize-1.0-SNAPSHOT-all.jar
+          path: ./build/libs/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
   autotest:
     needs: build-21
     runs-on: ubuntu-24.04
@@ -61,7 +61,7 @@ jobs:
           name: jar
 
       - name: Run the Application 1
-        run: java -jar ./Image2Resize-1.0-SNAPSHOT-all.jar
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
         shell: bash
 
   release:
