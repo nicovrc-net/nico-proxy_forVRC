@@ -61,7 +61,7 @@ jobs:
           name: jar
 
       - name: Run the Application 1
-        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar &
         shell: bash
 
   release:
@@ -75,3 +75,26 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: v${{ github.ref }}
+          body: |
+              - 作り直し(ニコ動のみ対応)
+          draft: false
+          prerelease: true
+
+      - name: Upload JarFile
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
+          asset_name: NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
+          asset_content_type: application/java-archive
