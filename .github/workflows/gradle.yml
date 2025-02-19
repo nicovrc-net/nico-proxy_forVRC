@@ -63,7 +63,6 @@ jobs:
       - name: Run the Application 1
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar &
         shell: bash
-
   release:
     needs: autotest
     runs-on: ubuntu-24.04
