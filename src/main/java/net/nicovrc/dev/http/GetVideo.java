@@ -71,7 +71,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 byte[] body = send.body();
                 if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")){
                     String s = new String(body, StandardCharsets.UTF_8);
-                    s = s.replaceAll("https://", "/https/cookie:["+CookieText+"]/");
+                    s = s.replaceAll("https://", "/https/cookie:["+(CookieText == null || CookieText.isEmpty() ? "" : CookieText)+"]/");
                     body = s.getBytes(StandardCharsets.UTF_8);
                 }
                 Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
