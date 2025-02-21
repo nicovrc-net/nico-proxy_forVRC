@@ -232,7 +232,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     .build();
 
                             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                            String hls = send.body().replaceAll("https://delivery\\.domand\\.nicovideo\\.jp", "/delivery.domand.nicovideo.jp");
+                            String hls = send.body().replaceAll("https://delivery\\.domand\\.nicovideo\\.jp", "/https/delivery.domand.nicovideo.jp");
                             Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hls.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                             sb.setLength(0);
                             send = null;
