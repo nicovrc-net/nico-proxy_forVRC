@@ -9,8 +9,6 @@ version "3.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-
-    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
