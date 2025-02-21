@@ -1,7 +1,6 @@
 package net.nicovrc.dev;
 
-import net.nicovrc.dev.http.NicoVRCWebAPI;
-import net.nicovrc.dev.http.NicoVRCHTTP;
+import net.nicovrc.dev.http.*;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -72,6 +71,9 @@ RedisPass: ""
 
         // HTTP受付
         httpServiceList.add(new NicoVRCWebAPI());
+        httpServiceList.add(new GetURL());
+        httpServiceList.add(new GetURL_old1()); // v2互換用、様子見て削除
+        httpServiceList.add(new GetURL_old2()); // v2互換用、様子見て削除
 
         TCPServer tcpServer = new TCPServer(httpServiceList);
         tcpServer.start();
