@@ -34,7 +34,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             String URL = null;
             if (matcher.find()){
                 CookieText = matcher.group(1);
-                URL = matcher.group(2);
+                URL = "https://"+matcher.group(2);
             } else {
                 Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8","Video Not Found".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                 method = null;
