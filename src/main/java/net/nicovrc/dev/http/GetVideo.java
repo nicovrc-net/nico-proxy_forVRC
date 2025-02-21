@@ -11,6 +11,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -66,7 +67,14 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 }
 
                 HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-                Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get(), send.body(), method != null && method.equals("HEAD"));
+                String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
+                byte[] body = send.body();
+                if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")){
+                    String s = new String(body, StandardCharsets.UTF_8);
+                    s = s.replaceAll("https://", "/https/cookie:["+CookieText+"]/");
+                    body = s.getBytes(StandardCharsets.UTF_8);
+                }
+                Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
 
                 method = null;
                 httpVersion = null;
