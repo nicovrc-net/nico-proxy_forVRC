@@ -15,7 +15,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -60,6 +59,9 @@ public class NicoVideo implements ServiceAPI {
     private String URL = null;
 
     private final Pattern matcher_Json = Pattern.compile("<meta name=\"server-response\" content=\"\\{(.+)}\" />");
+
+    private final Pattern matcher_videoError1 = Pattern.compile("この動画は存在しないか、削除された可能性があります。");
+    private final Pattern matcher_videoError2 = Pattern.compile("この動画は(.+)の申立により、著作権侵害として削除されました。");
 
     @Override
     public String[] getCorrespondingURL() {
@@ -225,6 +227,20 @@ public class NicoVideo implements ServiceAPI {
                         request = null;
                         client.close();
                         client = null;
+
+                        if (send.statusCode() == 404){
+                            matcher = matcher_videoError1.matcher(send.body());
+                            if (matcher.find()){
+                                matcher = null;
+                                return "{\"ErrorMessage\": \"この動画は存在しないか、削除された可能性があります。\"}";
+                            }
+                            matcher = matcher_videoError2.matcher(send.body());
+                            if (matcher.find()){
+                                String str = matcher.group(1);
+                                matcher = null;
+                                return "{\"ErrorMessage\": \"この動画は"+str+"の申立により、著作権侵害として削除されました。\"}";
+                            }
+                        }
                         return "{\"ErrorMessage\": \"動画取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")\"}";
                     }
                     body = send.body();
