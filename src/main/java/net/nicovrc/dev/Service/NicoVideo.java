@@ -60,7 +60,7 @@ public class NicoVideo implements ServiceAPI {
 
     private final Pattern matcher_Json = Pattern.compile("<meta name=\"server-response\" content=\"\\{(.+)}\" />");
 
-    private final Pattern matcher_videoError1 = Pattern.compile("この動画は存在しないか、削除された可能性があります。");
+    private final Pattern matcher_videoError1 = Pattern.compile("(この動画は存在しないか、削除された可能性があります。|お探しのページは、すでに削除されたか存在しない可能性があります)");
     private final Pattern matcher_videoError2 = Pattern.compile("この動画は(.+)の申立により、著作権侵害として削除されました。");
 
     @Override
@@ -143,7 +143,7 @@ public class NicoVideo implements ServiceAPI {
                 client.close();
                 client = null;
 
-                System.out.println(send.body());
+                //System.out.println(send.body());
 
                 Matcher matcher = matcher_videoError1.matcher(send.body());
                 if (matcher.find()){
