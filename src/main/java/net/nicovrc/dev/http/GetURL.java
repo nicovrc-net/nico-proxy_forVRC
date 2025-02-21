@@ -209,12 +209,37 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         element = null;
                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
                         content = null;
-                        return;
                     }
                 } else if (ServiceName.equals("ニコニコ")) {
                     NicoNicoVideo result = gson.fromJson(json, NicoNicoVideo.class);
                     if (result != null){
+                        try (HttpClient client = HttpClient.newBuilder()
+                                .version(HttpClient.Version.HTTP_2)
+                                .followRedirects(HttpClient.Redirect.NORMAL)
+                                .connectTimeout(Duration.ofSeconds(5))
+                                .build()) {
 
+                            final StringBuilder sb = new StringBuilder();
+                            result.getVideoAccessCookie().forEach((name, data)->{
+                                sb.append(name).append("=").append(data).append(";");
+                            });
+
+                            HttpRequest request = HttpRequest.newBuilder()
+                                    .uri(new URI(result.getVideoURL()))
+                                    .headers("User-Agent", Function.UserAgent)
+                                    .headers("Cookie", sb.substring(0, sb.length() - 1))
+                                    .GET()
+                                    .build();
+
+                            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                            String hls = send.body().replaceAll("https://delivery\\.domand\\.nicovideo\\.jp", "/delivery.domand.nicovideo.jp");
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hls.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                            sb.setLength(0);
+                            send = null;
+                            request = null;
+                        } catch (Exception e){
+                            // e.printStackTrace();
+                        }
                     }
                 }
 
@@ -234,6 +259,21 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             }
         } catch (Exception e){
             e.printStackTrace();
+            try {
+                byte[] content = null;
+                File file = new File("./error-video/error_000.mp4");
+                if (file.exists()){
+                    FileInputStream stream = new FileInputStream(file);
+                    content = stream.readAllBytes();
+                    stream.close();
+                    stream = null;
+                }
+
+                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
+                content = null;
+            } catch (Exception ex){
+                // ex.printStackTrace();
+            }
         }
     }
 
