@@ -91,6 +91,7 @@ public class Function {
         if (AccessControlAllowOrigin != null){
             sb_header.append("Access-Control-Allow-Origin: ").append(AccessControlAllowOrigin).append("\n");
         }
+        sb_header.append("Content-Length: ").append(body.length).append("\n");
         sb_header.append("Content-Type: ").append(contentType).append("\n\n");
 
         //System.out.println(sb_header);

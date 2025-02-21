@@ -4,10 +4,13 @@ import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import net.nicovrc.dev.http.*;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.PrintWriter;
+import java.io.*;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,6 +91,48 @@ RedisPass: ""
             boolean mkdir = file.mkdir();
         }
 
+        // エラー動画
+        file = new File("./error-video");
+        if (!file.exists()){
+            if (file.mkdir()) {
+                URI uri;
+                HttpRequest request;
+                HttpClient client = HttpClient.newBuilder()
+                        .version(HttpClient.Version.HTTP_2)
+                        .followRedirects(HttpClient.Redirect.NORMAL)
+                        .connectTimeout(Duration.ofSeconds(5))
+                        .build();
+                try {
+                    uri = new URI("https://r2.7mi.site/vrc/nico/error_404.mp4");
+                    request = HttpRequest.newBuilder()
+                            .uri(uri)
+                            .headers("User-Agent", Function.UserAgent)
+                            .GET()
+                            .build();
+
+                    HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    if (send.statusCode() >= 400) {
+                        send = null;
+                        uri = null;
+                        request = null;
+                        client.close();
+                        client = null;
+                    } else {
+                        FileOutputStream stream = new FileOutputStream("./error-video/error_404.mp4");
+                        stream.write(send.body());
+                        stream.close();
+                        stream = null;
+                    }
+                } catch (Exception e) {
+
+                } finally {
+                    uri = null;
+                    request = null;
+                    client.close();
+                    client = null;
+                }
+            }
+        }
 
         // HTTP受付
         httpServiceList.add(new NicoVRCWebAPI());
