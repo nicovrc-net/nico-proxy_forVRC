@@ -145,7 +145,7 @@ RedisPass: ""
                         stream = null;
                     }
                 } catch (Exception e) {
-
+                    // e.printStackTrace();
                 } finally {
                     uri = null;
                     request = null;
