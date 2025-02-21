@@ -143,7 +143,7 @@ public class NicoVideo implements ServiceAPI {
                 client.close();
                 client = null;
 
-                System.out.println(send.body());
+                //System.out.println(send.body());
 
                 Matcher matcher = matcher_videoError1.matcher(send.body());
                 if (matcher.find()){
