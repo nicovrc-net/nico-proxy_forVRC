@@ -67,7 +67,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     stream = null;
                 }
                 //System.out.println(content.length);
-                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 404, "video/mp4", content, method != null && method.equals("HEAD"));
+                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
                 file = null;
                 content = null;
             }
