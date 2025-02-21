@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 public class Function {
     public static final String Version = "3.0.0-alpha.1";
     public static final Gson gson = new Gson();
+    public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0 nicovrc-net/" + Version;
 
     private static final Pattern HTTPVersion = Pattern.compile("HTTP/(\\d+\\.\\d+)");
     private static final Pattern HTTP = Pattern.compile("(CONNECT|DELETE|GET|HEAD|OPTIONS|PATCH|POST|PUT|TRACE) (.+) HTTP/(\\d\\.\\d)");
