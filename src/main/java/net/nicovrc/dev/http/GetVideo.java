@@ -57,7 +57,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                             .GET()
                             .build();
                 } else {
-                    System.out.println(URL);
+                    //System.out.println(URL);
                     request = HttpRequest.newBuilder()
                             .uri(new URI(URL))
                             .headers("User-Agent", Function.UserAgent)
