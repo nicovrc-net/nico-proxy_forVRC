@@ -160,6 +160,7 @@ RedisPass: ""
         httpServiceList.add(new GetURL());
         httpServiceList.add(new GetURL_old1()); // v2互換用、様子見て削除
         httpServiceList.add(new GetURL_old2()); // v2互換用、様子見て削除
+        httpServiceList.add(new GetVideo());
 
         TCPServer tcpServer = new TCPServer(httpServiceList);
         tcpServer.start();
