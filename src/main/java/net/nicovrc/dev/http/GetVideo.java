@@ -20,7 +20,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private String URL = null;
     private Socket sock = null;
 
-    private final Pattern matcher_url = Pattern.compile("/https//cookie:\\[(.+)\\]/(.+)");
+    private final Pattern matcher_url = Pattern.compile("/https/cookie:\\[(.+)\\]/(.+)");
 
     @Override
     public void run() {
