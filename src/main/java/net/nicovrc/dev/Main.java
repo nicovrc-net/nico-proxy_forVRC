@@ -1,5 +1,7 @@
 package net.nicovrc.dev;
 
+import com.amihaiemil.eoyaml.Yaml;
+import com.amihaiemil.eoyaml.YamlMapping;
 import net.nicovrc.dev.http.*;
 
 import java.io.BufferedWriter;
@@ -22,7 +24,7 @@ public class Main {
 # 基本設定
 #
 # ----------------------------
-# 受付ポート (HTTP/UDP共通)
+# 受付ポート (HTTP)
 Port: 25252
 # ログをRedisに書き出すときはtrue
 LogToRedis: false
@@ -31,7 +33,6 @@ LogFileFolderPass: "./log"
 # ----------------------------
 #
 # Redis設定
-# ※ログをRedisに保存する際に使う
 #
 # ----------------------------
 # Redisサーバー
@@ -45,12 +46,15 @@ RedisPass: ""
 
         File file1 = new File("./config.yml");
         if (!file1.exists()){
+            file1 = null;
             try {
                 FileWriter file = new FileWriter("./config.yml");
                 PrintWriter pw = new PrintWriter(new BufferedWriter(file));
                 pw.print(config);
                 pw.close();
                 file.close();
+                pw = null;
+                file = null;
             } catch (Exception e){
                 //e.printStackTrace();
             }
@@ -66,6 +70,22 @@ RedisPass: ""
                 System.out.println("[Info] config.ymlを設定してください。");
                 return;
             }
+        }
+        file1 = null;
+        // 設定読み込み
+        String FolderPass = "";
+        try {
+            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+            FolderPass = yamlMapping.string("LogFileFolderPass");
+        } catch (Exception e){
+            // e.printStackTrace();
+            FolderPass = "";
+        }
+
+        // ログフォルダ作成
+        File file = new File(FolderPass);
+        if (!FolderPass.isEmpty() && !file.exists()){
+            boolean mkdir = file.mkdir();
         }
 
 
