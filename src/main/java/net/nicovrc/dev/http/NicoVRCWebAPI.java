@@ -3,6 +3,7 @@ package net.nicovrc.dev.http;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.ServiceList;
 import net.nicovrc.dev.api.GetVideoInfo;
 import net.nicovrc.dev.api.NicoVRCAPI;
 import net.nicovrc.dev.api.Test;
@@ -16,7 +17,7 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
     private String HTTPRequest = null;
     private String URL = null;
-    private List<NicoVRCAPI> list = new ArrayList<>();
+    private final List<NicoVRCAPI> list = new ArrayList<>();
     private Socket sock = null;
     private final Gson gson = Function.gson;
 

@@ -274,4 +274,8 @@ public class NicoVideo implements ServiceAPI {
         }
     }
 
+    @Override
+    public String getServiceName() {
+        return "ニコニコ";
+    }
 }
