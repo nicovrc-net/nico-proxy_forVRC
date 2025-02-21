@@ -1,13 +1,13 @@
 package net.nicovrc.dev.api;
 
-public class GetVideoInfo implements NicoVRCAPI {
+public class Test implements NicoVRCAPI {
     @Override
     public String getURI() {
-        return "/api/v1/videoinfo";
+        return "/api/v1/test";
     }
 
     @Override
     public String Run(String httpRequest) {
-        return "{\"Message\": \"実装中...\"}";
+        return "{\"ErrorMessage\": \"実装中...\"}";
     }
 }
