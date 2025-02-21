@@ -131,6 +131,8 @@ public class NicoVideo implements ServiceAPI {
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)
                     .headers("User-Agent", Function.UserAgent)
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                     .GET()
                     .build();
 
@@ -140,6 +142,8 @@ public class NicoVideo implements ServiceAPI {
                 request = null;
                 client.close();
                 client = null;
+
+                System.out.println(send.body());
 
                 Matcher matcher = matcher_videoError1.matcher(send.body());
                 if (matcher.find()){
