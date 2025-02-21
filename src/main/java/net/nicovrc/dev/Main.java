@@ -123,6 +123,27 @@ RedisPass: ""
                         stream.close();
                         stream = null;
                     }
+
+                    uri = new URI("https://r2.7mi.site/vrc/nico/error_000.mp4");
+                    request = HttpRequest.newBuilder()
+                            .uri(uri)
+                            .headers("User-Agent", Function.UserAgent)
+                            .GET()
+                            .build();
+
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    if (send.statusCode() >= 400) {
+                        send = null;
+                        uri = null;
+                        request = null;
+                        client.close();
+                        client = null;
+                    } else {
+                        FileOutputStream stream = new FileOutputStream("./error-video/error_000.mp4");
+                        stream.write(send.body());
+                        stream.close();
+                        stream = null;
+                    }
                 } catch (Exception e) {
 
                 } finally {
