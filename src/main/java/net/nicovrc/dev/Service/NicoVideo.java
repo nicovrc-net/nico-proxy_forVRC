@@ -140,6 +140,19 @@ public class NicoVideo implements ServiceAPI {
                 request = null;
                 client.close();
                 client = null;
+
+                Matcher matcher = matcher_videoError1.matcher(send.body());
+                if (matcher.find()){
+                    matcher = null;
+                    return "{\"ErrorMessage\": \"この動画は存在しないか、削除された可能性があります。\"}";
+                }
+                matcher = matcher_videoError2.matcher(send.body());
+                if (matcher.find()){
+                    String str = matcher.group(1);
+                    matcher = null;
+                    return "{\"ErrorMessage\": \"この動画は"+str+"の申立により、著作権侵害として削除されました。\"}";
+                }
+                matcher = null;
                 return "{\"ErrorMessage\": \"取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")\"}";
             }
 
@@ -227,18 +240,6 @@ public class NicoVideo implements ServiceAPI {
                         request = null;
                         client.close();
                         client = null;
-
-                        matcher = matcher_videoError1.matcher(send.body());
-                        if (matcher.find()){
-                            matcher = null;
-                            return "{\"ErrorMessage\": \"この動画は存在しないか、削除された可能性があります。\"}";
-                        }
-                        matcher = matcher_videoError2.matcher(send.body());
-                        if (matcher.find()){
-                            String str = matcher.group(1);
-                            matcher = null;
-                            return "{\"ErrorMessage\": \"この動画は"+str+"の申立により、著作権侵害として削除されました。\"}";
-                        }
 
                         return "{\"ErrorMessage\": \"動画取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")\"}";
                     }
