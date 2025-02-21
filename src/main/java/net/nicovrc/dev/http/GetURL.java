@@ -135,7 +135,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     });
                                     exec0.waitFor();
                                 }
-                                final Process exec1 = runtime.exec(new String[]{ffmpegPass, "-loop","1","-i","./error-video/"+videoId+".png","-i","./error-video/out.mp3","-c:v","libx264","-pix_fmt","yuv420p","-c:a","copy","-map","0:v:0","-map","1:a:0","-t","10","-r","15","./error-video/" + videoId + ".mp4"});
+                                final Process exec1 = runtime.exec(new String[]{ffmpegPass, "-loop","1","-i","./error-video/"+videoId+".png","-i","./error-video/out.mp3","-c:v","libx264","-pix_fmt","yuv420p","-c:a","copy","-map","0:v:0","-map","1:a:0","-t","20","-r","60","./error-video/" + videoId + ".mp4"});
                                 Thread.ofVirtual().start(() -> {
                                     try {
                                         Thread.sleep(5000L);
