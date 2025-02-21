@@ -54,7 +54,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 ServiceName = api.getServiceName();
             }
 
-            System.out.println(json);
+            //System.out.println(json);
             if (json != null){
                 Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", sb.toString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
             } else {
