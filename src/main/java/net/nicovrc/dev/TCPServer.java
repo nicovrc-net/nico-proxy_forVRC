@@ -29,8 +29,6 @@ public class TCPServer extends Thread {
         System.out.println("[Info] TCP Port " + HTTPPort + "で 処理受付用HTTPサーバー待機開始");
         while (temp[0]) {
             try {
-                //System.gc();
-                //System.out.println("[Debug] HTTPRequest待機");
                 final Socket sock = svSock.accept();
                 Thread.ofVirtual().start(() -> {
                     try {
@@ -53,6 +51,7 @@ public class TCPServer extends Thread {
 
                     }
                 });
+                sock.close();
             } catch (Exception e) {
                 e.printStackTrace();
                 temp[0] = false;
