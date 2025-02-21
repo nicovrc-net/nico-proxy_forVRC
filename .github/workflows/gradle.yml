@@ -42,7 +42,8 @@ jobs:
         with:
           name: jar
           path: ./build/libs/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
-  autotest:
+
+  autotest1:
     needs: build-21
     runs-on: ubuntu-24.04
     permissions:
@@ -63,8 +64,31 @@ jobs:
       - name: Run the Application 1
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar &
         shell: bash
+
+  autotest2:
+    needs: build-21
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Run the Application 1
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
+        shell: bash
+
   release:
-    needs: autotest
+    needs: [autotest1, autotest2]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
