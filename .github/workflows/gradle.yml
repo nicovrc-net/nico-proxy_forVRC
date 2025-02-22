@@ -43,6 +43,26 @@ jobs:
           name: jar
           path: ./build/libs/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
 
+  download_ffmpeg:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download ffmpeg
+        run: |
+          wget https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz > null
+          tar -Jxvf ./ffmpeg-master-latest-linux64-gpl.tar.xz > null
+          cp ./ffmpeg-master-latest-linux64-gpl/bin/* ./
+          rm ./ffmpeg-master-latest-linux64-gpl.tar.xz
+          rm ./ffmpeg-master-latest-linux64-gpl -fr
+        shell: bash
+
+      - name: Upload ffmpeg
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg
+          path: ./ffmpeg
+
   autotest1:
     needs: build-21
     runs-on: ubuntu-24.04
@@ -109,7 +129,7 @@ jobs:
         shell: bash
 
   autotest3:
-    needs: build-21
+    needs: [build-21, ffmpeg]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -125,6 +145,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar
+
+      - name: Download ffmpeg
+        uses: actions/download-artifact@v4
+        with:
+          name: ffmpeg
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -140,7 +165,7 @@ jobs:
         shell: bash
 
   autotest4:
-    needs: build-21
+    needs: [build-21, ffmpeg]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -156,6 +181,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar
+
+      - name: Download ffmpeg
+        uses: actions/download-artifact@v4
+        with:
+          name: ffmpeg
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -171,7 +201,7 @@ jobs:
         shell: bash
 
   autotest5:
-    needs: build-21
+    needs: [build-21, ffmpeg]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -188,6 +218,11 @@ jobs:
         with:
           name: jar
 
+      - name: Download ffmpeg
+        uses: actions/download-artifact@v4
+        with:
+          name: ffmpeg
+
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
@@ -200,8 +235,45 @@ jobs:
             exit 1
           fi
         shell: bash
+
+  autotest6:
+    needs: [build-21, ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Download ffmpeg
+        uses: actions/download-artifact@v4
+        with:
+          name: ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
+        shell: bash
+
+      - name: URL Request Test (Error)
+        run: |
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm1)
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "Expected HTTP status video/mp4 but got $HTTP_STATUS"
+            exit 1
+          fi
+        shell: bash
+
   release:
-    needs: [autotest1, autotest2, autotest3, autotest4, autotest5]
+    needs: [autotest1, autotest2, autotest3, autotest4, autotest5, autotest6]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -222,7 +294,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-              - 作り直し(ニコ動のみ対応)
+              - 作り直し(ニコ動/ニコ生のみ対応)
           draft: false
           prerelease: true
 
