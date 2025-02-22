@@ -267,7 +267,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                                     }
 
-
                                     String[] split = hls.split("\n");
                                     split[split.length-1] = "/?url="+URL+"&dummy=true";
 
