@@ -39,6 +39,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"\n");
     private final Pattern hls_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
 
+    private final Pattern hlslive_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"\n");
+    private final Pattern hlslive_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
+
     @Override
     public void run() {
 
@@ -318,12 +321,50 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     byte[] body = send.body();
                                     if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")) {
                                         String s = new String(body, StandardCharsets.UTF_8);
+                                        //System.out.println(s);
                                         s = s.replaceAll("https://", "/https/cookie:["+(sb.substring(0, sb.length() - 2) == null || sb.substring(0, sb.length() - 2).isEmpty() ? "" : sb.substring(0, sb.length() - 2))+"]/");
                                         body = s.getBytes(StandardCharsets.UTF_8);
                                     }
+                                    if (vlc_ua.matcher(httpRequest).find()){
+                                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
+                                        method = null;
+                                        sb.setLength(0);
+
+                                        return;
+                                    }
+
+                                    // それ以外の場合は
+                                    if (!sub.matcher(httpRequest).find()){
+                                        sb.setLength(0);
+
+                                        String hls = new String(body, StandardCharsets.UTF_8);
+                                        Matcher matcher1 = hlslive_video.matcher(hls);
+                                        Matcher matcher2 = hlslive_audio.matcher(hls);
+
+                                        if (matcher1.find() && matcher2.find()){
+                                            hls = "#EXTM3U\n" +
+                                                    "#EXT-X-VERSION:6\n" +
+                                                    "#EXT-X-INDEPENDENT-SEGMENTS\n" +
+                                                    "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"main\",NAME=\"Main Audio\",DEFAULT=YES,URI=\""+matcher2.group(2)+"\"\n" +
+                                                    "#EXT-X-STREAM-INF:BANDWIDTH="+matcher1.group(1)+",AVERAGE-BANDWIDTH="+matcher1.group(2)+",CODECS=\""+matcher1.group(3)+"\",RESOLUTION="+matcher1.group(4)+",FRAME-RATE="+matcher1.group(5)+",AUDIO=\"main\"\n" +
+                                                    "dummy";
+                                        }
+
+                                        String[] split = hls.split("\n");
+                                        split[split.length-1] = "/?url="+URL+"&dummy=true";
+
+                                        for (String str : split){
+                                            sb.append(str).append("\n");
+                                        }
+
+                                        body = sb.toString().getBytes(StandardCharsets.UTF_8);
+
+                                    }
+
                                     Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
-                                    method = null;
                                     sb.setLength(0);
+                                    send = null;
+                                    request = null;
 
                                 } else {
                                     // dmc
