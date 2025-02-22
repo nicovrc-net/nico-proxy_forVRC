@@ -129,7 +129,7 @@ jobs:
         shell: bash
 
   autotest3:
-    needs: [build-21, ffmpeg]
+    needs: [build-21, download_ffmpeg]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -165,7 +165,7 @@ jobs:
         shell: bash
 
   autotest4:
-    needs: [build-21, ffmpeg]
+    needs: [build-21, download_ffmpeg]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -201,7 +201,7 @@ jobs:
         shell: bash
 
   autotest5:
-    needs: [build-21, ffmpeg]
+    needs: [build-21, download_ffmpeg]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -237,7 +237,7 @@ jobs:
         shell: bash
 
   autotest6:
-    needs: [build-21, ffmpeg]
+    needs: [build-21, download_ffmpeg]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
