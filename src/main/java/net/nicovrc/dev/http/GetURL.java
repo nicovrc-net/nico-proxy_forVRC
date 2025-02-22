@@ -22,6 +22,7 @@ import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class GetURL implements Runnable, NicoVRCHTTP {
 
@@ -31,6 +32,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     private final Gson gson = Function.gson;
     private final List<ServiceAPI> list = ServiceList.getServiceList();
+    private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
+    private final Pattern sub = Pattern.compile("&dummy=true");
 
     @Override
     public void run() {
@@ -58,7 +61,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             String json = null;
             String ServiceName = null;
             if (api != null){
-                api.Set("{\"URL\":\""+URL+"\"}");
+                api.Set("{\"URL\":\""+URL.split("\\?")[0]+"\"}");
                 json = api.Get();
                 ServiceName = api.getServiceName();
             }
@@ -213,33 +216,65 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 } else if (ServiceName.equals("ニコニコ")) {
                     NicoNicoVideo result = gson.fromJson(json, NicoNicoVideo.class);
                     if (result != null){
-                        try (HttpClient client = HttpClient.newBuilder()
-                                .version(HttpClient.Version.HTTP_2)
-                                .followRedirects(HttpClient.Redirect.NORMAL)
-                                .connectTimeout(Duration.ofSeconds(5))
-                                .build()) {
+                        if (result.getVideoURL() != null){
+                            // ニコ動
+                            try (HttpClient client = HttpClient.newBuilder()
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .followRedirects(HttpClient.Redirect.NORMAL)
+                                    .connectTimeout(Duration.ofSeconds(5))
+                                    .build()) {
 
-                            final StringBuilder sb = new StringBuilder();
-                            result.getVideoAccessCookie().forEach((name, data)->{
-                                sb.append(name).append("=").append(data).append(";");
-                            });
+                                final StringBuilder sb = new StringBuilder();
+                                result.getVideoAccessCookie().forEach((name, data)->{
+                                    sb.append(name).append("=").append(data).append(";");
+                                });
 
-                            HttpRequest request = HttpRequest.newBuilder()
-                                    .uri(new URI(result.getVideoURL()))
-                                    .headers("User-Agent", Function.UserAgent)
-                                    .headers("Cookie", sb.substring(0, sb.length() - 1))
-                                    .GET()
-                                    .build();
+                                HttpRequest request = HttpRequest.newBuilder()
+                                        .uri(new URI(result.getVideoURL()))
+                                        .headers("User-Agent", Function.UserAgent)
+                                        .headers("Cookie", sb.substring(0, sb.length() - 1))
+                                        .GET()
+                                        .build();
 
-                            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                            String hls = send.body().replaceAll("https://delivery\\.domand\\.nicovideo\\.jp", "/https/cookie:["+sb.substring(0, sb.length() - 1)+"]/delivery.domand.nicovideo.jp");
-                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hls.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-                            sb.setLength(0);
-                            send = null;
-                            request = null;
-                        } catch (Exception e){
-                            // e.printStackTrace();
+                                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                                String hls = send.body().replaceAll("https://delivery\\.domand\\.nicovideo\\.jp", "/https/cookie:["+sb.substring(0, sb.length() - 1)+"]/delivery.domand.nicovideo.jp");
+
+                                if (vlc_ua.matcher(httpRequest).find()){
+                                    // VLCのときはそのまま
+                                    Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hls.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                                    sb.setLength(0);
+                                    send = null;
+                                    request = null;
+
+                                    return;
+                                }
+                                // それ以外の場合は
+                                if (!sub.matcher(httpRequest).find()){
+                                    String[] split = hls.split("\n");
+                                    split[split.length-1] = "/?url="+URL+"&dummy=true";
+
+                                    sb.setLength(0);
+                                    for (String str : split){
+                                        sb.append(str).append("\n");
+                                    }
+
+                                    Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", sb.toString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                                    sb.setLength(0);
+                                    send = null;
+                                    request = null;
+                                } else {
+                                    Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hls.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                                    sb.setLength(0);
+                                    send = null;
+                                    request = null;
+                                }
+                            } catch (Exception e){
+                                // e.printStackTrace();
+                            }
+                        } else {
+                            // ニコ生
                         }
+
                     }
                 }
 
