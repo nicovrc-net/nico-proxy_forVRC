@@ -1,6 +1,5 @@
 package net.nicovrc.dev.api;
 
-import java.awt.*;
 
 public interface NicoVRCAPI {
 
