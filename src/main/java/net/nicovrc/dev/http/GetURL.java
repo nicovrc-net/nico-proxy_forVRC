@@ -255,7 +255,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                 if (!sub.matcher(httpRequest).find()){
 
                                     sb.setLength(0);
-                                    boolean isAudioFound = false;
                                     Matcher matcher1 = hls_video.matcher(hls);
                                     Matcher matcher2 = hls_audio.matcher(hls);
                                     if (matcher1.find() && matcher2.find()){
@@ -271,6 +270,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                                     String[] split = hls.split("\n");
                                     split[split.length-1] = "/?url="+URL+"&dummy=true";
+
+                                    for (String str : split){
+                                        sb.append(str).append("\n");
+                                    }
 
                                     Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", sb.toString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                                     sb.setLength(0);
