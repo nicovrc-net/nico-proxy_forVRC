@@ -6,7 +6,6 @@ import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.NicoNicoVideo;
 import net.nicovrc.dev.Service.ServiceAPI;
 import net.nicovrc.dev.Service.ServiceList;
-import net.nicovrc.dev.api.NicoVRCAPI;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,6 +21,7 @@ import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GetURL implements Runnable, NicoVRCHTTP {
@@ -34,6 +34,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final List<ServiceAPI> list = ServiceList.getServiceList();
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
     private final Pattern sub = Pattern.compile("&dummy=true");
+
+    private final Pattern hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"\n");
+    private final Pattern hls_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
 
     @Override
     public void run() {
@@ -250,13 +253,24 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                 }
                                 // それ以外の場合は
                                 if (!sub.matcher(httpRequest).find()){
-                                    String[] split = hls.split("\n");
-                                    split[split.length-1] = "/?url="+URL+"&dummy=true";
 
                                     sb.setLength(0);
-                                    for (String str : split){
-                                        sb.append(str).append("\n");
+                                    boolean isAudioFound = false;
+                                    Matcher matcher1 = hls_video.matcher(hls);
+                                    Matcher matcher2 = hls_audio.matcher(hls);
+                                    if (matcher1.find() && matcher2.find()){
+                                        hls = "#EXTM3U\n" +
+                                                "#EXT-X-VERSION:6\n" +
+                                                "#EXT-X-INDEPENDENT-SEGMENTS\n" +
+                                                "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\""+matcher2.group(2)+"\"\n" +
+                                                "#EXT-X-STREAM-INF:BANDWIDTH="+matcher1.group(1)+",AVERAGE-BANDWIDTH="+matcher1.group(2)+",CODECS=\""+matcher1.group(3)+"\",RESOLUTION="+matcher1.group(4)+",FRAME-RATE="+matcher1.group(5)+",AUDIO=\"audio\"\n" +
+                                                "dummy";
+
                                     }
+
+
+                                    String[] split = hls.split("\n");
+                                    split[split.length-1] = "/?url="+URL+"&dummy=true";
 
                                     Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", sb.toString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                                     sb.setLength(0);
