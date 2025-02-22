@@ -298,9 +298,35 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                                 String liveURL = result.getLiveURL();
                                 if (result.getLiveAccessCookie() != null && !result.getLiveAccessCookie().isEmpty()){
+                                    // 新鯖
+
+                                    final StringBuilder sb = new StringBuilder();
+                                    result.getLiveAccessCookie().forEach((name, value)->{
+                                        sb.append(name).append("=").append(value).append("; ");
+                                    });
+
+                                    HttpRequest request = HttpRequest.newBuilder()
+                                            .uri(new URI(liveURL))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .headers("Cookie", sb.substring(0, sb.length() - 2))
+                                            .GET()
+                                            .build();
+
+                                    HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+                                    String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
+                                    byte[] body = send.body();
+                                    if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")) {
+                                        String s = new String(body, StandardCharsets.UTF_8);
+                                        s = s.replaceAll("https://", "/https/cookie:["+(sb.substring(0, sb.length() - 2) == null || sb.substring(0, sb.length() - 2).isEmpty() ? "" : sb.substring(0, sb.length() - 2))+"]/");
+                                        body = s.getBytes(StandardCharsets.UTF_8);
+                                    }
+                                    Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
+                                    method = null;
+                                    sb.setLength(0);
 
                                 } else {
-
+                                    // dmc
                                     String[] split = liveURL.split("/");
 
                                     HttpRequest request = HttpRequest.newBuilder()
