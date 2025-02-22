@@ -70,7 +70,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             byte[] content = new byte[0];
             if (json != null){
                 JsonElement element = gson.fromJson(json, JsonElement.class);
-                if (element.getAsJsonObject().has("ErrorMessage")) {
+                if (element != null && element.getAsJsonObject().has("ErrorMessage")) {
                     String errorMessage = element.getAsJsonObject().get("ErrorMessage").getAsString();
 
                     try {
