@@ -21,7 +21,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private String URL = null;
     private Socket sock = null;
 
-    private final Pattern matcher_url = Pattern.compile("/https/cookie:\\[(.+)\\]/(.+)");
+    private final Pattern matcher_url = Pattern.compile("/https/cookie:\\[(.*)\\]/(.+)");
 
     @Override
     public void run() {
@@ -43,6 +43,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                 return;
             }
+            //System.out.println("debug : " + CookieText + " / " + URL);
+
             try (HttpClient client = HttpClient.newBuilder()
                     .version(HttpClient.Version.HTTP_2)
                     .followRedirects(HttpClient.Redirect.NORMAL)
@@ -67,7 +69,17 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 }
 
                 HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-                String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
+                String contentType = send.headers().firstValue("Content-Type").isPresent() ? send.headers().firstValue("Content-Type").get() : send.headers().firstValue("content-type").isPresent() ? send.headers().firstValue("content-type").get() : "";
+/*
+                System.out.println("----");
+                send.headers().map().forEach((name, value)->{
+                    System.out.println(name + " : ");
+                    value.forEach((v)->{
+                        System.out.println("   " + v);
+                    });
+                });
+                System.out.println("----");*/
+
                 byte[] body = send.body();
                 if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")){
                     String s = new String(body, StandardCharsets.UTF_8);

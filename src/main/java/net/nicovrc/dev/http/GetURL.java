@@ -21,6 +21,7 @@ import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -289,6 +290,65 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             }
                         } else {
                             // ニコ生
+                            try (HttpClient client = HttpClient.newBuilder()
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .followRedirects(HttpClient.Redirect.NORMAL)
+                                    .connectTimeout(Duration.ofSeconds(5))
+                                    .build()) {
+
+                                String liveURL = result.getLiveURL();
+                                if (result.getLiveAccessCookie() != null && !result.getLiveAccessCookie().isEmpty()){
+
+                                } else {
+
+                                    String[] split = liveURL.split("/");
+
+                                    HttpRequest request = HttpRequest.newBuilder()
+                                            .uri(new URI(liveURL))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .GET()
+                                            .build();
+
+                                    HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                                    String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
+                                    byte[] body = send.body();
+                                    if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")){
+                                        // https://liveedge231.dmc.nico/hlslive/ht2_nicolive/nicolive-production-pg130607675867723_4ad3364a300b5325d4b25e4013a11ea9a50ef78c26d1d643c642f4ab14b905d4/4/mp4/playlist.m3u8?ht2_nicolive=131256034.ggfv0cb1a7_ss31uh_1u5gfs7lsf63i&__poll__=0
+                                        String s = new String(body, StandardCharsets.UTF_8);
+                                        //System.out.println(liveURL.replaceAll(split[split.length - 1].replaceAll("\\?", "\\\\?"), ""));
+                                        String s1 = "/https/cookie:[]/" + (liveURL.replaceAll(split[split.length - 1].replaceAll("\\?", "\\\\?"), "").replaceAll("https://", ""));
+                                        s = s.replaceAll("1/ts/playlist\\.m3u8", s1+"/1/ts/playlist.m3u8");
+                                        s = s.replaceAll("2/ts/playlist\\.m3u8", s1+"/2/ts/playlist.m3u8");
+                                        s = s.replaceAll("3/ts/playlist\\.m3u8", s1+"/3/ts/playlist.m3u8");
+                                        s = s.replaceAll("4/ts/playlist\\.m3u8", s1+"/4/ts/playlist.m3u8");
+                                        s = s.replaceAll("5/ts/playlist\\.m3u8", s1+"/5/ts/playlist.m3u8");
+                                        s = s.replaceAll("6/ts/playlist\\.m3u8", s1+"/6/ts/playlist.m3u8");
+                                        body = s.getBytes(StandardCharsets.UTF_8);
+                                    }
+                                    Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
+
+                                    method = null;
+                                }
+
+                            } catch (Exception e){
+                                e.printStackTrace();
+
+                                try {
+                                    content = null;
+                                    File file = new File("./error-video/error_000.mp4");
+                                    if (file.exists()){
+                                        FileInputStream stream = new FileInputStream(file);
+                                        content = stream.readAllBytes();
+                                        stream.close();
+                                        stream = null;
+                                    }
+
+                                    Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
+                                    content = null;
+                                } catch (Exception ex){
+                                    // ex.printStackTrace();
+                                }
+                            }
                         }
 
                     }
