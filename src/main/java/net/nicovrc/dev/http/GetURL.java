@@ -61,7 +61,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             String json = null;
             String ServiceName = null;
             if (api != null){
-                api.Set("{\"URL\":\""+URL.split("\\?")[0]+"\"}");
+                api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\"}");
                 json = api.Get();
                 ServiceName = api.getServiceName();
             }
@@ -70,7 +70,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             byte[] content = new byte[0];
             if (json != null){
                 JsonElement element = gson.fromJson(json, JsonElement.class);
-                if (element != null && element.getAsJsonObject().has("ErrorMessage")) {
+                if (element.getAsJsonObject().has("ErrorMessage")) {
                     String errorMessage = element.getAsJsonObject().get("ErrorMessage").getAsString();
 
                     try {
