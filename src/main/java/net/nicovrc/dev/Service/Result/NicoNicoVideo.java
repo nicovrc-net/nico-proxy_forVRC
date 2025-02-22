@@ -16,6 +16,8 @@ public class NicoNicoVideo {
 
     private String VideoURL;
     private HashMap<String, String> VideoAccessCookie;
+    private String LiveURL;
+    private HashMap<String, String> LiveAccessCookie;
 
     public String getURL() {
         return URL;
@@ -111,5 +113,21 @@ public class NicoNicoVideo {
 
     public void setVideoAccessCookie(HashMap<String, String> cookie) {
         VideoAccessCookie = cookie;
+    }
+
+    public String getLiveURL() {
+        return LiveURL;
+    }
+
+    public void setLiveURL(String liveURL) {
+        LiveURL = liveURL;
+    }
+
+    public HashMap<String, String> getLiveAccessCookie() {
+        return LiveAccessCookie;
+    }
+
+    public void setLiveAccessCookie(HashMap<String, String> liveAccessCookie) {
+        LiveAccessCookie = liveAccessCookie;
     }
 }

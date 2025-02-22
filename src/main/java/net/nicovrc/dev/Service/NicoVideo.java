@@ -10,11 +10,13 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.net.http.WebSocket;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -59,9 +61,12 @@ public class NicoVideo implements ServiceAPI {
     private String URL = null;
 
     private final Pattern matcher_Json = Pattern.compile("<meta name=\"server-response\" content=\"\\{(.+)}\" />");
+    private final Pattern matcher_JsonNico = Pattern.compile("<script id=\"embedded-data\" data-props=\"\\{(.+)\\}\"");
 
     private final Pattern matcher_videoError1 = Pattern.compile("(この動画は存在しないか、削除された可能性があります。|お探しのページは、すでに削除されたか存在しない可能性があります|errorCode&quot;:&quot;NOT_FOUND&)");
     private final Pattern matcher_videoError2 = Pattern.compile("この動画は(.+)の申立により、著作権侵害として削除されました。");
+
+    private final ConcurrentHashMap<String, NicoNicoVideo> LiveCacheList = new ConcurrentHashMap<>();
 
     @Override
     public String[] getCorrespondingURL() {
@@ -166,6 +171,11 @@ public class NicoVideo implements ServiceAPI {
             JsonElement json = null;
             if (matcher.find()){
                 json = gson.fromJson("{" + matcher.group(1).replaceAll("&quot;", "\"") + "}", JsonElement.class);
+            } else {
+                matcher = matcher_JsonNico.matcher(body);
+                if (matcher.find()){
+                    json = gson.fromJson("{" + matcher.group(1).replaceAll("&quot;", "\"") + "}", JsonElement.class);
+                }
             }
             matcher = null;
             body = null;
@@ -275,10 +285,179 @@ public class NicoVideo implements ServiceAPI {
                     }
 
                     return gson.toJson(result);
-
                 } else {
                     // ニコ生
+                    NicoNicoVideo liveData = new NicoNicoVideo();
 
+                    if (json.isJsonObject() && json.getAsJsonObject().has("program")){
+                        liveData.setURL(json.getAsJsonObject().get("program").getAsJsonObject().get("watchPageUrl").getAsString());
+                        liveData.setTitle(json.getAsJsonObject().get("program").getAsJsonObject().get("title").getAsString());
+                        liveData.setDescription(json.getAsJsonObject().get("program").getAsJsonObject().get("description").getAsString());
+                        JsonArray tags = json.getAsJsonObject().get("program").getAsJsonObject().get("tag").getAsJsonObject().get("list").getAsJsonArray();
+
+                        String[] tagList = new String[tags.size()];
+                        int i = 0;
+                        for (JsonElement tag : tags) {
+                            tagList[i] = tag.getAsJsonObject().get("text").getAsString();
+                        }
+                        liveData.setTags(tagList);
+                        liveData.setViewCount(json.getAsJsonObject().get("program").getAsJsonObject().get("statistics").getAsJsonObject().get("watchCount").getAsLong());
+                        liveData.setCommentCount(json.getAsJsonObject().get("program").getAsJsonObject().get("statistics").getAsJsonObject().get("commentCount").getAsLong());
+                    }
+
+
+                    //System.out.println(json);
+                    if (json.isJsonObject() && json.getAsJsonObject().has("site") && json.getAsJsonObject().get("site").getAsJsonObject().has("relive")){
+
+                        if (json.getAsJsonObject().get("site").getAsJsonObject().get("relive").getAsJsonObject().has("webSocketUrl")){
+
+                            NicoNicoVideo cacheData = LiveCacheList.get(liveData.getURL());
+                            if (cacheData == null){
+                                String WebsocketURL = json.getAsJsonObject().get("site").getAsJsonObject().get("relive").getAsJsonObject().get("webSocketUrl").getAsString();
+
+                                client = HttpClient.newBuilder()
+                                        .version(HttpClient.Version.HTTP_2)
+                                        .followRedirects(HttpClient.Redirect.NORMAL)
+                                        .connectTimeout(Duration.ofSeconds(5))
+                                        .build();
+
+                                final String[] resultData = new String[]{"", "", null};
+                                final Timer niconamaTimer = new Timer();
+                                final HttpClient finalClient = client;
+                                final WebSocket.Builder wsb = client.newWebSocketBuilder();
+                                final WebSocket.Listener listener = new WebSocket.Listener() {
+                                    @Override
+                                    public void onOpen(WebSocket webSocket){
+                                        // 接続時
+                                        webSocket.sendText("{\"type\":\"startWatching\",\"data\":{\"stream\":{\"quality\":\"abr\",\"protocol\":\"hls\",\"latency\":\"low\",\"accessRightMethod\":\"single_cookie\",\"chasePlay\":false},\"room\":{\"protocol\":\"webSocket\",\"commentable\":true},\"reconnect\":false}}", true);
+                                        webSocket.request(Integer.MAX_VALUE);
+                                    }
+
+                                    @Override
+                                    public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
+                                        // 切断時
+                                        finalClient.close();
+                                        niconamaTimer.cancel();
+                                        LiveCacheList.remove(liveData.getURL());
+                                        return null;
+                                    }
+
+                                    @Override
+                                    public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
+                                        String message = data.toString();
+                                        //System.out.println(message);
+
+                                        JsonElement json1 = gson.fromJson(message, JsonElement.class);
+                                        //System.out.println("<--- "+json1);
+
+                                        if (json1 != null && json1.isJsonObject() && json1.getAsJsonObject().has("type")){
+
+                                            String type = json1.getAsJsonObject().get("type").getAsString();
+                                            if (type.equals("serverTime")){
+                                                //System.out.println("---> {\"type\":\"getEventState\",\"data\":{}}");
+                                                webSocket.sendText("{\"type\":\"getEventState\",\"data\":{}}", true);
+                                            }
+
+                                            if (type.equals("eventState")){
+                                                //System.out.println("---> {\"type\":\"getAkashic\",\"data\":{\"chasePlay\":false}}");
+                                                webSocket.sendText("{\"type\":\"getAkashic\",\"data\":{\"chasePlay\":false}}", true);
+                                            }
+
+                                            if (type.equals("ping")){
+                                                //System.out.println("---> {\"type\":\"pong\"}");
+                                                webSocket.sendText("{\"type\":\"pong\"}", true);
+                                            }
+
+                                            if (type.equals("seat")){
+
+                                                niconamaTimer.scheduleAtFixedRate(new TimerTask() {
+                                                    @Override
+                                                    public void run() {
+                                                        //System.out.println("---> {\"type\":\"keepSeat\"}");
+                                                        webSocket.sendText("{\"type\":\"keepSeat\"}", true);
+                                                    }
+                                                }, 30000L, 30000L);
+
+                                            }
+
+                                            if (type.equals("messageServer")){
+                                                //System.out.println("---> {\"type\":\"notifyNewVisit\",\"data\":{}}");
+                                                webSocket.sendText("{\"type\":\"notifyNewVisit\",\"data\":{}}", true);
+                                                //System.out.println("---> {\"type\":\"getAkashic\",\"data\":{\"chasePlay\":false}}");
+                                                webSocket.sendText("{\"type\":\"getAkashic\",\"data\":{\"chasePlay\":false}}", true);
+                                            }
+
+                                            if (type.equals("stream")){
+                                                if (json1.getAsJsonObject().get("data").getAsJsonObject().has("uri")){
+                                                    StringBuilder sb = new StringBuilder();
+                                                    if (json1.getAsJsonObject().get("data").getAsJsonObject().has("cookies") && !json1.getAsJsonObject().get("data").getAsJsonObject().get("cookies").getAsJsonArray().isEmpty()){
+                                                        for (JsonElement jsonElement : json1.getAsJsonObject().get("data").getAsJsonObject().get("cookies").getAsJsonArray()) {
+                                                            sb.append(jsonElement.getAsJsonObject().get("name").getAsString()).append("=").append(jsonElement.getAsJsonObject().get("value").getAsString()).append("; ");
+                                                        }
+
+                                                        resultData[2] = sb.substring(0, sb.length() - 2);
+                                                    }
+
+                                                    resultData[0] = json1.getAsJsonObject().get("data").getAsJsonObject().get("uri").getAsString();
+                                                } else {
+                                                    resultData[0] = "Error";
+                                                    niconamaTimer.cancel();
+                                                    finalClient.close();
+                                                }
+                                            }
+
+                                            if (type.equals("disconnect")){
+                                                LiveCacheList.remove(liveData.getURL());
+                                                niconamaTimer.cancel();
+                                                finalClient.close();
+                                            }
+                                        }
+
+                                        return null;
+                                    }
+                                };
+                                CompletableFuture<WebSocket> comp = wsb.buildAsync(new URI(WebsocketURL), listener);
+                                try {
+                                    WebSocket webSocket = comp.get();
+                                    webSocket = null;
+                                } catch (Exception e) {
+                                    return "{\"ErrorMessage\": \"取得に失敗しました。 ("+e.getMessage()+")\"}";
+                                }
+
+                                while (resultData[1] == null || resultData[1].isEmpty()){
+                                    resultData[1] = resultData[0];
+                                }
+
+                                if (!resultData[0].equals("Error")){
+                                    HashMap<String, String> h = new HashMap<>();
+                                    liveData.setLiveURL(resultData[0]);
+                                    if (resultData[2] != null){
+                                        for (String s : resultData[2].split(";")) {
+                                            String[] split = s.split("=");
+                                            h.put(split[0], split[1]);
+                                        }
+                                    } else {
+                                        h = null;
+                                    }
+                                    liveData.setLiveAccessCookie(h);
+                                }
+
+                                LiveCacheList.put(liveData.getURL(), liveData);
+                            } else {
+                                liveData.setLiveURL(cacheData.getLiveURL());
+                                liveData.setLiveAccessCookie(cacheData.getLiveAccessCookie());
+                            }
+
+                            return gson.toJson(liveData);
+
+                        } else {
+                            return "{\"ErrorMessage\": \"取得に失敗しました。 (Websocket)\"}";
+                        }
+
+                    } else {
+                        return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                    }
+                    //return gson.toJson(json);
                 }
             }
 
