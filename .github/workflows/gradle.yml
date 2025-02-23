@@ -294,7 +294,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-              - 作り直し(ニコ動/ニコ生のみ対応)
+              - Proxy指定ができるように
           draft: false
           prerelease: true
 
