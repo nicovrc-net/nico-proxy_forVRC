@@ -87,6 +87,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 JsonElement element = gson.fromJson(json, JsonElement.class);
                 if (element.getAsJsonObject().has("ErrorMessage")) {
                     String errorMessage = element.getAsJsonObject().get("ErrorMessage").getAsString();
+                    System.out.println("[Get URL] " + URL + " ---> " + errorMessage);
 
                     try {
                         MessageDigest sha3_256 = MessageDigest.getInstance("SHA3-256");
@@ -239,6 +240,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     if (result != null){
                         if (result.getVideoURL() != null){
                             // ニコ動
+                            System.out.println("[Get URL] " + URL + " ---> " + result.getVideoURL());
 
                             try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                                     .version(HttpClient.Version.HTTP_2)
@@ -327,6 +329,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                             .build()) {
 
                                 String liveURL = result.getLiveURL();
+                                System.out.println("[Get URL] " + URL + " ---> " + liveURL);
                                 if (result.getLiveAccessCookie() != null && !result.getLiveAccessCookie().isEmpty()){
                                     // 新鯖
 
