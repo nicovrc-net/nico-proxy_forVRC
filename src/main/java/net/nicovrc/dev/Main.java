@@ -93,6 +93,8 @@ JPProxy:
 
             if (isError){
                 System.out.println("[Info] config.ymlを設定してください。");
+                // 終了処理
+                proxyCheckTimer.cancel();
                 return;
             }
         }
