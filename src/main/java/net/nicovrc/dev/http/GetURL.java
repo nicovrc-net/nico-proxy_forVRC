@@ -35,6 +35,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final List<ServiceAPI> list = ServiceList.getServiceList();
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
     private final Pattern dummy_url = Pattern.compile("&dummy=true");
+    private final Pattern vrc_getStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
 
     private final Pattern hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"\n");
     private final Pattern hls_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
@@ -85,6 +86,30 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             byte[] content = new byte[0];
             if (json != null){
                 JsonElement element = gson.fromJson(json, JsonElement.class);
+
+                if (vrc_getStringUA.matcher(httpRequest).find()){
+                    String errorMessage = null;
+                    if (element.getAsJsonObject().has("ErrorMessage")) {
+                        errorMessage = element.getAsJsonObject().get("ErrorMessage").getAsString();
+                    }
+                    // タイトル取得
+                    if (errorMessage != null){
+                        System.out.println("[Get URL] " + URL + " ---> " + errorMessage);
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", ("エラー : " + errorMessage).getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                    } else if (element.getAsJsonObject().has("Title")) {
+                        System.out.println("[Get URL] " + URL + " ---> " + element.getAsJsonObject().get("Title").getAsString());
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", element.getAsJsonObject().get("Title").getAsString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                    } else {
+                        System.out.println("[Get URL] " + URL + " ---> " + "(タイトルなし)");
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", "".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                    }
+
+                    errorMessage = null;
+                    element = null;
+                    content = null;
+                    return;
+                }
+
                 if (element.getAsJsonObject().has("ErrorMessage")) {
                     String errorMessage = element.getAsJsonObject().get("ErrorMessage").getAsString();
                     if (!dummy_url.matcher(URL).find()){
