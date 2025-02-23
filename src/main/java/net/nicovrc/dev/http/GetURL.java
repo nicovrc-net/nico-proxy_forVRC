@@ -343,7 +343,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             } catch (Exception e){
                                 // e.printStackTrace();
                             }
-                        } else {
+                        } else if (result.getLiveURL() != null) {
                             // ニコ生
                             try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                                     .version(HttpClient.Version.HTTP_2)
@@ -477,6 +477,18 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     // ex.printStackTrace();
                                 }
                             }
+                        } else {
+                            File file = new File("./error-video/error_404_2.mp4");
+                            if (file.exists()){
+                                FileInputStream stream = new FileInputStream(file);
+                                content = stream.readAllBytes();
+                                stream.close();
+                                stream = null;
+                            }
+                            //System.out.println(content.length);
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
+                            file = null;
+                            content = null;
                         }
 
                     }
