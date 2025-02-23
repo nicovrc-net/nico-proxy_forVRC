@@ -6,4 +6,5 @@ public interface ServiceAPI {
     void Set(String json);
     String Get();
     String getServiceName();
+    String getUseProxy();
 }

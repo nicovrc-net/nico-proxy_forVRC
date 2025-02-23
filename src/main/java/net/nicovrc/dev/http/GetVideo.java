@@ -4,12 +4,15 @@ import net.nicovrc.dev.Function;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
 import java.net.Socket;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -20,12 +23,19 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private String httpRequest = null;
     private String URL = null;
     private Socket sock = null;
+    private String proxy = null;
 
     private final Pattern matcher_url = Pattern.compile("/https/cookie:\\[(.*)\\]/(.+)");
 
     @Override
     public void run() {
         try {
+            // Proxy
+            if (!Function.ProxyList.isEmpty()){
+                int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
+                proxy = Function.ProxyList.get(i);
+            }
+
             Matcher matcher = matcher_url.matcher(URL);
 
             String method = Function.getMethod(httpRequest);
@@ -45,11 +55,17 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             }
             //System.out.println("debug : " + CookieText + " / " + URL);
 
-            try (HttpClient client = HttpClient.newBuilder()
+            try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                     .version(HttpClient.Version.HTTP_2)
                     .followRedirects(HttpClient.Redirect.NORMAL)
                     .connectTimeout(Duration.ofSeconds(5))
-                    .build()) {
+                    .build() :
+                    HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_2)
+                            .followRedirects(HttpClient.Redirect.NORMAL)
+                            .connectTimeout(Duration.ofSeconds(5))
+                            .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
+                            .build()) {
 
                 HttpRequest request;
                 if (CookieText == null || CookieText.isEmpty()){

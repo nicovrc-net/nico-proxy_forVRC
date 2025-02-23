@@ -6,12 +6,15 @@ import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.NicoNicoVideo;
 
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -68,6 +71,8 @@ public class NicoVideo implements ServiceAPI {
 
     private final ConcurrentHashMap<String, NicoNicoVideo> LiveCacheList = new ConcurrentHashMap<>();
 
+    private String Proxy = null;
+
     @Override
     public String[] getCorrespondingURL() {
         return SupportURL;
@@ -86,6 +91,12 @@ public class NicoVideo implements ServiceAPI {
     public String Get() {
         if (URL == null || URL.isEmpty()){
             return "{\"ErrorMessage\": \"URLがありません\"}";
+        }
+
+        // Proxy
+        if (!Function.ProxyList.isEmpty()){
+            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
+            Proxy = Function.ProxyList.get(i);
         }
 
         String url = URL.split("\\?")[0];
@@ -126,11 +137,22 @@ public class NicoVideo implements ServiceAPI {
 
         NicoNicoVideo result = new NicoNicoVideo();
         try {
-            HttpClient client = HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_2)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .connectTimeout(Duration.ofSeconds(5))
-                    .build();
+            HttpClient client;
+            if (Proxy == null){
+                client = HttpClient.newBuilder()
+                        .version(HttpClient.Version.HTTP_2)
+                        .followRedirects(HttpClient.Redirect.NORMAL)
+                        .connectTimeout(Duration.ofSeconds(5))
+                        .build();
+            } else {
+                String[] s = Proxy.split(":");
+                client = HttpClient.newBuilder()
+                        .version(HttpClient.Version.HTTP_2)
+                        .followRedirects(HttpClient.Redirect.NORMAL)
+                        .connectTimeout(Duration.ofSeconds(5))
+                        .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
+                        .build();
+            }
 
             URI uri = new URI(accessUrl);
             HttpRequest request = HttpRequest.newBuilder()
@@ -229,11 +251,21 @@ public class NicoVideo implements ServiceAPI {
                     String sendJson = "{\"outputs\":["+videoJson.substring(0, videoJson.length() - 1)+"]}";
                     //System.out.println(sendJson);
 
-                    client = HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_2)
-                            .followRedirects(HttpClient.Redirect.NORMAL)
-                            .connectTimeout(Duration.ofSeconds(5))
-                            .build();
+                    if (Proxy == null){
+                        client = HttpClient.newBuilder()
+                                .version(HttpClient.Version.HTTP_2)
+                                .followRedirects(HttpClient.Redirect.NORMAL)
+                                .connectTimeout(Duration.ofSeconds(5))
+                                .build();
+                    } else {
+                        String[] s = Proxy.split(":");
+                        client = HttpClient.newBuilder()
+                                .version(HttpClient.Version.HTTP_2)
+                                .followRedirects(HttpClient.Redirect.NORMAL)
+                                .connectTimeout(Duration.ofSeconds(5))
+                                .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
+                                .build();
+                    }
 
                     uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId);
                     request = HttpRequest.newBuilder()
@@ -316,11 +348,21 @@ public class NicoVideo implements ServiceAPI {
                             if (cacheData == null){
                                 String WebsocketURL = json.getAsJsonObject().get("site").getAsJsonObject().get("relive").getAsJsonObject().get("webSocketUrl").getAsString();
 
-                                client = HttpClient.newBuilder()
-                                        .version(HttpClient.Version.HTTP_2)
-                                        .followRedirects(HttpClient.Redirect.NORMAL)
-                                        .connectTimeout(Duration.ofSeconds(5))
-                                        .build();
+                                if (Proxy == null){
+                                    client = HttpClient.newBuilder()
+                                            .version(HttpClient.Version.HTTP_2)
+                                            .followRedirects(HttpClient.Redirect.NORMAL)
+                                            .connectTimeout(Duration.ofSeconds(5))
+                                            .build();
+                                } else {
+                                    String[] s = Proxy.split(":");
+                                    client = HttpClient.newBuilder()
+                                            .version(HttpClient.Version.HTTP_2)
+                                            .followRedirects(HttpClient.Redirect.NORMAL)
+                                            .connectTimeout(Duration.ofSeconds(5))
+                                            .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
+                                            .build();
+                                }
 
                                 final String[] resultData = new String[]{"", "", null};
                                 final Timer niconamaTimer = new Timer();
@@ -477,5 +519,10 @@ public class NicoVideo implements ServiceAPI {
     @Override
     public String getServiceName() {
         return "ニコニコ";
+    }
+
+    @Override
+    public String getUseProxy() {
+        return Proxy;
     }
 }

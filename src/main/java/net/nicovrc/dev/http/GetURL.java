@@ -10,14 +10,13 @@ import net.nicovrc.dev.Service.ServiceList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.net.Socket;
-import java.net.URI;
-import java.net.URLEncoder;
+import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
@@ -30,6 +29,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private Socket sock = null;
     private String URL = null;
     private String httpRequest = null;
+    private String Proxy = null;
 
     private final Gson gson = Function.gson;
     private final List<ServiceAPI> list = ServiceList.getServiceList();
@@ -44,6 +44,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     @Override
     public void run() {
+
+        // Proxy
+        if (!Function.ProxyList.isEmpty()){
+            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
+            Proxy = Function.ProxyList.get(i);
+        }
 
         String method = Function.getMethod(httpRequest);
 
@@ -67,10 +73,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             String json = null;
             String ServiceName = null;
+            String proxy = null;
             if (api != null){
                 api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\"}");
                 json = api.Get();
                 ServiceName = api.getServiceName();
+                proxy = api.getUseProxy();
             }
 
             //System.out.println(json);
@@ -94,11 +102,17 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             stream = null;
                         } else {
                             //
-                            try (HttpClient client = HttpClient.newBuilder()
+                            try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                                     .version(HttpClient.Version.HTTP_2)
                                     .followRedirects(HttpClient.Redirect.NORMAL)
                                     .connectTimeout(Duration.ofSeconds(5))
-                                    .build()) {
+                                    .build() :
+                                    HttpClient.newBuilder()
+                                            .version(HttpClient.Version.HTTP_2)
+                                            .followRedirects(HttpClient.Redirect.NORMAL)
+                                            .connectTimeout(Duration.ofSeconds(5))
+                                            .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
+                                            .build()) {
 
                                 HttpRequest request = HttpRequest.newBuilder()
                                         .uri(new URI("https://nicovrc.net/v3-video/error.php?msg=" + URLEncoder.encode(errorMessage, StandardCharsets.UTF_8)))
@@ -225,11 +239,18 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     if (result != null){
                         if (result.getVideoURL() != null){
                             // ニコ動
-                            try (HttpClient client = HttpClient.newBuilder()
+
+                            try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                                     .version(HttpClient.Version.HTTP_2)
                                     .followRedirects(HttpClient.Redirect.NORMAL)
                                     .connectTimeout(Duration.ofSeconds(5))
-                                    .build()) {
+                                    .build() :
+                                    HttpClient.newBuilder()
+                                            .version(HttpClient.Version.HTTP_2)
+                                            .followRedirects(HttpClient.Redirect.NORMAL)
+                                            .connectTimeout(Duration.ofSeconds(5))
+                                            .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
+                                            .build()) {
 
                                 final StringBuilder sb = new StringBuilder();
                                 result.getVideoAccessCookie().forEach((name, data)->{
@@ -293,11 +314,17 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             }
                         } else {
                             // ニコ生
-                            try (HttpClient client = HttpClient.newBuilder()
+                            try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                                     .version(HttpClient.Version.HTTP_2)
                                     .followRedirects(HttpClient.Redirect.NORMAL)
                                     .connectTimeout(Duration.ofSeconds(5))
-                                    .build()) {
+                                    .build() :
+                                    HttpClient.newBuilder()
+                                            .version(HttpClient.Version.HTTP_2)
+                                            .followRedirects(HttpClient.Redirect.NORMAL)
+                                            .connectTimeout(Duration.ofSeconds(5))
+                                            .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
+                                            .build()) {
 
                                 String liveURL = result.getLiveURL();
                                 if (result.getLiveAccessCookie() != null && !result.getLiveAccessCookie().isEmpty()){
