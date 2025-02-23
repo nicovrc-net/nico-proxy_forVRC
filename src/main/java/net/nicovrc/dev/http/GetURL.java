@@ -413,7 +413,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                             .build();
 
                                     HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-                                    String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
+                                    String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").isPresent() ? send.headers().firstValue("content-type").get() : "" : send.headers().firstValue("Content-Type").get();
                                     byte[] body = send.body();
                                     if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")){
                                         // https://liveedge231.dmc.nico/hlslive/ht2_nicolive/nicolive-production-pg130607675867723_4ad3364a300b5325d4b25e4013a11ea9a50ef78c26d1d643c642f4ab14b905d4/4/mp4/playlist.m3u8?ht2_nicolive=131256034.ggfv0cb1a7_ss31uh_1u5gfs7lsf63i&__poll__=0
