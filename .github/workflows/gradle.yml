@@ -129,7 +129,7 @@ jobs:
         shell: bash
 
   autotest3:
-    needs: [build-21, download_ffmpeg]
+    needs: [build-21]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -145,11 +145,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar
-
-      - name: Download ffmpeg
-        uses: actions/download-artifact@v4
-        with:
-          name: ffmpeg
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -165,7 +160,7 @@ jobs:
         shell: bash
 
   autotest4:
-    needs: [build-21, download_ffmpeg]
+    needs: [build-21]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -181,11 +176,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar
-
-      - name: Download ffmpeg
-        uses: actions/download-artifact@v4
-        with:
-          name: ffmpeg
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -201,7 +191,7 @@ jobs:
         shell: bash
 
   autotest5:
-    needs: [build-21, download_ffmpeg]
+    needs: [build-21]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -217,11 +207,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar
-
-      - name: Download ffmpeg
-        uses: actions/download-artifact@v4
-        with:
-          name: ffmpeg
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -272,8 +257,38 @@ jobs:
           fi
         shell: bash
 
+  autotest7:
+    needs: [build-21]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
+        shell: bash
+
+      - name: URL Request Test (Title)
+        run: |
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" -H "User-Agent: UnityPlayer/2022.3.22f1-DWR (UnityWebRequest/1.0, libcurl/8.5.0-DEV)" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9)
+          if [ "$HTTP_STATUS" -ne "text/plain" ]; then
+            echo "Expected HTTP status text/plain but got $HTTP_STATUS"
+            exit 1
+          fi
+        shell: bash
   release:
-    needs: [autotest1, autotest2, autotest3, autotest4, autotest5, autotest6]
+    needs: [autotest1, autotest2, autotest3, autotest4, autotest5, autotest6, autotest7]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
