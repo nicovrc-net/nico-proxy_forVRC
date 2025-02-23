@@ -34,7 +34,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Gson gson = Function.gson;
     private final List<ServiceAPI> list = ServiceList.getServiceList();
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
-    private final Pattern sub = Pattern.compile("&dummy=true");
+    private final Pattern dummy_url = Pattern.compile("&dummy=true");
 
     private final Pattern hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"\n");
     private final Pattern hls_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
@@ -87,7 +87,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 JsonElement element = gson.fromJson(json, JsonElement.class);
                 if (element.getAsJsonObject().has("ErrorMessage")) {
                     String errorMessage = element.getAsJsonObject().get("ErrorMessage").getAsString();
-                    System.out.println("[Get URL] " + URL + " ---> " + errorMessage);
+                    if (!dummy_url.matcher(URL).find()){
+                        System.out.println("[Get URL] " + URL + " ---> " + errorMessage);
+                    }
 
                     try {
                         MessageDigest sha3_256 = MessageDigest.getInstance("SHA3-256");
@@ -240,7 +242,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     if (result != null){
                         if (result.getVideoURL() != null){
                             // ニコ動
-                            System.out.println("[Get URL] " + URL + " ---> " + result.getVideoURL());
+                            if (!dummy_url.matcher(URL).find()){
+                                System.out.println("[Get URL] " + URL + " ---> " + result.getVideoURL());
+                            }
 
                             try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                                     .version(HttpClient.Version.HTTP_2)
@@ -279,7 +283,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     return;
                                 }
                                 // それ以外の場合は
-                                if (!sub.matcher(httpRequest).find()){
+                                if (!dummy_url.matcher(httpRequest).find()){
 
                                     sb.setLength(0);
                                     Matcher matcher1 = hls_video.matcher(hls);
@@ -329,7 +333,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                             .build()) {
 
                                 String liveURL = result.getLiveURL();
-                                System.out.println("[Get URL] " + URL + " ---> " + liveURL);
+                                if (!dummy_url.matcher(URL).find()){
+                                    System.out.println("[Get URL] " + URL + " ---> " + liveURL);
+                                }
                                 if (result.getLiveAccessCookie() != null && !result.getLiveAccessCookie().isEmpty()){
                                     // 新鯖
 
@@ -364,7 +370,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     }
 
                                     // それ以外の場合は
-                                    if (!sub.matcher(httpRequest).find()){
+                                    if (!dummy_url.matcher(httpRequest).find()){
                                         sb.setLength(0);
 
                                         String hls = new String(body, StandardCharsets.UTF_8);
