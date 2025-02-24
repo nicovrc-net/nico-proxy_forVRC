@@ -151,6 +151,10 @@ public class bilibili_com implements ServiceAPI {
                 }
             }
 
+            if (cid == -1) {
+                return "{\"ErrorMessage\": \"動画が存在しません。\"}";
+            }
+
             uri = new URI("https://api.bilibili.com/x/player/playurl?bvid="+VideoID+"&cid="+cid);
             request = HttpRequest.newBuilder()
                     .uri(uri)
