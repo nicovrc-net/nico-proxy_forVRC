@@ -113,23 +113,10 @@ public class Twitter implements ServiceAPI {
 
             json = gson.fromJson(send.body(), JsonElement.class);
             TwitterResult result = new TwitterResult();
-            if (json.isJsonObject() && json.getAsJsonObject().has("data") && json.getAsJsonObject().get("data").getAsJsonObject().has("tweetResult") && json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().has("legacy")) {
 
-                /*
-
-    private String URL;
-    private String TweetText;
-    private String Thumbnail;
-    private Long ReplyCount;
-    private Long RetweetCount;
-    private Long FavoriteCount;
-    private Long BookmarkCount;
-    private Long QuoteCount;
-
-    private String VideoURL;
-
-                 */
-                JsonElement element = json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().get("legacy");
+            //System.out.println(json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().has("legacy"));
+            if (json.isJsonObject() && json.getAsJsonObject().has("data") && json.getAsJsonObject().get("data").getAsJsonObject().has("tweetResult") && json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().has("result") && json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().get("result").getAsJsonObject().has("legacy")) {
+                JsonElement element = json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().get("result").getAsJsonObject().get("legacy");
 
                 int contentNumber = 0;
                 if (contentId != null){
@@ -145,11 +132,11 @@ public class Twitter implements ServiceAPI {
                 result.setBookmarkCount(element.getAsJsonObject().get("bookmark_count").getAsLong());
                 result.setQuoteCount(element.getAsJsonObject().get("quote_count").getAsLong());
 
-                JsonElement element1 = element.getAsJsonObject().get("extended_entities").getAsJsonObject().get("media").getAsJsonArray().get(contentNumber);
+                JsonElement element1 = element.getAsJsonObject().get("entities").getAsJsonObject().getAsJsonObject().get("media").getAsJsonArray().get(contentNumber);
                 result.setDuration(element1.getAsJsonObject().get("video_info").getAsJsonObject().get("duration_millis").getAsLong());
                 long MaxBitRate = -1;
                 String videoURL = "";
-                JsonArray array = element1.getAsJsonObject().get("variants").getAsJsonArray();
+                JsonArray array = element1.getAsJsonObject().get("video_info").getAsJsonObject().get("variants").getAsJsonArray();
                 for (JsonElement jsonElement : array) {
                     if (jsonElement.getAsJsonObject().has("bitrate")){
                         if (jsonElement.getAsJsonObject().get("bitrate").getAsLong() >= MaxBitRate){
@@ -170,14 +157,17 @@ public class Twitter implements ServiceAPI {
                     return "{\"ErrorMessage\": \"取得に失敗しました。 (理由 : "+reason+")\"}";
                 }
             } else {
+                //System.out.println(json);
                 return "{\"ErrorMessage\": \"ツイートがありません\"}";
             }
 
         } catch (Exception e){
-            // e.printStackTrace();
+            e.printStackTrace();
+            return "{\"ErrorMessage\": \"内部エラーです。\"}";
         }
 
-        return "";
+        //return "";
+
     }
 
     @Override
