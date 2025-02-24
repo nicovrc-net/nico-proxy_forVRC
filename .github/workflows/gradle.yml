@@ -309,10 +309,8 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-              - Proxy指定ができるように
-              - タイトル取得ができるように
-              - API「`/api/v1/get_version`」の追加
-              - bilibiliの再対応
+            - Youtube(サポート外)、Twitterの再対応
+            - APIもどき「`/api/v1/get_supportlist`」の追加
           draft: false
           prerelease: true
 

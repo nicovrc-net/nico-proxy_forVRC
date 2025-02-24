@@ -3,9 +3,7 @@ package net.nicovrc.dev.http;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
-import net.nicovrc.dev.api.GetVideoInfo;
-import net.nicovrc.dev.api.NicoVRCAPI;
-import net.nicovrc.dev.api.Test;
+import net.nicovrc.dev.api.*;
 
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -24,6 +22,8 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
         // WebAPIを追加する
         list.add(new GetVideoInfo());
         list.add(new Test());
+        list.add(new GetVersion());
+        list.add(new GetSupportList());
     }
 
     @Override
