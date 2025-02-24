@@ -68,7 +68,7 @@ public class Youtube implements ServiceAPI {
 
             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-            return "{\"title\": \""+send.body()+"\",\"VideoURL\": \"https://yt.8uro.net/r?v="+url+"&o=nicovrc\"}";
+            return "{\"Title\": \""+send.body()+"\",\"VideoURL\": \"https://yt.8uro.net/r?v="+url+"&o=nicovrc\"}";
         } catch (Exception e){
             return "{\"VideoURL\": \"https://yt.8uro.net/r?v="+url+"&o=nicovrc\"}";
         }
