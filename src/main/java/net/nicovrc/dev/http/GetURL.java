@@ -494,6 +494,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                     }
                 } else {
+                    System.out.println("[Get URL] " + URL + " ---> " + element.getAsJsonObject().get("VideoURL").getAsString());
                     OutputStream out = sock.getOutputStream();
                     StringBuilder sb_header = new StringBuilder();
 
