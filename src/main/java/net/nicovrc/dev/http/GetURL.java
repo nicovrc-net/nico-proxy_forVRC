@@ -10,6 +10,7 @@ import net.nicovrc.dev.Service.ServiceList;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -492,6 +493,17 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         }
 
                     }
+                } else {
+                    OutputStream out = sock.getOutputStream();
+                    StringBuilder sb_header = new StringBuilder();
+
+                    sb_header.append("HTTP/").append(Function.getHTTPVersion(httpRequest)).append(" 302 Found\nLocation: ").append(element.getAsJsonObject().get("VideoURL").getAsString()).append("\n\n");
+                    out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
+                    out.flush();
+
+                    out = null;
+                    sb_header.setLength(0);
+                    sb_header = null;
                 }
 
                 //Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", sb.toString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));

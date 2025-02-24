@@ -184,7 +184,7 @@ public class bilibili_com implements ServiceAPI {
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                             .headers("Referer", url)
-                            .GET()
+                            .HEAD()
                             .build();
 
                     send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
@@ -201,7 +201,7 @@ public class bilibili_com implements ServiceAPI {
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                             .headers("Referer", url)
-                            .GET()
+                            .HEAD()
                             .build();
 
                     send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
