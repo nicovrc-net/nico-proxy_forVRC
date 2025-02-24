@@ -310,6 +310,7 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
               - Proxy指定ができるように
+              - タイトル取得ができるように
           draft: false
           prerelease: true
 
