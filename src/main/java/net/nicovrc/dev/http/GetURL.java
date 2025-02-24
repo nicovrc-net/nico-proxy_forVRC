@@ -34,6 +34,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     private final Gson gson = Function.gson;
     private final List<ServiceAPI> list = ServiceList.getServiceList();
+
+    private final Pattern NotRemoveQuestionMarkURL = Pattern.compile("(youtu\\.be|www\\.youtube\\.com)");
+
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
     private final Pattern dummy_url = Pattern.compile("&dummy=true");
     private final Pattern vrc_getStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
@@ -77,7 +80,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             String ServiceName = null;
             String proxy = null;
             if (api != null){
-                api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\"}");
+                if (NotRemoveQuestionMarkURL.matcher(URL).find()){
+                    api.Set("{\"URL\":\""+URL.replaceAll("&dummy=true","")+"\"}");
+                } else {
+                    api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\"}");
+                }
+
                 json = api.Get();
                 ServiceName = api.getServiceName();
                 proxy = api.getUseProxy();
