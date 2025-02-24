@@ -1,5 +1,6 @@
 package net.nicovrc.dev.Service;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.bilibili;
@@ -168,12 +169,55 @@ public class bilibili_com implements ServiceAPI {
 
             send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-            return send.body();
+            json = Function.gson.fromJson(send.body(), JsonElement.class);
+            if (json.getAsJsonObject().has("data")){
+                JsonArray elements = json.getAsJsonObject().get("data").getAsJsonObject().get("durl").getAsJsonArray();
+                for (JsonElement element : elements) {
+                    if (result.getVideoURL() != null && !result.getVideoURL().isEmpty()){
+                        break;
+                    }
 
-            //return Function.gson.toJson(result);
+                    uri = new URI(element.getAsJsonObject().get("url").getAsString());
+                    request = HttpRequest.newBuilder()
+                            .uri(uri)
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Referer", url)
+                            .GET()
+                            .build();
+
+                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                    if (send.statusCode() < 400){
+                        result.setVideoURL(element.getAsJsonObject().get("url").getAsString());
+                        continue;
+                    }
+
+                    uri = new URI(element.getAsJsonObject().get("backup_url").getAsString());
+                    request = HttpRequest.newBuilder()
+                            .uri(uri)
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Referer", url)
+                            .GET()
+                            .build();
+
+                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                    if (send.statusCode() < 400){
+                        result.setVideoURL(element.getAsJsonObject().get("url").getAsString());
+                    }
+                }
+
+            }
+
+            client.close();
+            return Function.gson.toJson(result);
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage()+")\"}";
+            return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+")\"}";
         }
 
     }
@@ -185,6 +229,6 @@ public class bilibili_com implements ServiceAPI {
 
     @Override
     public String getUseProxy() {
-        return "";
+        return Proxy;
     }
 }
