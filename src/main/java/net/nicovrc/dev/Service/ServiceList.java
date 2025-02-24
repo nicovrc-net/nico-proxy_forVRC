@@ -9,6 +9,7 @@ public class ServiceList {
         final List<ServiceAPI> list = new ArrayList<>();
         list.add(new NicoVideo());
         list.add(new bilibili_com());
+        list.add(new Youtube());
         return list;
     }
 }
