@@ -3,6 +3,7 @@ package net.nicovrc.dev.api;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.NicoVideo;
 import net.nicovrc.dev.Service.ServiceAPI;
+import net.nicovrc.dev.Service.bilibili_com;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,6 +14,7 @@ public class GetVideoInfo implements NicoVRCAPI {
 
     public GetVideoInfo(){
         siteList.add(new NicoVideo());
+        siteList.add(new bilibili_com());
     }
 
     @Override
