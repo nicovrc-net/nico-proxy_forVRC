@@ -10,6 +10,7 @@ public class ServiceList {
         list.add(new NicoVideo());
         list.add(new bilibili_com());
         list.add(new Youtube());
+        list.add(new Twitter());
         return list;
     }
 }
