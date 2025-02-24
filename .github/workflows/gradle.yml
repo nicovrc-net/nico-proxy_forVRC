@@ -311,6 +311,7 @@ jobs:
           body: |
               - Proxy指定ができるように
               - タイトル取得ができるように
+              - API「`/api/v1/get_version`」の追加
           draft: false
           prerelease: true
 
