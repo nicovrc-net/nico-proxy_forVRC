@@ -324,3 +324,10 @@ jobs:
           asset_path: ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
           asset_name: NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
           asset_content_type: application/java-archive
+
+      - name: Delete File
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            jar
+            ffmpeg
