@@ -2,6 +2,7 @@ package net.nicovrc.dev.Service;
 
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.bilibili;
 
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
@@ -100,13 +101,70 @@ public class bilibili_com implements ServiceAPI {
                 client = null;
                 return "{\"ErrorMessage\": \"取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")\"}";
             }
-
+/*
             client.close();
             request = null;
             uri = null;
             client = null;
             return send.body();
+*/
+            /*
+            *
+            * private String URL;
+            * private String Title;
+            * private String Description;
+            * private String Thumbnail;
+            * private long ViewCount;
+            * private long ReplyCount;
+            * private long LikeCount;
+            * private long CoinCount;
+            * private long FavoriteCount;
+            * private long Duration;
 
+            * private String VideoURL;
+            * private HashMap<String, String> VideoAccessCookie;
+            *
+             */
+
+            JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
+
+            bilibili result = new bilibili();
+            long cid = -1;
+            if (json.isJsonObject() && json.getAsJsonObject().has("data")){
+                result.setURL("https://www.bilibili.com/video/"+json.getAsJsonObject().get("data").getAsJsonObject().get("bvid").getAsString()+"/");
+                result.setTitle(json.getAsJsonObject().get("data").getAsJsonObject().get("title").getAsString());
+                result.setDescription(json.getAsJsonObject().get("data").getAsJsonObject().get("desc").getAsString());
+                result.setThumbnail(json.getAsJsonObject().get("data").getAsJsonObject().get("pic").getAsString());
+                result.setViewCount(json.getAsJsonObject().get("data").getAsJsonObject().get("stat").getAsJsonObject().get("view").getAsLong());
+                result.setReplyCount(json.getAsJsonObject().get("data").getAsJsonObject().get("stat").getAsJsonObject().get("reply").getAsLong());
+                result.setLikeCount(json.getAsJsonObject().get("data").getAsJsonObject().get("stat").getAsJsonObject().get("like").getAsLong());
+                result.setCoinCount(json.getAsJsonObject().get("data").getAsJsonObject().get("stat").getAsJsonObject().get("coin").getAsLong());
+                result.setFavoriteCount(json.getAsJsonObject().get("data").getAsJsonObject().get("stat").getAsJsonObject().get("favorite").getAsLong());
+                result.setDuration(json.getAsJsonObject().get("data").getAsJsonObject().get("duration").getAsLong());
+
+                cid = json.getAsJsonObject().get("data").getAsJsonObject().get("cid").getAsLong();
+            }
+
+            if (json.getAsJsonObject().has("code")){
+                if (json.getAsJsonObject().get("code").getAsLong() == -400) {
+                    return "{\"ErrorMessage\": \"動画が存在しません。\"}";
+                }
+            }
+
+            uri = new URI("https://api.bilibili.com/x/player/playurl?bvid="+VideoID+"&cid="+cid);
+            request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .headers("User-Agent", Function.UserAgent)
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .GET()
+                    .build();
+
+            send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+            return send.body();
+
+            //return Function.gson.toJson(result);
         } catch (Exception e){
             e.printStackTrace();
             return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage()+")\"}";
