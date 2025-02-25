@@ -63,6 +63,24 @@ jobs:
           name: ffmpeg
           path: ./ffmpeg
 
+  download_errorVideo:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download Video
+        run: |
+          wget https://r2.7mi.site/vrc/nico/error_404.mp4 > null
+          wget https://r2.7mi.site/vrc/nico/error_000.mp4 > null
+          wget https://r2.7mi.site/vrc/nico/error_404_2.mp4 > null
+        shell: bash
+
+      - name: Upload Video
+        uses: actions/upload-artifact@v4
+        with:
+          name: video
+          path: ./*.mp4
+
   autotest1:
     needs: build-21
     runs-on: ubuntu-24.04
@@ -129,7 +147,7 @@ jobs:
         shell: bash
 
   autotest3:
-    needs: [build-21]
+    needs: [build-21, download_errorVideo]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -145,6 +163,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar
+
+      - name: Download Video
+        uses: actions/download-artifact@v4
+        with:
+          name: video
+
+      - name: Set VideoFile
+        run: |
+          mkdir ./error-video
+          mv ./*.mp4 ./error-video
+        shell: bash
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -160,7 +189,7 @@ jobs:
         shell: bash
 
   autotest4:
-    needs: [build-21]
+    needs: [build-21, download_errorVideo]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -176,6 +205,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar
+
+      - name: Download Video
+        uses: actions/download-artifact@v4
+        with:
+          name: video
+
+      - name: Set VideoFile
+        run: |
+          mkdir ./error-video
+          mv ./*.mp4 ./error-video
+        shell: bash
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -191,7 +231,7 @@ jobs:
         shell: bash
 
   autotest5:
-    needs: [build-21]
+    needs: [build-21, download_errorVideo]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -208,6 +248,17 @@ jobs:
         with:
           name: jar
 
+      - name: Download Video
+        uses: actions/download-artifact@v4
+        with:
+          name: video
+
+      - name: Set VideoFile
+        run: |
+          mkdir ./error-video
+          mv ./*.mp4 ./error-video
+        shell: bash
+
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
@@ -222,7 +273,7 @@ jobs:
         shell: bash
 
   autotest6:
-    needs: [build-21, download_ffmpeg]
+    needs: [build-21, download_ffmpeg, download_errorVideo]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -244,6 +295,17 @@ jobs:
         with:
           name: ffmpeg
 
+      - name: Download Video
+        uses: actions/download-artifact@v4
+        with:
+          name: video
+
+      - name: Set VideoFile
+        run: |
+          mkdir ./error-video
+          mv ./*.mp4 ./error-video
+        shell: bash
+
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
@@ -258,7 +320,7 @@ jobs:
         shell: bash
 
   autotest7:
-    needs: [build-21]
+    needs: [build-21, ]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -274,6 +336,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar
+
+      - name: Download Video
+        uses: actions/download-artifact@v4
+        with:
+          name: video
+
+      - name: Set VideoFile
+        run: |
+          mkdir ./error-video
+          mv ./*.mp4 ./error-video
+        shell: bash
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
