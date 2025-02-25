@@ -400,8 +400,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - Youtube(サポート外)、Twitter、TikTokの再対応
-            - APIもどき「`/api/v1/get_supportlist`」の追加
+            - の再対応
           draft: false
           prerelease: true
 
