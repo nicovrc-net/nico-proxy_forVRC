@@ -4,8 +4,10 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.NicoNicoVideo;
+import net.nicovrc.dev.Service.Result.TikTokResult;
 import net.nicovrc.dev.Service.ServiceAPI;
 import net.nicovrc.dev.Service.ServiceList;
+import net.nicovrc.dev.Service.TikTok;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -273,10 +275,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
                 } else if (ServiceName.equals("ニコニコ")) {
                     NicoNicoVideo result = gson.fromJson(json, NicoNicoVideo.class);
-                    if (result != null){
-                        if (result.getVideoURL() != null){
+                    if (result != null) {
+                        if (result.getVideoURL() != null) {
                             // ニコ動
-                            if (!dummy_url.matcher(URL).find()){
+                            if (!dummy_url.matcher(URL).find()) {
                                 System.out.println("[Get URL] " + URL + " ---> " + result.getVideoURL());
                             }
 
@@ -293,7 +295,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                             .build()) {
 
                                 final StringBuilder sb = new StringBuilder();
-                                result.getVideoAccessCookie().forEach((name, data)->{
+                                result.getVideoAccessCookie().forEach((name, data) -> {
                                     sb.append(name).append("=").append(data).append(";");
                                 });
 
@@ -305,9 +307,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                         .build();
 
                                 HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                                String hls = send.body().replaceAll("https://delivery\\.domand\\.nicovideo\\.jp", "/https/cookie:["+sb.substring(0, sb.length() - 1)+"]/delivery.domand.nicovideo.jp");
+                                String hls = send.body().replaceAll("https://delivery\\.domand\\.nicovideo\\.jp", "/https/cookie:[" + sb.substring(0, sb.length() - 1) + "]/delivery.domand.nicovideo.jp");
 
-                                if (vlc_ua.matcher(httpRequest).find()){
+                                if (vlc_ua.matcher(httpRequest).find()) {
                                     // VLCのときはそのまま
                                     Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hls.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                                     sb.setLength(0);
@@ -317,25 +319,25 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     return;
                                 }
                                 // それ以外の場合は
-                                if (!dummy_url.matcher(httpRequest).find()){
+                                if (!dummy_url.matcher(httpRequest).find()) {
 
                                     sb.setLength(0);
                                     Matcher matcher1 = hls_video.matcher(hls);
                                     Matcher matcher2 = hls_audio.matcher(hls);
-                                    if (matcher1.find() && matcher2.find()){
+                                    if (matcher1.find() && matcher2.find()) {
                                         hls = "#EXTM3U\n" +
                                                 "#EXT-X-VERSION:6\n" +
                                                 "#EXT-X-INDEPENDENT-SEGMENTS\n" +
-                                                "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\""+matcher2.group(2)+"\"\n" +
-                                                "#EXT-X-STREAM-INF:BANDWIDTH="+matcher1.group(1)+",AVERAGE-BANDWIDTH="+matcher1.group(2)+",CODECS=\""+matcher1.group(3)+"\",RESOLUTION="+matcher1.group(4)+",FRAME-RATE="+matcher1.group(5)+",AUDIO=\"audio\"\n" +
+                                                "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
+                                                "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"audio\"\n" +
                                                 "dummy";
 
                                     }
 
                                     String[] split = hls.split("\n");
-                                    split[split.length-1] = "/?url="+URL+"&dummy=true";
+                                    split[split.length - 1] = "/?url=" + URL + "&dummy=true";
 
-                                    for (String str : split){
+                                    for (String str : split) {
                                         sb.append(str).append("\n");
                                     }
 
@@ -349,7 +351,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     send = null;
                                     request = null;
                                 }
-                            } catch (Exception e){
+                            } catch (Exception e) {
                                 // e.printStackTrace();
                             }
                         } else if (result.getLiveURL() != null) {
@@ -367,14 +369,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                             .build()) {
 
                                 String liveURL = result.getLiveURL();
-                                if (!dummy_url.matcher(URL).find()){
+                                if (!dummy_url.matcher(URL).find()) {
                                     System.out.println("[Get URL] " + URL + " ---> " + liveURL);
                                 }
-                                if (result.getLiveAccessCookie() != null && !result.getLiveAccessCookie().isEmpty()){
+                                if (result.getLiveAccessCookie() != null && !result.getLiveAccessCookie().isEmpty()) {
                                     // 新鯖
 
                                     final StringBuilder sb = new StringBuilder();
-                                    result.getLiveAccessCookie().forEach((name, value)->{
+                                    result.getLiveAccessCookie().forEach((name, value) -> {
                                         sb.append(name).append("=").append(value).append("; ");
                                     });
 
@@ -392,10 +394,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")) {
                                         String s = new String(body, StandardCharsets.UTF_8);
                                         //System.out.println(s);
-                                        s = s.replaceAll("https://", "/https/cookie:["+(sb.substring(0, sb.length() - 2) == null || sb.substring(0, sb.length() - 2).isEmpty() ? "" : sb.substring(0, sb.length() - 2))+"]/");
+                                        s = s.replaceAll("https://", "/https/cookie:[" + (sb.substring(0, sb.length() - 2) == null || sb.substring(0, sb.length() - 2).isEmpty() ? "" : sb.substring(0, sb.length() - 2)) + "]/");
                                         body = s.getBytes(StandardCharsets.UTF_8);
                                     }
-                                    if (vlc_ua.matcher(httpRequest).find()){
+                                    if (vlc_ua.matcher(httpRequest).find()) {
                                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
                                         method = null;
                                         sb.setLength(0);
@@ -404,26 +406,26 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     }
 
                                     // それ以外の場合は
-                                    if (!dummy_url.matcher(httpRequest).find()){
+                                    if (!dummy_url.matcher(httpRequest).find()) {
                                         sb.setLength(0);
 
                                         String hls = new String(body, StandardCharsets.UTF_8);
                                         Matcher matcher1 = hlslive_video.matcher(hls);
                                         Matcher matcher2 = hlslive_audio.matcher(hls);
 
-                                        if (matcher1.find() && matcher2.find()){
+                                        if (matcher1.find() && matcher2.find()) {
                                             hls = "#EXTM3U\n" +
                                                     "#EXT-X-VERSION:6\n" +
                                                     "#EXT-X-INDEPENDENT-SEGMENTS\n" +
-                                                    "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"main\",NAME=\"Main Audio\",DEFAULT=YES,URI=\""+matcher2.group(2)+"\"\n" +
-                                                    "#EXT-X-STREAM-INF:BANDWIDTH="+matcher1.group(1)+",AVERAGE-BANDWIDTH="+matcher1.group(2)+",CODECS=\""+matcher1.group(3)+"\",RESOLUTION="+matcher1.group(4)+",FRAME-RATE="+matcher1.group(5)+",AUDIO=\"main\"\n" +
+                                                    "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"main\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
+                                                    "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"main\"\n" +
                                                     "dummy";
                                         }
 
                                         String[] split = hls.split("\n");
-                                        split[split.length-1] = "/?url="+URL+"&dummy=true";
+                                        split[split.length - 1] = "/?url=" + URL + "&dummy=true";
 
-                                        for (String str : split){
+                                        for (String str : split) {
                                             sb.append(str).append("\n");
                                         }
 
@@ -449,17 +451,17 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
                                     String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").isPresent() ? send.headers().firstValue("content-type").get() : "" : send.headers().firstValue("Content-Type").get();
                                     byte[] body = send.body();
-                                    if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")){
+                                    if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")) {
                                         // https://liveedge231.dmc.nico/hlslive/ht2_nicolive/nicolive-production-pg130607675867723_4ad3364a300b5325d4b25e4013a11ea9a50ef78c26d1d643c642f4ab14b905d4/4/mp4/playlist.m3u8?ht2_nicolive=131256034.ggfv0cb1a7_ss31uh_1u5gfs7lsf63i&__poll__=0
                                         String s = new String(body, StandardCharsets.UTF_8);
                                         //System.out.println(liveURL.replaceAll(split[split.length - 1].replaceAll("\\?", "\\\\?"), ""));
                                         String s1 = "/https/cookie:[]/" + (liveURL.replaceAll(split[split.length - 1].replaceAll("\\?", "\\\\?"), "").replaceAll("https://", ""));
-                                        s = s.replaceAll("1/ts/playlist\\.m3u8", s1+"/1/ts/playlist.m3u8");
-                                        s = s.replaceAll("2/ts/playlist\\.m3u8", s1+"/2/ts/playlist.m3u8");
-                                        s = s.replaceAll("3/ts/playlist\\.m3u8", s1+"/3/ts/playlist.m3u8");
-                                        s = s.replaceAll("4/ts/playlist\\.m3u8", s1+"/4/ts/playlist.m3u8");
-                                        s = s.replaceAll("5/ts/playlist\\.m3u8", s1+"/5/ts/playlist.m3u8");
-                                        s = s.replaceAll("6/ts/playlist\\.m3u8", s1+"/6/ts/playlist.m3u8");
+                                        s = s.replaceAll("1/ts/playlist\\.m3u8", s1 + "/1/ts/playlist.m3u8");
+                                        s = s.replaceAll("2/ts/playlist\\.m3u8", s1 + "/2/ts/playlist.m3u8");
+                                        s = s.replaceAll("3/ts/playlist\\.m3u8", s1 + "/3/ts/playlist.m3u8");
+                                        s = s.replaceAll("4/ts/playlist\\.m3u8", s1 + "/4/ts/playlist.m3u8");
+                                        s = s.replaceAll("5/ts/playlist\\.m3u8", s1 + "/5/ts/playlist.m3u8");
+                                        s = s.replaceAll("6/ts/playlist\\.m3u8", s1 + "/6/ts/playlist.m3u8");
                                         body = s.getBytes(StandardCharsets.UTF_8);
                                     }
                                     Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
@@ -467,13 +469,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     method = null;
                                 }
 
-                            } catch (Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
 
                                 try {
                                     content = null;
                                     File file = new File("./error-video/error_000.mp4");
-                                    if (file.exists()){
+                                    if (file.exists()) {
                                         FileInputStream stream = new FileInputStream(file);
                                         content = stream.readAllBytes();
                                         stream.close();
@@ -482,13 +484,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                                     Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
                                     content = null;
-                                } catch (Exception ex){
+                                } catch (Exception ex) {
                                     // ex.printStackTrace();
                                 }
                             }
                         } else {
                             File file = new File("./error-video/error_404_2.mp4");
-                            if (file.exists()){
+                            if (file.exists()) {
                                 FileInputStream stream = new FileInputStream(file);
                                 content = stream.readAllBytes();
                                 stream.close();
@@ -501,6 +503,59 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         }
 
                     }
+                } else if (ServiceName.equals("TikTok")) {
+                    TikTokResult result = gson.fromJson(json, TikTokResult.class);
+                    System.out.println("[Get URL] " + URL + " ---> " + result.getVideoURL());
+                    try (HttpClient client = proxy == null ? HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_2)
+                            .followRedirects(HttpClient.Redirect.NEVER)
+                            .connectTimeout(Duration.ofSeconds(5))
+                            .build() :
+                            HttpClient.newBuilder()
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .followRedirects(HttpClient.Redirect.NEVER)
+                                    .connectTimeout(Duration.ofSeconds(5))
+                                    .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
+                                    .build()) {
+
+                        //System.out.println(Proxy);
+                        URI uri = new URI(result.getVideoURL());
+                        //System.out.println(s);
+
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(uri)
+                                //.uri(new URI("http://localhost:25555/?url="+result.getVideoURL()))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Cookie", result.getVideoAccessCookie())
+                                .headers("Referer", "https://www.tiktok.com/")
+                                .GET()
+                                .build();
+
+                        HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+                        //System.out.println(send.uri());
+                        String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, send.body(), method != null && method.equals("HEAD"));
+                        method = null;
+                    } catch (Exception e){
+                        e.printStackTrace();
+                        try {
+                            content = null;
+                            File file = new File("./error-video/error_000.mp4");
+                            if (file.exists()){
+                                FileInputStream stream = new FileInputStream(file);
+                                content = stream.readAllBytes();
+                                stream.close();
+                                stream = null;
+                            }
+
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
+                            content = null;
+                        } catch (Exception ex){
+                            // ex.printStackTrace();
+                        }
+                    }
+
                 } else {
                     System.out.println("[Get URL] " + URL + " ---> " + element.getAsJsonObject().get("VideoURL").getAsString());
                     OutputStream out = sock.getOutputStream();

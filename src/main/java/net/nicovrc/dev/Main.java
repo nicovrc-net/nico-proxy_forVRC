@@ -31,6 +31,8 @@ public class Main {
 
     public static void main(String[] args) {
 
+        System.setProperty("jdk.httpclient.allowRestrictedHeaders", "Connection,Host");
+
         // config
         String config = """
 # ----------------------------

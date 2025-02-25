@@ -11,6 +11,7 @@ public class ServiceList {
         list.add(new bilibili_com());
         list.add(new Youtube());
         list.add(new Twitter());
+        list.add(new TikTok());
         return list;
     }
 }
