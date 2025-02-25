@@ -102,19 +102,11 @@ public class TikTok implements ServiceAPI {
 
             //send.headers().
             List<String> list = send.headers().allValues("Set-Cookie");
-            List<String> list2 = send.headers().allValues("set-cookie");
 
             StringBuilder sb = new StringBuilder();
             for (String s : list) {
                 //System.out.println(s);
 
-                String s1 = s.split(";")[0];
-                //System.out.println(s1);
-
-                sb.append(s1).append("; ");
-            }
-            for (String s : list2) {
-                //System.out.println(s);
                 String s1 = s.split(";")[0];
                 //System.out.println(s1);
 
