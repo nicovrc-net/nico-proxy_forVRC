@@ -25,7 +25,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private Socket sock = null;
     private String proxy = null;
 
-    private final Pattern matcher_url = Pattern.compile("/https/cookie:\\[(.*)\\]/(.+)");
+    private final Pattern matcher_url1 = Pattern.compile("/https/cookie:\\[(.*)\\]/(.+)");
+    private final Pattern matcher_url2 = Pattern.compile("/https/referer:\\[(.*)\\]/(.+)");
+    private final Pattern matcher_url3 = Pattern.compile("/https/referer:\\[(.*)\\]/cookie:\\[(.*)\\]/(.+)");
 
     @Override
     public void run() {
@@ -36,24 +38,41 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 proxy = Function.ProxyList.get(i);
             }
 
-            Matcher matcher = matcher_url.matcher(URL);
+            //System.out.println("/https/");
+
+            Matcher matcher = matcher_url1.matcher(URL);
+            Matcher matcher2 = matcher_url2.matcher(URL);
+            Matcher matcher3 = matcher_url3.matcher(URL);
 
             String method = Function.getMethod(httpRequest);
             String httpVersion = Function.getHTTPVersion(httpRequest);
 
             String CookieText = null;
+            String Referer = null;
             String URL = null;
             if (matcher.find()){
                 CookieText = matcher.group(1);
                 URL = "https://"+matcher.group(2);
-            } else {
+            }
+            if (matcher2.find()) {
+                Referer = matcher2.group(1);
+                URL = "https://"+matcher2.group(2);
+            }
+            if (matcher3.find()) {
+                Referer = matcher3.group(1);
+                CookieText = matcher3.group(2);
+                URL = "https://"+matcher3.group(3);
+            }
+
+            if (CookieText == null && Referer == null && URL == null) {
+                //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
                 Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8","Video Not Found".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                 method = null;
                 httpVersion = null;
 
                 return;
             }
-            //System.out.println("debug : " + CookieText + " / " + URL);
+            //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
 
             try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                     .version(HttpClient.Version.HTTP_2)
@@ -69,19 +88,38 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                 HttpRequest request;
                 if (CookieText == null || CookieText.isEmpty()){
-                    request = HttpRequest.newBuilder()
-                            .uri(new URI(URL))
-                            .headers("User-Agent", Function.UserAgent)
-                            .GET()
-                            .build();
+                    if (Referer == null || Referer.isEmpty()){
+                        request = HttpRequest.newBuilder()
+                                .uri(new URI(URL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .GET()
+                                .build();
+                    } else {
+                        request = HttpRequest.newBuilder()
+                                .uri(new URI(URL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Referer", Referer)
+                                .GET()
+                                .build();
+                    }
                 } else {
                     //System.out.println(URL);
-                    request = HttpRequest.newBuilder()
-                            .uri(new URI(URL))
-                            .headers("User-Agent", Function.UserAgent)
-                            .headers("Cookie", CookieText)
-                            .GET()
-                            .build();
+                    if (Referer == null || Referer.isEmpty()){
+                        request = HttpRequest.newBuilder()
+                                .uri(new URI(URL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Cookie", CookieText)
+                                .GET()
+                                .build();
+                    } else {
+                        request = HttpRequest.newBuilder()
+                                .uri(new URI(URL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Cookie", CookieText)
+                                .headers("Referer", Referer)
+                                .GET()
+                                .build();
+                    }
                 }
 
                 HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
@@ -96,12 +134,22 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 });
                 System.out.println("----");*/
 
+                //System.out.println("a");
                 byte[] body = send.body();
                 if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")){
                     String s = new String(body, StandardCharsets.UTF_8);
-                    s = s.replaceAll("https://", "/https/cookie:["+(CookieText == null || CookieText.isEmpty() ? "" : CookieText)+"]/");
+                    if (CookieText != null && !CookieText.isEmpty()){
+                        if (Referer == null || Referer.isEmpty()){
+                            s = s.replaceAll("https://", "/https/cookie:["+CookieText+"]/");
+                        } else {
+                            s = s.replaceAll("https://", "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
+                        }
+                    } else {
+                        s = s.replaceAll("https://", "/https/referer:["+Referer+"]/");
+                    }
                     body = s.getBytes(StandardCharsets.UTF_8);
                 }
+                //System.out.println("b");
                 Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
 
                 method = null;
@@ -125,12 +173,12 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     }
                     file = null;
                 } catch (Exception ex){
-                    // ex.printStackTrace();
+                     ex.printStackTrace();
                 }
             }
 
         } catch (Exception e){
-            // e.printStackTrace();
+             e.printStackTrace();
         }
     }
 

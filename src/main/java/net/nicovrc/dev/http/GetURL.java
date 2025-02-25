@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.NicoNicoVideo;
+import net.nicovrc.dev.Service.Result.OPENREC_Result;
 import net.nicovrc.dev.Service.Result.TikTokResult;
 import net.nicovrc.dev.Service.ServiceAPI;
 import net.nicovrc.dev.Service.ServiceList;
@@ -24,6 +25,7 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -555,7 +557,76 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             // ex.printStackTrace();
                         }
                     }
+                } else if (ServiceName.equals("OPENREC")) {
+                    OPENREC_Result result = gson.fromJson(json, OPENREC_Result.class);
+                    System.out.println("[Get URL] " + URL + " ---> " + (result.isLive() ? result.getLiveURL() : result.getVideoURL()));
+                    try (HttpClient client = proxy == null ? HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_2)
+                            .followRedirects(HttpClient.Redirect.NEVER)
+                            .connectTimeout(Duration.ofSeconds(5))
+                            .build() :
+                            HttpClient.newBuilder()
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .followRedirects(HttpClient.Redirect.NEVER)
+                                    .connectTimeout(Duration.ofSeconds(5))
+                                    .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
+                                    .build()) {
 
+                        //System.out.println(Proxy);
+                        String url = result.isLive() ? result.getLiveURL() : result.getVideoURL();
+                        URI uri = new URI(url);
+                        //System.out.println(s);
+
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(uri)
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Referer", URL)
+                                .GET()
+                                .build();
+
+                        HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                        //System.out.println(send.uri());
+                        String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
+                        byte[] body = send.body();
+                        if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")) {
+                            StringBuilder sb = new StringBuilder();
+                            String hls = new String(send.body(), StandardCharsets.UTF_8);
+                            String[] split = url.split("/");
+                            boolean isEnd = false;
+                            for (String s : hls.split("\n")) {
+                                if (!isEnd){
+                                    if (s.startsWith("#")){
+                                        sb.append(s).append("\n");
+                                        continue;
+                                    }
+                                    sb.append(url.replaceAll(split[split.length - 1], "")).append(s).append("\n");
+                                    isEnd = true;
+                                }
+                            }
+                            hls = sb.toString();
+                            hls = hls.replaceAll("https://", "/https/referer:["+URL+"]/");
+                            body = hls.getBytes(StandardCharsets.UTF_8);
+                        }
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
+                        method = null;
+                    } catch (Exception e){
+                        e.printStackTrace();
+                        try {
+                            content = null;
+                            File file = new File("./error-video/error_000.mp4");
+                            if (file.exists()){
+                                FileInputStream stream = new FileInputStream(file);
+                                content = stream.readAllBytes();
+                                stream.close();
+                                stream = null;
+                            }
+
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
+                            content = null;
+                        } catch (Exception ex){
+                            // ex.printStackTrace();
+                        }
+                    }
                 } else {
                     System.out.println("[Get URL] " + URL + " ---> " + element.getAsJsonObject().get("VideoURL").getAsString());
                     OutputStream out = sock.getOutputStream();

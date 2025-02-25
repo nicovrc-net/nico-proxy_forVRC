@@ -12,6 +12,7 @@ public class ServiceList {
         list.add(new Youtube());
         list.add(new Twitter());
         list.add(new TikTok());
+        list.add(new OPENREC());
         return list;
     }
 }
