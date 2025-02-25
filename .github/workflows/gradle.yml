@@ -400,7 +400,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - の再対応
+            - OPENRECの再対応
           draft: false
           prerelease: true
 
