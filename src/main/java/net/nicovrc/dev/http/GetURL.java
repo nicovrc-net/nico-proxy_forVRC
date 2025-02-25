@@ -576,6 +576,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         String url = result.isLive() ? result.getLiveURL() : result.getVideoURL();
                         URI uri = new URI(url);
                         //System.out.println(s);
+                        //System.out.println(url);
 
                         HttpRequest request = HttpRequest.newBuilder()
                                 .uri(uri)
@@ -588,7 +589,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         //System.out.println(send.uri());
                         String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
                         byte[] body = send.body();
-                        if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")) {
+                        //System.out.println(contentType.toLowerCase(Locale.ROOT));
+                        if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl")) {
+                            //System.out.println("!!!");
                             StringBuilder sb = new StringBuilder();
                             String hls = new String(send.body(), StandardCharsets.UTF_8);
                             String[] split = url.split("/");
