@@ -320,7 +320,7 @@ jobs:
         shell: bash
 
   autotest7:
-    needs: [build-21, ]
+    needs: [build-21, download_errorVideo]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -404,3 +404,4 @@ jobs:
           name: |
             jar
             ffmpeg
+            video
