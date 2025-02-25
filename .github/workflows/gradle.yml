@@ -137,6 +137,9 @@ jobs:
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
 
+      - name: Wait for the application to start
+        run: sleep 1
+
       - name: Create LogFolder Test
         run: |
           if [ -d ./log ]; then
@@ -178,6 +181,9 @@ jobs:
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
 
       - name: URL Request Test
         run: |
@@ -221,6 +227,9 @@ jobs:
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
 
+      - name: Wait for the application to start
+        run: sleep 1
+
       - name: URL Request Test (Old Type 1)
         run: |
           HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:25252/proxy/?https://www.nicovideo.jp/watch/sm9)
@@ -262,6 +271,9 @@ jobs:
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
 
       - name: URL Request Test (Old Type 2)
         run: |
@@ -305,6 +317,9 @@ jobs:
           mkdir ./error-video
           mv ./*.mp4 ./error-video
         shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -351,6 +366,9 @@ jobs:
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
 
       - name: URL Request Test (Title)
         run: |
