@@ -400,7 +400,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - OPENREC、ツイキャス、Abemaの再対応
+            - TVer、piapro、soundcloudの再対応
           draft: false
           prerelease: true
 
