@@ -5,6 +5,7 @@ import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.AbemaResult;
 import net.nicovrc.dev.Service.Result.NicoNicoVideo;
 import net.nicovrc.dev.Service.Result.OPENREC_Result;
 import net.nicovrc.dev.Service.Result.TikTokResult;
@@ -543,6 +544,22 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     out = null;
                     sb_header.setLength(0);
                     sb_header = null;
+                } else if (ServiceName.equals("Abema")) {
+                    String targetURL = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
+                    System.out.println("[Get URL] " + URL + " ---> " + targetURL);
+
+                    OutputStream out = sock.getOutputStream();
+                    StringBuilder sb_header = new StringBuilder();
+
+                    //System.out.println(targetURL.replaceAll("https://", "/https/referer:[https://twitcasting.tv/]/cookie:[]/"));
+                    sb_header.append("HTTP/").append(Function.getHTTPVersion(httpRequest)).append(" 302 Found\nLocation: ").append(targetURL.replaceAll("https://", "/https/referer:[]/cookie:[]/")).append("\n\n");
+                    out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
+                    out.flush();
+
+                    out = null;
+                    sb_header.setLength(0);
+                    sb_header = null;
+
                 } else if (ServiceName.equals("TikTok")) {
                     TikTokResult result = gson.fromJson(json, TikTokResult.class);
                     System.out.println("[Get URL] " + URL + " ---> " + result.getVideoURL());

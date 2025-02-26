@@ -14,6 +14,10 @@ public class ServiceList {
         list.add(new TikTok());
         list.add(new OPENREC());
         list.add(new Twitcasting());
+        list.add(new Abema());
+
+
+
         return list;
     }
 }

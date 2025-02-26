@@ -30,6 +30,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_url3 = Pattern.compile("/https/referer:\\[(.*)\\]/cookie:\\[(.*)\\]/(.+)");
 
     private final Pattern matcher_twitcasting = Pattern.compile("twitcasting\\.tv");
+    private final Pattern matcher_abema = Pattern.compile("(.+)-abematv\\.akamaized\\.net");
 
     @Override
     public void run() {
@@ -138,24 +139,41 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                 //System.out.println("a");
                 byte[] body = send.body();
-                if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")){
+                if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl")){
                     String s = new String(body, StandardCharsets.UTF_8);
-                    if (matcher_twitcasting.matcher(URL).find()){
-                        s = s.replaceAll("https://", "/https/referer:["+Referer+"]/");
-                        s = s.replaceAll("\"/tc\\.vod\\.v2", "\"/https/referer:["+Referer+"]/"+request.uri().getHost()+"/tc.vod.v2");
+                    if (matcher_twitcasting.matcher(URL).find()) {
+                        s = s.replaceAll("https://", "/https/referer:[" + Referer + "]/");
+                        s = s.replaceAll("\"/tc\\.vod\\.v2", "\"/https/referer:[" + Referer + "]/" + request.uri().getHost() + "/tc.vod.v2");
 
                         StringBuilder sb = new StringBuilder();
                         for (String str : s.split("\n")) {
-                            if (!str.startsWith("/mpegts") && !str.startsWith("/tc.vod.v2")){
+                            if (!str.startsWith("/mpegts") && !str.startsWith("/tc.vod.v2")) {
                                 sb.append(str).append("\n");
                                 continue;
                             }
 
-                            sb.append("/https/referer:[").append(Referer).append("]/").append(request.uri().getHost()).append("/").append(str).append("\n");
+                            sb.append("/https/referer:[").append(Referer).append("]/").append(request.uri().getHost()).append(str).append("\n");
 
                         }
 
                         s = sb.toString();
+                    } else if (matcher_abema.matcher(URL).find()) {
+                        //System.out.println("!!!!");
+                        s = s.replaceAll("https://", "/https/cookie:[]/");
+
+                        StringBuilder sb = new StringBuilder();
+                        for (String str : s.split("\n")) {
+                            if (!str.startsWith("/preview")) {
+                                sb.append(str.replaceAll("https://", "/https/cookie:[]/")).append("\n");
+                                continue;
+                            }
+
+                            sb.append("/https/referer:[]/").append(request.uri().getHost()).append(str).append("\n");
+
+                        }
+
+                        s = sb.toString();
+
                     } else {
                         if (CookieText != null && !CookieText.isEmpty()){
                             if (Referer == null || Referer.isEmpty()){
