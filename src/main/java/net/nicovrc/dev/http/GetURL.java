@@ -1,5 +1,7 @@
 package net.nicovrc.dev.http;
 
+import com.amihaiemil.eoyaml.Yaml;
+import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
@@ -84,11 +86,32 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             String ServiceName = null;
             String proxy = null;
             if (api != null){
-                if (NotRemoveQuestionMarkURL.matcher(URL).find()){
-                    api.Set("{\"URL\":\""+URL.replaceAll("&dummy=true","")+"\"}");
+                //System.out.println(URL.startsWith("https://twitcasting.tv"));
+                if (!URL.startsWith("https://twitcasting.tv")){
+                    if (NotRemoveQuestionMarkURL.matcher(URL).find()){
+                        api.Set("{\"URL\":\""+URL.replaceAll("&dummy=true","")+"\"}");
+                    } else {
+                        api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\"}");
+                    }
                 } else {
-                    api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\"}");
+                    String ClientId = "";
+                    String ClientSecret = "";
+
+                    try {
+                        final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+                        ClientId = yamlMapping.string("TwitcastingClientID");
+                        ClientSecret = yamlMapping.string("TwitcastingClientSecret");
+                    } catch (Exception e){
+                        //e.printStackTrace();
+                    }
+
+                    if (NotRemoveQuestionMarkURL.matcher(URL).find()){
+                        api.Set("{\"URL\":\""+URL.replaceAll("&dummy=true","")+"\", \"ClientID\":\""+ClientId+"\", \"ClientSecret\":\""+ClientSecret+"\"}");
+                    } else {
+                        api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\", \"ClientID\":\""+ClientId+"\", \"ClientSecret\":\""+ClientSecret+"\"}");
+                    }
                 }
+
 
                 json = api.Get();
                 ServiceName = api.getServiceName();
@@ -490,6 +513,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     // ex.printStackTrace();
                                 }
                             }
+
                         } else {
                             File file = new File("./error-video/error_404_2.mp4");
                             if (file.exists()) {
@@ -505,6 +529,20 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         }
 
                     }
+                } else if (ServiceName.equals("ツイキャス")) {
+                    String targetURL = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
+                    System.out.println("[Get URL] " + URL + " ---> " + targetURL);
+                    OutputStream out = sock.getOutputStream();
+                    StringBuilder sb_header = new StringBuilder();
+
+                    //System.out.println(targetURL.replaceAll("https://", "/https/referer:[https://twitcasting.tv/]/cookie:[]/"));
+                    sb_header.append("HTTP/").append(Function.getHTTPVersion(httpRequest)).append(" 302 Found\nLocation: ").append(targetURL.replaceAll("https://", "/https/referer:[https://twitcasting.tv/]/cookie:[]/")).append("\n\n");
+                    out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
+                    out.flush();
+
+                    out = null;
+                    sb_header.setLength(0);
+                    sb_header = null;
                 } else if (ServiceName.equals("TikTok")) {
                     TikTokResult result = gson.fromJson(json, TikTokResult.class);
                     System.out.println("[Get URL] " + URL + " ---> " + result.getVideoURL());

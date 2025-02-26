@@ -46,6 +46,9 @@ Port: 25252
 LogToRedis: false
 # (Redis使わない場合)ログの保存先
 LogFileFolderPass: "./log"
+# ツイキャスAPIキー (https://twitcasting.tv/developerapp.php から取得可能)
+TwitcastingClientID: ""
+TwitcastingClientSecret: ""
 # ----------------------------
 #
 # Redis設定

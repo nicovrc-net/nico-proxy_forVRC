@@ -13,6 +13,7 @@ public class ServiceList {
         list.add(new Twitter());
         list.add(new TikTok());
         list.add(new OPENREC());
+        list.add(new Twitcasting());
         return list;
     }
 }
