@@ -15,6 +15,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.regex.Matcher;
@@ -63,6 +64,12 @@ public class Twitcasting implements ServiceAPI {
 
         if (ClientID == null || ClientID.isEmpty() || ClientSecret == null || ClientSecret.isEmpty()){
             return "{\"ErrorMessage\": \"ツイキャス APIキーがありません\"}";
+        }
+
+        // Proxy
+        if (!Function.ProxyList.isEmpty()){
+            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
+            Proxy = Function.ProxyList.get(i);
         }
 
         String base64 = new String(Base64.getEncoder().encode((ClientID+":"+ClientSecret).getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
