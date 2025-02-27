@@ -704,7 +704,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         HttpRequest request = HttpRequest.newBuilder()
                                 .uri(new URI(url))
                                 .headers("User-Agent", Function.UserAgent)
-                                .headers("Referer", URL)
+                                .headers("Origin", "https://tver.jp")
+                                .headers("Referer", "https://tver.jp/")
                                 .GET()
                                 .build();
 
