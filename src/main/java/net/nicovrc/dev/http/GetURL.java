@@ -685,6 +685,80 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             // ex.printStackTrace();
                         }
                     }
+                } else if (ServiceName.equals("TVer")) {
+                    String url = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
+                    System.out.println("[Get URL] " + URL + " ---> " + url);
+
+                    try (HttpClient client = proxy == null ? HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_2)
+                            .followRedirects(HttpClient.Redirect.NEVER)
+                            .connectTimeout(Duration.ofSeconds(5))
+                            .build() :
+                            HttpClient.newBuilder()
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .followRedirects(HttpClient.Redirect.NEVER)
+                                    .connectTimeout(Duration.ofSeconds(5))
+                                    .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
+                                    .build()) {
+
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(new URI(url))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Referer", URL)
+                                .GET()
+                                .build();
+
+                        HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                        //System.out.println(send.uri());
+                        String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
+                        byte[] body = send.body();
+                        if (vlc_ua.matcher(httpRequest).find()) {
+                            // VLCのときはそのまま
+                            if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl")) {
+                                String s = new String(body, StandardCharsets.UTF_8);
+                                s = s.replaceAll("https://", "/https/cookie:[]/");
+                                body = s.getBytes(StandardCharsets.UTF_8);
+                            }
+
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
+                            send = null;
+                            request = null;
+                            return;
+                        }
+
+                        // それ以外の場合は
+                        if (!dummy_url.matcher(httpRequest).find()) {
+                            if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl")) {
+                                body = (new String(body, StandardCharsets.UTF_8).replaceAll("https://", "/https/cookie:[]/") + "\n/?url=" + URL + "&dummy=true").getBytes(StandardCharsets.UTF_8);
+                            }
+                        } else {
+                            body = new String(body, StandardCharsets.UTF_8).replaceAll("https://", "/https/cookie:[]/").getBytes(StandardCharsets.UTF_8);
+                        }
+
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
+                        send = null;
+                        request = null;
+                        method = null;
+
+                    } catch (Exception e){
+                        e.printStackTrace();
+                        try {
+                            content = null;
+                            File file = new File("./error-video/error_000.mp4");
+                            if (file.exists()){
+                                FileInputStream stream = new FileInputStream(file);
+                                content = stream.readAllBytes();
+                                stream.close();
+                                stream = null;
+                            }
+
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
+                            content = null;
+                        } catch (Exception ex){
+                            // ex.printStackTrace();
+                        }
+                    }
+
                 } else {
                     System.out.println("[Get URL] " + URL + " ---> " + element.getAsJsonObject().get("VideoURL").getAsString());
                     OutputStream out = sock.getOutputStream();

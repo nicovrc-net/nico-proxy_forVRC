@@ -15,7 +15,7 @@ public class ServiceList {
         list.add(new OPENREC());
         list.add(new Twitcasting());
         list.add(new Abema());
-
+        list.add(new TVer());
 
 
         return list;
