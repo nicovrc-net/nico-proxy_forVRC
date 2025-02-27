@@ -80,24 +80,6 @@ public class TVer implements ServiceAPI {
         }
 
         try {
-            URI uri = new URI(url);
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .headers("User-Agent", Function.UserAgent)
-                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                    .headers("Referer", "https://tver.jp/")
-                    .GET()
-                    .build();
-
-            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-            //System.out.println(send.request().uri());
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-
-        try {
             if (video1){
                 URI uri = new URI("https://statics.tver.jp/content/episode/"+matcher1.group(1)+".json?v=20");
                 HttpRequest request = HttpRequest.newBuilder()
