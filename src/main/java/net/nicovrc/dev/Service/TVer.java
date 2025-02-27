@@ -226,7 +226,27 @@ public class TVer implements ServiceAPI {
                 }
 
                 json = Function.gson.fromJson(send.body(), JsonElement.class);
-                result.setLiveURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
+                String hlsURL = json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString();
+                String session = json.getAsJsonObject().getAsJsonObject().get("id").getAsString();
+                //
+
+
+                uri = new URI("https://ssai.api.streaks.jp/v1/projects/tver-simul-"+id+"/medias/"+session+"/ssai/session");
+                request = HttpRequest.newBuilder()
+                        .uri(uri)
+                        .headers("User-Agent", Function.UserAgent)
+                        .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Origin", "https://tver.jp")
+                        .headers("Referer", "https://tver.jp/")
+                        .headers("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString("{\"ads_params\":{\"tvcu_pcode\":\"\",\"tvcu_ccode\":\"\",\"tvcu_zcode\":\"\",\"tvcu_gender\":\"\",\"tvcu_gender_code\":\"\",\"tvcu_age\":\"\",\"tvcu_agegrp\":\"\",\"delivery_type\":\"simul\",\"is_dvr\":0,\"rdid\":\"\",\"idtype\":\"\",\"is_lat\":\"\",\"bundle\":\"\",\"iuid\":\"pbt4bylcc1g799128136\",\"interest\":\"\",\"video_id\":\"lenk0yvgh8\",\"device\":\"pc\",\"device_code\":\"0001\",\"tag_type\":\"browser\",\"item_eventid\":\"62357\",\"item_programkey\":\"00005\",\"item_category\":\"99\",\"item_episodecode\":\"cfca1a05-c507-42fb-8d62-50596518ac0c\",\"item_originalmeta1\":\"\",\"item_originalmeta2\":\"\",\"ntv_ppid\":\"z75i3v2w34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"tbs_ppid\":\"f87wu4in34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"tx_ppid\":\"t87wrus634cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"ex_ppid\":\"n6dsf79v34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"cx_ppid_gam\":\"b8a35iwj34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"mbs_ppid_gam\":\"x32ck84s34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"abc_ppid\":\"c2fq84em34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"tvo_ppid\":\"i3wtqjey34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"ktv_ppid\":\"g9byn7re34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"ytv_ppid\":\"g8kusm7634cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"ntv_ppid2\":\"z75i3v2w_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"tbs_ppid2\":\"f87wu4in_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"tx_ppid2\":\"t87wrus6_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"ex_ppid2\":\"n6dsf79v_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"cx_ppid2\":\"b8a35iwj_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"mbs_ppid2\":\"x32ck84s_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"abc_ppid2\":\"c2fq84em_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"tvo_ppid2\":\"i3wtqjey_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"ktv_ppid2\":\"g9byn7re_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"ytv_ppid2\":\"g8kusm76_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"vr_uuid\":\"23768E3B-100F-4820-93DC-0AE4948DCE66\",\"personalIsLat\":\"0\",\"platformAdUid\":\"2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"platformUid\":\"34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"memberId\":\"\",\"c\":\"simul\",\"luid\":\"23768E3B-100F-4820-93DC-0AE4948DCE66\",\"platformVrUid\":\"c0af47d1f9082f50dbb8d5beceb35af4c04915da46b551f884551a1648a77121\"},\"id\":\"ed089bc4b7f342b3bc8a7a2567039442\"}"))
+                        .build();
+
+                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                json = Function.gson.fromJson(send.body(), JsonElement.class);
+
+                result.setLiveURL(hlsURL + "&"+json.getAsJsonArray().get(0).getAsJsonObject().get("query").getAsString());
 
                 return Function.gson.toJson(result);
             }
