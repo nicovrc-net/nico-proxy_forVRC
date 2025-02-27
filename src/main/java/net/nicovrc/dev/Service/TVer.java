@@ -65,6 +65,22 @@ public class TVer implements ServiceAPI {
                     .build();
         }
 
+        try {
+            URI uri = new URI(url);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .headers("User-Agent", Function.UserAgent)
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .GET()
+                    .build();
+
+            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            url = send.uri().toURL().toString();
+        } catch (Exception e){
+            // e.printStackTrace();
+        }
+
         Matcher matcher1 = Support_URLVideo1.matcher(url);
         Matcher matcher2 = Support_URLLive1.matcher(url);
         Matcher matcher3 = Support_URLLive2.matcher(url);
