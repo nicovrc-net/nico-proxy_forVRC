@@ -716,7 +716,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             // VLCのときはそのまま
                             if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl")) {
                                 String s = new String(body, StandardCharsets.UTF_8);
-                                s = s.replaceAll("https://", "/https/cookie:[]/");
+                                s = s.replaceAll("https://", "/https/Referer:[https://tver.jp/]/");
                                 body = s.getBytes(StandardCharsets.UTF_8);
                             }
 
@@ -729,10 +729,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         // それ以外の場合は
                         if (!dummy_url.matcher(httpRequest).find()) {
                             if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl")) {
-                                body = (new String(body, StandardCharsets.UTF_8).replaceAll("https://", "/https/cookie:[]/") + "\n/?url=" + URL + "&dummy=true").getBytes(StandardCharsets.UTF_8);
+                                body = (new String(body, StandardCharsets.UTF_8).replaceAll("https://", "/https/Referer:[https://tver.jp/]/") + "\n/?url=" + URL + "&dummy=true").getBytes(StandardCharsets.UTF_8);
                             }
                         } else {
-                            body = new String(body, StandardCharsets.UTF_8).replaceAll("https://", "/https/cookie:[]/").getBytes(StandardCharsets.UTF_8);
+                            body = new String(body, StandardCharsets.UTF_8).replaceAll("https://", "/https/Referer:[https://tver.jp/]/").getBytes(StandardCharsets.UTF_8);
                         }
 
                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
