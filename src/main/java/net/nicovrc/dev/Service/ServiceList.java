@@ -18,6 +18,8 @@ public class ServiceList {
         list.add(new TVer());
         list.add(new piapro());
         list.add(new SoundCloud());
+        list.add(new Vimeo());
+
 
 
         return list;

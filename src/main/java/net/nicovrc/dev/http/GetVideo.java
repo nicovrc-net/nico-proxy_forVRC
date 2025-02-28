@@ -31,6 +31,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
     private final Pattern matcher_twitcasting = Pattern.compile("twitcasting\\.tv");
     private final Pattern matcher_abema = Pattern.compile("(.+)-abematv\\.akamaized\\.net");
+    private final Pattern matcher_vimeo = Pattern.compile("vimeocdn\\.com");
 
     @Override
     public void run() {
@@ -173,6 +174,16 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
 
                         s = sb.toString();
+                    } else if (matcher_vimeo.matcher(URL).find()){
+
+                        StringBuilder sb = new StringBuilder();
+                        String[] split = URL.split("/");
+                        for (int i = 0; i < split.length - 6; i++){
+                            sb.append(split[i]).append("/");
+                        }
+
+                        s = s.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", sb.toString());
+                        s = s.replaceAll("https://", "/https/cookie:[]/");
 
                     } else {
                         if (CookieText != null && !CookieText.isEmpty()){
