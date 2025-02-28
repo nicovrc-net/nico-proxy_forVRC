@@ -16,6 +16,7 @@ public class ServiceList {
         list.add(new Twitcasting());
         list.add(new Abema());
         list.add(new TVer());
+        list.add(new piapro());
 
 
         return list;
