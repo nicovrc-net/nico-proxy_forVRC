@@ -33,6 +33,11 @@ public class GetVideoInfo implements NicoVRCAPI {
             String[] urls = site.getCorrespondingURL();
             for (String url : urls){
                 if (!isFound[0] && (inputUrl.startsWith("http://"+url) || inputUrl.startsWith("https://"+url) || inputUrl.startsWith(url))){
+
+                    if (!url.startsWith("http") && inputUrl.startsWith("http")){
+                        continue;
+                    }
+
                     if (url.startsWith("twitcasting.tv")){
                         String ClientId = "";
                         String ClientSecret = "";

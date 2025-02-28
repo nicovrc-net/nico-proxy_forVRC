@@ -73,6 +73,11 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 boolean isFound = false;
                 for (String str : vrcapi.getCorrespondingURL()) {
                     if (URL.startsWith("https://"+str) || URL.startsWith("http://"+str) || URL.startsWith(str)){
+
+                        if (!str.startsWith("http") && URL.startsWith("http")){
+                            continue;
+                        }
+
                         api = vrcapi;
                         isFound = true;
                     }
