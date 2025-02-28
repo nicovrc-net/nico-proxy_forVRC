@@ -762,7 +762,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         }
                     }
 
-                } else if (ServiceName.equals("piapro")) {
+                } else if (ServiceName.equals("piapro") || ServiceName.equals("SoundCloud")) {
                     System.out.println("[Get URL] " + URL + " ---> " + element.getAsJsonObject().get("AudioURL").getAsString());
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                             .version(HttpClient.Version.HTTP_2)
@@ -786,6 +786,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         //System.out.println(send.uri());
                         String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
                         byte[] body = send.body();
+
+                        if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")) {
+                            String s = new String(body, StandardCharsets.UTF_8);
+                            s = s.replaceAll("https://", "/https/referer:[]/");
+                            body = s.getBytes(StandardCharsets.UTF_8);
+
+                            //System.out.println(s);
+                        }
 
                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
                         send = null;

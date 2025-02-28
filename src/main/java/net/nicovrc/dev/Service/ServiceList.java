@@ -17,6 +17,7 @@ public class ServiceList {
         list.add(new Abema());
         list.add(new TVer());
         list.add(new piapro());
+        list.add(new SoundCloud());
 
 
         return list;
