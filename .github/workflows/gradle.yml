@@ -400,7 +400,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - TVer、piapro、soundcloudの再対応
+            - Vimeo、fc2、sonicbowlの再対応
           draft: false
           prerelease: true
 
