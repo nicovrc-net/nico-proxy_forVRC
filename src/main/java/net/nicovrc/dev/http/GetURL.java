@@ -5,13 +5,11 @@ import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
-import net.nicovrc.dev.Service.Result.AbemaResult;
 import net.nicovrc.dev.Service.Result.NicoNicoVideo;
 import net.nicovrc.dev.Service.Result.OPENREC_Result;
 import net.nicovrc.dev.Service.Result.TikTokResult;
 import net.nicovrc.dev.Service.ServiceAPI;
 import net.nicovrc.dev.Service.ServiceList;
-import net.nicovrc.dev.Service.TikTok;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,7 +26,6 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
-import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -74,7 +71,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 for (String str : vrcapi.getCorrespondingURL()) {
                     if (URL.startsWith("https://"+str) || URL.startsWith("http://"+str) || URL.startsWith(str)){
 
-                        if (!str.startsWith("http") && URL.startsWith("http")){
+                        if (str.equals("so") && URL.startsWith("http")){
                             continue;
                         }
 

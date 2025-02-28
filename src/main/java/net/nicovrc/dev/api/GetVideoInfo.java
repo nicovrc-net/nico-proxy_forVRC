@@ -28,13 +28,13 @@ public class GetVideoInfo implements NicoVRCAPI {
 
 
         boolean[] isFound = {false};
-        String[] get = new String[]{""};
+        String[] get = new String[]{"{\"ErrorMessage\": \"対応していないサイトです。\"}"};
         for (ServiceAPI site : siteList){
             String[] urls = site.getCorrespondingURL();
             for (String url : urls){
                 if (!isFound[0] && (inputUrl.startsWith("http://"+url) || inputUrl.startsWith("https://"+url) || inputUrl.startsWith(url))){
 
-                    if (!url.startsWith("http") && inputUrl.startsWith("http")){
+                    if (url.equals("so") && inputUrl.startsWith("http")){
                         continue;
                     }
 
