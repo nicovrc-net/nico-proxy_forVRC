@@ -20,7 +20,7 @@ public class ServiceList {
         list.add(new SoundCloud());
         list.add(new Vimeo());
         list.add(new fc2());
-
+        list.add(new Sonicbowl());
 
 
         return list;

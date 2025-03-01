@@ -762,7 +762,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         }
                     }
 
-                } else if (ServiceName.equals("piapro") || ServiceName.equals("SoundCloud")) {
+                } else if (ServiceName.equals("piapro") || ServiceName.equals("SoundCloud") || ServiceName.equals("Sonicbowl")) {
                     System.out.println("[Get URL] " + URL + " ---> " + element.getAsJsonObject().get("AudioURL").getAsString());
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                             .version(HttpClient.Version.HTTP_2)
@@ -783,6 +783,19 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                 .build();
 
                         HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+                        if (ServiceName.equals("Sonicbowl") && send.statusCode() == 302){
+                            String location = send.headers().firstValue("location").get();
+                            request = HttpRequest.newBuilder()
+                                    .uri(new URI(location))
+                                    .headers("User-Agent", Function.UserAgent)
+                                    .GET()
+                                    .build();
+
+                            send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                        }
+
+
                         //System.out.println(send.uri());
                         String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
                         byte[] body = send.body();
