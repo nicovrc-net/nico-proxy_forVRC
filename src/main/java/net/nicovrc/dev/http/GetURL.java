@@ -961,11 +961,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
 
                 } else {
-                    System.out.println("[Get URL] " + URL + " ---> " + element.getAsJsonObject().get("VideoURL").getAsString());
+                    String targetURL = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
+                    System.out.println("[Get URL] " + URL + " ---> " + targetURL);
                     OutputStream out = sock.getOutputStream();
                     StringBuilder sb_header = new StringBuilder();
 
-                    sb_header.append("HTTP/").append(Function.getHTTPVersion(httpRequest)).append(" 302 Found\nLocation: ").append(element.getAsJsonObject().get("VideoURL").getAsString()).append("\n\n");
+                    sb_header.append("HTTP/").append(Function.getHTTPVersion(httpRequest)).append(" 302 Found\nLocation: ").append(targetURL).append("\n\n");
                     out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
                     out.flush();
 

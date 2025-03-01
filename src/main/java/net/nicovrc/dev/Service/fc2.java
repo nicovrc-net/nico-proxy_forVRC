@@ -353,7 +353,7 @@ public class fc2 implements ServiceAPI {
                         return "{\"ErrorMessage\": \"取得に失敗しました。 ("+e.getMessage()+")\"}";
                     }
 
-                    System.out.println("aaa");
+                    //System.out.println("aaa");
 
                     while (resultData[1] == null || resultData[1].isEmpty()){
                         resultData[1] = resultData[0];

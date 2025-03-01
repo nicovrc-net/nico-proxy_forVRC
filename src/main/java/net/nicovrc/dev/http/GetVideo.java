@@ -140,7 +140,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                 //System.out.println("a");
                 byte[] body = send.body();
-                if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl")){
+                if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
                     String s = new String(body, StandardCharsets.UTF_8);
                     if (matcher_twitcasting.matcher(URL).find()) {
                         s = s.replaceAll("https://", "/https/referer:[" + Referer + "]/");
