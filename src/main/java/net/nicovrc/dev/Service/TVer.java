@@ -76,6 +76,7 @@ public class TVer implements ServiceAPI {
         final boolean live3 = matcher4.find();
 
         if (!video1 && !live1 && !live2 && !live3){
+            client.close();
             return "{\"ErrorMessage\": \"対応してないURLです。\"}";
         }
 
@@ -94,6 +95,7 @@ public class TVer implements ServiceAPI {
                 HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
                 if (!send.body().startsWith("{") || !send.body().endsWith("}")){
+                    client.close();
                     return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
                 }
 
@@ -140,8 +142,10 @@ public class TVer implements ServiceAPI {
 
                     result.setVideoURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
                     //return send.body();
+                    client.close();
                     return Function.gson.toJson(result);
                 } else {
+                    client.close();
                     return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
                 }
             }
@@ -170,6 +174,7 @@ public class TVer implements ServiceAPI {
                 //System.out.println(send.body());
                 JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
                 if (!json.getAsJsonObject().has("result")){
+                    client.close();
                     return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
                 }
 
@@ -222,6 +227,7 @@ public class TVer implements ServiceAPI {
                 send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
                 if (!send.body().startsWith("{") || !send.body().endsWith("}")){
+                    client.close();
                     return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
                 }
 
@@ -248,6 +254,7 @@ public class TVer implements ServiceAPI {
 
                 result.setLiveURL(hlsURL + "&"+json.getAsJsonArray().get(0).getAsJsonObject().get("query").getAsString());
 
+                client.close();
                 return Function.gson.toJson(result);
             }
 
@@ -387,8 +394,10 @@ public class TVer implements ServiceAPI {
 
                         result.setVideoURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
                         //return send.body();
+                        client.close();
                         return Function.gson.toJson(result);
                     } else {
+                        client.close();
                         return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
                     }
                 }
@@ -398,6 +407,7 @@ public class TVer implements ServiceAPI {
                 json = Function.gson.fromJson(send.body(), JsonElement.class);
                 result.setLiveURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
 
+                client.close();
                 return Function.gson.toJson(result);
             }
             TVerResult result = new TVerResult();
@@ -433,9 +443,11 @@ public class TVer implements ServiceAPI {
             json = Function.gson.fromJson(send.body(), JsonElement.class);
             result.setLiveURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
 
+            client.close();
             return Function.gson.toJson(result);
         } catch (Exception e){
             e.printStackTrace();
+            client.close();
             return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+"\"}";
         }
 

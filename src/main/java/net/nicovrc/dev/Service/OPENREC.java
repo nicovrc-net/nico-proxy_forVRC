@@ -72,7 +72,6 @@ public class OPENREC implements ServiceAPI {
 
             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             String jsonText = send.body();
-            client.close();
             JsonElement json = Function.gson.fromJson(jsonText, JsonElement.class);
             jsonText = null;
             /*
@@ -109,9 +108,11 @@ public class OPENREC implements ServiceAPI {
                     result.setVideoURL(json.getAsJsonObject().get("media").getAsJsonObject().get("url").getAsString());
                 }
             } else {
+                client.close();
                 return "{\"ErrorMessage\": \"存在しない 配信 または 動画 です\"}";
             }
 
+            client.close();
             return Function.gson.toJson(result);
         } catch (Exception e){
             return "{\"ErrorMessage\": \"内部エラーです。\"}";

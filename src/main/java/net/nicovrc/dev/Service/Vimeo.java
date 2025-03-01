@@ -129,18 +129,22 @@ public class Vimeo implements ServiceAPI {
                     result.setThumbnail(json.getAsJsonObject().get("video").getAsJsonObject().get("thumbnail_url").getAsString());
                     result.setVideoURL(hlsURL);
 
+                    client.close();
                     return Function.gson.toJson(result);
 
                 } catch (Exception e){
+                    client.close();
                     return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
                 }
 
             } else {
+                client.close();
                 return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
             }
 
         } catch (Exception e){
             e.printStackTrace();
+            client.close();
             return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+"\"}";
         }
 

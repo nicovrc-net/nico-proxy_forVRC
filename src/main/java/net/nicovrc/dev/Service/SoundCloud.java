@@ -89,11 +89,13 @@ public class SoundCloud implements ServiceAPI {
                 try {
                     json = Function.gson.fromJson("["+matcher1.group(1)+"]", JsonElement.class);
                 } catch (Exception e){
+                    client.close();
                     return "{\"ErrorMessage\": \"対応していないURLです。\"}";
                 }
             }
 
             if (json == null){
+                client.close();
                 return "{\"ErrorMessage\": \"対応していないURLです。\"}";
             }
 
@@ -219,9 +221,11 @@ public class SoundCloud implements ServiceAPI {
                 }
             }
 
+            client.close();
             return Function.gson.toJson(result);
         } catch (Exception e){
             e.printStackTrace();
+            client.close();
             return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+"\"}";
         }
 
