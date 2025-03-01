@@ -931,7 +931,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                         if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")) {
                             String s = new String(body, StandardCharsets.UTF_8);
-                            s = s.replaceAll("https://", "/https/referer:[]/");
+                            s = s.replaceAll("https://", "/https/cookie:[]/");
                             body = s.getBytes(StandardCharsets.UTF_8);
 
                             //System.out.println(s);

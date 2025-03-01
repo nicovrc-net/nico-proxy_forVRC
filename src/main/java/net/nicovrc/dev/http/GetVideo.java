@@ -32,6 +32,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_twitcasting = Pattern.compile("twitcasting\\.tv");
     private final Pattern matcher_abema = Pattern.compile("(.+)-abematv\\.akamaized\\.net");
     private final Pattern matcher_vimeo = Pattern.compile("vimeocdn\\.com");
+    private final Pattern matcher_fc2 = Pattern.compile("(.+)\\.live\\.fc2\\.com");
 
     @Override
     public void run() {
@@ -76,6 +77,14 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                 return;
             }
+
+            if (CookieText != null && CookieText.equals("null")){
+                CookieText = null;
+            }
+            if (Referer != null && Referer.equals("null")){
+                Referer = null;
+            }
+
             //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
 
             try (HttpClient client = proxy == null ? HttpClient.newBuilder()
@@ -91,40 +100,62 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                             .build()) {
 
                 HttpRequest request;
-                if (CookieText == null || CookieText.isEmpty()){
-                    if (Referer == null || Referer.isEmpty()){
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(URL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .GET()
-                                .build();
-                    } else {
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(URL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .headers("Referer", Referer)
-                                .GET()
-                                .build();
-                    }
+                if (matcher_fc2.matcher(URL).find()){
+                    request = HttpRequest.newBuilder()
+                            .uri(new URI(URL))
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Cookie", "live_media_session=JD052LLx2GF0CXAJuPdlT")
+                            .headers("Origin", "https://live.fc2.com")
+                            .headers("Referer", "https://live.fc2.com/")
+                            .GET()
+                            .build();
                 } else {
-                    //System.out.println(URL);
-                    if (Referer == null || Referer.isEmpty()){
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(URL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .headers("Cookie", CookieText)
-                                .GET()
-                                .build();
+                    if (CookieText == null || CookieText.isEmpty()){
+                        if (Referer == null || Referer.isEmpty()){
+                            request = HttpRequest.newBuilder()
+                                    .uri(new URI(URL))
+                                    .headers("User-Agent", Function.UserAgent)
+                                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                    .GET()
+                                    .build();
+                        } else {
+                            request = HttpRequest.newBuilder()
+                                    .uri(new URI(URL))
+                                    .headers("User-Agent", Function.UserAgent)
+                                    .headers("Referer", Referer)
+                                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                    .GET()
+                                    .build();
+                        }
                     } else {
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(URL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .headers("Cookie", CookieText)
-                                .headers("Referer", Referer)
-                                .GET()
-                                .build();
+                        //System.out.println(URL);
+                        if (Referer == null || Referer.isEmpty()){
+                            request = HttpRequest.newBuilder()
+                                    .uri(new URI(URL))
+                                    .headers("User-Agent", Function.UserAgent)
+                                    .headers("Cookie", CookieText)
+                                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                    .GET()
+                                    .build();
+                        } else {
+                            request = HttpRequest.newBuilder()
+                                    .uri(new URI(URL))
+                                    .headers("User-Agent", Function.UserAgent)
+                                    .headers("Cookie", CookieText)
+                                    .headers("Referer", Referer)
+                                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                    .GET()
+                                    .build();
+                        }
                     }
                 }
+
 
                 HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
                 String contentType = send.headers().firstValue("Content-Type").isPresent() ? send.headers().firstValue("Content-Type").get() : send.headers().firstValue("content-type").isPresent() ? send.headers().firstValue("content-type").get() : "";
@@ -174,17 +205,31 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
 
                         s = sb.toString();
-                    } else if (matcher_vimeo.matcher(URL).find()){
+                    } else if (matcher_vimeo.matcher(URL).find()) {
 
                         StringBuilder sb = new StringBuilder();
                         String[] split = URL.split("/");
-                        for (int i = 0; i < split.length - 6; i++){
+                        for (int i = 0; i < split.length - 6; i++) {
                             sb.append(split[i]).append("/");
                         }
 
                         s = s.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", sb.toString());
                         s = s.replaceAll("https://", "/https/cookie:[]/");
 
+                    } else if (matcher_fc2.matcher(URL).find()){
+                        if (CookieText != null && !CookieText.isEmpty()){
+                            if (Referer == null || Referer.isEmpty()){
+                                s = s.replaceAll("https://", "/https/cookie:["+CookieText+"]/");
+                            } else {
+                                s = s.replaceAll("https://", "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
+                            }
+                        } else {
+                            if (Referer == null || Referer.isEmpty()){
+                                s = s.replaceAll("https://", "/https/cookie:[]/");
+                            } else {
+                                s = s.replaceAll("https://", "/https/referer:["+Referer+"]/");
+                            }
+                        }
                     } else {
                         if (CookieText != null && !CookieText.isEmpty()){
                             if (Referer == null || Referer.isEmpty()){
@@ -193,9 +238,14 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                 s = s.replaceAll("https://", "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
                             }
                         } else {
-                            s = s.replaceAll("https://", "/https/referer:["+Referer+"]/");
+                            if (Referer == null || Referer.isEmpty()){
+                                s = s.replaceAll("https://", "/https/cookie:[]/");
+                            } else {
+                                s = s.replaceAll("https://", "/https/referer:["+Referer+"]/");
+                            }
                         }
                     }
+
                     body = s.getBytes(StandardCharsets.UTF_8);
                 }
                 //System.out.println("b");
