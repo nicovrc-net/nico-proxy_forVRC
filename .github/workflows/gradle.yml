@@ -400,7 +400,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - Vimeo、fc2、Sonicbowlの再対応
+            - Mixcloud、bandcampの再対応
           draft: false
           prerelease: true
 
