@@ -762,7 +762,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         }
                     }
 
-                } else if (ServiceName.equals("piapro") || ServiceName.equals("SoundCloud") || ServiceName.equals("Sonicbowl")) {
+                } else if (ServiceName.equals("piapro") || ServiceName.equals("SoundCloud") || ServiceName.equals("Sonicbowl") || ServiceName.equals("Mixcloud")) {
                     System.out.println("[Get URL] " + URL + " ---> " + element.getAsJsonObject().get("AudioURL").getAsString());
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                             .version(HttpClient.Version.HTTP_2)

@@ -21,7 +21,7 @@ public class ServiceList {
         list.add(new Vimeo());
         list.add(new fc2());
         list.add(new Sonicbowl());
-
+        list.add(new Mixcloud());
 
         return list;
     }
