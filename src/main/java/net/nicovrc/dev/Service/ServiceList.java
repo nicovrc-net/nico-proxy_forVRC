@@ -10,8 +10,9 @@ public class ServiceList {
         list.add(new NicoVideo());
         list.add(new bilibili_com());
         list.add(new Youtube());
-        list.add(new Twitter());
+        list.add(new XVIDEOS());
         list.add(new TikTok());
+        list.add(new Twitter());
         list.add(new OPENREC());
         list.add(new Twitcasting());
         list.add(new Abema());
