@@ -27,6 +27,7 @@ public class ServiceList {
         list.add(new Sonicbowl());
         list.add(new Mixcloud());
         list.add(new bandcamp());
+        list.add(new SpankBang());
 
         return list;
     }
