@@ -3,6 +3,7 @@ package net.nicovrc.dev.Service;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.MixcloudResult;
 
 import java.net.InetSocketAddress;
@@ -44,7 +45,7 @@ public class Mixcloud implements ServiceAPI {
     public String Get() {
 
         if (url  == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLがありません\"}";
+            return gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         // Proxy
@@ -55,7 +56,7 @@ public class Mixcloud implements ServiceAPI {
 
         Matcher matcher = matcher_URL.matcher(url);
         if (!matcher.find()){
-            return "{\"ErrorMessage\": \"対応してないURLです。\"}";
+            return gson.toJson(new ErrorMessage("対応してないURLです。"));
         }
 
         try {
@@ -90,7 +91,7 @@ public class Mixcloud implements ServiceAPI {
             JsonElement json = gson.fromJson(send.body(), JsonElement.class);
 
             if (json.getAsJsonObject().get("data").getAsJsonObject().get("cloudcast").isJsonNull()){
-                return "{\"ErrorMessage\": \"対応してないURLです。\"}";
+                return gson.toJson(new ErrorMessage("対応してないURLです。"));
             }
 
             MixcloudResult result = new MixcloudResult();
@@ -117,7 +118,7 @@ public class Mixcloud implements ServiceAPI {
 
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+")\"}";
+            return gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
     }
 

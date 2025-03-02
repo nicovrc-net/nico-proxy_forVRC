@@ -2,10 +2,9 @@ package net.nicovrc.dev.Service;
 
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.SonicbowlResult;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -50,7 +49,7 @@ public class Sonicbowl implements ServiceAPI {
         }
 
         if (url == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLが入力されていません。\"}";
+            return Function.gson.toJson(new ErrorMessage("URLが入力されていません。"));
         }
 
         HttpClient client;
@@ -87,7 +86,7 @@ public class Sonicbowl implements ServiceAPI {
             if (matcher1.find()){
                 result.setTitle(matcher1.group(1));
             }
-            Matcher matcher2 = matcher_Title.matcher(send.body());
+            Matcher matcher2 = matcher_Description.matcher(send.body());
             if (matcher2.find()){
                 result.setDescription(matcher2.group(1));
             }
@@ -102,7 +101,7 @@ public class Sonicbowl implements ServiceAPI {
         } catch (Exception e){
             e.printStackTrace();
             client.close();
-            return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+"\"}";
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
 
     }

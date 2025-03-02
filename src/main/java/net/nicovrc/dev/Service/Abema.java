@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.AbemaResult;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
@@ -46,7 +47,7 @@ public class Abema implements ServiceAPI {
     public String Get() {
 
         if (url == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLがありません\"}";
+            return gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         if (url.startsWith("https://abema.app")){
@@ -74,7 +75,7 @@ public class Abema implements ServiceAPI {
                 url = send.uri().toURL().toString();
 
             } catch (Exception e){
-                return "{\"ErrorMessage\":\"取得に失敗しました。\"}";
+                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
         }
 
@@ -89,7 +90,7 @@ public class Abema implements ServiceAPI {
 
         if (!video && !archive && !live){
             //System.out.println(url);
-            return "{\"ErrorMessage\": \"対応していないURLです\"}";
+            return gson.toJson(new ErrorMessage("対応していないURLです"));
         }
 
         // Proxy
@@ -128,11 +129,11 @@ public class Abema implements ServiceAPI {
                 try {
                     json = gson.fromJson(send.body(), JsonElement.class);
                 } catch (Exception e){
-                    return "{\"ErrorMessage\": \"対応していないURLです\"}";
+                    return gson.toJson(new ErrorMessage("対応していないURLです"));
                 }
 
                 if (!json.getAsJsonObject().has("playback")){
-                    return "{\"ErrorMessage\": \"対応していない動画です\"}";
+                    return gson.toJson(new ErrorMessage("対応していない動画です"));
                 }
 
                 /*
@@ -193,11 +194,11 @@ public class Abema implements ServiceAPI {
                 try {
                     json = gson.fromJson(send.body(), JsonElement.class);
                 } catch (Exception e){
-                    return "{\"ErrorMessage\": \"対応していないURLです\"}";
+                    return gson.toJson(new ErrorMessage("対応していないURLです"));
                 }
 
                 if (!json.getAsJsonObject().has("slot")){
-                    return "{\"ErrorMessage\": \"対応していない配信アーカイブです\"}";
+                    return gson.toJson(new ErrorMessage("対応していない配信アーカイブです"));
                 }
 
                 AbemaResult result = new AbemaResult();
@@ -228,7 +229,7 @@ public class Abema implements ServiceAPI {
                 try {
                     json = gson.fromJson(send.body(), JsonElement.class);
                 } catch (Exception e){
-                    return "{\"ErrorMessage\": \"対応していないURLです\"}";
+                    return gson.toJson(new ErrorMessage("対応していないURLです"));
                 }
 
                 if (json.getAsJsonObject().has("channels")){
@@ -247,14 +248,14 @@ public class Abema implements ServiceAPI {
 
                 }
 
-                return "{\"ErrorMessage\": \"取得に失敗しました。 (存在しないチャンネル)\"}";
+                return gson.toJson(new ErrorMessage("取得に失敗しました。 (存在しないチャンネル)"));
             }
 
             return "{}";
 
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"取得に失敗しました。 ("+e.getMessage().replaceAll("\"", "\\\\\"")+")\"";
+            return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
         }
     }
 

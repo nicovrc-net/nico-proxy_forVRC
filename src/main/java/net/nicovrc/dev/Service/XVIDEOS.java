@@ -3,6 +3,7 @@ package net.nicovrc.dev.Service;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.XvideoResult;
 
 import java.net.InetSocketAddress;
@@ -49,7 +50,7 @@ public class XVIDEOS implements ServiceAPI {
     public String Get() {
 
         if (url  == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLがありません\"}";
+            return Function.gson.toJson(new ErrorMessage("URLが入力されていません。"));
         }
 
         // Proxy
@@ -107,14 +108,14 @@ public class XVIDEOS implements ServiceAPI {
             if (matcher6.find()){
                 result.setVideoURL(matcher6.group(1));
             } else {
-                return "{\"ErrorMessage\": \"取得に失敗しました。\"";
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
 
             return gson.toJson(result);
 
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"取得に失敗しました。 ("+e.getMessage().replaceAll("\"","\\\\\"")+")\"";
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
     }
 

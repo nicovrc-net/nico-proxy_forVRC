@@ -3,6 +3,7 @@ package net.nicovrc.dev.Service;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.bilibili;
 
 import java.net.InetSocketAddress;
@@ -45,7 +46,7 @@ public class bilibili_com implements ServiceAPI {
     @Override
     public String Get() {
         if (url == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLがありません\"}";
+            return Function.gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         // Proxy
@@ -63,7 +64,7 @@ public class bilibili_com implements ServiceAPI {
         } else if (matcher2.find()){
             VideoID = matcher2.group(1);
         } else {
-            return "{\"ErrorMessage\": \"サポートされていないURLです。\"}";
+            return Function.gson.toJson(new ErrorMessage("サポートされていないURLです。"));
         }
 
         try {
@@ -100,7 +101,7 @@ public class bilibili_com implements ServiceAPI {
                 request = null;
                 uri = null;
                 client = null;
-                return "{\"ErrorMessage\": \"取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")\"}";
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
             }
 /*
             client.close();
@@ -148,12 +149,12 @@ public class bilibili_com implements ServiceAPI {
 
             if (json.getAsJsonObject().has("code")){
                 if (json.getAsJsonObject().get("code").getAsLong() == -400) {
-                    return "{\"ErrorMessage\": \"動画が存在しません。\"}";
+                    return Function.gson.toJson(new ErrorMessage("動画が存在しません。"));
                 }
             }
 
             if (cid == -1) {
-                return "{\"ErrorMessage\": \"動画が存在しません。\"}";
+                return Function.gson.toJson(new ErrorMessage("動画が存在しません。"));
             }
 
             //System.out.println("cid : " + cid);
@@ -217,7 +218,7 @@ public class bilibili_com implements ServiceAPI {
             return Function.gson.toJson(result);
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+")\"}";
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
 
     }

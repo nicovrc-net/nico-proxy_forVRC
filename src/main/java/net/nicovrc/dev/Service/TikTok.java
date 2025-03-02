@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.TikTokResult;
 import net.nicovrc.dev.Service.Result.TwitterResult;
 
@@ -50,7 +51,7 @@ public class TikTok implements ServiceAPI {
     public String Get() {
 
         if (url == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLがありません\"}";
+            return Function.gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         // Proxy
@@ -95,7 +96,7 @@ public class TikTok implements ServiceAPI {
             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             if (send.statusCode() >= 400){
                 request = null;
-                return "{\"ErrorMessage\": \"取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")\"}";
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
             }
 
             HashMap<String, String> cookieList = new HashMap<>();
@@ -140,12 +141,12 @@ public class TikTok implements ServiceAPI {
                 //return json.toString();
                 return gson.toJson(result);
             } else {
-                return "{\"ErrorMessage\": \"存在しない動画です。\"}";
+                return Function.gson.toJson(new ErrorMessage("存在しない動画です。"));
             }
 
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"内部エラーです。\"}";
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
 
         //return "";

@@ -5,6 +5,7 @@ import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.Twitcas;
 
 import java.io.File;
@@ -59,11 +60,11 @@ public class Twitcasting implements ServiceAPI {
     @Override
     public String Get() {
         if (url == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLがありません\"}";
+            return gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         if (ClientID == null || ClientID.isEmpty() || ClientSecret == null || ClientSecret.isEmpty()){
-            return "{\"ErrorMessage\": \"ツイキャス APIキーがありません\"}";
+            return gson.toJson(new ErrorMessage("ツイキャス APIキーがありません"));
         }
 
         // Proxy
@@ -155,12 +156,12 @@ public class Twitcasting implements ServiceAPI {
 
                 return gson.toJson(result);
             } else {
-                return "{\"ErrorMessage\": \"取得に失敗しました。 ("+json.getAsJsonObject().get("error").getAsJsonObject().get("message").getAsString()+")\"";
+                return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+json.getAsJsonObject().get("error").getAsJsonObject().get("message").getAsString()+")"));
             }
 
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"取得に失敗しました。 ("+e.getMessage().replaceAll("\"","\\\\\"")+")\"";
+            return gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
     }
 

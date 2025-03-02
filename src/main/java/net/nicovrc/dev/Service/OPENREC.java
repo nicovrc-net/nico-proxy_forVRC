@@ -2,6 +2,7 @@ package net.nicovrc.dev.Service;
 
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.OPENREC_Result;
 
 import java.net.InetSocketAddress;
@@ -109,13 +110,13 @@ public class OPENREC implements ServiceAPI {
                 }
             } else {
                 client.close();
-                return "{\"ErrorMessage\": \"存在しない 配信 または 動画 です\"}";
+                return Function.gson.toJson(new ErrorMessage("存在しない 配信 または 動画 です"));
             }
 
             client.close();
             return Function.gson.toJson(result);
         } catch (Exception e){
-            return "{\"ErrorMessage\": \"内部エラーです。\"}";
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
     }
 

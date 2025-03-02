@@ -2,6 +2,7 @@ package net.nicovrc.dev.Service;
 
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.TVerResult;
 
 import java.net.InetSocketAddress;
@@ -77,7 +78,7 @@ public class TVer implements ServiceAPI {
 
         if (!video1 && !live1 && !live2 && !live3){
             client.close();
-            return "{\"ErrorMessage\": \"対応してないURLです。\"}";
+            return Function.gson.toJson(new ErrorMessage("対応してないURLです。"));
         }
 
         try {
@@ -96,7 +97,7 @@ public class TVer implements ServiceAPI {
 
                 if (!send.body().startsWith("{") || !send.body().endsWith("}")){
                     client.close();
-                    return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                    return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
                 JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
@@ -146,7 +147,7 @@ public class TVer implements ServiceAPI {
                     return Function.gson.toJson(result);
                 } else {
                     client.close();
-                    return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                    return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
             }
 
@@ -175,7 +176,7 @@ public class TVer implements ServiceAPI {
                 JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
                 if (!json.getAsJsonObject().has("result")){
                     client.close();
-                    return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                    return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
                 String videoId = null;
@@ -228,7 +229,7 @@ public class TVer implements ServiceAPI {
 
                 if (!send.body().startsWith("{") || !send.body().endsWith("}")){
                     client.close();
-                    return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                    return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
                 json = Function.gson.fromJson(send.body(), JsonElement.class);
@@ -398,7 +399,7 @@ public class TVer implements ServiceAPI {
                         return Function.gson.toJson(result);
                     } else {
                         client.close();
-                        return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                        return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                     }
                 }
                 //
@@ -448,7 +449,7 @@ public class TVer implements ServiceAPI {
         } catch (Exception e){
             e.printStackTrace();
             client.close();
-            return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+"\"}";
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
 
     }

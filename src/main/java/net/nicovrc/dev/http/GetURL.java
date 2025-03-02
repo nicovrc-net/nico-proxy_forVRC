@@ -21,7 +21,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.Base64;
 import java.util.List;
@@ -34,7 +33,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private Socket sock = null;
     private String URL = null;
     private String httpRequest = null;
-    private String Proxy = null;
 
     private final Gson gson = Function.gson;
     private final List<ServiceAPI> list = ServiceList.getServiceList();
@@ -55,13 +53,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     @Override
     public void run() {
-
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            Proxy = Function.ProxyList.get(i);
-        }
-
         String method = Function.getMethod(httpRequest);
 
         try {

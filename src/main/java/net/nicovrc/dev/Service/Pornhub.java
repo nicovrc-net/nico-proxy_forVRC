@@ -3,6 +3,7 @@ package net.nicovrc.dev.Service;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.PornhubResult;
 
 import java.net.InetSocketAddress;
@@ -43,7 +44,7 @@ public class Pornhub implements ServiceAPI {
     @Override
     public String Get() {
         if (url  == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLがありません\"}";
+            return gson.toJson(new ErrorMessage("URLが入力されていません。"));
         }
 
         // Proxy
@@ -55,7 +56,7 @@ public class Pornhub implements ServiceAPI {
         Matcher matcher = Support_URL.matcher(url);
 
         if (!matcher.find()){
-            return "{\"ErrorMessage\": \"対応していないURLです。\"}";
+            return gson.toJson(new ErrorMessage("対応していないURLです。"));
         }
 
         String id = matcher.group(2);
@@ -83,7 +84,7 @@ public class Pornhub implements ServiceAPI {
             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             Matcher matcher1 = matcher_json.matcher(send.body());
             if (!matcher1.find()){
-                return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
             String s = "{" + matcher1.group(2) + "}";
             JsonElement json = gson.fromJson(s, JsonElement.class);
@@ -118,7 +119,7 @@ public class Pornhub implements ServiceAPI {
 
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"取得に失敗しました。 ("+e.getMessage().replaceAll("\"","\\\\\"")+")\"";
+            return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
         }
     }
 

@@ -2,6 +2,8 @@ package net.nicovrc.dev.Service;
 
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
+import net.nicovrc.dev.Service.Result.piaproResult;
 
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
@@ -45,11 +47,11 @@ public class piapro implements ServiceAPI {
         }
 
         if (url == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLが入力されていません。\"}";
+            return Function.gson.toJson(new ErrorMessage("URLが入力されていません。"));
         }
 
         if (!matcher_url1.matcher(url).find()){
-            return "{\"ErrorMessage\": \"対応していないURLです。\"}";
+            return Function.gson.toJson(new ErrorMessage("対応していないURLです。"));
         }
 
         HttpClient client;
@@ -88,19 +90,24 @@ public class piapro implements ServiceAPI {
                 url = matcher1.group(1);
             } else {
                 client.close();
-                return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
             if (matcher2.find()){
                 Title = matcher2.group(1);
             }
 
             client.close();
-            return "{\"Title\": \""+Title+"\", \"AudioURL\": \""+url+"\"}";
+
+            piaproResult result = new piaproResult();
+            result.setTitle(Title);
+            result.setAudioURL(url);
+
+            return Function.gson.toJson(result);
 
         } catch (Exception e){
             client.close();
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+"\"}";
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
     }
 

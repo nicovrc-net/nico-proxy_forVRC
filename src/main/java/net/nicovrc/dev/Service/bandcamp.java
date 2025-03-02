@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.bandcampResult;
 
 import java.net.InetSocketAddress;
@@ -25,8 +26,6 @@ public class bandcamp implements ServiceAPI {
 
     private final Gson gson = Function.gson;
 
-    private final Pattern matcher_URL1 = Pattern.compile("https://(.+)\\.bandcamp\\.com/album/(.+)");
-    private final Pattern matcher_URL2 = Pattern.compile("https://(.+)\\.bandcamp\\.com/track/(.+)");
     private final Pattern matcher_json = Pattern.compile("data-tralbum=\"\\{(.+)}\" data-payment=");
 
     @Override
@@ -47,7 +46,7 @@ public class bandcamp implements ServiceAPI {
     public String Get() {
 
         if (url  == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLがありません\"}";
+            return gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         // Proxy
@@ -89,7 +88,7 @@ public class bandcamp implements ServiceAPI {
 
             Matcher matcher = matcher_json.matcher(result);
             if (!matcher.find()){
-                return "{\"ErrorMessage\": \"対応してないURLです。\"}";
+                return gson.toJson(new ErrorMessage("対応してないURLです。"));
             }
 
             String s = "{" + matcher.group(1).replaceAll("&quot;", "\"") + "}";
@@ -117,7 +116,7 @@ public class bandcamp implements ServiceAPI {
 
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+")\"}";
+            return gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
     }
 

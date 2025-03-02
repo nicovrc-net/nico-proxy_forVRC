@@ -3,6 +3,7 @@ package net.nicovrc.dev.Service;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.VimeoResult;
 
 import java.net.InetSocketAddress;
@@ -47,7 +48,7 @@ public class Vimeo implements ServiceAPI {
         }
 
         if (url == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLが入力されていません。\"}";
+            return Function.gson.toJson(new ErrorMessage("URLが入力されていません。"));
         }
 
         HttpClient client;
@@ -134,18 +135,18 @@ public class Vimeo implements ServiceAPI {
 
                 } catch (Exception e){
                     client.close();
-                    return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                    return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
             } else {
                 client.close();
-                return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
 
         } catch (Exception e){
             e.printStackTrace();
             client.close();
-            return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+"\"}";
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
 
     }

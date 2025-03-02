@@ -3,6 +3,7 @@ package net.nicovrc.dev.Service;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.IwaraResult;
 
 import java.net.InetSocketAddress;
@@ -40,7 +41,7 @@ public class Iwara implements ServiceAPI {
     @Override
     public String Get() {
         if (url  == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLがありません\"}";
+            return gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         // Proxy
@@ -52,7 +53,7 @@ public class Iwara implements ServiceAPI {
         String[] split = url.split("/");
 
         if (split.length < 5){
-            return "{\"ErrorMessage\": \"対応していないURLです。\"}";
+            return gson.toJson(new ErrorMessage("対応していないURLです。"));
         }
 
         try (HttpClient client = proxy == null ? HttpClient.newBuilder()
@@ -111,7 +112,7 @@ public class Iwara implements ServiceAPI {
             return gson.toJson(result);
         } catch (Exception e) {
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"取得に失敗しました。 ("+e.getMessage().replaceAll("\"","\\\\\"")+")\"";
+            return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
         }
     }
 

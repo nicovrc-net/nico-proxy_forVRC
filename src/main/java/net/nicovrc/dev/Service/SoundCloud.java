@@ -2,6 +2,7 @@ package net.nicovrc.dev.Service;
 
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.SoundCloudResult;
 
 import java.net.InetSocketAddress;
@@ -50,7 +51,7 @@ public class SoundCloud implements ServiceAPI {
         }
 
         if (url == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLが入力されていません。\"}";
+            return Function.gson.toJson(new ErrorMessage("URLが入力されていません。"));
         }
 
         HttpClient client;
@@ -90,13 +91,13 @@ public class SoundCloud implements ServiceAPI {
                     json = Function.gson.fromJson("["+matcher1.group(1)+"]", JsonElement.class);
                 } catch (Exception e){
                     client.close();
-                    return "{\"ErrorMessage\": \"対応していないURLです。\"}";
+                    return Function.gson.toJson(new ErrorMessage("対応していないURLです。"));
                 }
             }
 
             if (json == null){
                 client.close();
-                return "{\"ErrorMessage\": \"対応していないURLです。\"}";
+                return Function.gson.toJson(new ErrorMessage("対応していないURLです。"));
             }
 
             request = HttpRequest.newBuilder()
@@ -226,7 +227,7 @@ public class SoundCloud implements ServiceAPI {
         } catch (Exception e){
             e.printStackTrace();
             client.close();
-            return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+"\"}";
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
 
     }

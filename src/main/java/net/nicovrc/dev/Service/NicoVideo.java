@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.NicoNicoVideo;
 
 import java.net.InetSocketAddress;
@@ -90,7 +91,7 @@ public class NicoVideo implements ServiceAPI {
     @Override
     public String Get() {
         if (URL == null || URL.isEmpty()){
-            return "{\"ErrorMessage\": \"URLがありません\"}";
+            return gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         // Proxy
@@ -118,7 +119,7 @@ public class NicoVideo implements ServiceAPI {
             matcher_short = null;
             matcher_cas = null;
             matcher_idOnly = null;
-            return "{\"ErrorMessage\": \"URLが間違っているか対応してないURLです。\"}";
+            return gson.toJson(new ErrorMessage("URLが間違っているか対応してないURLです。"));
         }
 
         String accessUrl = null;
@@ -175,16 +176,16 @@ public class NicoVideo implements ServiceAPI {
                 Matcher matcher = matcher_videoError1.matcher(send.body());
                 if (matcher.find()){
                     matcher = null;
-                    return "{\"ErrorMessage\": \"この動画は存在しないか、削除された可能性があります。\"}";
+                    return gson.toJson(new ErrorMessage("この動画は存在しないか、削除された可能性があります。"));
                 }
                 matcher = matcher_videoError2.matcher(send.body());
                 if (matcher.find()){
                     String str = matcher.group(1);
                     matcher = null;
-                    return "{\"ErrorMessage\": \"この動画は"+str+"の申立により、著作権侵害として削除されました。\"}";
+                    return gson.toJson(new ErrorMessage("この動画は"+str+"の申立により、著作権侵害として削除されました。"));
                 }
                 matcher = null;
-                return "{\"ErrorMessage\": \"取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")\"}";
+                return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
             }
 
             String body = send.body();
@@ -288,7 +289,7 @@ public class NicoVideo implements ServiceAPI {
                         client.close();
                         client = null;
 
-                        return "{\"ErrorMessage\": \"動画取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")\"}";
+                        return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
                     }
                     body = send.body();
                     //System.out.println(body);
@@ -314,7 +315,7 @@ public class NicoVideo implements ServiceAPI {
                         }
                         result.setVideoAccessCookie(cookie);
                     } else {
-                        return "{\"ErrorMessage\": \"動画取得に失敗しました。\"}";
+                        return gson.toJson(new ErrorMessage("動画取得に失敗しました。"));
                     }
 
                     return gson.toJson(result);
@@ -464,7 +465,7 @@ public class NicoVideo implements ServiceAPI {
                                     WebSocket webSocket = comp.get();
                                     webSocket = null;
                                 } catch (Exception e) {
-                                    return "{\"ErrorMessage\": \"取得に失敗しました。 ("+e.getMessage()+")\"}";
+                                    return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
                                 }
 
                                 while (resultData[1] == null || resultData[1].isEmpty()){
@@ -494,11 +495,11 @@ public class NicoVideo implements ServiceAPI {
                             return gson.toJson(liveData);
 
                         } else {
-                            return "{\"ErrorMessage\": \"取得に失敗しました。 (Websocket)\"}";
+                            return gson.toJson(new ErrorMessage("取得に失敗しました。 (Websocket)"));
                         }
 
                     } else {
-                        return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                        return gson.toJson(new ErrorMessage("取得に失敗しました。"));
                     }
                     //return gson.toJson(json);
                 }
@@ -512,7 +513,7 @@ public class NicoVideo implements ServiceAPI {
             return "";
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"取得に失敗しました。(HTTPアクセスエラー)\"}";
+            return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPアクセスエラー)"));
         }
     }
 

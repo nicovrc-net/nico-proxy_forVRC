@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.TwitterResult;
 
 import java.net.InetSocketAddress;
@@ -41,7 +42,7 @@ public class Twitter implements ServiceAPI {
     public String Get() {
 
         if (url == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLがありません\"}";
+            return gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         // Proxy
@@ -152,18 +153,18 @@ public class Twitter implements ServiceAPI {
             } else if (json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().has("result") && json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().get("result").getAsJsonObject().has("reason")){
                 String reason = json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().get("result").getAsJsonObject().get("reason").getAsString();
                 if (reason.equals("NsfwLoggedOut")){
-                    return "{\"ErrorMessage\": \"取得に失敗しました。 (理由 : NSFW)\"}";
+                    return gson.toJson(new ErrorMessage("取得に失敗しました。 (理由 : NSFW)"));
                 } else {
-                    return "{\"ErrorMessage\": \"取得に失敗しました。 (理由 : "+reason+")\"}";
+                    return gson.toJson(new ErrorMessage("取得に失敗しました。 (理由 : "+reason+")"));
                 }
             } else {
                 //System.out.println(json);
-                return "{\"ErrorMessage\": \"ツイートがありません\"}";
+                return gson.toJson(new ErrorMessage("ツイートがありません"));
             }
 
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"内部エラーです。\"}";
+            return gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
 
         //return "";

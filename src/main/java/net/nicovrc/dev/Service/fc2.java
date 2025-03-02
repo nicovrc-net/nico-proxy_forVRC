@@ -2,7 +2,7 @@ package net.nicovrc.dev.Service;
 
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
-import net.nicovrc.dev.Service.Result.NicoNicoVideo;
+import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.fc2Result;
 
 import java.net.InetSocketAddress;
@@ -15,7 +15,6 @@ import java.net.http.WebSocket;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
@@ -49,7 +48,7 @@ public class fc2 implements ServiceAPI {
     @Override
     public String Get() {
         if (url == null || url.isEmpty()){
-            return "{\"ErrorMessage\": \"URLがありません\"}";
+            return Function.gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         // Proxy
@@ -120,7 +119,7 @@ public class fc2 implements ServiceAPI {
 
                 if (send.statusCode() != 200){
                     client.close();
-                    return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                    return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
                 JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
@@ -157,7 +156,7 @@ public class fc2 implements ServiceAPI {
                 } else if (json.getAsJsonObject().get("playlist").getAsJsonObject().has("lq")){
                     uri = json.getAsJsonObject().get("playlist").getAsJsonObject().get("lq").getAsString();
                 } else {
-                    return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                    return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
                 result.setVideoURL("https://video.fc2.com" + uri);
@@ -188,7 +187,7 @@ public class fc2 implements ServiceAPI {
                 JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
 
                 if (json.getAsJsonObject().get("data").getAsJsonObject().get("channel_data").getAsJsonObject().get("image").getAsString().isEmpty()){
-                    return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                    return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
                 String Version = json.getAsJsonObject().get("data").getAsJsonObject().get("channel_data").getAsJsonObject().get("version").getAsString();
@@ -350,7 +349,7 @@ public class fc2 implements ServiceAPI {
                     } catch (Exception e) {
                         client2.close();
                         client.close();
-                        return "{\"ErrorMessage\": \"取得に失敗しました。 ("+e.getMessage()+")\"}";
+                        return Function.gson.toJson(new ErrorMessage("取得に失敗しました。("+e.getMessage()+")"));
                     }
 
                     //System.out.println("aaa");
@@ -364,7 +363,7 @@ public class fc2 implements ServiceAPI {
                         result.setLiveURL(resultData[0]);
                     } else {
                         client2.close();
-                        return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                        return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                     }
 
                     //System.out.println("aaaa");
@@ -375,13 +374,13 @@ public class fc2 implements ServiceAPI {
 
                 } else {
                     client.close();
-                    return "{\"ErrorMessage\": \"取得に失敗しました。\"}";
+                    return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
             }
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"内部エラーです。 ("+e.getMessage().replaceAll("\"","\\\\\"")+")\"}";
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。("+e.getMessage()+")"));
         }
 
     }

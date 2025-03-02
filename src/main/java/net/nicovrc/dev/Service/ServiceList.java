@@ -23,6 +23,7 @@ public class ServiceList {
         list.add(new SoundCloud());
         list.add(new Vimeo());
         list.add(new fc2());
+        list.add(new Youjizz());
         list.add(new Sonicbowl());
         list.add(new Mixcloud());
         list.add(new bandcamp());
