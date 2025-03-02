@@ -35,7 +35,7 @@ public class GetSupportList implements NicoVRCAPI {
                         i++;
                     }
                 }
-                tempList = new String[i + 1];
+                tempList = new String[i];
                 i = 0;
                 for (String str : value.getCorrespondingURL()){
                     if (matcher.matcher(str).find()){
