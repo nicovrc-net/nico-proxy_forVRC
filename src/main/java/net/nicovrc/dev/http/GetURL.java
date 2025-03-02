@@ -39,7 +39,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Gson gson = Function.gson;
     private final List<ServiceAPI> list = ServiceList.getServiceList();
 
-    private final Pattern NotRemoveQuestionMarkURL = Pattern.compile("(youtu\\.be|www\\.youtube\\.com)");
+    private final Pattern NotRemoveQuestionMarkURL = Pattern.compile("(youtu\\.be|www\\.youtube\\.com|pornhub\\.com)");
 
     private final Pattern pattern_Asterisk = Pattern.compile("\\*");
 
@@ -74,13 +74,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                     Pattern matcher_0 = null;
                     if (pattern_Asterisk.matcher(str).find()){
-                        //System.out.println(url.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
+                        //System.out.println(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
                         matcher_0 = Pattern.compile(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
                     }
 
                     if (URL.startsWith("https://"+str) || URL.startsWith("http://"+str) || URL.startsWith(str) || (matcher_0 != null && matcher_0.matcher(URL).find())){
-
-                        if (str.equals("so") && URL.startsWith("http")){
+                        //System.out.println(str);
+                        if ((str.equals("so") || str.equals("jp")) && URL.startsWith("http")){
                             continue;
                         }
 
@@ -1055,7 +1055,81 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             // ex.printStackTrace();
                         }
                     }
+                } else if (ServiceName.equals("Pornhub")) {
+                    String targetURL = element.getAsJsonObject().get("VideoURL").getAsString();
+                    System.out.println("[Get URL] " + URL + " ---> " + targetURL);
 
+                    try (HttpClient client = proxy == null ? HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_2)
+                            .followRedirects(HttpClient.Redirect.NEVER)
+                            .connectTimeout(Duration.ofSeconds(5))
+                            .build() :
+                            HttpClient.newBuilder()
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .followRedirects(HttpClient.Redirect.NEVER)
+                                    .connectTimeout(Duration.ofSeconds(5))
+                                    .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
+                                    .build()) {
+
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(new URI(targetURL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                .GET()
+                                .build();
+
+                        HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                        //System.out.println(send.uri());
+                        String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
+                        byte[] body = send.body();
+
+                        if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")) {
+                            String s = new String(body, StandardCharsets.UTF_8);
+
+                            StringBuilder sb = new StringBuilder();
+
+                            for (String str : s.split("\n")){
+                                if (str.startsWith("#")){
+                                    sb.append(str).append("\n");
+                                    continue;
+                                }
+
+                                String s1 = targetURL.split("/")[targetURL.split("/").length - 1];
+                                sb.append(targetURL.replaceAll(s1, "")).append(str).append("\n");
+                                break;
+                            }
+
+                            s = sb.toString();
+                            s = s.replaceAll("https://", "/https/cookie:[]/");
+
+                            body = s.getBytes(StandardCharsets.UTF_8);
+                            sb.setLength(0);
+                            //System.out.println(s);
+                        }
+
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
+                        send = null;
+                        request = null;
+                        method = null;
+                    } catch (Exception e){
+                        e.printStackTrace();
+                        try {
+                            content = null;
+                            File file = new File("./error-video/error_000.mp4");
+                            if (file.exists()){
+                                FileInputStream stream = new FileInputStream(file);
+                                content = stream.readAllBytes();
+                                stream.close();
+                                stream = null;
+                            }
+
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
+                            content = null;
+                        } catch (Exception ex){
+                            // ex.printStackTrace();
+                        }
+                    }
                 } else {
                     String targetURL = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
                     System.out.println("[Get URL] " + URL + " ---> " + targetURL);

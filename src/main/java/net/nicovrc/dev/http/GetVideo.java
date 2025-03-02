@@ -216,20 +216,6 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         s = s.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", sb.toString());
                         s = s.replaceAll("https://", "/https/cookie:[]/");
 
-                    } else if (matcher_fc2.matcher(URL).find()){
-                        if (CookieText != null && !CookieText.isEmpty()){
-                            if (Referer == null || Referer.isEmpty()){
-                                s = s.replaceAll("https://", "/https/cookie:["+CookieText+"]/");
-                            } else {
-                                s = s.replaceAll("https://", "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
-                            }
-                        } else {
-                            if (Referer == null || Referer.isEmpty()){
-                                s = s.replaceAll("https://", "/https/cookie:[]/");
-                            } else {
-                                s = s.replaceAll("https://", "/https/referer:["+Referer+"]/");
-                            }
-                        }
                     } else {
                         if (CookieText != null && !CookieText.isEmpty()){
                             if (Referer == null || Referer.isEmpty()){

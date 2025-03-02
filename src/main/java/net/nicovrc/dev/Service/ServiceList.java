@@ -14,6 +14,7 @@ public class ServiceList {
         list.add(new TikTok());
         list.add(new Twitter());
         list.add(new OPENREC());
+        list.add(new Pornhub());
         list.add(new Twitcasting());
         list.add(new Abema());
         list.add(new TVer());
