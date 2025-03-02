@@ -1,5 +1,7 @@
 package net.nicovrc.dev.api;
 
+import net.nicovrc.dev.Function;
+
 public class Test implements NicoVRCAPI {
     @Override
     public String getURI() {
@@ -8,6 +10,6 @@ public class Test implements NicoVRCAPI {
 
     @Override
     public String Run(String httpRequest) {
-        return "{\"ErrorMessage\": \"実装中...\"}";
+        return "\"Message\": \"OK\", \"Version\": \""+ Function.Version +"\"}";
     }
 }

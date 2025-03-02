@@ -401,6 +401,7 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - XVIDEO.COM、Pornhub、iwara.tvの再対応
+            - `?url=`のログをRedisに書き出すように
           draft: false
           prerelease: true
 

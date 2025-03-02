@@ -3,8 +3,11 @@ package net.nicovrc.dev;
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlSequence;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.http.*;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -15,10 +18,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -26,6 +26,7 @@ public class Main {
 
     private static final List<NicoVRCHTTP> httpServiceList = new ArrayList<>();
     private static final Timer proxyCheckTimer = new Timer();
+    private static final Timer logWriteTimer = new Timer();
 
     private static final Pattern matcher_Json = Pattern.compile("<meta name=\"server-response\" content=\"\\{(.+)}\" />");
 
@@ -363,6 +364,14 @@ JPProxy:
             }
         }, 0L, 10000L);
 
+        // ログ書き出し
+        logWriteTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                WriteLog();
+            }
+        }, 0L, 60000L);
+
         // HTTP受付
         httpServiceList.add(new NicoVRCWebAPI());
         httpServiceList.add(new GetURL());
@@ -380,5 +389,50 @@ JPProxy:
 
         // 終了処理
         proxyCheckTimer.cancel();
+        logWriteTimer.cancel();
+        WriteLog();
+    }
+
+    private static void WriteLog(){
+
+        if (!Function.GetURLAccessLog.isEmpty()){
+            Thread.ofVirtual().start(()->{
+                System.out.println("[Info] ログ書き出し開始");
+
+                int[] count = {0};
+                try {
+                    YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+
+                    String redisServer = yamlMapping.string("RedisServer");
+                    String redisPass = yamlMapping.string("RedisPass");
+                    int redisPort = yamlMapping.integer("RedisPort");
+
+                    try (JedisPool jedisPool = new JedisPool(redisServer, redisPort);
+                         Jedis jedis = jedisPool.getResource()){
+
+                        if (!redisPass.isEmpty()){
+                            jedis.auth(redisPass);
+                        }
+
+                        HashMap<String, LogData> temp = new HashMap<>(Function.GetURLAccessLog);
+                        Function.GetURLAccessLog.clear();
+
+                        temp.forEach((id, value)->{
+                            jedis.set("nicovrc:log:"+id, Function.gson.toJson(value));
+                        });
+                        count[0] = temp.size();
+                        temp.clear();
+                    } catch (Exception e){
+                        // e.printStackTrace();
+                    }
+                } catch (Exception e){
+                    // e.printStackTrace();
+                }
+
+
+                System.out.println("[Info] ログ書き出し完了 ("+count[0]+"件)");
+            });
+        }
+
     }
 }
