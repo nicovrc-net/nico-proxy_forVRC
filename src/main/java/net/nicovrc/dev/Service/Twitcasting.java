@@ -160,7 +160,7 @@ public class Twitcasting implements ServiceAPI {
 
         } catch (Exception e){
             e.printStackTrace();
-            return "{\"ErrorMessage\": \"取得に失敗しました。 ("+e.getMessage()+")\"";
+            return "{\"ErrorMessage\": \"取得に失敗しました。 ("+e.getMessage().replaceAll("\"","\\\\\"")+")\"";
         }
     }
 
