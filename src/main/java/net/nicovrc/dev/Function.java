@@ -127,7 +127,7 @@ public class Function {
 
     public static String getMethod(String HTTPRequest){
         String temp = HTTPRequest.substring(0, 3);
-        if (temp.toUpperCase(Locale.ROOT).equals("GET") || temp.toUpperCase(Locale.ROOT).equals("POST") || temp.toUpperCase(Locale.ROOT).equals("HEAD")){
+        if (temp.toUpperCase(Locale.ROOT).equals("GET") || temp.toUpperCase(Locale.ROOT).equals("POS") || temp.toUpperCase(Locale.ROOT).equals("HEA")){
             return temp;
         }
 
