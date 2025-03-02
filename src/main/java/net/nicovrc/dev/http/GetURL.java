@@ -73,9 +73,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 for (String str : vrcapi.getCorrespondingURL()) {
 
                     Pattern matcher_0 = null;
-                    if (pattern_Asterisk.matcher(URL).find()){
+                    if (pattern_Asterisk.matcher(str).find()){
                         //System.out.println(url.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
-                        matcher_0 = Pattern.compile(URL.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
+                        matcher_0 = Pattern.compile(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
                     }
 
                     if (URL.startsWith("https://"+str) || URL.startsWith("http://"+str) || URL.startsWith(str) || (matcher_0 != null && matcher_0.matcher(URL).find())){
@@ -771,7 +771,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         }
                     }
 
-                } else if (ServiceName.equals("piapro") || ServiceName.equals("SoundCloud") || ServiceName.equals("Sonicbowl") || ServiceName.equals("Mixcloud")) {
+                } else if (ServiceName.equals("piapro") || ServiceName.equals("SoundCloud") || ServiceName.equals("Sonicbowl") || ServiceName.equals("Mixcloud") || ServiceName.equals("bandcamp")) {
                     System.out.println("[Get URL] " + URL + " ---> " + element.getAsJsonObject().get("AudioURL").getAsString());
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                             .version(HttpClient.Version.HTTP_2)

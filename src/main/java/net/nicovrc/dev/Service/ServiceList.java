@@ -22,6 +22,7 @@ public class ServiceList {
         list.add(new fc2());
         list.add(new Sonicbowl());
         list.add(new Mixcloud());
+        list.add(new bandcamp());
 
         return list;
     }
