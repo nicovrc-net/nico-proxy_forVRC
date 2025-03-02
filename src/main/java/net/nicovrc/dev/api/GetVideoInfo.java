@@ -36,7 +36,7 @@ public class GetVideoInfo implements NicoVRCAPI {
             for (String url : urls){
                 Pattern matcher_0 = null;
                 if (pattern_Asterisk.matcher(url).find()){
-                    System.out.println(url.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
+                    //System.out.println(url.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
                     matcher_0 = Pattern.compile(url.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
                 }
 
