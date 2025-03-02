@@ -21,7 +21,13 @@ public class GetSupportList implements NicoVRCAPI {
 
         HashMap<String, String[]> map = new HashMap<>();
         siteList.forEach((value)->{
-            map.put(value.getServiceName(), value.getCorrespondingURL());
+            if (!value.getServiceName().equals("ニコニコ")){
+
+            } else {
+                if (value.getCorrespondingURL().length != 2){
+                    map.put(value.getServiceName(), value.getCorrespondingURL());
+                }
+            }
         });
 
         return Function.gson.toJson(map);
