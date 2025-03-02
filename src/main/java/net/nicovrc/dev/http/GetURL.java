@@ -41,6 +41,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     private final Pattern NotRemoveQuestionMarkURL = Pattern.compile("(youtu\\.be|www\\.youtube\\.com)");
 
+    private final Pattern pattern_Asterisk = Pattern.compile("\\*");
+
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
     private final Pattern dummy_url = Pattern.compile("&dummy=true");
     private final Pattern vrc_getStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
@@ -63,13 +65,20 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         String method = Function.getMethod(httpRequest);
 
         try {
-            URL = URL.replaceAll("^(/\\?url=|/\\?vi=|/proxy/\\?)", "");
+            URL = URL.replaceAll("^(/\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
 
             ServiceAPI api = null;
             for (ServiceAPI vrcapi : list) {
                 boolean isFound = false;
                 for (String str : vrcapi.getCorrespondingURL()) {
-                    if (URL.startsWith("https://"+str) || URL.startsWith("http://"+str) || URL.startsWith(str)){
+
+                    Pattern matcher_0 = null;
+                    if (pattern_Asterisk.matcher(URL).find()){
+                        //System.out.println(url.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
+                        matcher_0 = Pattern.compile(URL.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
+                    }
+
+                    if (URL.startsWith("https://"+str) || URL.startsWith("http://"+str) || URL.startsWith(str) || (matcher_0 != null && matcher_0.matcher(URL).find())){
 
                         if (str.equals("so") && URL.startsWith("http")){
                             continue;

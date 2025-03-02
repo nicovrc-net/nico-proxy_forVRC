@@ -8,10 +8,12 @@ import net.nicovrc.dev.Service.ServiceList;
 
 import java.io.File;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class GetVideoInfo implements NicoVRCAPI {
 
     private final List<ServiceAPI> siteList = ServiceList.getServiceList();
+    private final Pattern pattern_Asterisk = Pattern.compile("\\*");
 
     @Override
     public String getURI() {
@@ -32,11 +34,18 @@ public class GetVideoInfo implements NicoVRCAPI {
         for (ServiceAPI site : siteList){
             String[] urls = site.getCorrespondingURL();
             for (String url : urls){
-                if (!isFound[0] && (inputUrl.startsWith("http://"+url) || inputUrl.startsWith("https://"+url) || inputUrl.startsWith(url))){
+                Pattern matcher_0 = null;
+                if (pattern_Asterisk.matcher(url).find()){
+                    System.out.println(url.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
+                    matcher_0 = Pattern.compile(url.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
+                }
+
+                if (!isFound[0] && (inputUrl.startsWith("http://"+url) || inputUrl.startsWith("https://"+url) || inputUrl.startsWith(url)) || (matcher_0 != null && matcher_0.matcher(inputUrl).find())){
 
                     if (url.equals("so") && inputUrl.startsWith("http")){
                         continue;
                     }
+
 
                     if (url.startsWith("twitcasting.tv")){
                         String ClientId = "";
