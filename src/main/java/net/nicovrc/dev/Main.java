@@ -281,6 +281,7 @@ JPProxy:
 
                                 Function.ProxyList.clear();
                                 Function.ProxyList.addAll(proxyList);
+                                System.out.println("[Info] VideoProxy: "+ Function.ProxyList.size() + "件");
                             }
                         } catch (Exception e){
                             // e.printStackTrace();
@@ -351,6 +352,7 @@ JPProxy:
 
                                 Function.JP_ProxyList.clear();
                                 Function.JP_ProxyList.addAll(proxyList);
+                                System.out.println("[Info] JP ProxyList: "+ Function.JP_ProxyList.size() + "件");
                             }
                         } catch (Exception e){
                             // e.printStackTrace();
