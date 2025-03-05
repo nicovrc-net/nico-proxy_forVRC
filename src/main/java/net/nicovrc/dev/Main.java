@@ -364,7 +364,7 @@ JPProxy:
                 }
 
             }
-        }, 0L, 10000L);
+        }, 0L, 60000L);
 
         // ログ書き出し
         logWriteTimer.scheduleAtFixedRate(new TimerTask() {
