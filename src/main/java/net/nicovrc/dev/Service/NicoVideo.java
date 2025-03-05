@@ -74,6 +74,9 @@ public class NicoVideo implements ServiceAPI {
 
     private String Proxy = null;
 
+    private String user_session = null;
+    private String user_session_secure = null;
+
     @Override
     public String[] getCorrespondingURL() {
         return SupportURL;
@@ -86,6 +89,14 @@ public class NicoVideo implements ServiceAPI {
         if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("URL")){
             this.URL = jsonElement.getAsJsonObject().get("URL").getAsString();
         }
+
+        if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("user_session")){
+            this.user_session = jsonElement.getAsJsonObject().get("user_session").getAsString();
+        }
+        if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("user_session_secure")){
+            this.user_session_secure = jsonElement.getAsJsonObject().get("user_session_secure").getAsString();
+        }
+
     }
 
     @Override
@@ -178,13 +189,21 @@ public class NicoVideo implements ServiceAPI {
             }
 
             URI uri = new URI(accessUrl);
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
                     .uri(uri)
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Cookie", "user_session="+user_session+"; user_session_secure="+user_session_secure)
                     .GET()
-                    .build();
+                    .build() :
+                    HttpRequest.newBuilder()
+                            .uri(uri)
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .GET()
+                            .build();
 
             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             if (send.statusCode() >= 400){
@@ -291,7 +310,7 @@ public class NicoVideo implements ServiceAPI {
                     }
 
                     uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId);
-                    request = HttpRequest.newBuilder()
+                    request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
                             .uri(uri)
                             .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
                             .headers("X-Access-Right-Key", accessRightKey)
@@ -299,10 +318,22 @@ public class NicoVideo implements ServiceAPI {
                             .headers("X-Frontend-Version", "0")
                             .headers("X-Niconico-Language", "ja-jp")
                             .headers("X-Request-With", "nicovideo")
-                            .headers("Cookie", "nicosid="+nicosid)
+                            .headers("Cookie", "user_session=user_session_"+user_session+"; user_session_secure="+user_session_secure+"; nicosid="+nicosid)
                             .headers("User-Agent", Function.UserAgent)
                             .POST(HttpRequest.BodyPublishers.ofString(sendJson))
-                            .build();
+                            .build() :
+                            HttpRequest.newBuilder()
+                                    .uri(uri)
+                                    .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
+                                    .headers("X-Access-Right-Key", accessRightKey)
+                                    .headers("X-Frontend-Id", "6")
+                                    .headers("X-Frontend-Version", "0")
+                                    .headers("X-Niconico-Language", "ja-jp")
+                                    .headers("X-Request-With", "nicovideo")
+                                    .headers("Cookie", "nicosid="+nicosid)
+                                    .headers("User-Agent", Function.UserAgent)
+                                    .POST(HttpRequest.BodyPublishers.ofString(sendJson))
+                                    .build();
 
                     send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
                     if (send.statusCode() >= 400){

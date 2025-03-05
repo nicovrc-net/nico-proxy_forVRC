@@ -401,6 +401,7 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - Proxy設定がうまく読み込まれていなかったのを修正
+            - ニコニコアカウントのCookie情報を設定できるように
           draft: false
           prerelease: true
 

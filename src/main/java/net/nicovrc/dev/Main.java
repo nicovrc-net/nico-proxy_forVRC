@@ -73,6 +73,16 @@ VideoProxy:
 # 日本国内判定されるプロキシ (TVer、Abemaなど日本国内のみしか使えないサイトへ使う用)
 JPProxy:
   - "127.0.0.1:3128"
+# ----------------------------
+#
+# ニコニコアカウント設定
+# ※センシティブ設定になっている動画を見れるようにはなりますが何があっても自己責任です
+#
+# ----------------------------
+# Cookie user_sessionの値
+NicoNico_user_session: ""
+# Cookie user_session_secureの値
+NicoNico_user_session_secure: ""
                     """;
 
         File file1 = new File("./config.yml");
