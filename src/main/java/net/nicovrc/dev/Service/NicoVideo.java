@@ -97,6 +97,8 @@ public class NicoVideo implements ServiceAPI {
             this.user_session_secure = jsonElement.getAsJsonObject().get("user_session_secure").getAsString();
         }
 
+        //System.out.println(user_session + " / " + user_session_secure);
+
     }
 
     @Override
@@ -318,7 +320,7 @@ public class NicoVideo implements ServiceAPI {
                             .headers("X-Frontend-Version", "0")
                             .headers("X-Niconico-Language", "ja-jp")
                             .headers("X-Request-With", "nicovideo")
-                            .headers("Cookie", "user_session=user_session_"+user_session+"; user_session_secure="+user_session_secure+"; nicosid="+nicosid)
+                            .headers("Cookie", "user_session="+user_session+"; user_session_secure="+user_session_secure+"; nicosid="+nicosid)
                             .headers("User-Agent", Function.UserAgent)
                             .POST(HttpRequest.BodyPublishers.ofString(sendJson))
                             .build() :
@@ -337,6 +339,7 @@ public class NicoVideo implements ServiceAPI {
 
                     send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
                     if (send.statusCode() >= 400){
+                        //System.out.println("TEST");
                         uri = null;
                         request = null;
                         client.close();

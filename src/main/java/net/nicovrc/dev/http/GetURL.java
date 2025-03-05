@@ -91,13 +91,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             String proxy = null;
             if (api != null){
                 //System.out.println(URL.startsWith("https://twitcasting.tv"));
-                if (!URL.startsWith("https://twitcasting.tv")) {
-                    if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
-                        api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\"}");
-                    } else {
-                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
-                    }
-                } else if (api.getServiceName().equals("ニコニコ")) {
+                if (api.getServiceName().equals("ニコニコ")) {
                     String user_session = null;
                     String user_session_secure = null;
 
@@ -115,7 +109,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
                     }
 
-                } else {
+                } else if (URL.startsWith("https://twitcasting.tv")) {
                     String ClientId = "";
                     String ClientSecret = "";
 
@@ -131,6 +125,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         api.Set("{\"URL\":\""+URL.replaceAll("&dummy=true","")+"\", \"ClientID\":\""+ClientId+"\", \"ClientSecret\":\""+ClientSecret+"\"}");
                     } else {
                         api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\", \"ClientID\":\""+ClientId+"\", \"ClientSecret\":\""+ClientSecret+"\"}");
+                    }
+                } else {
+                    if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
+                        api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\"}");
+                    } else {
+                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
                     }
                 }
 
