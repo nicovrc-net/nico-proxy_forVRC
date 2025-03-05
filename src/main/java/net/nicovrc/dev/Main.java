@@ -244,7 +244,7 @@ JPProxy:
                                     if (send.statusCode() < 400){
                                         Matcher matcher = matcher_Json.matcher(send.body());
                                         if (matcher.find()){
-                                            JsonElement json = Function.gson.fromJson(matcher.group(1).replaceAll("&quot;", "\""), JsonElement.class);
+                                            JsonElement json = Function.gson.fromJson("{"+matcher.group(1).replaceAll("&quot;", "\"")+"}", JsonElement.class);
 
                                             if (json != null){
 
@@ -281,11 +281,11 @@ JPProxy:
 
                                 Function.ProxyList.clear();
                                 Function.ProxyList.addAll(proxyList);
-                                System.out.println("[Info] VideoProxy: "+ Function.ProxyList.size() + "件");
                             }
                         } catch (Exception e){
-                            // e.printStackTrace();
+                            //e.printStackTrace();
                         }
+                        System.out.println("[Info] VideoProxy: "+ Function.ProxyList.size() + "件");
                     });
 
                     Thread.ofVirtual().start(()->{
@@ -315,7 +315,7 @@ JPProxy:
                                     if (send.statusCode() < 400){
                                         Matcher matcher = matcher_Json.matcher(send.body());
                                         if (matcher.find()){
-                                            JsonElement json = Function.gson.fromJson(matcher.group(1).replaceAll("&quot;", "\""), JsonElement.class);
+                                            JsonElement json = Function.gson.fromJson("{"+matcher.group(1).replaceAll("&quot;", "\"")+"}", JsonElement.class);
 
                                             if (json != null){
 
@@ -352,11 +352,11 @@ JPProxy:
 
                                 Function.JP_ProxyList.clear();
                                 Function.JP_ProxyList.addAll(proxyList);
-                                System.out.println("[Info] JP ProxyList: "+ Function.JP_ProxyList.size() + "件");
                             }
                         } catch (Exception e){
-                            // e.printStackTrace();
+                            //e.printStackTrace();
                         }
+                        System.out.println("[Info] JP ProxyList: "+ Function.JP_ProxyList.size() + "件");
                     });
 
                 } catch (Exception e){
