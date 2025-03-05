@@ -131,9 +131,31 @@ public class NicoVideo implements ServiceAPI {
             id = matcher_normal.group(3);
             accessUrl = "https://nico.ms/" + id;
         }
+
+        if (isShort){
+            id = matcher_short.group(2);
+        }
+
         if (isShort || isCas){
             accessUrl = url;
         }
+
+        if (isID || isNormal || isShort){
+            if (id.startsWith("lv") || id.startsWith("so")){
+                if (!Function.JP_ProxyList.isEmpty()){
+                    int i = new SecureRandom().nextInt(0, Function.JP_ProxyList.size());
+                    Proxy = Function.JP_ProxyList.get(i);
+                }
+            }
+        }
+
+        if (isCas){
+            if (!Function.JP_ProxyList.isEmpty()){
+                int i = new SecureRandom().nextInt(0, Function.JP_ProxyList.size());
+                Proxy = Function.JP_ProxyList.get(i);
+            }
+        }
+
         //System.out.println(accessUrl);
 
         NicoNicoVideo result = new NicoNicoVideo();
