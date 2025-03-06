@@ -110,7 +110,12 @@ NicoNico_user_session_secure: ""
             if (isError){
                 System.out.println("[Info] config.ymlを設定してください。");
                 // 終了処理
-                proxyCheckTimer.cancel();
+                try {
+                    proxyCheckTimer.cancel();
+                    logWriteTimer.cancel();
+                } catch (Exception e){
+                    // e.printStackTrace();
+                }
                 return;
             }
         }
