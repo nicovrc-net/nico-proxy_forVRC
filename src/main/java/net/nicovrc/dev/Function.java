@@ -15,7 +15,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Function {
-    public static final String Version = "3.0.0-beta.1";
+    public static final String Version = "3.0.0-beta.2";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0 nicovrc-net/" + Version;
 
@@ -27,6 +27,8 @@ public class Function {
 
     public static final ConcurrentHashMap<String, String> APIAccessLog = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, LogData> GetURLAccessLog = new ConcurrentHashMap<>();
+
+    public static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
 
     public static String getHTTPRequest(Socket sock) throws Exception{
         //System.out.println("debug 1");

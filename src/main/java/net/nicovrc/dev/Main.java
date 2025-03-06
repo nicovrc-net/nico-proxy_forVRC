@@ -27,6 +27,7 @@ public class Main {
     private static final List<NicoVRCHTTP> httpServiceList = new ArrayList<>();
     private static final Timer proxyCheckTimer = new Timer();
     private static final Timer logWriteTimer = new Timer();
+    private static final Timer cacheRemoveTimer = new Timer();
 
     private static final Pattern matcher_Json = Pattern.compile("<meta name=\"server-response\" content=\"\\{(.+)}\" />");
 
@@ -113,6 +114,7 @@ NicoNico_user_session_secure: ""
                 try {
                     proxyCheckTimer.cancel();
                     logWriteTimer.cancel();
+                    cacheRemoveTimer.cancel();
                 } catch (Exception e){
                     // e.printStackTrace();
                 }
@@ -389,6 +391,26 @@ NicoNico_user_session_secure: ""
             }
         }, 0L, 60000L);
 
+        // キャッシュ掃除
+        cacheRemoveTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                Thread.ofVirtual().start(()->{
+                    HashMap<String, CacheData> map = new HashMap<>(Function.CacheList);
+
+                    long time = new Date().getTime();
+                    map.forEach((url, data)->{
+                        if (time - data.getCacheDate() >= 86400000L){
+                            Function.CacheList.remove(url);
+                        }
+                    });
+
+                    map.clear();
+                    map = null;
+                });
+            }
+        }, 0L, 60000L);
+
         // HTTP受付
         httpServiceList.add(new NicoVRCWebAPI());
         httpServiceList.add(new GetURL());
@@ -407,6 +429,7 @@ NicoNico_user_session_secure: ""
         // 終了処理
         proxyCheckTimer.cancel();
         logWriteTimer.cancel();
+        cacheRemoveTimer.cancel();
         WriteLog();
     }
 

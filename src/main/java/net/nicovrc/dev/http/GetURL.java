@@ -4,6 +4,7 @@ import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import net.nicovrc.dev.CacheData;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.LogData;
 import net.nicovrc.dev.Service.Result.NicoNicoVideo;
@@ -24,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.time.Duration;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -60,84 +62,113 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             URL = URL.replaceAll("^(/\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
 
             ServiceAPI api = null;
-            for (ServiceAPI vrcapi : list) {
-                boolean isFound = false;
-                for (String str : vrcapi.getCorrespondingURL()) {
+            CacheData cacheData = Function.CacheList.get(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]);
+            if (cacheData == null){
+                for (ServiceAPI vrcapi : list) {
+                    boolean isFound = false;
+                    for (String str : vrcapi.getCorrespondingURL()) {
 
-                    Pattern matcher_0 = null;
-                    if (pattern_Asterisk.matcher(str).find()){
-                        //System.out.println(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
-                        matcher_0 = Pattern.compile(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
-                    }
-
-                    if (URL.startsWith("https://"+str) || URL.startsWith("http://"+str) || URL.startsWith(str) || (matcher_0 != null && matcher_0.matcher(URL).find())){
-                        //System.out.println(str);
-                        if ((str.equals("so") || str.equals("jp")) && URL.startsWith("http")){
-                            continue;
+                        Pattern matcher_0 = null;
+                        if (pattern_Asterisk.matcher(str).find()){
+                            //System.out.println(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
+                            matcher_0 = Pattern.compile(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
                         }
 
-                        api = vrcapi;
-                        isFound = true;
+                        if (URL.startsWith("https://"+str) || URL.startsWith("http://"+str) || URL.startsWith(str) || (matcher_0 != null && matcher_0.matcher(URL).find())){
+                            //System.out.println(str);
+                            if ((str.equals("so") || str.equals("jp")) && URL.startsWith("http")){
+                                continue;
+                            }
+
+                            api = vrcapi;
+                            isFound = true;
+                        }
+                    }
+
+                    if (isFound){
+                        break;
                     }
                 }
 
-                if (isFound){
-                    break;
+                if (api != null){
+                    cacheData = new CacheData();
+                    cacheData.setCacheDate(new Date().getTime());
+                    cacheData.setServiceAPI(api);
+                    cacheData.setSet(false);
+
+                    Function.CacheList.put(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0], cacheData);
                 }
+            } else {
+                api = cacheData.getServiceAPI();
             }
 
             String json = null;
             String ServiceName = null;
             String proxy = null;
-            if (api != null){
-                //System.out.println(URL.startsWith("https://twitcasting.tv"));
-                if (api.getServiceName().equals("ニコニコ")) {
-                    String user_session = null;
-                    String user_session_secure = null;
+            if (cacheData != null && !cacheData.isSet()){
+                if (api != null){
+                    //System.out.println(URL.startsWith("https://twitcasting.tv"));
+                    if (api.getServiceName().equals("ニコニコ")) {
+                        String user_session = null;
+                        String user_session_secure = null;
 
-                    try {
-                        final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-                        user_session = yamlMapping.string("NicoNico_user_session");
-                        user_session_secure = yamlMapping.string("NicoNico_user_session_secure");
-                    } catch (Exception e){
-                        //e.printStackTrace();
-                    }
+                        try {
+                            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+                            user_session = yamlMapping.string("NicoNico_user_session");
+                            user_session_secure = yamlMapping.string("NicoNico_user_session_secure");
+                        } catch (Exception e){
+                            //e.printStackTrace();
+                        }
 
-                    if (user_session != null && user_session_secure != null){
-                        api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\", \"user_session\":\""+user_session+"\", \"user_session_secure\":\""+user_session_secure+"\"}");
+                        if (user_session != null && user_session_secure != null){
+                            api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\", \"user_session\":\""+user_session+"\", \"user_session_secure\":\""+user_session_secure+"\"}");
+                        } else {
+                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
+                        }
+
+                    } else if (URL.startsWith("https://twitcasting.tv")) {
+                        String ClientId = "";
+                        String ClientSecret = "";
+
+                        try {
+                            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+                            ClientId = yamlMapping.string("TwitcastingClientID");
+                            ClientSecret = yamlMapping.string("TwitcastingClientSecret");
+                        } catch (Exception e){
+                            //e.printStackTrace();
+                        }
+
+                        if (NotRemoveQuestionMarkURL.matcher(URL).find()){
+                            api.Set("{\"URL\":\""+URL.replaceAll("&dummy=true","")+"\", \"ClientID\":\""+ClientId+"\", \"ClientSecret\":\""+ClientSecret+"\"}");
+                        } else {
+                            api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\", \"ClientID\":\""+ClientId+"\", \"ClientSecret\":\""+ClientSecret+"\"}");
+                        }
                     } else {
-                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
+                        if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
+                            api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\"}");
+                        } else {
+                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
+                        }
                     }
 
-                } else if (URL.startsWith("https://twitcasting.tv")) {
-                    String ClientId = "";
-                    String ClientSecret = "";
 
-                    try {
-                        final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-                        ClientId = yamlMapping.string("TwitcastingClientID");
-                        ClientSecret = yamlMapping.string("TwitcastingClientSecret");
-                    } catch (Exception e){
-                        //e.printStackTrace();
-                    }
+                    json = api.Get();
+                    ServiceName = api.getServiceName();
+                    proxy = api.getUseProxy();
 
-                    if (NotRemoveQuestionMarkURL.matcher(URL).find()){
-                        api.Set("{\"URL\":\""+URL.replaceAll("&dummy=true","")+"\", \"ClientID\":\""+ClientId+"\", \"ClientSecret\":\""+ClientSecret+"\"}");
-                    } else {
-                        api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\", \"ClientID\":\""+ClientId+"\", \"ClientSecret\":\""+ClientSecret+"\"}");
-                    }
-                } else {
-                    if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
-                        api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\"}");
-                    } else {
-                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
-                    }
+                    cacheData = new CacheData();
+                    cacheData.setCacheDate(new Date().getTime());
+                    cacheData.setServiceAPI(api);
+                    cacheData.setSet(true);
+                    cacheData.setResultJson(json);
+
+                    Function.CacheList.remove(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]);
+                    Function.CacheList.put(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0], cacheData);
                 }
-
-
-                json = api.Get();
-                ServiceName = api.getServiceName();
-                proxy = api.getUseProxy();
+            } else {
+                json = cacheData.getResultJson();
+                ServiceName = cacheData.getServiceAPI().getServiceName();
+                proxy = cacheData.getServiceAPI().getUseProxy();
             }
 
             //System.out.println(json);

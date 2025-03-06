@@ -402,6 +402,7 @@ jobs:
           body: |
             - Proxy設定がうまく読み込まれていなかったのを修正
             - ニコニコアカウントのCookie情報を設定できるように
+            - キャッシュ機構追加
           draft: false
           prerelease: true
 
