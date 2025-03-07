@@ -403,6 +403,7 @@ jobs:
             - Proxy設定がうまく読み込まれていなかったのを修正
             - ニコニコアカウントのCookie情報を設定できるように
             - キャッシュ機構追加
+            - API「`/api/v1/get_cachelist`」を追加
           draft: false
           prerelease: true
 

@@ -24,6 +24,7 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
         list.add(new Test());
         list.add(new GetVersion());
         list.add(new GetSupportList());
+        list.add(new GetCacheList());
     }
 
     @Override
