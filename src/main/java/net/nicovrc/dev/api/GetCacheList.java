@@ -5,12 +5,11 @@ import net.nicovrc.dev.Function;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.regex.Pattern;
 
 public class GetCacheList implements NicoVRCAPI {
 
 
-    private final Pattern matcher = Pattern.compile("\\.");
+    private final SimpleDateFormat format = Function.sdf;
 
     @Override
     public String getURI() {
@@ -21,7 +20,6 @@ public class GetCacheList implements NicoVRCAPI {
     public String Run(String httpRequest) {
 
         HashMap<String, String> map = new HashMap<>();
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
         Function.CacheList.forEach((url, data)->{
             map.put(url, format.format(new Date(data.getCacheDate())));
