@@ -8,6 +8,7 @@ import net.nicovrc.dev.api.*;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
@@ -30,7 +31,8 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
     @Override
     public void run() {
         try {
-            System.out.println("[API Access] " + URL);
+            Date date = new Date();
+            System.out.println("[API Access ("+Function.sdf.format(date)+")] " + URL);
             if (list.isEmpty()){
                 // 何もAPI実装されてなければ意味ないので
                 return;
