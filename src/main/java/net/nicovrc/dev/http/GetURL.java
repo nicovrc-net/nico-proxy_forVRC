@@ -108,7 +108,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             String json = null;
             String ServiceName = null;
             String proxy = null;
-            if (cacheData != null && !cacheData.isSet()){
+            if (cacheData == null || !cacheData.isSet()){
                 if (api != null){
                     //System.out.println(URL.startsWith("https://twitcasting.tv"));
                     if (api.getServiceName().equals("ニコニコ")) {
