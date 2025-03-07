@@ -90,14 +90,17 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
                 }
 
-                if (api != null){
-                    cacheData = new CacheData();
-                    cacheData.setCacheDate(new Date().getTime());
-                    cacheData.setServiceAPI(api);
-                    cacheData.setSet(false);
+                if (!dummy_url.matcher(URL).find()){
+                    if (api != null){
+                        cacheData = new CacheData();
+                        cacheData.setCacheDate(new Date().getTime());
+                        cacheData.setServiceAPI(api);
+                        cacheData.setSet(false);
 
-                    Function.CacheList.put(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0], cacheData);
+                        Function.CacheList.put(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0], cacheData);
+                    }
                 }
+
             } else {
                 api = cacheData.getServiceAPI();
             }
@@ -156,14 +159,16 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     ServiceName = api.getServiceName();
                     proxy = api.getUseProxy();
 
-                    cacheData = new CacheData();
-                    cacheData.setCacheDate(new Date().getTime());
-                    cacheData.setServiceAPI(api);
-                    cacheData.setSet(true);
-                    cacheData.setResultJson(json);
+                    if (!dummy_url.matcher(URL).find()){
+                        cacheData = new CacheData();
+                        cacheData.setCacheDate(new Date().getTime());
+                        cacheData.setServiceAPI(api);
+                        cacheData.setSet(true);
+                        cacheData.setResultJson(json);
 
-                    Function.CacheList.remove(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]);
-                    Function.CacheList.put(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0], cacheData);
+                        Function.CacheList.remove(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]);
+                        Function.CacheList.put(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0], cacheData);
+                    }
                 }
             } else {
                 json = cacheData.getResultJson();
