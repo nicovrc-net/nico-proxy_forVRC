@@ -400,9 +400,6 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - Proxy設定がうまく読み込まれていなかったのを修正
-            - ニコニコアカウントのCookie情報を設定できるように
-            - キャッシュ機構追加
             - API「`/api/v1/get_cachelist`」を追加
           draft: false
           prerelease: true
