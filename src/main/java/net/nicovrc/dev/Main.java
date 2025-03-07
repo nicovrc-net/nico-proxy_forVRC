@@ -235,6 +235,7 @@ NicoNico_user_session_secure: ""
                     YamlSequence proxy2 = yamlMapping.yamlSequence("JPProxy");
 
                     Thread.ofVirtual().start(()->{
+                        long count = Function.ProxyList.size();
                         try {
                             if (proxy1 != null){
                                 List<String> proxyList = new ArrayList<>();
@@ -302,10 +303,13 @@ NicoNico_user_session_secure: ""
                         } catch (Exception e){
                             //e.printStackTrace();
                         }
-                        System.out.println("[Info] VideoProxy: "+ Function.ProxyList.size() + "件");
+                        if (count != Function.ProxyList.size()){
+                            System.out.println("[Info] VideoProxy: "+ Function.ProxyList.size() + "件");
+                        }
                     });
 
                     Thread.ofVirtual().start(()->{
+                        long count = Function.JP_ProxyList.size();
                         try {
                             if (proxy2 != null){
                                 List<String> proxyList = new ArrayList<>();
@@ -373,7 +377,9 @@ NicoNico_user_session_secure: ""
                         } catch (Exception e){
                             //e.printStackTrace();
                         }
-                        System.out.println("[Info] JP ProxyList: "+ Function.JP_ProxyList.size() + "件");
+                        if (count != Function.JP_ProxyList.size()){
+                            System.out.println("[Info] JP ProxyList: "+ Function.JP_ProxyList.size() + "件");
+                        }
                     });
 
                 } catch (Exception e){
