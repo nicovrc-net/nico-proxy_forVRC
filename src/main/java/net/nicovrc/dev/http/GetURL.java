@@ -170,7 +170,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         Function.CacheList.put(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0], cacheData);
                     }
                 }
-            } else {
+            } else if (cacheData != null) {
                 json = cacheData.getResultJson();
                 ServiceName = cacheData.getServiceAPI().getServiceName();
                 proxy = cacheData.getServiceAPI().getUseProxy();
