@@ -4,8 +4,8 @@ plugins {
 }
 
 
-group  "xyz.n7mn"
-version "3.0-SNAPSHOT"
+group = "net.nicovrc.dev"
+version = "3.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
