@@ -416,7 +416,7 @@ NicoNico_user_session_secure: ""
                             Function.CacheList.remove(url);
                         } else if (!json.getAsJsonObject().has("VideoURL") && !json.getAsJsonObject().has("LiveURL") && !json.getAsJsonObject().has("AudioURL")){
                             Function.CacheList.remove(url);
-                        } else {
+                        } else if (data.isSet()) {
                             // Proxy
                             String Proxy = "";
                             if (!Function.JP_ProxyList.isEmpty()){
