@@ -167,7 +167,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         cacheData.setResultJson(json);
 
                         Function.CacheList.remove(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]);
-                        Function.CacheList.put(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0], cacheData);
+
+                        JsonElement element = gson.fromJson(json, JsonElement.class);
+
+                        if (element.getAsJsonObject().has("VideoURL") || element.getAsJsonObject().has("LiveURL") || element.getAsJsonObject().has("AudioURL")){
+                            Function.CacheList.put(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0], cacheData);
+                        }
                     }
                 }
             } else {
