@@ -5,6 +5,8 @@ import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlSequence;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
+import net.nicovrc.dev.Service.Result.NicoNicoVideo;
+import net.nicovrc.dev.Service.Result.TikTokResult;
 import net.nicovrc.dev.http.*;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -17,6 +19,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -406,8 +409,98 @@ NicoNico_user_session_secure: ""
 
                     long time = new Date().getTime();
                     map.forEach((url, data)->{
-                        if (time - data.getCacheDate() >= 86400000L){
+
+                        JsonElement json = Function.gson.fromJson(data.getResultJson(), JsonElement.class);
+
+                        if (time - data.getCacheDate() >= 86400000L) {
                             Function.CacheList.remove(url);
+                        } else if (!json.getAsJsonObject().has("VideoURL") && !json.getAsJsonObject().has("LiveURL") && !json.getAsJsonObject().has("AudioURL")){
+                            Function.CacheList.remove(url);
+                        } else {
+                            // Proxy
+                            String Proxy = "";
+                            if (!Function.JP_ProxyList.isEmpty()){
+                                int i = new SecureRandom().nextInt(0, Function.JP_ProxyList.size());
+                                Proxy = Function.JP_ProxyList.get(i);
+                            }
+                            String[] s = Proxy.split(":");
+
+                            HttpClient client = HttpClient.newBuilder()
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .followRedirects(HttpClient.Redirect.NORMAL)
+                                    .connectTimeout(Duration.ofSeconds(5))
+                                    .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
+                                    .build();
+
+                            try {
+                                if (data.getServiceAPI().getServiceName().equals("ニコニコ")){
+
+                                    NicoNicoVideo video = Function.gson.fromJson(data.getResultJson(), NicoNicoVideo.class);
+
+                                    final StringBuilder sb = new StringBuilder();
+                                    if (video.getVideoAccessCookie() != null && !video.getVideoAccessCookie().isEmpty()){
+                                        video.getVideoAccessCookie().forEach((name, cookie) -> {
+                                            sb.append(name).append("=").append(cookie).append(";");
+                                        });
+                                    }
+
+                                    HttpRequest request = HttpRequest.newBuilder()
+                                            .uri(new URI(video.getVideoURL() != null ? video.getVideoURL() : video.getLiveURL()))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .headers("Cookie", sb.isEmpty() ? "" : sb.substring(0, sb.length() - 1))
+                                            .GET()
+                                            .build();
+
+                                    HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                                    if (send.statusCode() >= 400){
+                                        Function.CacheList.remove(url);
+                                    }
+
+                                } else if (data.getServiceAPI().getServiceName().equals("TikTok")){
+
+                                    TikTokResult video = Function.gson.fromJson(data.getResultJson(), TikTokResult.class);
+
+                                    final StringBuilder sb = new StringBuilder();
+                                    if (video.getVideoAccessCookie() != null && !video.getVideoAccessCookie().isEmpty()){
+                                        sb.append(video.getVideoAccessCookie());
+                                    }
+
+                                    HttpRequest request = HttpRequest.newBuilder()
+                                            .uri(new URI(video.getVideoURL()))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .headers("Cookie", sb.isEmpty() ? "" : sb.substring(0, sb.length() - 1))
+                                            .GET()
+                                            .build();
+
+                                    HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                                    if (send.statusCode() >= 400){
+                                        Function.CacheList.remove(url);
+                                    }
+
+                                } else {
+                                    JsonElement video = Function.gson.fromJson(data.getResultJson(), JsonElement.class);
+                                    String target = video.getAsJsonObject().has("VideoURL") ? video.getAsJsonObject().get("VideoURL").getAsString() : video.getAsJsonObject().has("AudioURL") ? video.getAsJsonObject().get("AudioURL").getAsString() : video.getAsJsonObject().get("LiveURL").getAsString();
+
+                                    HttpRequest request = HttpRequest.newBuilder()
+                                            .uri(new URI(target))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .headers("Referer", url)
+                                            .GET()
+                                            .build();
+
+                                    HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                                    if (send.statusCode() >= 400){
+                                        Function.CacheList.remove(url);
+                                    }
+                                }
+                            } catch (Exception e){
+                                //e.printStackTrace();
+                            }
+
+                            client.close();
                         }
                     });
 
