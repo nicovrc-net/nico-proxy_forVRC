@@ -10,6 +10,6 @@ public class Test implements NicoVRCAPI {
 
     @Override
     public String Run(String httpRequest) {
-        return "\"Message\": \"OK\", \"Version\": \""+ Function.Version +"\"}";
+        return "{\"Message\": \"OK\", \"Version\": \""+ Function.Version +"\"}";
     }
 }
