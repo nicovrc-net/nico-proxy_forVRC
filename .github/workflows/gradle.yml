@@ -378,8 +378,70 @@ jobs:
             exit 1
           fi
         shell: bash
+  autotest8:
+    needs: [build-21, download_errorVideo]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Download Video
+        uses: actions/download-artifact@v4
+        with:
+          name: video
+
+      - name: Set VideoFile
+        run: |
+          mkdir ./error-video
+          mv ./*.mp4 ./error-video
+        shell: bash
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
+
+      - name: URL Request Test
+        run: |
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" -H "User-Agent: UnityPlayer/2022.3.22f1-DWR (UnityWebRequest/1.0, libcurl/8.5.0-DEV)" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9)
+          if [ "$HTTP_STATUS" -ne "text/plain" ]; then
+            echo "Expected HTTP status text/plain but got $HTTP_STATUS"
+            exit 1
+          fi
+        shell: bash
+
+      - name: stop.txt Create
+        run: |
+          cat /dev/null > ./stop.txt
+        shell: bash
+
+      - name: Wait 2s
+        run: sleep 2
+
+      - name: Not stop.txt Found Check
+        run: |
+          if [ -f ./config.yml ]; then
+            exit 1
+          else 
+            echo "OK"
+          fi
+        shell: bash
+
   release:
-    needs: [autotest1, autotest2, autotest3, autotest4, autotest5, autotest6, autotest7]
+    needs: [autotest1, autotest2, autotest3, autotest4, autotest5, autotest6, autotest7, autotest8]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
