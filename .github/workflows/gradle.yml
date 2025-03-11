@@ -401,6 +401,9 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - API「`/api/v1/get_cachelist`」を追加
+            - エラーとなったりアクセスできなくなったものがキャッシュとして残り続けるのを修正
+            - API「`/api/v1/test`」の返りJSONが正しくないのを修正
+
           draft: false
           prerelease: true
 
