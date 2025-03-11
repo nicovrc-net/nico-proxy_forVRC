@@ -433,7 +433,7 @@ jobs:
 
       - name: Not stop.txt Found Check
         run: |
-          if [ -f ./config.yml ]; then
+          if [ -f ./stop.yml ]; then
             exit 1
           else 
             echo "OK"
