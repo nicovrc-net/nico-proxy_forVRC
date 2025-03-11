@@ -70,9 +70,9 @@ jobs:
     steps:
       - name: Download Video
         run: |
-          wget https://r2.7mi.site/vrc/nico/error_404.mp4 > null
-          wget https://r2.7mi.site/vrc/nico/error_000.mp4 > null
-          wget https://r2.7mi.site/vrc/nico/error_404_2.mp4 > null
+          wget https://nicovrc.net/v3-video/error_404.mp4 > null
+          wget https://nicovrc.net/v3-video/error_000.mp4 > null
+          wget https://nicovrc.net/v3-video/error_404_2.mp4 > null
         shell: bash
 
       - name: Upload Video
