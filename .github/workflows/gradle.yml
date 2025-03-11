@@ -403,7 +403,7 @@ jobs:
             - API「`/api/v1/get_cachelist`」を追加
             - エラーとなったりアクセスできなくなったものがキャッシュとして残り続けるのを修正
             - API「`/api/v1/test`」の返りJSONが正しくないのを修正
-
+            - 空のテキストファイル「stop.txt」を用意すると終了処理を行えるようにした
           draft: false
           prerelease: true
 

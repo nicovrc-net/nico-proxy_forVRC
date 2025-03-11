@@ -2,6 +2,7 @@ package net.nicovrc.dev;
 
 import net.nicovrc.dev.http.NicoVRCHTTP;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -9,6 +10,8 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class TCPServer extends Thread {
 
@@ -16,9 +19,46 @@ public class TCPServer extends Thread {
     private final boolean[] temp = {true};
     private final List<NicoVRCHTTP> httpServiceList;
 
+    private final Timer stopTimer = new Timer();
+
     public TCPServer(List<NicoVRCHTTP> list){
         this.HTTPPort = 25252;
         this.httpServiceList = list;
+
+        // 停止監視
+        stopTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                File file = new File("./stop.txt");
+                File file2 = new File("./stop_lock.txt");
+                if (!file.exists()){
+                    return;
+                }
+
+                if (file2.exists()){
+                    return;
+                }
+
+                try {
+                    if (file2.createNewFile()){
+                        System.out.println("[Info] 終了処理を開始します。");
+                        temp[0] = false;
+                        Socket socket = new Socket("127.0.0.1", HTTPPort);
+                        OutputStream stream = socket.getOutputStream();
+                        stream.write(new byte[0]);
+                        stream.close();
+                        socket.close();
+                        stopTimer.cancel();
+                        System.out.println("[Info] 終了処理を完了しました。");
+                    }
+                } catch (Exception e){
+                    // e.printStackTrace();
+                }
+
+                file.deleteOnExit();
+                file2.deleteOnExit();
+            }
+        }, 0L, 1000L);
     }
 
     @Override
