@@ -425,12 +425,21 @@ NicoNico_user_session_secure: ""
                             }
                             String[] s = Proxy.split(":");
 
-                            HttpClient client = HttpClient.newBuilder()
-                                    .version(HttpClient.Version.HTTP_2)
-                                    .followRedirects(HttpClient.Redirect.NORMAL)
-                                    .connectTimeout(Duration.ofSeconds(5))
-                                    .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                                    .build();
+                            HttpClient client;
+                            if (s.length == 2){
+                                client = HttpClient.newBuilder()
+                                        .version(HttpClient.Version.HTTP_2)
+                                        .followRedirects(HttpClient.Redirect.NORMAL)
+                                        .connectTimeout(Duration.ofSeconds(5))
+                                        .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
+                                        .build();
+                            } else {
+                                client = HttpClient.newBuilder()
+                                        .version(HttpClient.Version.HTTP_2)
+                                        .followRedirects(HttpClient.Redirect.NORMAL)
+                                        .connectTimeout(Duration.ofSeconds(5))
+                                        .build();
+                            }
 
                             try {
                                 if (data.getServiceAPI().getServiceName().equals("ニコニコ")){
