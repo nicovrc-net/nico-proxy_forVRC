@@ -3,7 +3,6 @@ package net.nicovrc.dev;
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlSequence;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Service.Result.NicoNicoVideo;
 import net.nicovrc.dev.Service.Result.TikTokResult;
@@ -549,29 +548,67 @@ NicoNico_user_session_secure: ""
 
                 int[] count = {0};
                 try {
-                    YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+                    final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
 
-                    String redisServer = yamlMapping.string("RedisServer");
-                    String redisPass = yamlMapping.string("RedisPass");
-                    int redisPort = yamlMapping.integer("RedisPort");
+                    if (yamlMapping.string("LogToRedis").toLowerCase(Locale.ROOT).equals("true")){
+                        String redisServer = yamlMapping.string("RedisServer");
+                        String redisPass = yamlMapping.string("RedisPass");
+                        int redisPort = yamlMapping.integer("RedisPort");
 
-                    try (JedisPool jedisPool = new JedisPool(redisServer, redisPort);
-                         Jedis jedis = jedisPool.getResource()){
+                        try (JedisPool jedisPool = new JedisPool(redisServer, redisPort);
+                             Jedis jedis = jedisPool.getResource()){
 
-                        if (!redisPass.isEmpty()){
-                            jedis.auth(redisPass);
+                            if (!redisPass.isEmpty()){
+                                jedis.auth(redisPass);
+                            }
+
+                            HashMap<String, LogData> temp = new HashMap<>(Function.GetURLAccessLog);
+                            Function.GetURLAccessLog.clear();
+
+                            temp.forEach((id, value)->{
+                                try {
+                                    jedis.set("nicovrc:log:"+id, Function.gson.toJson(value));
+                                } catch (Exception e) {
+                                    Function.GetURLAccessLog.put(id, value);
+                                }
+                            });
+                            count[0] = temp.size();
+                            temp.clear();
+                        } catch (Exception e){
+                            // e.printStackTrace();
+                        }
+                    } else {
+
+                        File file = new File("./log");
+
+                        if (!file.exists()){
+                            file.mkdir();
                         }
 
                         HashMap<String, LogData> temp = new HashMap<>(Function.GetURLAccessLog);
                         Function.GetURLAccessLog.clear();
 
                         temp.forEach((id, value)->{
-                            jedis.set("nicovrc:log:"+id, Function.gson.toJson(value));
+                            try {
+                                File file2 = new File("./log/" + id + ".txt");
+                                if (!file2.exists()){
+                                    PrintWriter writer = new PrintWriter(file);
+                                    writer.print(Function.gson.toJson(value));
+                                    writer.close();
+                                    writer = null;
+                                } else if (file2.length() == 0){
+                                    file2.delete();
+                                    PrintWriter writer = new PrintWriter(file);
+                                    writer.print(Function.gson.toJson(value));
+                                    writer.close();
+                                    writer = null;
+                                }
+                            } catch (Exception e) {
+                                Function.GetURLAccessLog.put(id, value);
+                            }
                         });
                         count[0] = temp.size();
                         temp.clear();
-                    } catch (Exception e){
-                        // e.printStackTrace();
                     }
                 } catch (Exception e){
                     // e.printStackTrace();
