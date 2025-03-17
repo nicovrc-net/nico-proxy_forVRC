@@ -11,5 +11,5 @@
 - master : nicovrc.netに適用時に下記記載のブランチからmergeされる
 - v0     : ver 0.x (開発終了)
 - v1     : ver 1.x (開発終了)
-- v2     : ver 2.x (開発中ブランチ)
+- v2     : ver 2.x (開発終了)
 - v3     : ver 3.x (開発中ブランチ)
