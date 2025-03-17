@@ -463,6 +463,7 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - 有効なProxyが設定されてない場合にキャッシュ掃除でエラーになるのを修正
+            - Redisがなくても動作するように
           draft: false
           prerelease: true
 
