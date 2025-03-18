@@ -412,9 +412,9 @@ NicoNico_user_session_secure: ""
 
                         JsonElement json = Function.gson.fromJson(data.getResultJson(), JsonElement.class);
 
-                        if (time - data.getCacheDate() >= 86400000L) {
+                        if (data.getCacheDate() != -1L && data.getCacheDate() != -2L && time - data.getCacheDate() >= 86400000L) {
                             Function.CacheList.remove(url);
-                        } else if (!json.getAsJsonObject().has("VideoURL") && !json.getAsJsonObject().has("LiveURL") && !json.getAsJsonObject().has("AudioURL")){
+                        } else if (json != null && !json.getAsJsonObject().has("VideoURL") && !json.getAsJsonObject().has("LiveURL") && !json.getAsJsonObject().has("AudioURL")){
                             Function.CacheList.remove(url);
                         } else if (data.isSet()) {
                             // Proxy

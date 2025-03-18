@@ -62,8 +62,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             URL = URL.replaceAll("^(/\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
 
             ServiceAPI api = null;
-            CacheData cacheData = Function.CacheList.get(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]);
-            if (cacheData == null){
+            CacheData cacheData = Function.CacheList.get((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
+
+            String json = null;
+            String ServiceName = null;
+            String proxy = null;
+
+            if (cacheData == null) {
                 for (ServiceAPI vrcapi : list) {
                     boolean isFound = false;
                     for (String str : vrcapi.getCorrespondingURL()) {
@@ -93,23 +98,16 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 if (!dummy_url.matcher(URL).find()){
                     if (api != null){
                         cacheData = new CacheData();
-                        cacheData.setCacheDate(new Date().getTime());
                         cacheData.setServiceAPI(api);
                         cacheData.setSet(false);
+                        cacheData.setCacheDate(-2L);
 
-                        Function.CacheList.put(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0], cacheData);
+                        Function.CacheList.put((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
                     }
                 }
 
-            } else {
-                api = cacheData.getServiceAPI();
-            }
-
-            String json = null;
-            String ServiceName = null;
-            String proxy = null;
-            if (cacheData == null || !cacheData.isSet()){
-                if (api != null){
+                if (api != null) {
+                    //System.out.println("aaa");
                     //System.out.println(URL.startsWith("https://twitcasting.tv"));
                     if (api.getServiceName().equals("ニコニコ")) {
                         String user_session = null;
@@ -119,12 +117,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
                             user_session = yamlMapping.string("NicoNico_user_session");
                             user_session_secure = yamlMapping.string("NicoNico_user_session_secure");
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             //e.printStackTrace();
                         }
 
-                        if (user_session != null && user_session_secure != null){
-                            api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\", \"user_session\":\""+user_session+"\", \"user_session_secure\":\""+user_session_secure+"\"}");
+                        if (user_session != null && user_session_secure != null) {
+                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + user_session + "\", \"user_session_secure\":\"" + user_session_secure + "\"}");
                         } else {
                             api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
                         }
@@ -137,14 +135,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
                             ClientId = yamlMapping.string("TwitcastingClientID");
                             ClientSecret = yamlMapping.string("TwitcastingClientSecret");
-                        } catch (Exception e){
+                        } catch (Exception e) {
                             //e.printStackTrace();
                         }
 
-                        if (NotRemoveQuestionMarkURL.matcher(URL).find()){
-                            api.Set("{\"URL\":\""+URL.replaceAll("&dummy=true","")+"\", \"ClientID\":\""+ClientId+"\", \"ClientSecret\":\""+ClientSecret+"\"}");
+                        if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
+                            api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + ClientId + "\", \"ClientSecret\":\"" + ClientSecret + "\"}");
                         } else {
-                            api.Set("{\"URL\":\""+URL.split("\\?")[0].replaceAll("&dummy=true","")+"\", \"ClientID\":\""+ClientId+"\", \"ClientSecret\":\""+ClientSecret+"\"}");
+                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + ClientId + "\", \"ClientSecret\":\"" + ClientSecret + "\"}");
                         }
                     } else {
                         if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
@@ -159,26 +157,44 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     ServiceName = api.getServiceName();
                     proxy = api.getUseProxy();
 
-                    if (!dummy_url.matcher(URL).find()){
+                    if (!dummy_url.matcher(URL).find()) {
                         cacheData = new CacheData();
                         cacheData.setCacheDate(new Date().getTime());
                         cacheData.setServiceAPI(api);
                         cacheData.setSet(true);
                         cacheData.setResultJson(json);
 
-                        Function.CacheList.remove(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]);
+                        Function.CacheList.remove((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
 
                         JsonElement element = gson.fromJson(json, JsonElement.class);
 
-                        if (element.getAsJsonObject().has("VideoURL") || element.getAsJsonObject().has("LiveURL") || element.getAsJsonObject().has("AudioURL")){
-                            Function.CacheList.put(pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0], cacheData);
+                        if (element.getAsJsonObject().has("VideoURL") || element.getAsJsonObject().has("LiveURL") || element.getAsJsonObject().has("AudioURL")) {
+                            Function.CacheList.put((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
                         }
                     }
                 }
+
             } else {
-                json = cacheData.getResultJson();
-                ServiceName = cacheData.getServiceAPI().getServiceName();
-                proxy = cacheData.getServiceAPI().getUseProxy();
+
+                int i = 0;
+                while (i == 0){
+                    cacheData = Function.CacheList.get((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
+                    if (cacheData == null){
+                        i = 1;
+                        continue;
+                    }
+                    if (cacheData.isSet()){
+                        i = 1;
+                        continue;
+                    }
+                }
+
+                if (cacheData != null){
+                    json = cacheData.getResultJson();
+                    ServiceName = cacheData.getServiceAPI().getServiceName();
+                    proxy = cacheData.getServiceAPI().getUseProxy();
+                }
+
             }
 
             //System.out.println(json);
