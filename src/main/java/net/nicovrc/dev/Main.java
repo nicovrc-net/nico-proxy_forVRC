@@ -594,13 +594,13 @@ NicoNico_user_session_secure: ""
                             try {
                                 File file2 = new File("./log/" + id + ".txt");
                                 if (!file2.exists()){
-                                    PrintWriter writer = new PrintWriter(file);
+                                    PrintWriter writer = new PrintWriter(file2);
                                     writer.print(Function.gson.toJson(value));
                                     writer.close();
                                     writer = null;
                                 } else if (file2.length() == 0){
                                     file2.delete();
-                                    PrintWriter writer = new PrintWriter(file);
+                                    PrintWriter writer = new PrintWriter(file2);
                                     writer.print(Function.gson.toJson(value));
                                     writer.close();
                                     writer = null;
