@@ -246,57 +246,58 @@ NicoNico_user_session_secure: ""
 
                                     String[] s = proxy1.string(i).split(":");
 
-                                    HttpClient client = HttpClient.newBuilder()
+                                    try (HttpClient client = HttpClient.newBuilder()
                                             .version(HttpClient.Version.HTTP_2)
                                             .followRedirects(HttpClient.Redirect.NORMAL)
                                             .connectTimeout(Duration.ofSeconds(5))
                                             .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                                            .build();
+                                            .build()) {
 
-                                    HttpRequest request = HttpRequest.newBuilder()
-                                            .uri(new URI("https://www.nicovideo.jp/watch/sm9"))
-                                            .headers("User-Agent", Function.UserAgent)
-                                            .GET()
-                                            .build();
+                                        HttpRequest request = HttpRequest.newBuilder()
+                                                .uri(new URI("https://www.nicovideo.jp/watch/sm9"))
+                                                .headers("User-Agent", Function.UserAgent)
+                                                .GET()
+                                                .build();
 
-                                    HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                                        HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-                                    if (send.statusCode() < 400){
-                                        Matcher matcher = matcher_Json.matcher(send.body());
-                                        if (matcher.find()){
-                                            JsonElement json = Function.gson.fromJson("{"+matcher.group(1).replaceAll("&quot;", "\"")+"}", JsonElement.class);
+                                        if (send.statusCode() < 400){
+                                            Matcher matcher = matcher_Json.matcher(send.body());
+                                            if (matcher.find()){
+                                                JsonElement json = Function.gson.fromJson("{"+matcher.group(1).replaceAll("&quot;", "\"")+"}", JsonElement.class);
 
-                                            if (json != null){
+                                                if (json != null){
 
-                                                if (json.getAsJsonObject().has("data") && json.getAsJsonObject().getAsJsonObject("data").has("response")){
-                                                    String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
-                                                    String accessRightKey = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").get("accessRightKey").getAsString();
-                                                    String trackId = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("client").get("watchTrackId").getAsString();
+                                                    if (json.getAsJsonObject().has("data") && json.getAsJsonObject().getAsJsonObject("data").has("response")){
+                                                        String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
+                                                        String accessRightKey = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").get("accessRightKey").getAsString();
+                                                        String trackId = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("client").get("watchTrackId").getAsString();
 
-                                                    request = HttpRequest.newBuilder()
-                                                            .uri(new URI("https://nvapi.nicovideo.jp/v1/watch/sm9/access-rights/hls?actionTrackId="+trackId))
-                                                            .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
-                                                            .headers("X-Access-Right-Key", accessRightKey)
-                                                            .headers("X-Frontend-Id", "6")
-                                                            .headers("X-Frontend-Version", "0")
-                                                            .headers("X-Niconico-Language", "ja-jp")
-                                                            .headers("X-Request-With", "nicovideo")
-                                                            .headers("Cookie", "nicosid="+nicosid)
-                                                            .headers("User-Agent", Function.UserAgent)
-                                                            .POST(HttpRequest.BodyPublishers.ofString("{\"outputs\":[[\"video-h264-360p\",\"audio-aac-128kbps\"],[\"video-h264-360p-lowest\",\"audio-aac-128kbps\"]]}"))
-                                                            .build();
+                                                        request = HttpRequest.newBuilder()
+                                                                .uri(new URI("https://nvapi.nicovideo.jp/v1/watch/sm9/access-rights/hls?actionTrackId="+trackId))
+                                                                .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
+                                                                .headers("X-Access-Right-Key", accessRightKey)
+                                                                .headers("X-Frontend-Id", "6")
+                                                                .headers("X-Frontend-Version", "0")
+                                                                .headers("X-Niconico-Language", "ja-jp")
+                                                                .headers("X-Request-With", "nicovideo")
+                                                                .headers("Cookie", "nicosid="+nicosid)
+                                                                .headers("User-Agent", Function.UserAgent)
+                                                                .POST(HttpRequest.BodyPublishers.ofString("{\"outputs\":[[\"video-h264-360p\",\"audio-aac-128kbps\"],[\"video-h264-360p-lowest\",\"audio-aac-128kbps\"]]}"))
+                                                                .build();
 
-                                                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                                                        send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-                                                    if (send.statusCode() < 400){
-                                                        proxyList.add(proxy1.string(i));
+                                                        if (send.statusCode() < 400){
+                                                            proxyList.add(proxy1.string(i));
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
+                                    } catch (Exception e){
+                                        // e.printStackTrace();
                                     }
-
-                                    client.close();
                                 }
 
                                 Function.ProxyList.clear();
@@ -320,57 +321,57 @@ NicoNico_user_session_secure: ""
 
                                     String[] s = proxy2.string(i).split(":");
 
-                                    HttpClient client = HttpClient.newBuilder()
+                                    try (HttpClient client = HttpClient.newBuilder()
                                             .version(HttpClient.Version.HTTP_2)
                                             .followRedirects(HttpClient.Redirect.NORMAL)
                                             .connectTimeout(Duration.ofSeconds(5))
                                             .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                                            .build();
+                                            .build()){
+                                        HttpRequest request = HttpRequest.newBuilder()
+                                                .uri(new URI("https://www.nicovideo.jp/watch/so38016254"))
+                                                .headers("User-Agent", Function.UserAgent)
+                                                .GET()
+                                                .build();
 
-                                    HttpRequest request = HttpRequest.newBuilder()
-                                            .uri(new URI("https://www.nicovideo.jp/watch/so38016254"))
-                                            .headers("User-Agent", Function.UserAgent)
-                                            .GET()
-                                            .build();
+                                        HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-                                    HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                                        if (send.statusCode() < 400){
+                                            Matcher matcher = matcher_Json.matcher(send.body());
+                                            if (matcher.find()){
+                                                JsonElement json = Function.gson.fromJson("{"+matcher.group(1).replaceAll("&quot;", "\"")+"}", JsonElement.class);
 
-                                    if (send.statusCode() < 400){
-                                        Matcher matcher = matcher_Json.matcher(send.body());
-                                        if (matcher.find()){
-                                            JsonElement json = Function.gson.fromJson("{"+matcher.group(1).replaceAll("&quot;", "\"")+"}", JsonElement.class);
+                                                if (json != null){
 
-                                            if (json != null){
+                                                    if (json.getAsJsonObject().has("data") && json.getAsJsonObject().getAsJsonObject("data").has("response")){
+                                                        String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
+                                                        String accessRightKey = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").get("accessRightKey").getAsString();
+                                                        String trackId = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("client").get("watchTrackId").getAsString();
 
-                                                if (json.getAsJsonObject().has("data") && json.getAsJsonObject().getAsJsonObject("data").has("response")){
-                                                    String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
-                                                    String accessRightKey = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").get("accessRightKey").getAsString();
-                                                    String trackId = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("client").get("watchTrackId").getAsString();
+                                                        request = HttpRequest.newBuilder()
+                                                                .uri(new URI("https://nvapi.nicovideo.jp/v1/watch/so38016254/access-rights/hls?actionTrackId="+trackId))
+                                                                .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
+                                                                .headers("X-Access-Right-Key", accessRightKey)
+                                                                .headers("X-Frontend-Id", "6")
+                                                                .headers("X-Frontend-Version", "0")
+                                                                .headers("X-Niconico-Language", "ja-jp")
+                                                                .headers("X-Request-With", "nicovideo")
+                                                                .headers("Cookie", "nicosid="+nicosid)
+                                                                .headers("User-Agent", Function.UserAgent)
+                                                                .POST(HttpRequest.BodyPublishers.ofString("{\"outputs\":[[\"video-h264-720p\",\"audio-aac-192kbps\"]],\"heartbeat\":{\"method\":\"guest\",\"params\":{\"eventType\":\"start\",\"eventOccurredAt\":\"2025-03-05T21:05:38+09:00\",\"watchMilliseconds\":0,\"endCount\":0,\"additionalParameters\":{\"___pc_v\":1,\"os\":\"\",\"os_version\":\"\",\"nicosid\":\"1741103555.1678032013\",\"referer\":\"\",\"query_parameters\":{},\"is_ad_block\":false,\"has_playlist\":false,\"___abw\":null,\"abw_show\":false,\"abw_closed\":false,\"abw_seen_at\":null,\"viewing_source\":\"\",\"viewing_source_detail\":{},\"playback_rate\":\"\",\"use_flip\":false,\"quality\":[],\"auto_quality\":[],\"loop_count\":0,\"suspend_count\":0,\"load_failed\":false,\"error_description\":[],\"end_position_milliseconds\":null,\"performance\":{\"watch_access_start\":1741176338952,\"watch_access_finish\":null,\"video_loading_start\":1741176338959,\"video_loading_finish\":null,\"video_play_start\":null,\"end_context\":{\"ad_playing\":false,\"video_playing\":false,\"is_suspending\":false}}}}}}"))
+                                                                .build();
 
-                                                    request = HttpRequest.newBuilder()
-                                                            .uri(new URI("https://nvapi.nicovideo.jp/v1/watch/so38016254/access-rights/hls?actionTrackId="+trackId))
-                                                            .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
-                                                            .headers("X-Access-Right-Key", accessRightKey)
-                                                            .headers("X-Frontend-Id", "6")
-                                                            .headers("X-Frontend-Version", "0")
-                                                            .headers("X-Niconico-Language", "ja-jp")
-                                                            .headers("X-Request-With", "nicovideo")
-                                                            .headers("Cookie", "nicosid="+nicosid)
-                                                            .headers("User-Agent", Function.UserAgent)
-                                                            .POST(HttpRequest.BodyPublishers.ofString("{\"outputs\":[[\"video-h264-720p\",\"audio-aac-192kbps\"]],\"heartbeat\":{\"method\":\"guest\",\"params\":{\"eventType\":\"start\",\"eventOccurredAt\":\"2025-03-05T21:05:38+09:00\",\"watchMilliseconds\":0,\"endCount\":0,\"additionalParameters\":{\"___pc_v\":1,\"os\":\"\",\"os_version\":\"\",\"nicosid\":\"1741103555.1678032013\",\"referer\":\"\",\"query_parameters\":{},\"is_ad_block\":false,\"has_playlist\":false,\"___abw\":null,\"abw_show\":false,\"abw_closed\":false,\"abw_seen_at\":null,\"viewing_source\":\"\",\"viewing_source_detail\":{},\"playback_rate\":\"\",\"use_flip\":false,\"quality\":[],\"auto_quality\":[],\"loop_count\":0,\"suspend_count\":0,\"load_failed\":false,\"error_description\":[],\"end_position_milliseconds\":null,\"performance\":{\"watch_access_start\":1741176338952,\"watch_access_finish\":null,\"video_loading_start\":1741176338959,\"video_loading_finish\":null,\"video_play_start\":null,\"end_context\":{\"ad_playing\":false,\"video_playing\":false,\"is_suspending\":false}}}}}}"))
-                                                            .build();
+                                                        send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-                                                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-                                                    if (send.statusCode() < 400){
-                                                        proxyList.add(proxy2.string(i));
+                                                        if (send.statusCode() < 400){
+                                                            proxyList.add(proxy2.string(i));
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
+                                    } catch (Exception e){
+                                        // e.printStackTrace();
                                     }
-
-                                    client.close();
                                 }
 
                                 Function.JP_ProxyList.clear();
