@@ -569,6 +569,7 @@ NicoNico_user_session_secure: ""
                                 try {
                                     jedis.set("nicovrc:log:"+id, Function.gson.toJson(value));
                                 } catch (Exception e) {
+                                    e.printStackTrace();
                                     Function.GetURLAccessLog.put(id, value);
                                 }
                             });
@@ -604,6 +605,7 @@ NicoNico_user_session_secure: ""
                                     writer = null;
                                 }
                             } catch (Exception e) {
+                                e.printStackTrace();
                                 Function.GetURLAccessLog.put(id, value);
                             }
                         });
