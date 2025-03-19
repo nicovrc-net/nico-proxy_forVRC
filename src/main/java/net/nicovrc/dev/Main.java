@@ -539,6 +539,7 @@ NicoNico_user_session_secure: ""
         logWriteTimer.cancel();
         cacheRemoveTimer.cancel();
         WriteLog();
+        System.out.println("[Info] 終了します...");
     }
 
     private static void WriteLog(){
