@@ -1254,7 +1254,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                 //Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", sb.toString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
             } else {
-                System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> 対応してないURLです");
+                System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> 対応してないサイトです");
                 logData.setResultURL(null);
                 Function.GetURLAccessLog.put(logData.getLogID(), logData);
                 File file = new File("./error-video/error_404.mp4");
