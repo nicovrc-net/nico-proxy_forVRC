@@ -464,6 +464,7 @@ jobs:
           body: |
             - 有効なProxyが設定されてない場合にキャッシュ掃除でエラーになるのを修正
             - Redisがなくても動作するように (config.ymlの「LogToRedis」が機能するように)
+            - 動画取得(`?url=`)のキャッシュ方法の変更
           draft: false
           prerelease: true
 
