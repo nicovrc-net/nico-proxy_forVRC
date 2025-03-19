@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
@@ -33,6 +34,10 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
         try {
             Date date = new Date();
             System.out.println("[API Access ("+Function.sdf.format(date)+")] " + URL);
+
+            String[] split = UUID.randomUUID().toString().split("-");
+            Function.APIAccessLog.put(new Date().getTime() + "-"+ split[0]+split[1], HTTPRequest);
+
             if (list.isEmpty()){
                 // 何もAPI実装されてなければ意味ないので
                 return;

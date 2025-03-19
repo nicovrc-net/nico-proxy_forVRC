@@ -568,14 +568,31 @@ NicoNico_user_session_secure: ""
 
                             temp.forEach((id, value)->{
                                 try {
-                                    jedis.set("nicovrc:log:"+id, Function.gson.toJson(value));
+                                    jedis.set("nicovrc:access_log:"+id, Function.gson.toJson(value));
                                 } catch (Exception e) {
-                                    e.printStackTrace();
+                                    //e.printStackTrace();
                                     Function.GetURLAccessLog.put(id, value);
                                 }
                             });
                             count[0] = temp.size();
                             temp.clear();
+                            temp = null;
+
+                            HashMap<String, String> temp2 = new HashMap<>(Function.APIAccessLog);
+                            Function.APIAccessLog.clear();
+
+                            temp2.forEach((id, value)->{
+                                try {
+                                    jedis.set("nicovrc:api_log:"+id, value);
+                                } catch (Exception e) {
+                                    //e.printStackTrace();
+                                    Function.APIAccessLog.put(id, value);
+                                }
+                            });
+                            count[0] = count[0] + temp2.size();
+                            temp2.clear();
+                            temp2 = null;
+
                         } catch (Exception e){
                             // e.printStackTrace();
                         }
@@ -612,6 +629,36 @@ NicoNico_user_session_secure: ""
                         });
                         count[0] = temp.size();
                         temp.clear();
+                        temp = null;
+
+                        HashMap<String, String> temp2 = new HashMap<>(Function.APIAccessLog);
+                        Function.APIAccessLog.clear();
+
+                        temp2.forEach((id, value)->{
+                            try {
+                                File file2 = new File("./log/api_log_" + id + ".txt");
+                                if (!file2.exists()){
+                                    PrintWriter writer = new PrintWriter(file2);
+                                    writer.print(value);
+                                    writer.close();
+                                    writer = null;
+                                } else if (file2.length() == 0){
+                                    file2.delete();
+                                    PrintWriter writer = new PrintWriter(file2);
+                                    writer.print(value);
+                                    writer.close();
+                                    writer = null;
+                                }
+                            } catch (Exception e) {
+                                //e.printStackTrace();
+                                Function.APIAccessLog.put(id, value);
+                            }
+                        });
+
+                        count[0] = count[0] + temp2.size();
+                        temp2.clear();
+                        temp2 = null;
+
                     }
                 } catch (Exception e){
                     // e.printStackTrace();
