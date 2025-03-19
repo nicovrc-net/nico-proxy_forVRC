@@ -68,6 +68,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             String ServiceName = null;
             String proxy = null;
 
+            boolean isCache = false;
+
             if (cacheData == null) {
                 for (ServiceAPI vrcapi : list) {
                     boolean isFound = false;
@@ -190,6 +192,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 }
 
                 if (cacheData != null){
+                    isCache = true;
                     json = cacheData.getResultJson();
                     ServiceName = cacheData.getServiceAPI().getServiceName();
                     proxy = cacheData.getServiceAPI().getUseProxy();
@@ -216,14 +219,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
                     // タイトル取得
                     if (errorMessage != null){
-                        System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + errorMessage);
+                        System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + errorMessage);
                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", ("エラー : " + errorMessage).getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                     } else if (element.getAsJsonObject().has("Title")) {
-                        System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + element.getAsJsonObject().get("Title").getAsString());
+                        System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + element.getAsJsonObject().get("Title").getAsString());
                         logData.setResultTitle(element.getAsJsonObject().get("Title").getAsString());
                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", element.getAsJsonObject().get("Title").getAsString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                     } else {
-                        System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + "(タイトルなし)");
+                        System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + "(タイトルなし)");
                         logData.setResultTitle("(タイトルなし)");
                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", "".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                     }
@@ -239,7 +242,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 if (element.getAsJsonObject().has("ErrorMessage")) {
                     String errorMessage = element.getAsJsonObject().get("ErrorMessage").getAsString();
                     if (!dummy_url.matcher(URL).find()){
-                        System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + errorMessage);
+                        System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + errorMessage);
                     }
                     logData.setErrorMessage(errorMessage);
 
@@ -396,7 +399,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         if (result.getVideoURL() != null) {
                             // ニコ動
                             if (!dummy_url.matcher(URL).find()) {
-                                System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + result.getVideoURL());
+                                System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + result.getVideoURL());
                                 logData.setResultURL(result.getVideoURL());
                                 Function.GetURLAccessLog.put(logData.getLogID(), logData);
                             }
@@ -489,7 +492,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                                 String liveURL = result.getLiveURL();
                                 if (!dummy_url.matcher(URL).find()) {
-                                    System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + liveURL);
+                                    System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + liveURL);
                                     logData.setResultURL(liveURL);
                                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
                                 }
@@ -627,7 +630,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
                 } else if (ServiceName.equals("ツイキャス")) {
                     String targetURL = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
-                    System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
+                    System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
                     logData.setResultURL(targetURL);
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
                     OutputStream out = sock.getOutputStream();
@@ -643,7 +646,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     sb_header = null;
                 } else if (ServiceName.equals("Abema")) {
                     String targetURL = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
-                    System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
+                    System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
 
                     OutputStream out = sock.getOutputStream();
                     StringBuilder sb_header = new StringBuilder();
@@ -659,7 +662,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                 } else if (ServiceName.equals("TikTok")) {
                     TikTokResult result = gson.fromJson(json, TikTokResult.class);
-                    System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + result.getVideoURL());
+                    System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + result.getVideoURL());
                     logData.setResultURL(result.getVideoURL());
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
@@ -713,7 +716,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
                 } else if (ServiceName.equals("OPENREC")) {
                     OPENREC_Result result = gson.fromJson(json, OPENREC_Result.class);
-                    System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + (result.isLive() ? result.getLiveURL() : result.getVideoURL()));
+                    System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + (result.isLive() ? result.getLiveURL() : result.getVideoURL()));
                     logData.setResultURL(result.isLive() ? result.getLiveURL() : result.getVideoURL());
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
@@ -788,7 +791,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
                 } else if (ServiceName.equals("TVer")) {
                     String url = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
-                    System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + url);
+                    System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + url);
                     logData.setResultURL(url);
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
 
@@ -864,7 +867,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
 
                 } else if (ServiceName.equals("piapro") || ServiceName.equals("SoundCloud") || ServiceName.equals("Sonicbowl") || ServiceName.equals("Mixcloud") || ServiceName.equals("bandcamp")) {
-                    System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + element.getAsJsonObject().get("AudioURL").getAsString());
+                    System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + element.getAsJsonObject().get("AudioURL").getAsString());
                     logData.setResultURL(element.getAsJsonObject().get("AudioURL").getAsString());
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
@@ -936,7 +939,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
                 } else if (ServiceName.equals("Vimeo")) {
                     if (!dummy_url.matcher(httpRequest).find()) {
-                        System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + element.getAsJsonObject().get("VideoURL").getAsString());
+                        System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + element.getAsJsonObject().get("VideoURL").getAsString());
                         logData.setResultURL(element.getAsJsonObject().get("VideoURL").getAsString());
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
                     }
@@ -1022,7 +1025,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                 } else if (ServiceName.equals("fc2")) {
                     String targetURL = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
-                    System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
+                    System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
                     logData.setResultURL(targetURL);
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
 
@@ -1082,7 +1085,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                 } else if (ServiceName.equals("XVIDEOS.COM")) {
                     String targetURL = element.getAsJsonObject().get("VideoURL").getAsString();
-                    System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
+                    System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
                     logData.setResultURL(targetURL);
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
 
@@ -1157,7 +1160,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
                 } else if (ServiceName.equals("Pornhub")) {
                     String targetURL = element.getAsJsonObject().get("VideoURL").getAsString();
-                    System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
+                    System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
                     logData.setResultURL(targetURL);
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
 
@@ -1234,7 +1237,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
                 } else {
                     String targetURL = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
-                    System.out.println("[Get URL ("+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
+                    System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
                     logData.setResultURL(targetURL);
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
                     OutputStream out = sock.getOutputStream();
@@ -1251,6 +1254,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                 //Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", sb.toString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
             } else {
+                System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> 対応してないURLです");
+                logData.setResultURL(null);
+                Function.GetURLAccessLog.put(logData.getLogID(), logData);
                 File file = new File("./error-video/error_404.mp4");
                 if (file.exists()){
                     FileInputStream stream = new FileInputStream(file);
