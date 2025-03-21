@@ -1,28 +1,23 @@
 plugins {
     id "java"
-    id "com.github.johnrengelman.shadow" version "8.1.1"
+    id "com.gradleup.shadow" version "9.0.0-beta10"
 }
 
 
-group  "xyz.n7mn"
-version "2.0-SNAPSHOT"
+group = "net.nicovrc.dev"
+version = "3.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
-
-    maven { url 'https://jitpack.io' }
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.11.4'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.12.1'
 
-    implementation "com.squareup.okhttp3:okhttp:4.12.0"
     implementation 'com.amihaiemil.web:eo-yaml:8.0.6'
 
     implementation 'redis.clients:jedis:5.2.0'
     implementation 'com.google.code.gson:gson:2.12.1'
-
-    implementation 'com.github.7mi-site:nico-proxy:1.22.13'
 }
 
 tasks.test {

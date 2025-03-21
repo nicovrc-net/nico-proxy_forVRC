@@ -9,36 +9,14 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ "master", "v2" ]
+    branches: [ "v3" ]
+    tags: ['3.*']
   pull_request:
-    branches: [ "master", "v0", "v1", "v2" ]
+    branches: [ "v3" ]
 
 jobs:
-  build-17:
-
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-
-    # Configure Gradle for optimal use in GiHub Actions, including caching of downloaded dependencies.
-    # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
-    - name: Make gradlew executable
-      run: chmod +x ./gradlew
-    - name: Build with Gradle Wrapper
-      run: ./gradlew shadowJar
   build-21:
-
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
 
@@ -50,100 +28,462 @@ jobs:
           java-version: '21'
           distribution: 'temurin'
 
-      # Configure Gradle for optimal use in GiHub Actions, including caching of downloaded dependencies.
-      # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
       - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+        uses: gradle/actions/setup-gradle@v3.5.0
+
       - name: Make gradlew executable
         run: chmod +x ./gradlew
+
       - name: Build with Gradle Wrapper
         run: ./gradlew shadowJar
-  autotest:
 
-    runs-on: ubuntu-latest
+      - name: Upload JarFile
+        uses: actions/upload-artifact@v4
+        with:
+          name: jar
+          path: ./build/libs/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
+
+  download_ffmpeg:
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
-
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: Create config.yml
+      - name: Download ffmpeg
         run: |
-          cat <<EOF > config.yml
-          # 受付ポート (HTTP/UDP共通)
-          Port: 25252
-          # ログをRedisに書き出すときはtrue
-          LogToRedis: false
-          
-          # HTTPで受付する場合はtrue
-          HTTPServer: true
-          # UDPで受付する場合はtrue
-          UDPServer: false
-          
-          # HTTPサーバー/UDPサーバーの受付ログをDiscordへWebhookで配信するかどうか
-          DiscordWebhook: false
-          # DiscordのWebhookのURL
-          DiscordWebhookURL: ""
-          
-          # ログを強制的に書き出すときの合言葉
-          # 普通に漏れると危ないので厳重管理すること。
-          WriteLogPass: 'github_actions_test'
-          
-          # 他に処理鯖がある場合はそのリストを「IP:受付ポート」形式で記載する
-          # (HTTP通信用を1つ、処理鯖(UDP通信)はn個という想定)
-          ServerList:
-          #  - "127.0.0.1:25252"
-          
-          # ツイキャスの設定
-          # https://twitcasting.tv/developer.phpでAPIキーを取得してください
-          ClientID: ""
-          ClientSecret: ""
-          
-          # bilibili変換システム
-          BiliBiliSystemIP: "127.0.0.1"
-          
-          # ニコ動domand鯖の変換システム
-          NicoVideoSystem: "127.0.0.1"
-          
-          # vimeo変換システム
-          VimeoSystemIP: "127.0.0.1"
-          
-          # Redisの設定(LogToRedisをtrue)にしていない場合は設定不要
-          # RedisサーバーIP
-          RedisServer: 127.0.0.1
-          # Redisサーバーポート
-          RedisPort: 6379
-          # Redis AUTHパスワード
-          # パスワードがない場合は以下の通りに設定してください
-          RedisPass: ""
-          EOF
+          wget https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz > null
+          tar -Jxvf ./ffmpeg-master-latest-linux64-gpl.tar.xz > null
+          cp ./ffmpeg-master-latest-linux64-gpl/bin/* ./
+          rm ./ffmpeg-master-latest-linux64-gpl.tar.xz
+          rm ./ffmpeg-master-latest-linux64-gpl -fr
+        shell: bash
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+      - name: Upload ffmpeg
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg
+          path: ./ffmpeg
 
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
+  download_errorVideo:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download Video
+        run: |
+          wget https://nicovrc.net/v3-video/error_404.mp4 > null
+          wget https://nicovrc.net/v3-video/error_000.mp4 > null
+          wget https://nicovrc.net/v3-video/error_404_2.mp4 > null
+        shell: bash
 
-      - name: Build with Gradle Wrapper
-        run: ./gradlew shadowJar
+      - name: Upload Video
+        uses: actions/upload-artifact@v4
+        with:
+          name: video
+          path: ./*.mp4
 
-      - name: Run the application
-        run: java -jar build/libs/NicoVideoPlayForVRC-2.0-SNAPSHOT-all.jar &
+  autotest1:
+    needs: build-21
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar &
         shell: bash
 
       - name: Wait for the application to start
         run: sleep 1
 
-      - name: Check if the application is running and returns 302
+      - name: Create config.yml Test
         run: |
-          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:25252/?vi=https://www.youtube.com/watch?v=dQw4w9WgXcQ)
-          if [ "$HTTP_STATUS" -ne 302 ]; then
-            echo "Expected HTTP status 302 but got $HTTP_STATUS"
+          if [ -f ./config.yml ]; then
+            echo "OK"
+          else 
             exit 1
           fi
+        shell: bash
+
+  autotest2:
+    needs: build-21
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
+
+      - name: Create LogFolder Test
+        run: |
+          if [ -d ./log ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest3:
+    needs: [build-21, download_errorVideo]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Download Video
+        uses: actions/download-artifact@v4
+        with:
+          name: video
+
+      - name: Set VideoFile
+        run: |
+          mkdir ./error-video
+          mv ./*.mp4 ./error-video
+        shell: bash
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
+
+      - name: URL Request Test
+        run: |
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:25252/?url=https://www.nicovideo.jp/watch/sm9)
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Expected HTTP status 200 but got $HTTP_STATUS"
+            exit 1
+          fi
+        shell: bash
+
+  autotest4:
+    needs: [build-21, download_errorVideo]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Download Video
+        uses: actions/download-artifact@v4
+        with:
+          name: video
+
+      - name: Set VideoFile
+        run: |
+          mkdir ./error-video
+          mv ./*.mp4 ./error-video
+        shell: bash
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
+
+      - name: URL Request Test (Old Type 1)
+        run: |
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:25252/proxy/?https://www.nicovideo.jp/watch/sm9)
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Expected HTTP status 200 but got $HTTP_STATUS"
+            exit 1
+          fi
+        shell: bash
+
+  autotest5:
+    needs: [build-21, download_errorVideo]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Download Video
+        uses: actions/download-artifact@v4
+        with:
+          name: video
+
+      - name: Set VideoFile
+        run: |
+          mkdir ./error-video
+          mv ./*.mp4 ./error-video
+        shell: bash
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
+
+      - name: URL Request Test (Old Type 2)
+        run: |
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9)
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "Expected HTTP status 200 but got $HTTP_STATUS"
+            exit 1
+          fi
+        shell: bash
+
+  autotest6:
+    needs: [build-21, download_ffmpeg, download_errorVideo]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Download ffmpeg
+        uses: actions/download-artifact@v4
+        with:
+          name: ffmpeg
+
+      - name: Download Video
+        uses: actions/download-artifact@v4
+        with:
+          name: video
+
+      - name: Set VideoFile
+        run: |
+          mkdir ./error-video
+          mv ./*.mp4 ./error-video
+        shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
+        shell: bash
+
+      - name: URL Request Test (Error)
+        run: |
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm1)
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "Expected HTTP status video/mp4 but got $HTTP_STATUS"
+            exit 1
+          fi
+        shell: bash
+
+  autotest7:
+    needs: [build-21, download_errorVideo]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Download Video
+        uses: actions/download-artifact@v4
+        with:
+          name: video
+
+      - name: Set VideoFile
+        run: |
+          mkdir ./error-video
+          mv ./*.mp4 ./error-video
+        shell: bash
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
+
+      - name: URL Request Test (Title)
+        run: |
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" -H "User-Agent: UnityPlayer/2022.3.22f1-DWR (UnityWebRequest/1.0, libcurl/8.5.0-DEV)" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9)
+          if [ "$HTTP_STATUS" -ne "text/plain" ]; then
+            echo "Expected HTTP status text/plain but got $HTTP_STATUS"
+            exit 1
+          fi
+        shell: bash
+  autotest8:
+    needs: [build-21, download_errorVideo]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Download Video
+        uses: actions/download-artifact@v4
+        with:
+          name: video
+
+      - name: Set VideoFile
+        run: |
+          mkdir ./error-video
+          mv ./*.mp4 ./error-video
+        shell: bash
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
+
+      - name: URL Request Test
+        run: |
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" -H "User-Agent: UnityPlayer/2022.3.22f1-DWR (UnityWebRequest/1.0, libcurl/8.5.0-DEV)" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9)
+          if [ "$HTTP_STATUS" -ne "text/plain" ]; then
+            echo "Expected HTTP status text/plain but got $HTTP_STATUS"
+            exit 1
+          fi
+        shell: bash
+
+      - name: stop.txt Create
+        run: |
+          cat /dev/null > ./stop.txt
+        shell: bash
+
+      - name: Wait 2s
+        run: sleep 2
+
+      - name: Not stop.txt Found Check
+        run: |
+          if [ -f ./stop.yml ]; then
+            exit 1
+          else 
+            echo "OK"
+          fi
+        shell: bash
+
+  release:
+    needs: [autotest1, autotest2, autotest3, autotest4, autotest5, autotest6, autotest7, autotest8]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download JarFile
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/download-artifact@v4
+        with:
+          name: jar
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: v${{ github.ref }}
+          body: |
+            - 有効なProxyが設定されてない場合にキャッシュ掃除でエラーになるのを修正
+            - Redisがなくても動作するように (config.ymlの「LogToRedis」が機能するように)
+            - 動画取得(`?url=`)のキャッシュ方法の変更
+            - APIアクセスログの書き出し対応
+          draft: false
+          prerelease: true
+
+      - name: Upload JarFile
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
+          asset_name: NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
+          asset_content_type: application/java-archive
+
+      - name: Delete File
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            jar
+            ffmpeg
+            video
