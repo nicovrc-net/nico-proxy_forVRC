@@ -522,6 +522,7 @@ NicoNico_user_session_secure: ""
         // HTTP受付
         httpServiceList.add(new NicoVRCWebAPI());
         httpServiceList.add(new GetURL());
+        httpServiceList.add(new GetURL_dummy());
         httpServiceList.add(new GetURL_old1()); // v2互換用、様子見て削除
         httpServiceList.add(new GetURL_old2()); // v2互換用、様子見て削除
         httpServiceList.add(new GetVideo());
