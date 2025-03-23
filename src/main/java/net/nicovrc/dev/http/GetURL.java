@@ -46,7 +46,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
     private final Pattern dummy_url = Pattern.compile("&dummy=true");
-    private final Pattern dummy_url2 = Pattern.compile("\\?dummy=true&url=(.+)");
+    private final Pattern dummy_url2 = Pattern.compile("^/\\?dummy=true&url=(.+)");
     private final Pattern vrc_getStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
 
     private final Pattern hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"\n");
@@ -69,6 +69,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             }
 
             URL = URL.replaceAll("^(/\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
+
+            //System.out.println(URL);
 
             ServiceAPI api = null;
             CacheData cacheData = Function.CacheList.get((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
