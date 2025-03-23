@@ -61,10 +61,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
         try {
 
-            Matcher matcher = dummy_url2.matcher(URL);
-            if (matcher.find()){
+            Matcher matcher_m = dummy_url2.matcher(URL);
+            if (matcher_m.find()){
                 //System.out.println(URL);
-                URL = "/?url="+matcher.group(1)+"&dummy=true";
+                URL = "/?url="+matcher_m.group(1)+"&dummy=true";
                 //System.out.println(URL);
             }
 
@@ -452,7 +452,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     return;
                                 }
                                 // それ以外の場合は
-                                if (!dummy_url.matcher(httpRequest).find()) {
+                                if (!dummy_url.matcher(URL).find()) {
 
                                     sb.setLength(0);
                                     Matcher matcher1 = hls_video.matcher(hls);
