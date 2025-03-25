@@ -69,7 +69,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 //System.out.println(URL);
             }
 
-            URL = URL.replaceAll("^(/\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
+            URL = URL.replaceAll("^(/(.*)\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
 
 
 
