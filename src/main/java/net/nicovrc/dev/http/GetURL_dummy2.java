@@ -13,7 +13,7 @@ public class GetURL_dummy2 implements Runnable, NicoVRCHTTP {
 
     @Override
     public String getStartURI() {
-        return "/dummy.m3u8?url=";
+        return "/dummy.m3u8";
     }
 
     @Override
