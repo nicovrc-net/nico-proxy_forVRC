@@ -44,6 +44,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             }
 
             //System.out.println("/https/");
+            System.out.println(URL);
 
             Matcher matcher = matcher_url1.matcher(URL);
             Matcher matcher2 = matcher_url2.matcher(URL);
