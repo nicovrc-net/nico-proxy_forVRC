@@ -480,7 +480,31 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     send = null;
                                     request = null;
                                 } else {
-                                    Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hls.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+
+                                    String[] dummy = hls.split("\n");
+
+
+                                    sb.setLength(0);
+                                    Matcher matcher1 = hls_video.matcher(hls);
+                                    Matcher matcher2 = hls_audio.matcher(hls);
+                                    if (matcher1.find() && matcher2.find()) {
+                                        hls = "#EXTM3U\n" +
+                                                "#EXT-X-VERSION:6\n" +
+                                                "#EXT-X-INDEPENDENT-SEGMENTS\n" +
+                                                "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
+                                                "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"audio\"\n" +
+                                                "dummy";
+
+                                    }
+
+                                    String[] split = hls.split("\n");
+                                    split[split.length - 1] = dummy[dummy.length - 1];
+
+                                    for (String str : split) {
+                                        sb.append(str).append("\n");
+                                    }
+
+                                    Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", sb.toString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                                     sb.setLength(0);
                                     send = null;
                                     request = null;
