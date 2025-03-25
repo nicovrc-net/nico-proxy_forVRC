@@ -195,6 +195,10 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                         StringBuilder sb = new StringBuilder();
                         for (String str : s.split("\n")) {
+                            if (str.startsWith("/tsad")){
+                                sb.append("/https/referer:[]/").append(request.uri().getHost()).append(str).append("\n");
+                                continue;
+                            }
                             if (!str.startsWith("/preview")) {
                                 sb.append(str.replaceAll("https://", "/https/cookie:[]/")).append("\n");
                                 continue;
