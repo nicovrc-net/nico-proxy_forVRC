@@ -70,7 +70,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             URL = URL.replaceAll("^(/\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
 
-            //System.out.println(URL);
+            System.out.println(URL);
 
             ServiceAPI api = null;
             CacheData cacheData = Function.CacheList.get((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
