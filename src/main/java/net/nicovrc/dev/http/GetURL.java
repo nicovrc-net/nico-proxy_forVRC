@@ -60,7 +60,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         String method = Function.getMethod(httpRequest);
 
         try {
-            System.out.println(URL);
+            //System.out.println(URL);
 
             Matcher matcher_m = dummy_url2.matcher(URL);
             if (matcher_m.find()){

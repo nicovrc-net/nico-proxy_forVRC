@@ -523,7 +523,7 @@ NicoNico_user_session_secure: ""
         httpServiceList.add(new NicoVRCWebAPI());
         httpServiceList.add(new GetURL());
         httpServiceList.add(new GetURL_dummy());
-        httpServiceList.add(new GetURL_dummy2());
+        httpServiceList.add(new GetURL_dummy2()); // Quest/Pico用
         httpServiceList.add(new GetURL_old1()); // v2互換用、様子見て削除
         httpServiceList.add(new GetURL_old2()); // v2互換用、様子見て削除
         httpServiceList.add(new GetVideo());
