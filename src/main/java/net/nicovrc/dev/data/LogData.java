@@ -1,4 +1,4 @@
-package net.nicovrc.dev;
+package net.nicovrc.dev.data;
 
 import java.util.Date;
 import java.util.UUID;

@@ -6,6 +6,8 @@ import com.amihaiemil.eoyaml.YamlSequence;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Service.Result.NicoNicoVideo;
 import net.nicovrc.dev.Service.Result.TikTokResult;
+import net.nicovrc.dev.data.CacheData;
+import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.http.*;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;

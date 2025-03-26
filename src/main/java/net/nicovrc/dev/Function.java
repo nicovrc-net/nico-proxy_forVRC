@@ -1,6 +1,8 @@
 package net.nicovrc.dev;
 
 import com.google.gson.Gson;
+import net.nicovrc.dev.data.CacheData;
+import net.nicovrc.dev.data.LogData;
 
 import java.io.InputStream;
 import java.io.OutputStream;

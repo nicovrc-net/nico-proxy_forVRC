@@ -1,4 +1,4 @@
-package net.nicovrc.dev;
+package net.nicovrc.dev.data;
 
 import net.nicovrc.dev.Service.ServiceAPI;
 
