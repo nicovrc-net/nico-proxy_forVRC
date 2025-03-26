@@ -40,7 +40,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Gson gson = Function.gson;
     private final List<ServiceAPI> list = ServiceList.getServiceList();
 
-    private final Pattern NotRemoveQuestionMarkURL = Pattern.compile("(youtu\\.be|www\\.youtube\\.com|pornhub\\.com)");
+    private final Pattern NotRemoveQuestionMarkURL = Pattern.compile("(youtu\\.be|www\\.youtube\\.com|(.+)\\.pornhub\\.com)");
 
     private final Pattern pattern_Asterisk = Pattern.compile("\\*");
 
