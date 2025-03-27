@@ -464,6 +464,7 @@ jobs:
           body: |
             - パラメータが入れ替わっているときに再生できない問題を修正
             - Quest/Pico環境から見れない問題修正
+            - DiscordのWebhook送信に対応
           draft: false
           prerelease: true
 
