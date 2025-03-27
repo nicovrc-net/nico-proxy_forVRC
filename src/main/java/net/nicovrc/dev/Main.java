@@ -6,8 +6,7 @@ import com.amihaiemil.eoyaml.YamlSequence;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Service.Result.NicoNicoVideo;
 import net.nicovrc.dev.Service.Result.TikTokResult;
-import net.nicovrc.dev.data.CacheData;
-import net.nicovrc.dev.data.LogData;
+import net.nicovrc.dev.data.*;
 import net.nicovrc.dev.http.*;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
@@ -16,6 +15,7 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -55,6 +55,8 @@ LogFileFolderPass: "./log"
 # ツイキャスAPIキー (https://twitcasting.tv/developerapp.php から取得可能)
 TwitcastingClientID: ""
 TwitcastingClientSecret: ""
+# Discord Webhook URL (設定しない場合は空欄)
+DiscordWebhookURL: ""
 # ----------------------------
 #
 # Redis設定
@@ -394,11 +396,12 @@ NicoNico_user_session_secure: ""
             }
         }, 0L, 60000L);
 
-        // ログ書き出し
+        // ログ、Webhook書き出し
         logWriteTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 WriteLog();
+                SendWebhook();
             }
         }, 0L, 60000L);
 
@@ -674,5 +677,90 @@ NicoNico_user_session_secure: ""
             });
         }
 
+    }
+
+    private static void SendWebhook(){
+        if (!Function.WebhookData.isEmpty()){
+            Thread.ofVirtual().start(()->{
+                int[] count = {0};
+
+                String WebhookURL = "";
+                try {
+                    final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+                    WebhookURL = yamlMapping.string("DiscordWebhookURL");
+                } catch (Exception e){
+                    WebhookURL = "";
+                }
+
+                if (WebhookURL.isEmpty()){
+                    return;
+                }
+
+                final List<String> proxyList = new ArrayList<>();
+                proxyList.addAll(Function.ProxyList);
+                proxyList.addAll(Function.JP_ProxyList);
+
+                final HashMap<String, WebhookData> temp = new HashMap<>(Function.WebhookData);
+                Function.WebhookData.clear();
+
+                System.out.println("[Info] Webhook送信開始");
+                final String finalWebhookURL = WebhookURL;
+                temp.forEach((id, data) -> {
+
+                    int i = new SecureRandom().nextInt(0, proxyList.size());
+                    String proxy = null;
+                    if (!proxyList.isEmpty()){
+                        proxy = proxyList.get(i);
+                    }
+
+                    SendWebhookData webhookData = new SendWebhookData();
+                    webhookData.setUsername("nico-proxy_forVRC (Ver " + Function.Version + ")");
+                    webhookData.setAvatar_url("https://r2.7mi.site/vrc/nico/nc296562.png");
+                    webhookData.setContent("利用ログ");
+                    WebhookEmbeds[] embeds = {new WebhookEmbeds()};
+                    embeds[0].setTitle(data.getAPIURI() == null || data.getAPIURI().isEmpty() ? "変換URL利用ログ" : "API利用ログ");
+                    embeds[0].setDescription(Function.sdf.format(data.getDate()));
+                    WebhookFields[] fields = {new WebhookFields(), new WebhookFields(), new WebhookFields()};
+                    fields[0].setName("リクエストURL");
+                    fields[0].setValue(data.getURL() == null || data.getURL().isEmpty() ? data.getAPIURI() : data.getURL());
+                    fields[1].setName("処理結果");
+                    fields[1].setValue(data.getResult() == null ? "(なし)" : data.getResult());
+                    fields[2].setName("HTTP Request");
+                    fields[2].setValue("```\n"+data.getHTTPRequest()+"\n```");
+                    embeds[0].setFields(fields);
+                    webhookData.setEmbeds(embeds);
+
+                    //System.out.println(Function.gson.toJson(webhookData));
+
+                    try (HttpClient client = proxy == null ? HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_2)
+                            .followRedirects(HttpClient.Redirect.NORMAL)
+                            .connectTimeout(Duration.ofSeconds(5))
+                            .build() :
+                            HttpClient.newBuilder()
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .followRedirects(HttpClient.Redirect.NORMAL)
+                                    .connectTimeout(Duration.ofSeconds(5))
+                                    .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
+                                    .build()){
+
+                        HttpRequest request = HttpRequest.newBuilder()
+                                .uri(new URI(finalWebhookURL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Content-Type", "application/json; charset=UTF-8")
+                                .POST(HttpRequest.BodyPublishers.ofString(Function.gson.toJson(webhookData)))
+                                .build();
+                        HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                        //System.out.println(send.body());
+
+                        count[0]++;
+                    } catch (Exception e){
+                        // e.printStackTrace();
+                    }
+                });
+                System.out.println("[Info] Webhook送信完了 ("+count[0]+"件)");
+
+            });
+        }
     }
 }

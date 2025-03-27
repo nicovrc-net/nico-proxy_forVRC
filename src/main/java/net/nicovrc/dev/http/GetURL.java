@@ -12,6 +12,7 @@ import net.nicovrc.dev.Service.Result.OPENREC_Result;
 import net.nicovrc.dev.Service.Result.TikTokResult;
 import net.nicovrc.dev.Service.ServiceAPI;
 import net.nicovrc.dev.Service.ServiceList;
+import net.nicovrc.dev.data.WebhookData;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -79,7 +80,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             URL = URL.replaceAll("^(/(.*)\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
 
-
+            WebhookData webhookData = new WebhookData();
+            webhookData.setURL(URL);
+            webhookData.setHTTPRequest(httpRequest);
 
             ServiceAPI api = null;
             CacheData cacheData = Function.CacheList.get((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
@@ -256,6 +259,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     content = null;
 
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setResult(logData.getErrorMessage().isEmpty() ? logData.getResultTitle() : logData.getErrorMessage());
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
                     return;
                 }
 
@@ -265,6 +271,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + errorMessage);
                     }
                     logData.setErrorMessage(errorMessage);
+                    webhookData.setResult(errorMessage);
 
                     try {
                         MessageDigest sha3_256 = MessageDigest.getInstance("SHA3-256");
@@ -413,6 +420,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         content = null;
                     }
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
                 } else if (ServiceName.equals("ニコニコ")) {
                     NicoNicoVideo result = gson.fromJson(json, NicoNicoVideo.class);
                     if (result != null) {
@@ -422,6 +431,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                 System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + result.getVideoURL());
                                 logData.setResultURL(result.getVideoURL());
                                 Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                                webhookData.setResult(result.getVideoURL());
+                                webhookData.setDate(new Date());
+                                Function.WebhookData.put(logData.getLogID(), webhookData);
                             }
 
                             try (HttpClient client = proxy == null ? HttpClient.newBuilder()
@@ -539,6 +551,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + liveURL);
                                     logData.setResultURL(liveURL);
                                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                                    webhookData.setResult(liveURL);
+                                    webhookData.setDate(new Date());
+                                    Function.WebhookData.put(logData.getLogID(), webhookData);
                                 }
                                 if (result.getLiveAccessCookie() != null && !result.getLiveAccessCookie().isEmpty()) {
                                     // 新鯖
@@ -677,6 +692,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
                     logData.setResultURL(targetURL);
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setResult(targetURL);
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
                     OutputStream out = sock.getOutputStream();
                     StringBuilder sb_header = new StringBuilder();
 
@@ -691,6 +709,11 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 } else if (ServiceName.equals("Abema")) {
                     String targetURL = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
                     System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
+                    logData.setResultURL(targetURL);
+                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setResult(targetURL);
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
 
                     OutputStream out = sock.getOutputStream();
                     StringBuilder sb_header = new StringBuilder();
@@ -709,6 +732,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + result.getVideoURL());
                     logData.setResultURL(result.getVideoURL());
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setResult(result.getVideoURL());
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                             .version(HttpClient.Version.HTTP_2)
                             .followRedirects(HttpClient.Redirect.NEVER)
@@ -763,6 +789,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + (result.isLive() ? result.getLiveURL() : result.getVideoURL()));
                     logData.setResultURL(result.isLive() ? result.getLiveURL() : result.getVideoURL());
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setResult(result.isLive() ? result.getLiveURL() : result.getVideoURL());
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                             .version(HttpClient.Version.HTTP_2)
                             .followRedirects(HttpClient.Redirect.NEVER)
@@ -838,6 +867,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + url);
                     logData.setResultURL(url);
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setResult(url);
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
 
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                             .version(HttpClient.Version.HTTP_2)
@@ -914,6 +946,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + element.getAsJsonObject().get("AudioURL").getAsString());
                     logData.setResultURL(element.getAsJsonObject().get("AudioURL").getAsString());
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setResult(element.getAsJsonObject().get("AudioURL").getAsString());
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                             .version(HttpClient.Version.HTTP_2)
                             .followRedirects(HttpClient.Redirect.NEVER)
@@ -986,6 +1021,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + element.getAsJsonObject().get("VideoURL").getAsString());
                         logData.setResultURL(element.getAsJsonObject().get("VideoURL").getAsString());
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                        webhookData.setResult(element.getAsJsonObject().get("VideoURL").getAsString());
+                        webhookData.setDate(new Date());
+                        Function.WebhookData.put(logData.getLogID(), webhookData);
                     }
 
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
@@ -1072,6 +1110,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
                     logData.setResultURL(targetURL);
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setResult(targetURL);
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
 
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                             .version(HttpClient.Version.HTTP_2)
@@ -1132,6 +1173,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
                     logData.setResultURL(targetURL);
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setResult(targetURL);
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
 
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                             .version(HttpClient.Version.HTTP_2)
@@ -1207,6 +1251,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
                     logData.setResultURL(targetURL);
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setResult(targetURL);
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
 
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                             .version(HttpClient.Version.HTTP_2)
@@ -1284,6 +1331,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + targetURL);
                     logData.setResultURL(targetURL);
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setResult(targetURL);
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
+
                     OutputStream out = sock.getOutputStream();
                     StringBuilder sb_header = new StringBuilder();
 

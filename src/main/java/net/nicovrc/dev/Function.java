@@ -3,6 +3,7 @@ package net.nicovrc.dev;
 import com.google.gson.Gson;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.LogData;
+import net.nicovrc.dev.data.WebhookData;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -33,6 +34,7 @@ public class Function {
     public static final ConcurrentHashMap<String, LogData> GetURLAccessLog = new ConcurrentHashMap<>();
 
     public static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<String, WebhookData> WebhookData = new ConcurrentHashMap<>();
 
     public static String getHTTPRequest(Socket sock) throws Exception{
         //System.out.println("debug 1");

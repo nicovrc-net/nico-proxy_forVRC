@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.api.*;
+import net.nicovrc.dev.data.WebhookData;
 
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
@@ -38,6 +39,10 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
             String[] split = UUID.randomUUID().toString().split("-");
             Function.APIAccessLog.put(new Date().getTime() + "-"+ split[0]+split[1], HTTPRequest);
 
+            WebhookData webhookData = new WebhookData();
+            webhookData.setURL(URL);
+            webhookData.setHTTPRequest(HTTPRequest);
+
             if (list.isEmpty()){
                 // 何もAPI実装されてなければ意味ないので
                 return;
@@ -49,6 +54,7 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
                 if (URL.startsWith(api.getURI())){
                     try {
                         result[0] = api.Run(HTTPRequest);
+                        webhookData.setAPIURI(api.getURI());
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
@@ -56,6 +62,8 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
             });
             //System.out.println(result[0]);
+            webhookData.setDate(new Date());
+            Function.WebhookData.put(split[0]+split[1], webhookData);
 
             String method = Function.getMethod(HTTPRequest);
             String httpVersion = Function.getHTTPVersion(HTTPRequest);
