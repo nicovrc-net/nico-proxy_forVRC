@@ -621,7 +621,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                         }
 
                                         String[] split = hls.split("\n");
-                                        split[split.length - 1] = "/?url=" + URL + "&dummy=true";
+                                        split[split.length - 1] = "/dummy.m3u8?url=" + URL + "&dummy=true";
 
                                         for (String str : split) {
                                             sb.append(str).append("\n");
@@ -927,7 +927,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         // それ以外の場合は
                         if (!dummy_url.matcher(httpRequest).find()) {
                             if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl")) {
-                                body = (new String(body, StandardCharsets.UTF_8).replaceAll("https://", "/https/referer:[https://tver.jp/]/") + "\n/?url=" + URL + "&dummy=true").getBytes(StandardCharsets.UTF_8);
+                                body = (new String(body, StandardCharsets.UTF_8).replaceAll("https://", "/https/referer:[https://tver.jp/]/") + "\n/dummy.m3u8?url=" + URL + "&dummy=true").getBytes(StandardCharsets.UTF_8);
                             }
                         } else {
                             body = new String(body, StandardCharsets.UTF_8).replaceAll("https://", "/https/referer:[https://tver.jp/]/").getBytes(StandardCharsets.UTF_8);
@@ -1092,7 +1092,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                         if (!dummy_url.matcher(httpRequest).find()) {
                             if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")) {
-                                body = (new String(body, StandardCharsets.UTF_8) + "\n/?url=" + URL + "&dummy=true").getBytes(StandardCharsets.UTF_8);
+                                body = (new String(body, StandardCharsets.UTF_8) + "\n/dummy.m3u8?url=" + URL + "&dummy=true").getBytes(StandardCharsets.UTF_8);
                             }
                         }
 
