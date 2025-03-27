@@ -462,9 +462,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - パラメータが入れ替わっているときに再生できない問題を修正
-            - Quest/Pico環境から見れない問題修正
-            - DiscordのWebhook送信に対応
+            - ニコ動にて画質が一番高いものにならない問題の修正
           draft: false
           prerelease: true
 

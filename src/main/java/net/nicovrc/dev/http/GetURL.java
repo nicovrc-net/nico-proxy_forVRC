@@ -51,10 +51,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern dummy_url2_2 = Pattern.compile("^/dummy\\.m3u8\\?dummy=true&url=(.+)");
     private final Pattern vrc_getStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
 
-    private final Pattern hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"\n");
+    private final Pattern hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
     private final Pattern hls_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
 
-    private final Pattern hlslive_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"\n");
+    private final Pattern hlslive_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
     private final Pattern hlslive_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
 
     @Override
@@ -476,6 +476,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                 if (!dummy_url.matcher(URL).find()) {
 
                                     sb.setLength(0);
+
                                     Matcher matcher1 = hls_video.matcher(hls);
                                     Matcher matcher2 = hls_audio.matcher(hls);
                                     if (matcher1.find() && matcher2.find()) {
@@ -501,8 +502,21 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     request = null;
                                 } else {
 
-                                    String[] dummy = hls.split("\n");
-
+                                    long MaxBandWidth = -1;
+                                    String MediaText = "";
+                                    int i = 0;
+                                    for (String str : hls.split("\n")){
+                                        Matcher matcher = hls_video.matcher(str);
+                                        if (matcher.find()){
+                                            long l = Long.parseLong(matcher.group(2));
+                                            //System.out.println(l);
+                                            if (MaxBandWidth <= l){
+                                                MaxBandWidth = l;
+                                                MediaText = hls.split("\n")[i + 1];
+                                            }
+                                        }
+                                        i++;
+                                    }
 
                                     sb.setLength(0);
                                     Matcher matcher1 = hls_video.matcher(hls);
@@ -518,11 +532,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     }
 
                                     String[] split = hls.split("\n");
-                                    split[split.length - 1] = dummy[dummy.length - 1];
+                                    split[split.length - 1] = MediaText;
 
                                     for (String str : split) {
                                         sb.append(str).append("\n");
                                     }
+                                    //System.out.println(sb);
 
                                     Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", sb.toString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                                     sb.setLength(0);
