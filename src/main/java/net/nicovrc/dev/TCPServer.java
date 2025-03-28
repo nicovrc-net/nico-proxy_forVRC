@@ -180,5 +180,6 @@ public class TCPServer extends Thread {
         } catch (Exception e){
             // e.printStackTrace();
         }
+        stopTimer.cancel();
     }
 }

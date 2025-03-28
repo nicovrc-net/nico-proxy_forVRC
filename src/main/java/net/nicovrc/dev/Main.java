@@ -546,6 +546,7 @@ NicoNico_user_session_secure: ""
         logWriteTimer.cancel();
         cacheRemoveTimer.cancel();
         WriteLog();
+        SendWebhook();
         System.out.println("[Info] 終了します...");
     }
 
