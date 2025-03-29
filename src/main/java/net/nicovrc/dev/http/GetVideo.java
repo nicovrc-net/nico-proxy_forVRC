@@ -4,10 +4,7 @@ import net.nicovrc.dev.Function;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
-import java.net.Socket;
-import java.net.URI;
+import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -45,6 +42,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
             //System.out.println("/https/");
             //System.out.println(URL);
+
+            URL = URLDecoder.decode(URL, StandardCharsets.UTF_8);
 
             Matcher matcher = matcher_url1.matcher(URL);
             Matcher matcher2 = matcher_url2.matcher(URL);
