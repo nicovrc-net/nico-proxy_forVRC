@@ -463,6 +463,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                 HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
                                 String hls = send.body().replaceAll("https://delivery\\.domand\\.nicovideo\\.jp", "/https/cookie:[" + sb.substring(0, sb.length() - 1) + "]/delivery.domand.nicovideo.jp");
 
+                                /*
                                 if (vlc_ua.matcher(httpRequest).find()) {
                                     // VLCのときはそのまま
                                     Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hls.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
@@ -471,9 +472,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     request = null;
 
                                     return;
-                                }
+                                }*/
                                 // それ以外の場合は
-                                if (!dummy_url.matcher(URL).find()) {
+                                if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
 
                                     sb.setLength(0);
 

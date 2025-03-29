@@ -106,10 +106,10 @@ public class Function {
         }
         sb_header.append("\n");
         if (AccessControlAllowOrigin != null){
-            sb_header.append("Access-Control-Allow-Origin: ").append(AccessControlAllowOrigin).append("\n");
+            sb_header.append("Access-Control-Allow-Origin: ").append(AccessControlAllowOrigin).append("\r\n");
         }
-        sb_header.append("Content-Length: ").append(body.length).append("\n");
-        sb_header.append("Content-Type: ").append(contentType).append("\n\n");
+        sb_header.append("Content-Length: ").append(body.length).append("\r\n");
+        sb_header.append("Content-Type: ").append(contentType).append("\r\n\r\n");
 
         //System.out.println(sb_header);
         out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));

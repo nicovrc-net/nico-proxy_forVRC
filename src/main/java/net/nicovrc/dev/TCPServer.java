@@ -80,7 +80,7 @@ public class TCPServer extends Thread {
                         OutputStream out = sock.getOutputStream();
 
                         final String httpRequest = Function.getHTTPRequest(sock);
-                        //System.out.println(httpRequest);
+                        System.out.println(httpRequest);
                         if (httpRequest == null) {
                             in.close();
                             out.close();
