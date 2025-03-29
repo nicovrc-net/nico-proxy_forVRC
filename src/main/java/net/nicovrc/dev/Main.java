@@ -548,6 +548,15 @@ NicoNico_user_session_secure: ""
         WriteLog();
         SendWebhook();
         System.out.println("[Info] 終了します...");
+
+        File file2 = new File("./stop_lock.txt");
+        if (file2.exists()){
+            file2.deleteOnExit();
+        }
+        File file3 = new File("./stop.txt");
+        if (file3.exists()){
+            file3.deleteOnExit();
+        }
     }
 
     private static void WriteLog(){
