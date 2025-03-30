@@ -49,6 +49,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern dummy_url = Pattern.compile("&dummy=true");
     private final Pattern dummy_url2 = Pattern.compile("^/\\?dummy=true&url=(.+)");
     private final Pattern dummy_url2_2 = Pattern.compile("^/dummy\\.m3u8\\?dummy=true&url=(.+)");
+    private final Pattern dummy_url2_3 = Pattern.compile("^/proxy/\\?dummy=true&(.+)");
+    private final Pattern dummy_url2_4 = Pattern.compile("^/\\?dummy=true&vi=(.+)");
     private final Pattern vrc_getStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
 
     private final Pattern hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
@@ -75,6 +77,18 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             if (matcher_m.find()){
                 //System.out.println(URL);
                 URL = "/dummy.m3u8?url="+matcher_m.group(1)+"&dummy=true";
+                //System.out.println(URL);
+            }
+            matcher_m = dummy_url2_3.matcher(URL);
+            if (matcher_m.find()){
+                //System.out.println(URL);
+                URL = "/proxy/?"+matcher_m.group(1)+"&dummy=true";
+                //System.out.println(URL);
+            }
+            matcher_m = dummy_url2_4.matcher(URL);
+            if (matcher_m.find()){
+                //System.out.println(URL);
+                URL = "/?vi="+matcher_m.group(1)+"&dummy=true";
                 //System.out.println(URL);
             }
 
