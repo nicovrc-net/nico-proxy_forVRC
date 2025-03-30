@@ -895,12 +895,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
                 } else if (ServiceName.equals("TVer")) {
                     String url = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
-                    System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + url);
-                    logData.setResultURL(url);
-                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                    webhookData.setResult(url);
-                    webhookData.setDate(new Date());
-                    Function.WebhookData.put(logData.getLogID(), webhookData);
+                    if (!dummy_url.matcher(httpRequest).find()){
+                        System.out.println("[Get URL ("+(isCache ? "キャッシュ," : "")+Function.sdf.format(date)+")] " + URL + " ---> " + url);
+                        logData.setResultURL(url);
+                        Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                        webhookData.setResult(url);
+                        webhookData.setDate(new Date());
+                        Function.WebhookData.put(logData.getLogID(), webhookData);
+                    }
 
                     try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                             .version(HttpClient.Version.HTTP_2)
