@@ -254,14 +254,15 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", "".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                     }
 
+
+                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    webhookData.setResult(errorMessage == null ? element.getAsJsonObject().get("Title").getAsString() : errorMessage);
+                    webhookData.setDate(new Date());
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
+
                     errorMessage = null;
                     element = null;
                     content = null;
-
-                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                    webhookData.setResult(logData.getErrorMessage().isEmpty() ? logData.getResultTitle() : logData.getErrorMessage());
-                    webhookData.setDate(new Date());
-                    Function.WebhookData.put(logData.getLogID(), webhookData);
                     return;
                 }
 
