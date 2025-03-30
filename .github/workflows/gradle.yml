@@ -462,8 +462,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - ニコ動にて画質が一番高いものにならない問題の修正
-            - 簡易死活監視追加
+            - ニコ生のIDだけだと再生できない問題の修正
           draft: false
           prerelease: true
 
