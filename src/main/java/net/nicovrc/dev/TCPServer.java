@@ -20,6 +20,7 @@ public class TCPServer extends Thread {
     private final List<NicoVRCHTTP> httpServiceList;
 
     private final Timer stopTimer = new Timer();
+    private final Timer accessCheckTimer = new Timer();
 
     public TCPServer(List<NicoVRCHTTP> list){
         this.HTTPPort = 25252;
@@ -49,6 +50,7 @@ public class TCPServer extends Thread {
                         stream.close();
                         socket.close();
                         stopTimer.cancel();
+                        accessCheckTimer.cancel();
                         System.out.println("[Info] 終了処理を完了しました。");
                     }
                 } catch (Exception e){
@@ -59,6 +61,32 @@ public class TCPServer extends Thread {
                 file2.deleteOnExit();
             }
         }, 0L, 1000L);
+
+        // 死活監視
+        accessCheckTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                try {
+                    File file = new File("./stop.txt");
+                    if (!temp[0]){
+                        file.createNewFile();
+                        return;
+                    }
+
+                    try {
+                        Socket socket = new Socket("127.0.0.1", HTTPPort);
+                        OutputStream stream = socket.getOutputStream();
+                        stream.write(new byte[0]);
+                        stream.close();
+                        socket.close();
+                    } catch (Exception e){
+                        file.createNewFile();
+                    }
+                } catch (Exception e){
+                    // e.printStackTrace();
+                }
+            }
+        }, 1000L, 1000L);
     }
 
     @Override
