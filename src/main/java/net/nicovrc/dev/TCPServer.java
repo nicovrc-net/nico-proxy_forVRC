@@ -70,6 +70,7 @@ public class TCPServer extends Thread {
                     File file = new File("./stop.txt");
                     if (!temp[0]){
                         file.createNewFile();
+                        accessCheckTimer.cancel();
                         return;
                     }
 
@@ -81,6 +82,7 @@ public class TCPServer extends Thread {
                         socket.close();
                     } catch (Exception e){
                         file.createNewFile();
+                        accessCheckTimer.cancel();
                     }
                 } catch (Exception e){
                     // e.printStackTrace();
