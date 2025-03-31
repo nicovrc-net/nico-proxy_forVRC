@@ -506,7 +506,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     }
 
                                     String[] split = hls.split("\n");
-                                    split[split.length - 1] = "https://nicovrc.net/dummy.m3u8?url=" + URL + "&dummy=true";
+                                    split[split.length - 1] = "https://lv-s1.nicovrc.net/dummy.m3u8?url=" + URL + "&dummy=true";
 
                                     for (String str : split) {
                                         sb.append(str).append("\n");
@@ -528,7 +528,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                             //System.out.println(l);
                                             if (MaxBandWidth <= l){
                                                 MaxBandWidth = l;
-                                                MediaText = "https://nicovrc.net"+hls.split("\n")[i + 1];
+                                                MediaText = "https://lv-s1.nicovrc.net"+hls.split("\n")[i + 1];
                                             }
                                         }
                                         i++;
@@ -541,7 +541,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                         hls = "#EXTM3U\n" +
                                                 "#EXT-X-VERSION:6\n" +
                                                 "#EXT-X-INDEPENDENT-SEGMENTS\n" +
-                                                "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"https://nicovrc.net" + matcher2.group(2) + "\"\n" +
+                                                "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"https://lv-s1.nicovrc.net" + matcher2.group(2) + "\"\n" +
                                                 "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"audio\"\n" +
                                                 "dummy";
 
