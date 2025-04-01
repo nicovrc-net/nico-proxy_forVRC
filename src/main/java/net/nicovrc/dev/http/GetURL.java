@@ -620,7 +620,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     }
 
                                     // それ以外の場合は
-                                    if (!dummy_url.matcher(httpRequest).find()) {
+                                    if (!dummy_url.matcher(URL).find()) {
                                         sb.setLength(0);
 
                                         String hls = new String(body, StandardCharsets.UTF_8);
