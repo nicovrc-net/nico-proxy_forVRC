@@ -270,7 +270,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
 
                     Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                    webhookData.setResult(errorMessage == null ? element.getAsJsonObject().get("Title").getAsString() : errorMessage);
+                    webhookData.setResult(errorMessage == null ? (element.getAsJsonObject().has("Title") ? element.getAsJsonObject().get("Title").getAsString() : "") : errorMessage);
                     webhookData.setDate(new Date());
                     Function.WebhookData.put(logData.getLogID(), webhookData);
 
