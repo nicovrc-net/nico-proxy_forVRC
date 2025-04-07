@@ -118,6 +118,7 @@ public class Twitcasting implements ServiceAPI {
 
             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             //System.out.println(send.statusCode());
+            //System.out.println(send.body());
 
             JsonElement json = gson.fromJson(send.body(), JsonElement.class);
 
@@ -135,13 +136,31 @@ public class Twitcasting implements ServiceAPI {
                 }
                 result.setTotal_viewCount(json.getAsJsonObject().get("movie").getAsJsonObject().get("total_view_count").getAsLong());
 
-                if (json.getAsJsonObject().get("movie").getAsJsonObject().get("hls_url").isJsonNull()){
+                boolean isHLSNotFound = true;
+                if (!json.getAsJsonObject().get("movie").getAsJsonObject().get("hls_url").isJsonNull()){
+                    HttpRequest request2 = HttpRequest.newBuilder()
+                            .uri(new URI(json.getAsJsonObject().get("movie").getAsJsonObject().get("hls_url").getAsString()))
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Referer", "https://twitcasting.tv")
+                            .GET()
+                            .build();
+
+
+                    HttpResponse<String> send2 = client.send(request2, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                    if (send2.statusCode() >= 200 && send2.statusCode() <= 399){
+                        System.out.println(send2.body());
+                        isHLSNotFound = false;
+                    }
+
+                }
+
+
+                if (json.getAsJsonObject().get("movie").getAsJsonObject().get("hls_url").isJsonNull() || isHLSNotFound){
                     uri = new URI(result.getURL());
                     request = HttpRequest.newBuilder()
                             .uri(uri)
                             .headers("User-Agent", Function.UserAgent)
-                            .headers("X-Api-Version", "2.0")
-                            .headers("Authorization", "Basic "+base64)
                             .GET()
                             .build();
 
