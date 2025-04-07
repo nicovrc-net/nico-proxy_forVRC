@@ -462,8 +462,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - ニコ生のIDだけだと再生できない問題の修正
-            - ニコ生で見れない問題を修正
+            - ツイキャスのアーカイブが見れない問題を修正
           draft: false
           prerelease: true
 
