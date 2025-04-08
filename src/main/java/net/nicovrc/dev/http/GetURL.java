@@ -330,7 +330,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
 
                     GetContent hls = GetContentList.get(ServiceName);
-                    if (hls == null && ServiceName.isEmpty()) {
+                    if (ServiceName.isEmpty()) {
                         logData.setResultURL(null);
                         webhookData.setResult("対応してないURL");
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
