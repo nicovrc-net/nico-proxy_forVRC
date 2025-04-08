@@ -510,11 +510,16 @@ NicoNico_user_session_secure: ""
                                         Function.CacheList.remove(url);
                                     }
                                 }
+
+                                client.close();
                             } catch (Exception e){
                                 //e.printStackTrace();
+                            } finally {
+                                client.close();
                             }
 
                             client.close();
+                            System.gc();
                         }
                     });
 
