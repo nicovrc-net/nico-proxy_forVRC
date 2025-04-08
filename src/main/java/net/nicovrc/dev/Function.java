@@ -5,21 +5,25 @@ import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.data.WebhookData;
 
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.time.Duration;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Function {
-    public static final String Version = "3.0.0-rc.2";
+    public static final String Version = "3.0.0-rc.3";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -104,7 +108,7 @@ public class Function {
             case 404 -> sb_header.append("Not Found");
             case 405 -> sb_header.append("Method Not Allowed");
         }
-        sb_header.append("\n");
+        sb_header.append("\r\n");
         if (AccessControlAllowOrigin != null){
             sb_header.append("Access-Control-Allow-Origin: ").append(AccessControlAllowOrigin).append("\r\n");
         }
@@ -158,5 +162,134 @@ public class Function {
         }
 
         return uri;
+    }
+
+    public static String getFFmpegPath(){
+
+        final String ffmpegPass;
+        if (new File("./ffmpeg").exists()){
+            ffmpegPass = "./ffmpeg";
+        } else if (new File("./ffmpeg.exe").exists()){
+            ffmpegPass = "./ffmpeg.exe";
+        } else if (new File("/bin/ffmpeg").exists()){
+            ffmpegPass = "/bin/ffmpeg";
+        } else if (new File("/usr/bin/ffmpeg").exists()){
+            ffmpegPass = "/usr/bin/ffmpeg";
+        } else if (new File("/usr/local/bin/ffmpeg").exists()){
+            ffmpegPass = "/usr/local/bin/ffmpeg";
+        } else if (new File("C:\\Windows\\System32\\ffmpeg.exe").exists()){
+            ffmpegPass = "C:\\Windows\\System32\\ffmpeg.exe";
+        } else {
+            ffmpegPass = "";
+        }
+
+        return ffmpegPass;
+
+    }
+
+    public static byte[] getErrorMessageVideo(HttpClient client, String message){
+
+        byte[] content = null;
+
+        try {
+            MessageDigest sha3_256 = MessageDigest.getInstance("SHA3-256");
+            byte[] sha3_256_result = sha3_256.digest(message.getBytes(StandardCharsets.UTF_8));
+            String str = new String(Base64.getEncoder().encode(sha3_256_result), StandardCharsets.UTF_8);
+            String videoId = str.replaceAll("\\\\", "").replaceAll("\\+", "").replaceAll("/", "").substring(0, 20);
+
+            File file = new File("./error-video/" + videoId + ".mp4");
+            if (file.exists()) {
+                FileInputStream stream = new FileInputStream(file);
+                content = stream.readAllBytes();
+                stream.close();
+                stream = null;
+            } else {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(new URI("https://nicovrc.net/v3-video/error.php?msg=" + URLEncoder.encode(message, StandardCharsets.UTF_8)))
+                        .headers("User-Agent", Function.UserAgent)
+                        .GET()
+                        .build();
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+                FileOutputStream stream = new FileOutputStream("./error-video/" + videoId + ".png");
+                stream.write(send.body());
+                stream.close();
+                stream = null;
+                send = null;
+
+
+                Runtime runtime = Runtime.getRuntime();
+                String ffmpegPass = Function.getFFmpegPath();
+                if (!new File("./error-video/out.mp3").exists()) {
+                    final Process exec0 = runtime.exec(new String[]{ffmpegPass, "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono", "-t", "5", "-aq", "1", "-c:a", "libmp3lame", "./error-video/out.mp3"});
+                    Thread.ofVirtual().start(() -> {
+                        try {
+                            Thread.sleep(5000L);
+                        } catch (Exception e) {
+                            //e.printStackTrace();
+                        }
+
+                        if (exec0.isAlive()) {
+                            exec0.destroy();
+                        }
+                    });
+                    exec0.waitFor();
+                }
+                final Process exec1 = runtime.exec(new String[]{ffmpegPass, "-loop", "1", "-i", "./error-video/" + videoId + ".png", "-i", "./error-video/out.mp3", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "copy", "-map", "0:v:0", "-map", "1:a:0", "-t", "20", "-r", "60", "./error-video/" + videoId + ".mp4"});
+                Thread.ofVirtual().start(() -> {
+                    try {
+                        Thread.sleep(5000L);
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+
+                    if (exec1.isAlive()) {
+                        exec1.destroy();
+                    }
+                });
+                exec1.waitFor();
+                                /*byte[] read = null;
+                                try {
+                                    read = exec1.getInputStream().readAllBytes();
+                                } catch (Exception e){
+                                    read = new byte[0];
+                                }
+                                if (read.length == 0) {
+                                    try {
+                                        read = exec1.getErrorStream().readAllBytes();
+                                    } catch (Exception e){
+                                        read = new byte[0];
+                                    }
+                                }
+                                String infoMessage = new String(read, StandardCharsets.UTF_8);
+                                System.out.println(infoMessage);*/
+                //System.out.println(ffmpegPass);
+                file = new File("./error-video/" + videoId + ".jpg");
+                file.delete();
+
+                file = new File("./error-video/" + videoId + ".mp4");
+                if (file.exists()) {
+                    FileInputStream stream1 = new FileInputStream(file);
+                    content = stream1.readAllBytes();
+                    stream1.close();
+                    stream1 = null;
+                }
+            }
+
+            return content;
+        } catch (Exception e) {
+            try {
+                // e.printStackTrace();
+                File file = new File("./error-video/error_000.mp4");
+                FileInputStream stream = new FileInputStream(file);
+                content = stream.readAllBytes();
+                stream.close();
+                stream = null;
+            } catch (Exception ex) {
+                //ex.printStackTrace();
+            }
+        }
+
+        return content;
     }
 }

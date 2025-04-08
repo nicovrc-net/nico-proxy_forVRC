@@ -463,6 +463,7 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - ツイキャスのアーカイブが見れない問題を修正
+            - 内部リファクタリング
           draft: false
           prerelease: true
 
