@@ -22,7 +22,6 @@ public class OPENREC implements GetContent {
     public ContentObject run(Socket sock, HttpClient client, String httpRequest, String URL, String json) {
 
         final String method = Function.getMethod(httpRequest);
-        String dummy_hlsText = null;
         String hlsText = null;
         OPENREC_Result result = gson.fromJson(json, OPENREC_Result.class);
 
@@ -86,6 +85,9 @@ public class OPENREC implements GetContent {
             }
         }
 
-        return null;
+        ContentObject object = new ContentObject();
+        object.setHLSText(hlsText != null ? hlsText.getBytes(StandardCharsets.UTF_8) : null);
+        object.setDummyHLSText(null);
+        return object;
     }
 }

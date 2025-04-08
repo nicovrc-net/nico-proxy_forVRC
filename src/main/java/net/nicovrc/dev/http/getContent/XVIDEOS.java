@@ -22,7 +22,6 @@ public class XVIDEOS implements GetContent {
     public ContentObject run(Socket sock, HttpClient client, String httpRequest, String URL, String json) {
 
         final String method = Function.getMethod(httpRequest);
-        String dummy_hlsText = null;
         String hlsText = null;
         JsonElement element = gson.fromJson(json, JsonElement.class);
 
@@ -42,11 +41,11 @@ public class XVIDEOS implements GetContent {
             byte[] body = send.body();
 
             if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")) {
-                String s = new String(body, StandardCharsets.UTF_8);
+                hlsText = new String(body, StandardCharsets.UTF_8);
 
                 StringBuilder sb = new StringBuilder();
 
-                for (String str : s.split("\n")){
+                for (String str : hlsText.split("\n")){
                     if (str.startsWith("#")){
                         sb.append(str).append("\n");
                         continue;
@@ -57,10 +56,10 @@ public class XVIDEOS implements GetContent {
                     break;
                 }
 
-                s = sb.toString();
-                s = s.replaceAll("https://", "/https/cookie:[]/");
+                hlsText = sb.toString();
+                hlsText = hlsText.replaceAll("https://", "/https/cookie:[]/");
 
-                body = s.getBytes(StandardCharsets.UTF_8);
+                body = hlsText.getBytes(StandardCharsets.UTF_8);
                 sb.setLength(0);
                 //System.out.println(s);
             }
@@ -88,6 +87,9 @@ public class XVIDEOS implements GetContent {
             }
         }
 
-        return null;
+        ContentObject object = new ContentObject();
+        object.setHLSText(hlsText != null ? hlsText.getBytes(StandardCharsets.UTF_8) : null);
+        object.setDummyHLSText(null);
+        return object;
     }
 }

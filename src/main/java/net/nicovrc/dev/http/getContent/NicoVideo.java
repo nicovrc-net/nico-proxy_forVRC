@@ -55,78 +55,80 @@ public class NicoVideo implements GetContent {
                     HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
                     String hls = send.body().replaceAll("https://delivery\\.domand\\.nicovideo\\.jp", "/https/cookie:[" + sb.substring(0, sb.length() - 1) + "]/delivery.domand.nicovideo.jp");
 
+                    // LibVLC以外
+                    sb.setLength(0);
+
+                    Matcher matcher1 = hls_video.matcher(hls);
+                    Matcher matcher2 = hls_audio.matcher(hls);
+                    String tempHLS = "";
+                    if (matcher1.find() && matcher2.find()) {
+                        tempHLS = "#EXTM3U\n" +
+                                "#EXT-X-VERSION:6\n" +
+                                "#EXT-X-INDEPENDENT-SEGMENTS\n" +
+                                "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
+                                "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"audio\"\n" +
+                                "dummy";
+
+                    }
+
+                    String[] split = tempHLS.split("\n");
+                    split[split.length - 1] = "/dummy.m3u8?url=" + URL + "&dummy=true";
+
+                    for (String str : split) {
+                        sb.append(str).append("\n");
+                    }
+
+                    dummy_hlsText = sb.toString();
+                    sb.setLength(0);
+                    send = null;
+                    request = null;
+
+                    // ダミー出力以外の場合とLibVLCの場合
+                    long MaxBandWidth = -1;
+                    String MediaText = "";
+                    int i = 0;
+                    for (String str : hls.split("\n")) {
+                        Matcher matcher = hls_video.matcher(str);
+                        if (matcher.find()) {
+                            long l = Long.parseLong(matcher.group(2));
+                            //System.out.println(l);
+                            if (MaxBandWidth <= l) {
+                                MaxBandWidth = l;
+                                MediaText = hls.split("\n")[i + 1];
+                            }
+                        }
+                        i++;
+                    }
+
+                    sb.setLength(0);
+                    matcher1 = hls_video.matcher(hls);
+                    matcher2 = hls_audio.matcher(hls);
+                    if (matcher1.find() && matcher2.find()) {
+                        tempHLS = "#EXTM3U\n" +
+                                "#EXT-X-VERSION:6\n" +
+                                "#EXT-X-INDEPENDENT-SEGMENTS\n" +
+                                "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
+                                "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"audio\"\n" +
+                                "dummy";
+
+                    }
+
+                    split = tempHLS.split("\n");
+                    split[split.length - 1] = MediaText;
+
+                    for (String str : split) {
+                        sb.append(str).append("\n");
+                    }
+                    //System.out.println(sb);
+                    hlsText = sb.toString();
+                    sb.setLength(0);
+                    send = null;
+                    request = null;
 
                     if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
-                        // LibVLC以外
-                        sb.setLength(0);
-
-                        Matcher matcher1 = hls_video.matcher(hls);
-                        Matcher matcher2 = hls_audio.matcher(hls);
-                        if (matcher1.find() && matcher2.find()) {
-                            hls = "#EXTM3U\n" +
-                                    "#EXT-X-VERSION:6\n" +
-                                    "#EXT-X-INDEPENDENT-SEGMENTS\n" +
-                                    "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
-                                    "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"audio\"\n" +
-                                    "dummy";
-
-                        }
-
-                        String[] split = hls.split("\n");
-                        split[split.length - 1] = "/dummy.m3u8?url=" + URL + "&dummy=true";
-
-                        for (String str : split) {
-                            sb.append(str).append("\n");
-                        }
-
-                        hlsText = sb.toString();
-                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", sb.toString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-                        sb.setLength(0);
-                        send = null;
-                        request = null;
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", dummy_hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                     } else {
-                        // ダミー出力以外の場合とLibVLCの場合
-                        long MaxBandWidth = -1;
-                        String MediaText = "";
-                        int i = 0;
-                        for (String str : hls.split("\n")) {
-                            Matcher matcher = hls_video.matcher(str);
-                            if (matcher.find()) {
-                                long l = Long.parseLong(matcher.group(2));
-                                //System.out.println(l);
-                                if (MaxBandWidth <= l) {
-                                    MaxBandWidth = l;
-                                    MediaText = hls.split("\n")[i + 1];
-                                }
-                            }
-                            i++;
-                        }
-
-                        sb.setLength(0);
-                        Matcher matcher1 = hls_video.matcher(hls);
-                        Matcher matcher2 = hls_audio.matcher(hls);
-                        if (matcher1.find() && matcher2.find()) {
-                            hls = "#EXTM3U\n" +
-                                    "#EXT-X-VERSION:6\n" +
-                                    "#EXT-X-INDEPENDENT-SEGMENTS\n" +
-                                    "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
-                                    "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"audio\"\n" +
-                                    "dummy";
-
-                        }
-
-                        String[] split = hls.split("\n");
-                        split[split.length - 1] = MediaText;
-
-                        for (String str : split) {
-                            sb.append(str).append("\n");
-                        }
-                        //System.out.println(sb);
-                        hlsText = sb.toString();
-                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", sb.toString().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-                        sb.setLength(0);
-                        send = null;
-                        request = null;
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                     }
                 } else if (result.getLiveURL() != null) {
                     // ニコ生
@@ -156,45 +158,39 @@ public class NicoVideo implements GetContent {
                             s = s.replaceAll("https://", "/https/cookie:[" + (sb.substring(0, sb.length() - 2) == null || sb.substring(0, sb.length() - 2).isEmpty() ? "" : sb.substring(0, sb.length() - 2)) + "]/");
                             body = s.getBytes(StandardCharsets.UTF_8);
                         }
-                        if (vlc_ua.matcher(httpRequest).find()) {
-                            hlsText = new String(body, StandardCharsets.UTF_8);
-                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
-                            sb.setLength(0);
-
-                            return null;
-                        }
-
-                        // それ以外の場合は
-                        if (!dummy_url.matcher(httpRequest).find()) {
-                            sb.setLength(0);
-
-                            String hls = new String(body, StandardCharsets.UTF_8);
-                            Matcher matcher1 = hlslive_video.matcher(hls);
-                            Matcher matcher2 = hlslive_audio.matcher(hls);
-
-                            if (matcher1.find() && matcher2.find()) {
-                                hls = "#EXTM3U\n" +
-                                        "#EXT-X-VERSION:6\n" +
-                                        "#EXT-X-INDEPENDENT-SEGMENTS\n" +
-                                        "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"main\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
-                                        "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"main\"\n" +
-                                        "dummy";
-                            }
-
-                            String[] split = hls.split("\n");
-                            split[split.length - 1] = "/dummy.m3u8?url=" + URL + "&dummy=true";
-
-                            for (String str : split) {
-                                sb.append(str).append("\n");
-                            }
-
-                            body = sb.toString().getBytes(StandardCharsets.UTF_8);
-
-                        }
 
                         hlsText = new String(body, StandardCharsets.UTF_8);
-                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
+
                         sb.setLength(0);
+
+                        String hls = new String(body, StandardCharsets.UTF_8);
+                        Matcher matcher1 = hlslive_video.matcher(hls);
+                        Matcher matcher2 = hlslive_audio.matcher(hls);
+
+                        if (matcher1.find() && matcher2.find()) {
+                            hls = "#EXTM3U\n" +
+                                    "#EXT-X-VERSION:6\n" +
+                                    "#EXT-X-INDEPENDENT-SEGMENTS\n" +
+                                    "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"main\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
+                                    "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"main\"\n" +
+                                    "dummy";
+                        }
+
+                        String[] split = hls.split("\n");
+                        split[split.length - 1] = "/dummy.m3u8?url=" + URL + "&dummy=true";
+
+                        for (String str : split) {
+                            sb.append(str).append("\n");
+                        }
+
+                        dummy_hlsText = sb.toString();
+
+                        if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", dummy_hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                        } else {
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                        }
+
                         send = null;
                         request = null;
 
@@ -262,6 +258,9 @@ public class NicoVideo implements GetContent {
             }
         }
 
-        return null;
+        ContentObject object = new ContentObject();
+        object.setHLSText(hlsText != null ? hlsText.getBytes(StandardCharsets.UTF_8) : null);
+        object.setDummyHLSText(dummy_hlsText != null ? dummy_hlsText.getBytes(StandardCharsets.UTF_8) : null);
+        return object;
     }
 }

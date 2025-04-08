@@ -39,41 +39,27 @@ public class Vimeo implements GetContent {
 
             HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
             //System.out.println(send.uri());
-            String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
             byte[] body = send.body();
 
-            if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")) {
-                String s = new String(body, StandardCharsets.UTF_8);
+            hlsText = new String(body, StandardCharsets.UTF_8);
 
-                String[] split = element.getAsJsonObject().get("VideoURL").getAsString().split("/");
+            String[] split = element.getAsJsonObject().get("VideoURL").getAsString().split("/");
 
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < split.length - 4; i++){
-                    sb.append(split[i]).append("/");
-                }
-
-                s = s.replaceAll("\\.\\./\\.\\./\\.\\./", sb.toString());
-                s = s.replaceAll("https://", "/https/referer:[]/");
-                body = s.getBytes(StandardCharsets.UTF_8);
-
-                //System.out.println(s);
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < split.length - 4; i++){
+                sb.append(split[i]).append("/");
             }
 
-            if (vlc_ua.matcher(httpRequest).find()) {
-                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
-                send = null;
-                request = null;
+            hlsText = hlsText.replaceAll("\\.\\./\\.\\./\\.\\./", sb.toString());
+            hlsText = hlsText.replaceAll("https://", "/https/referer:[]/");
+            dummy_hlsText = new String(body, StandardCharsets.UTF_8) + "\n/dummy.m3u8?url=" + URL + "&dummy=true";
 
-                return null;
+            if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
+                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", dummy_hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+            } else {
+                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
             }
 
-            if (!dummy_url.matcher(httpRequest).find()) {
-                if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")) {
-                    body = (new String(body, StandardCharsets.UTF_8) + "\n/dummy.m3u8?url=" + URL + "&dummy=true").getBytes(StandardCharsets.UTF_8);
-                }
-            }
-
-            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
             send = null;
             request = null;
 
@@ -96,6 +82,9 @@ public class Vimeo implements GetContent {
             }
         }
 
-        return null;
+        ContentObject object = new ContentObject();
+        object.setHLSText(hlsText != null ? hlsText.getBytes(StandardCharsets.UTF_8) : null);
+        object.setDummyHLSText(dummy_hlsText != null ? dummy_hlsText.getBytes(StandardCharsets.UTF_8) : null);
+        return object;
     }
 }

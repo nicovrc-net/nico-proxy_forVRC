@@ -20,8 +20,7 @@ public class TikTok implements GetContent {
     public ContentObject run(Socket sock, HttpClient client, String httpRequest, String URL, String json) {
 
         final String method = Function.getMethod(httpRequest);
-        String dummy_hlsText = null;
-        String hlsText = null;
+        byte[] content = null;
         TikTokResult result = gson.fromJson(json, TikTokResult.class);
 
         try {
@@ -40,7 +39,8 @@ public class TikTok implements GetContent {
 
             //System.out.println(send.uri());
             String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
-            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, send.body(), method != null && method.equals("HEAD"));
+            content = send.body();
+            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, content, method != null && method.equals("HEAD"));
 
             send = null;
             request = null;
@@ -48,22 +48,24 @@ public class TikTok implements GetContent {
         } catch (Exception e){
             // e.printStackTrace();
             try {
-                byte[] content = null;
+                byte[] errorContent = null;
                 File file = new File("./error-video/error_000.mp4");
                 if (file.exists()){
                     FileInputStream stream = new FileInputStream(file);
-                    content = stream.readAllBytes();
+                    errorContent = stream.readAllBytes();
                     stream.close();
                     stream = null;
                 }
 
-                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
-                content = null;
+                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", errorContent, method != null && method.equals("HEAD"));
+                errorContent = null;
             } catch (Exception ex){
                 // ex.printStackTrace();
             }
         }
 
-        return null;
+        ContentObject object = new ContentObject();
+        object.setContentObject(content);
+        return object;
     }
 }

@@ -330,7 +330,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
 
                     GetContent hls = GetContentList.get(ServiceName);
-                    if (ServiceName.isEmpty()) {
+                    if (hls == null && ServiceName.isEmpty()) {
                         logData.setResultURL(null);
                         webhookData.setResult("対応してないURL");
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
@@ -345,7 +345,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                             Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
                         }
-                    } else if (!ServiceName.isEmpty()) {
+                    } else if (hls == null) {
                         OutputStream out = sock.getOutputStream();
                         StringBuilder sb_header = new StringBuilder();
 

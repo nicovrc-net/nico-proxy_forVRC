@@ -45,32 +45,17 @@ public class TVer implements GetContent {
             String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
             byte[] body = send.body();
 
-            boolean isHLSType = contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl");
+            hlsText = new String(body, StandardCharsets.UTF_8);
+            hlsText = hlsText.replaceAll("https://", "/https/referer:[https://tver.jp/]/");
+            //body = hlsText.getBytes(StandardCharsets.UTF_8);
+            dummy_hlsText = new String(body, StandardCharsets.UTF_8).replaceAll("https://", "/https/referer:[https://tver.jp/]/") + "\n/dummy.m3u8?url=" + URL + "&dummy=true";
 
-            if (vlc_ua.matcher(httpRequest).find()) {
-                // VLCのときはそのまま
-                if (isHLSType) {
-                    String s = new String(body, StandardCharsets.UTF_8);
-                    s = s.replaceAll("https://", "/https/referer:[https://tver.jp/]/");
-                    body = s.getBytes(StandardCharsets.UTF_8);
-                }
-
-                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
-                send = null;
-                request = null;
-                return null;
-            }
-
-            // それ以外の場合は
-            if (!dummy_url.matcher(httpRequest).find()) {
-                if (isHLSType) {
-                    body = (new String(body, StandardCharsets.UTF_8).replaceAll("https://", "/https/referer:[https://tver.jp/]/") + "\n/dummy.m3u8?url=" + URL + "&dummy=true").getBytes(StandardCharsets.UTF_8);
-                }
+            if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
+                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, dummy_hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
             } else {
-                body = new String(body, StandardCharsets.UTF_8).replaceAll("https://", "/https/referer:[https://tver.jp/]/").getBytes(StandardCharsets.UTF_8);
+                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
             }
 
-            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
             send = null;
             request = null;
 
@@ -93,6 +78,9 @@ public class TVer implements GetContent {
             }
         }
 
-        return null;
+        ContentObject object = new ContentObject();
+        object.setHLSText(hlsText != null ? hlsText.getBytes(StandardCharsets.UTF_8) : null);
+        object.setDummyHLSText(dummy_hlsText != null ? dummy_hlsText.getBytes(StandardCharsets.UTF_8) : null);
+        return object;
     }
 }

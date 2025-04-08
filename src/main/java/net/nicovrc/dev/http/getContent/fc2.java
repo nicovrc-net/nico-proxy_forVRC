@@ -22,7 +22,6 @@ public class fc2 implements GetContent {
     public ContentObject run(Socket sock, HttpClient client, String httpRequest, String URL, String json) {
 
         final String method = Function.getMethod(httpRequest);
-        String dummy_hlsText = null;
         String hlsText = null;
         JsonElement element = gson.fromJson(json, JsonElement.class);
 
@@ -46,6 +45,7 @@ public class fc2 implements GetContent {
                 body = s.getBytes(StandardCharsets.UTF_8);
 
                 //System.out.println(s);
+                hlsText = s;
             }
 
             Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
@@ -71,6 +71,9 @@ public class fc2 implements GetContent {
             }
         }
 
-        return null;
+        ContentObject object = new ContentObject();
+        object.setHLSText(hlsText != null ? hlsText.getBytes(StandardCharsets.UTF_8) : null);
+        object.setDummyHLSText(null);
+        return object;
     }
 }

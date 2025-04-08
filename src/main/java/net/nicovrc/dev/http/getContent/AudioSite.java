@@ -25,7 +25,6 @@ public class AudioSite implements GetContent {
     public ContentObject run(Socket sock, HttpClient client, String httpRequest, String URL, String json) {
 
         final String method = Function.getMethod(httpRequest);
-        String dummy_hlsText = null;
         String hlsText = null;
         JsonElement element = gson.fromJson(json, JsonElement.class);
 
@@ -84,6 +83,9 @@ public class AudioSite implements GetContent {
             }
         }
 
-        return null;
+        ContentObject object = new ContentObject();
+        object.setDummyHLSText(null);
+        object.setHLSText(hlsText != null ? hlsText.getBytes(StandardCharsets.UTF_8) : null);
+        return object;
     }
 }
