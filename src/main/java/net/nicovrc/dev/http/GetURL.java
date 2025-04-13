@@ -335,6 +335,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     cacheData.setTargetURL(targetURL);
                     cacheData.setTitle(element.getAsJsonObject().has("Title") ? element.getAsJsonObject().get("Title").getAsString() : "(タイトルなし)");
                     cacheData.setSet(true);
+                    cacheData.setCacheDate(new Date().getTime());
 
                     // タイトル取得
                     if (isGetTitle) {
