@@ -90,7 +90,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             Matcher matcher_fc2url = matcher_fc2.matcher(URL);
             Matcher matcher_twit = matcher_twitcasting.matcher(URL);
             Matcher matcher_abematv = matcher_abema.matcher(URL);
-            Matcher matcher_vi = matcher_vimeo.matcher(URL);
+            Matcher matcher_vimeourl = matcher_vimeo.matcher(URL);
 
             try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                     .version(HttpClient.Version.HTTP_2)
@@ -214,7 +214,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
 
                         s = sb.toString();
-                    } else if (matcher_vi.find()) {
+                    } else if (matcher_vimeourl.find()) {
 
                         StringBuilder sb = new StringBuilder();
                         String[] split = URL.split("/");
@@ -273,6 +273,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                      ex.printStackTrace();
                 }
             }
+
+            matcher_fc2url = null;
+            matcher_twit = null;
+            matcher_abematv = null;
+            matcher_vimeourl = null;
 
         } catch (Exception e){
              e.printStackTrace();
