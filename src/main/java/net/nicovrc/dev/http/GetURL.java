@@ -322,7 +322,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         if (isHLSDummyPrint) {
                             webhookData.setResult(targetURL);
                             Function.WebhookData.put(logData.getLogID(), webhookData);
-                            System.out.println("[Get URL (" + (isCache ? "キャッシュ," : "") + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
+                            System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
                         }
 
                         content = hls.run(client, httpRequest, URL, json);
@@ -330,6 +330,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         cacheData.setHLS(content.getHLSText() != null ? content.getHLSText().getBytes(StandardCharsets.UTF_8) : null);
                         cacheData.setDummyHLS(content.getDummyHLSText() != null ? content.getDummyHLSText().getBytes(StandardCharsets.UTF_8) : null);
                         cacheData.setRedirect(false);
+                        cacheData.setCookieText(content.getCookieText());
+                        cacheData.setRefererText(content.getRefererText());
 
                     }
 

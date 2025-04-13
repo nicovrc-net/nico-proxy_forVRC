@@ -40,6 +40,8 @@ public class TikTok implements GetContent {
 
         ContentObject object = new ContentObject();
         object.setContentObject(content);
+        object.setCookieText(result.getVideoAccessCookie());
+        object.setRefererText("https://www.tiktok.com/");
         return object;
     }
 }

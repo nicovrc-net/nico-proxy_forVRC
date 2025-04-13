@@ -47,6 +47,7 @@ public class TVer implements GetContent {
         ContentObject object = new ContentObject();
         object.setHLSText(hlsText);
         object.setDummyHLSText(dummy_hlsText);
+        object.setRefererText("https://tver.jp/");
         return object;
     }
 }

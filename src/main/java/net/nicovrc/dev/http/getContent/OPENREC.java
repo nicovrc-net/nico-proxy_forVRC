@@ -19,6 +19,7 @@ public class OPENREC implements GetContent {
     public ContentObject run(HttpClient client, String httpRequest, String URL, String json) throws Exception {
 
         String hlsText = null;
+        String refererText = null;
         OPENREC_Result result = gson.fromJson(json, OPENREC_Result.class);
 
         String url = result.isLive() ? result.getLiveURL() : result.getVideoURL();
@@ -32,6 +33,8 @@ public class OPENREC implements GetContent {
                 .headers("Referer", URL)
                 .GET()
                 .build();
+
+        refererText = URL;
 
         HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
         //System.out.println(send.uri());
@@ -62,6 +65,7 @@ public class OPENREC implements GetContent {
         ContentObject object = new ContentObject();
         object.setHLSText(hlsText);
         object.setDummyHLSText(null);
+        object.setRefererText(refererText);
         return object;
     }
 }

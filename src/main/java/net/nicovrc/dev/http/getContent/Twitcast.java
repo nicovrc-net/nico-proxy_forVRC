@@ -37,6 +37,7 @@ public class Twitcast implements GetContent {
         ContentObject object = new ContentObject();
         object.setHLSText(hlsText);
         object.setDummyHLSText(null);
+        object.setRefererText("https://twitcasting.tv/");
         return object;
     }
 }

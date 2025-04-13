@@ -30,6 +30,7 @@ public class NicoVideo implements GetContent {
 
         String dummy_hlsText = null;
         String hlsText = null;
+        String cookieText = null;
 
         try {
             NicoNicoVideo result = gson.fromJson(json, NicoNicoVideo.class);
@@ -40,11 +41,12 @@ public class NicoVideo implements GetContent {
                     result.getVideoAccessCookie().forEach((name, data) -> {
                         sb.append(name).append("=").append(data).append(";");
                     });
+                    cookieText = sb.substring(0, sb.length() - 1);
 
                     HttpRequest request = HttpRequest.newBuilder()
                             .uri(new URI(result.getVideoURL()))
                             .headers("User-Agent", Function.UserAgent)
-                            .headers("Cookie", sb.substring(0, sb.length() - 1))
+                            .headers("Cookie", cookieText)
                             .GET()
                             .build();
 
@@ -130,10 +132,12 @@ public class NicoVideo implements GetContent {
                             sb.append(name).append("=").append(value).append("; ");
                         });
 
+                        cookieText = sb.substring(0, sb.length() - 2);
+
                         HttpRequest request = HttpRequest.newBuilder()
                                 .uri(new URI(liveURL))
                                 .headers("User-Agent", Function.UserAgent)
-                                .headers("Cookie", sb.substring(0, sb.length() - 2))
+                                .headers("Cookie", cookieText)
                                 .GET()
                                 .build();
 
@@ -238,6 +242,7 @@ public class NicoVideo implements GetContent {
         ContentObject object = new ContentObject();
         object.setHLSText(hlsText);
         object.setDummyHLSText(dummy_hlsText);
+        object.setCookieText(cookieText);
         return object;
     }
 }

@@ -11,6 +11,8 @@ public class CacheData {
     private String title;
     private byte[] HLS;
     private byte[] dummyHLS;
+    private String CookieText;
+    private String RefererText;
 
     public Long getCacheDate() {
         return CacheDate;
@@ -74,5 +76,21 @@ public class CacheData {
 
     public void setDummyHLS(byte[] dummyHLS) {
         this.dummyHLS = dummyHLS;
+    }
+
+    public String getCookieText() {
+        return CookieText;
+    }
+
+    public void setCookieText(String cookieText) {
+        CookieText = cookieText;
+    }
+
+    public String getRefererText() {
+        return RefererText;
+    }
+
+    public void setRefererText(String refererText) {
+        RefererText = refererText;
     }
 }

@@ -419,6 +419,66 @@ NicoNico_user_session_secure: ""
                             Function.CacheList.remove(url);
                         }
 
+
+                        boolean isFound = true;
+                        try (HttpClient client = data.getProxy() == null || data.getProxy().split(":").length != 2 ? HttpClient.newBuilder()
+                                .version(HttpClient.Version.HTTP_2)
+                                .followRedirects(HttpClient.Redirect.NORMAL)
+                                .connectTimeout(Duration.ofSeconds(5))
+                                .build()
+                                :
+                                HttpClient.newBuilder()
+                                        .version(HttpClient.Version.HTTP_2)
+                                        .followRedirects(HttpClient.Redirect.NORMAL)
+                                        .connectTimeout(Duration.ofSeconds(5))
+                                        .proxy(ProxySelector.of(new InetSocketAddress(data.getProxy().split(":")[0], Integer.parseInt(data.getProxy().split(":")[1]))))
+                                        .build()
+                        ) {
+
+                            HttpRequest request = null;
+                            if (data.getCookieText() == null && data.getRefererText() == null){
+                                request = HttpRequest.newBuilder()
+                                        .uri(new URI(url))
+                                        .headers("User-Agent", Function.UserAgent)
+                                        .GET()
+                                        .build();
+                            } else if (data.getCookieText() != null && data.getRefererText() == null){
+                                request = HttpRequest.newBuilder()
+                                        .uri(new URI(url))
+                                        .headers("User-Agent", Function.UserAgent)
+                                        .headers("Cookie", data.getCookieText())
+                                        .GET()
+                                        .build();
+                            } else if (data.getCookieText() == null && data.getRefererText() != null){
+                                request = HttpRequest.newBuilder()
+                                        .uri(new URI(url))
+                                        .headers("User-Agent", Function.UserAgent)
+                                        .headers("Referer", data.getRefererText())
+                                        .GET()
+                                        .build();
+                            } else if (data.getCookieText() != null && data.getRefererText() != null){
+                                request = HttpRequest.newBuilder()
+                                        .uri(new URI(url))
+                                        .headers("User-Agent", Function.UserAgent)
+                                        .headers("Cookie", data.getCookieText())
+                                        .headers("Referer", data.getRefererText())
+                                        .GET()
+                                        .build();
+                            }
+
+                            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                            if (send.statusCode() >= 300 && send.statusCode() <= 199){
+                                isFound = false;
+                            }
+
+                        } catch (Exception e){
+                            //e.printStackTrace();
+                        }
+
+                        if (!isFound){
+                            Function.CacheList.remove(url);
+                        }
+
                     });
 
                     map.clear();
