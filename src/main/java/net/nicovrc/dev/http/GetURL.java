@@ -150,8 +150,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         return;
                     }
 
-                    if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
-                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getDummyHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getDummyHLS() != null ? cacheData.getDummyHLS() : content, method != null && method.equals("HEAD"));
+                    if (cacheData.getDummyHLS() != null){
+                        if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getDummyHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getDummyHLS() != null ? cacheData.getDummyHLS() : content, method != null && method.equals("HEAD"));
+                        } else {
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getHLS() != null ? cacheData.getHLS() : content, method != null && method.equals("HEAD"));
+                        }
                     } else {
                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getHLS() != null ? cacheData.getHLS() : content, method != null && method.equals("HEAD"));
                     }
