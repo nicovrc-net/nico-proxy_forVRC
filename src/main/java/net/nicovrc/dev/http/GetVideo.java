@@ -87,6 +87,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
             //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
 
+            Matcher matcher_fc2url = matcher_fc2.matcher(URL);
+            Matcher matcher_twit = matcher_twitcasting.matcher(URL);
+            Matcher matcher_abematv = matcher_abema.matcher(URL);
+            Matcher matcher_vi = matcher_vimeo.matcher(URL);
+
             try (HttpClient client = proxy == null ? HttpClient.newBuilder()
                     .version(HttpClient.Version.HTTP_2)
                     .followRedirects(HttpClient.Redirect.NORMAL)
@@ -100,7 +105,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                             .build()) {
 
                 HttpRequest request;
-                if (matcher_fc2.matcher(URL).find()){
+                if (matcher_fc2url.find()){
                     request = HttpRequest.newBuilder()
                             .uri(new URI(URL))
                             .headers("User-Agent", Function.UserAgent)
@@ -173,7 +178,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 byte[] body = send.body();
                 if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
                     String s = new String(body, StandardCharsets.UTF_8);
-                    if (matcher_twitcasting.matcher(URL).find()) {
+                    if (matcher_twit.find()) {
                         s = s.replaceAll("https://", "/https/referer:[" + Referer + "]/");
                         s = s.replaceAll("\"/tc\\.vod\\.v2", "\"/https/referer:[" + Referer + "]/" + request.uri().getHost() + "/tc.vod.v2");
 
@@ -189,7 +194,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
 
                         s = sb.toString();
-                    } else if (matcher_abema.matcher(URL).find()) {
+                    } else if (matcher_abematv.find()) {
                         //System.out.println("!!!!");
                         s = s.replaceAll("https://", "/https/cookie:[]/");
 
@@ -209,7 +214,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
 
                         s = sb.toString();
-                    } else if (matcher_vimeo.matcher(URL).find()) {
+                    } else if (matcher_vi.find()) {
 
                         StringBuilder sb = new StringBuilder();
                         String[] split = URL.split("/");
@@ -241,8 +246,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 //System.out.println("b");
                 Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
 
+                body = null;
                 method = null;
                 httpVersion = null;
+                send = null;
+                request = null;
 
 
             } catch (Exception e){
