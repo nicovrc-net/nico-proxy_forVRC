@@ -57,8 +57,8 @@ public class TCPServer extends Thread {
                     // e.printStackTrace();
                 }
 
-                file.deleteOnExit();
-                file2.deleteOnExit();
+                file.delete();
+                file2.delete();
             }
         }, 0L, 1000L);
 
