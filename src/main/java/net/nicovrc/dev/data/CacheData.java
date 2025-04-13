@@ -1,21 +1,16 @@
 package net.nicovrc.dev.data;
 
-import net.nicovrc.dev.Service.ServiceAPI;
 
 public class CacheData {
 
-    private ServiceAPI ServiceAPI;
     private Long CacheDate;
     private boolean isSet;
-    private String ResultJson;
-
-    public ServiceAPI getServiceAPI() {
-        return ServiceAPI;
-    }
-
-    public void setServiceAPI(ServiceAPI serviceAPI) {
-        ServiceAPI = serviceAPI;
-    }
+    private String targetURL;
+    private boolean isRedirect;
+    private String proxy;
+    private String title;
+    private byte[] HLS;
+    private byte[] dummyHLS;
 
     public Long getCacheDate() {
         return CacheDate;
@@ -33,11 +28,51 @@ public class CacheData {
         isSet = set;
     }
 
-    public String getResultJson() {
-        return ResultJson;
+    public String getTargetURL() {
+        return targetURL;
     }
 
-    public void setResultJson(String resultJson) {
-        ResultJson = resultJson;
+    public void setTargetURL(String targetURL) {
+        this.targetURL = targetURL;
+    }
+
+    public boolean isRedirect() {
+        return isRedirect;
+    }
+
+    public void setRedirect(boolean isRedirect) {
+        this.isRedirect = isRedirect;
+    }
+
+    public String getProxy() {
+        return proxy;
+    }
+
+    public void setProxy(String proxy) {
+        this.proxy = proxy;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public byte[] getHLS() {
+        return HLS;
+    }
+
+    public void setHLS(byte[] HLS) {
+        this.HLS = HLS;
+    }
+
+    public byte[] getDummyHLS() {
+        return dummyHLS;
+    }
+
+    public void setDummyHLS(byte[] dummyHLS) {
+        this.dummyHLS = dummyHLS;
     }
 }

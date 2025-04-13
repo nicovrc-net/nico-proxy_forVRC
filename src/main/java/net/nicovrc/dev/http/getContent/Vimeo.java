@@ -6,85 +6,52 @@ import net.nicovrc.dev.Function;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.net.Socket;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.util.Locale;
-import java.util.regex.Pattern;
 
 public class Vimeo implements GetContent {
 
     private final Gson gson = Function.gson;
-    private final Pattern dummy_url = Pattern.compile("dummy=true");
-    private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
 
     @Override
-    public ContentObject run(Socket sock, HttpClient client, String httpRequest, String URL, String json) {
+    public ContentObject run(HttpClient client, String httpRequest, String URL, String json) throws Exception {
 
-        final String method = Function.getMethod(httpRequest);
         String dummy_hlsText = null;
         String hlsText = null;
         JsonElement element = gson.fromJson(json, JsonElement.class);
 
-        try {
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(new URI(element.getAsJsonObject().get("VideoURL").getAsString()))
+                .headers("User-Agent", Function.UserAgent)
+                .GET()
+                .build();
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI(element.getAsJsonObject().get("VideoURL").getAsString()))
-                    .headers("User-Agent", Function.UserAgent)
-                    .GET()
-                    .build();
+        HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        //System.out.println(send.uri());
+        byte[] body = send.body();
 
-            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            //System.out.println(send.uri());
-            byte[] body = send.body();
+        hlsText = new String(body, StandardCharsets.UTF_8);
 
-            hlsText = new String(body, StandardCharsets.UTF_8);
+        String[] split = element.getAsJsonObject().get("VideoURL").getAsString().split("/");
 
-            String[] split = element.getAsJsonObject().get("VideoURL").getAsString().split("/");
-
-            StringBuilder sb = new StringBuilder();
-            for (int i = 0; i < split.length - 4; i++){
-                sb.append(split[i]).append("/");
-            }
-
-            hlsText = hlsText.replaceAll("\\.\\./\\.\\./\\.\\./", sb.toString());
-            hlsText = hlsText.replaceAll("https://", "/https/referer:[]/");
-            dummy_hlsText = new String(body, StandardCharsets.UTF_8) + "\n/dummy.m3u8?url=" + URL + "&dummy=true";
-
-            if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
-                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", dummy_hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-            } else {
-                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-            }
-
-            send = null;
-            request = null;
-
-        } catch (Exception e){
-            // e.printStackTrace();
-            try {
-                byte[] content = null;
-                File file = new File("./error-video/error_000.mp4");
-                if (file.exists()){
-                    FileInputStream stream = new FileInputStream(file);
-                    content = stream.readAllBytes();
-                    stream.close();
-                    stream = null;
-                }
-
-                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
-                content = null;
-            } catch (Exception ex){
-                // ex.printStackTrace();
-            }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < split.length - 4; i++){
+            sb.append(split[i]).append("/");
         }
 
+        hlsText = hlsText.replaceAll("\\.\\./\\.\\./\\.\\./", sb.toString());
+        hlsText = hlsText.replaceAll("https://", "/https/referer:[]/");
+        dummy_hlsText = new String(body, StandardCharsets.UTF_8) + "\n/dummy.m3u8?url=" + URL + "&dummy=true";
+
+        send = null;
+        request = null;
+
         ContentObject object = new ContentObject();
-        object.setHLSText(hlsText != null ? hlsText.getBytes(StandardCharsets.UTF_8) : null);
-        object.setDummyHLSText(dummy_hlsText != null ? dummy_hlsText.getBytes(StandardCharsets.UTF_8) : null);
+        object.setHLSText(hlsText);
+        object.setDummyHLSText(dummy_hlsText);
         return object;
     }
 }

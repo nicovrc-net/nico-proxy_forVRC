@@ -2,23 +2,23 @@ package net.nicovrc.dev.http.getContent;
 
 public class ContentObject {
 
-    private byte[] HLSText = null;
-    private byte[] DummyHLSText = null;
+    private String HLSText = null;
+    private String DummyHLSText = null;
     private byte[] ContentObject = null;
 
-    public byte[] getHLSText() {
+    public String getHLSText() {
         return HLSText;
     }
 
-    public void setHLSText(byte[] HLSText) {
+    public void setHLSText(String HLSText) {
         this.HLSText = HLSText;
     }
 
-    public byte[] getDummyHLSText() {
+    public String getDummyHLSText() {
         return DummyHLSText;
     }
 
-    public void setDummyHLSText(byte[] dummyHLSText) {
+    public void setDummyHLSText(String dummyHLSText) {
         DummyHLSText = dummyHLSText;
     }
 

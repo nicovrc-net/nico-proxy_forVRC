@@ -6,7 +6,6 @@ import net.nicovrc.dev.Service.Result.NicoNicoVideo;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.net.Socket;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -19,8 +18,6 @@ import java.util.regex.Pattern;
 public class NicoVideo implements GetContent {
 
     private final Gson gson = Function.gson;
-    private final Pattern dummy_url = Pattern.compile("dummy=true");
-    private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
 
     private final Pattern hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
     private final Pattern hls_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
@@ -29,9 +26,8 @@ public class NicoVideo implements GetContent {
     private final Pattern hlslive_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
 
     @Override
-    public ContentObject run(Socket sock, HttpClient client, String httpRequest, String URL, String json) {
+    public ContentObject run(HttpClient client, String httpRequest, String URL, String json) throws Exception {
 
-        final String method = Function.getMethod(httpRequest);
         String dummy_hlsText = null;
         String hlsText = null;
 
@@ -122,14 +118,7 @@ public class NicoVideo implements GetContent {
                     //System.out.println(sb);
                     hlsText = sb.toString();
                     sb.setLength(0);
-                    send = null;
-                    request = null;
 
-                    if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
-                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", dummy_hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-                    } else {
-                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-                    }
                 } else if (result.getLiveURL() != null) {
                     // ニコ生
                     String liveURL = result.getLiveURL();
@@ -185,15 +174,6 @@ public class NicoVideo implements GetContent {
 
                         dummy_hlsText = sb.toString();
 
-                        if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
-                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", dummy_hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-                        } else {
-                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", hlsText.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-                        }
-
-                        send = null;
-                        request = null;
-
                     } else {
                         // dmc
                         String[] split = liveURL.split("/");
@@ -221,7 +201,6 @@ public class NicoVideo implements GetContent {
                             body = s.getBytes(StandardCharsets.UTF_8);
                         }
                         hlsText = new String(body, StandardCharsets.UTF_8);
-                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
                     }
 
                 } else {
@@ -234,7 +213,6 @@ public class NicoVideo implements GetContent {
                         stream = null;
                     }
                     //System.out.println(content.length);
-                    Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
                     file = null;
                     content = null;
                 }
@@ -251,7 +229,6 @@ public class NicoVideo implements GetContent {
                     stream = null;
                 }
 
-                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
                 content = null;
             } catch (Exception ex){
                 // ex.printStackTrace();
@@ -259,8 +236,8 @@ public class NicoVideo implements GetContent {
         }
 
         ContentObject object = new ContentObject();
-        object.setHLSText(hlsText != null ? hlsText.getBytes(StandardCharsets.UTF_8) : null);
-        object.setDummyHLSText(dummy_hlsText != null ? dummy_hlsText.getBytes(StandardCharsets.UTF_8) : null);
+        object.setHLSText(hlsText);
+        object.setDummyHLSText(dummy_hlsText);
         return object;
     }
 }

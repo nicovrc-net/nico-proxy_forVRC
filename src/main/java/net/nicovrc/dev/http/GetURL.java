@@ -44,6 +44,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern dummy_url2_4 = Pattern.compile("^/\\?dummy=true&vi=(.+)");
     private final Pattern vrc_getStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
 
+    private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
+
 
     public GetURL(){
 
@@ -111,113 +113,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             final boolean isHLSDummyPrint = !dummy_url.matcher(URL).find();
             final boolean isGetTitle = vrc_getStringUA.matcher(httpRequest).find();
 
-            if (cacheData == null) {
-                for (ServiceAPI vrcapi : list) {
-                    boolean isFound = false;
-                    for (String str : vrcapi.getCorrespondingURL()) {
-
-                        Pattern matcher_0 = null;
-                        if (pattern_Asterisk.matcher(str).find()){
-                            //System.out.println(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
-                            matcher_0 = Pattern.compile(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
-                        }
-
-                        if (URL.startsWith("https://"+str) || URL.startsWith("http://"+str) || URL.startsWith(str) || (matcher_0 != null && matcher_0.matcher(URL).find())){
-                            //System.out.println(str);
-                            if ((str.equals("so") || str.equals("jp")) && URL.startsWith("http")){
-                                continue;
-                            }
-
-                            api = vrcapi;
-                            isFound = true;
-                        }
-                    }
-
-                    if (isFound){
-                        break;
-                    }
-                }
-
-                if (!dummy_url.matcher(URL).find()){
-                    if (api != null){
-                        cacheData = new CacheData();
-                        cacheData.setServiceAPI(api);
-                        cacheData.setSet(false);
-                        cacheData.setCacheDate(-2L);
-
-                        Function.CacheList.put((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
-                    }
-                }
-
-                if (api != null) {
-                    //System.out.println("aaa");
-                    //System.out.println(URL.startsWith("https://twitcasting.tv"));
-                    if (api.getServiceName().equals("ニコニコ")) {
-                        String user_session = null;
-                        String user_session_secure = null;
-
-                        try {
-                            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-                            user_session = yamlMapping.string("NicoNico_user_session");
-                            user_session_secure = yamlMapping.string("NicoNico_user_session_secure");
-                        } catch (Exception e) {
-                            //e.printStackTrace();
-                        }
-
-                        if (user_session != null && user_session_secure != null) {
-                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + user_session + "\", \"user_session_secure\":\"" + user_session_secure + "\"}");
-                        } else {
-                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
-                        }
-
-                    } else if (URL.startsWith("https://twitcasting.tv")) {
-                        String ClientId = "";
-                        String ClientSecret = "";
-
-                        try {
-                            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-                            ClientId = yamlMapping.string("TwitcastingClientID");
-                            ClientSecret = yamlMapping.string("TwitcastingClientSecret");
-                        } catch (Exception e) {
-                            //e.printStackTrace();
-                        }
-
-                        if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
-                            api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + ClientId + "\", \"ClientSecret\":\"" + ClientSecret + "\"}");
-                        } else {
-                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + ClientId + "\", \"ClientSecret\":\"" + ClientSecret + "\"}");
-                        }
-                    } else {
-                        if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
-                            api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\"}");
-                        } else {
-                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
-                        }
-                    }
-
-
-                    json = api.Get();
-                    ServiceName = api.getServiceName();
-                    proxy = api.getUseProxy();
-
-                    if (isHLSDummyPrint) {
-                        cacheData = new CacheData();
-                        cacheData.setCacheDate(new Date().getTime());
-                        cacheData.setServiceAPI(api);
-                        cacheData.setSet(true);
-                        cacheData.setResultJson(json);
-
-                        Function.CacheList.remove((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
-
-                        JsonElement element = gson.fromJson(json, JsonElement.class);
-
-                        if (element.getAsJsonObject().has("VideoURL") || element.getAsJsonObject().has("LiveURL") || element.getAsJsonObject().has("AudioURL")) {
-                            Function.CacheList.put((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
-                        }
-                    }
-                }
-
-            } else {
+            if (cacheData != null) {
 
                 int i = 0;
                 while (i == 0){
@@ -226,19 +122,118 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         i = 1;
                         continue;
                     }
-                    if (cacheData.isSet()){
+                    if (cacheData.getTargetURL() != null && !cacheData.getTargetURL().isEmpty()){
                         i = 1;
                         continue;
                     }
                 }
 
                 if (cacheData != null){
-                    isCache = true;
-                    json = cacheData.getResultJson();
-                    ServiceName = cacheData.getServiceAPI().getServiceName();
-                    proxy = cacheData.getServiceAPI().getUseProxy();
+
+                    System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + cacheData.getTargetURL());
+                    byte[] content = null;
+
+                    if (cacheData.isRedirect()){
+                        OutputStream out = sock.getOutputStream();
+                        StringBuilder sb_header = new StringBuilder();
+
+                        sb_header.append("HTTP/").append(Function.getHTTPVersion(httpRequest)).append(" 302 Found\r\nLocation: ").append(cacheData.getTargetURL()).append("\r\n\r\n");
+                        out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
+                        out.flush();
+
+                        out = null;
+                        sb_header.setLength(0);
+                        sb_header = null;
+                    } else if (!cacheData.isRedirect() && cacheData.getHLS() == null && cacheData.getDummyHLS() == null) {
+
+                    }
+
+                    if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getDummyHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getDummyHLS() != null ? cacheData.getDummyHLS() : content, method != null && method.equals("HEAD"));
+                    } else {
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getHLS() != null ? cacheData.getHLS() : content, method != null && method.equals("HEAD"));
+                    }
+
+                    return;
+                }
+            }
+
+            for (ServiceAPI vrcapi : list) {
+                boolean isFound = false;
+                for (String str : vrcapi.getCorrespondingURL()) {
+
+                    Pattern matcher_0 = null;
+                    if (pattern_Asterisk.matcher(str).find()){
+                        //System.out.println(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
+                        matcher_0 = Pattern.compile(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
+                    }
+
+                    if (URL.startsWith("https://"+str) || URL.startsWith("http://"+str) || URL.startsWith(str) || (matcher_0 != null && matcher_0.matcher(URL).find())){
+                        //System.out.println(str);
+                        if ((str.equals("so") || str.equals("jp")) && URL.startsWith("http")){
+                            continue;
+                        }
+
+                        api = vrcapi;
+                        isFound = true;
+                    }
                 }
 
+                if (isFound){
+                    break;
+                }
+            }
+
+            if (api != null) {
+                //System.out.println("aaa");
+                //System.out.println(URL.startsWith("https://twitcasting.tv"));
+                if (api.getServiceName().equals("ニコニコ")) {
+                    String user_session = null;
+                    String user_session_secure = null;
+
+                    try {
+                        final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+                        user_session = yamlMapping.string("NicoNico_user_session");
+                        user_session_secure = yamlMapping.string("NicoNico_user_session_secure");
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+
+                    if (user_session != null && user_session_secure != null) {
+                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + user_session + "\", \"user_session_secure\":\"" + user_session_secure + "\"}");
+                    } else {
+                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
+                    }
+
+                } else if (URL.startsWith("https://twitcasting.tv")) {
+                    String ClientId = "";
+                    String ClientSecret = "";
+
+                    try {
+                        final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+                        ClientId = yamlMapping.string("TwitcastingClientID");
+                        ClientSecret = yamlMapping.string("TwitcastingClientSecret");
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+
+                    if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
+                        api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + ClientId + "\", \"ClientSecret\":\"" + ClientSecret + "\"}");
+                    } else {
+                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + ClientId + "\", \"ClientSecret\":\"" + ClientSecret + "\"}");
+                    }
+                } else {
+                    if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
+                        api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\"}");
+                    } else {
+                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
+                    }
+                }
+
+
+                json = api.Get();
+                ServiceName = api.getServiceName();
+                proxy = api.getUseProxy();
             }
 
             //System.out.println(json);
@@ -255,6 +250,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             webhookData.setDate(date);
 
 
+            cacheData = new CacheData();
             if (json != null){
                 JsonElement element = gson.fromJson(json, JsonElement.class);
 
@@ -283,52 +279,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                 .build()
                 ) {
 
-                    // タイトル取得
-                    if (isGetTitle) {
-
-                        if (errorMessage != null) {
-                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", ("エラー : " + errorMessage).getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-
-                            Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                            Function.WebhookData.put(logData.getLogID(), webhookData);
-                            System.out.println("[Get URL (" + (isCache ? "キャッシュ," : "") + Function.sdf.format(date) + ")] " + URL + " ---> エラー : " + errorMessage);
-                            return;
-                        }
-
-                        if (element.getAsJsonObject().has("Title")) {
-                            String title = element.getAsJsonObject().get("Title").getAsString();
-                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", title.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-
-                            logData.setResultURL(title);
-                            webhookData.setResult(title);
-                            Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                            Function.WebhookData.put(logData.getLogID(), webhookData);
-                            System.out.println("[Get URL (" + (isCache ? "キャッシュ," : "") + Function.sdf.format(date) + ")] " + URL + " ---> " + title);
-                        } else {
-                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", "(タイトルなし)".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-
-                            logData.setResultURL("(タイトルなし)");
-                            webhookData.setResult("(タイトルなし)");
-                            Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                            Function.WebhookData.put(logData.getLogID(), webhookData);
-                            System.out.println("[Get URL (" + (isCache ? "キャッシュ," : "") + Function.sdf.format(date) + ")] " + URL + " ---> (タイトルなし)");
-                        }
-
-                        return;
-
-                    }
-
-                    // エラー
-                    if (errorMessage != null) {
-                        byte[] content = Function.getErrorMessageVideo(client, errorMessage);
-                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
-
-                        Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                        Function.WebhookData.put(logData.getLogID(), webhookData);
-                        System.out.println("[Get URL (" + (isCache ? "キャッシュ," : "") + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
-                        return;
-                    }
-
+                    ContentObject content;
                     GetContent hls = GetContentList.get(ServiceName);
                     if (hls == null && ServiceName.isEmpty()) {
                         logData.setResultURL(null);
@@ -339,11 +290,11 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         File file = new File("./error-video/error_404.mp4");
                         if (file.exists()) {
                             FileInputStream stream = new FileInputStream(file);
-                            byte[] content = stream.readAllBytes();
+                            byte[] content2 = stream.readAllBytes();
                             stream.close();
                             stream = null;
 
-                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content, method != null && method.equals("HEAD"));
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content2, method != null && method.equals("HEAD"));
                         }
                     } else if (hls == null) {
                         OutputStream out = sock.getOutputStream();
@@ -356,6 +307,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         out = null;
                         sb_header.setLength(0);
                         sb_header = null;
+
+                        content = new ContentObject();
+                        content.setDummyHLSText(null);
+                        content.setHLSText(null);
+                        content.setContentObject(null);
+                        cacheData.setRedirect(true);
+
                     } else {
                         logData.setResultURL(targetURL);
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
@@ -365,9 +323,79 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             System.out.println("[Get URL (" + (isCache ? "キャッシュ," : "") + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
                         }
 
-                        ContentObject content = hls.run(sock, client, httpRequest, URL, json);
-                        // TODO キャッシュ機構作り直し後処理を書く
+                        content = hls.run(client, httpRequest, URL, json);
+
+                        cacheData.setHLS(content.getHLSText() != null ? content.getHLSText().getBytes(StandardCharsets.UTF_8) : null);
+                        cacheData.setDummyHLS(content.getDummyHLSText() != null ? content.getDummyHLSText().getBytes(StandardCharsets.UTF_8) : null);
+                        cacheData.setRedirect(false);
+
                     }
+
+                    cacheData.setProxy(proxy);
+                    cacheData.setTargetURL(targetURL);
+                    cacheData.setTitle(element.getAsJsonObject().has("Title") ? element.getAsJsonObject().get("Title").getAsString() : "(タイトルなし)");
+                    cacheData.setSet(true);
+
+                    // タイトル取得
+                    if (isGetTitle) {
+
+                        if (errorMessage != null) {
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", ("エラー : " + errorMessage).getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+
+                            Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                            Function.WebhookData.put(logData.getLogID(), webhookData);
+                            System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> エラー : " + errorMessage);
+                            return;
+                        }
+
+                        if (element.getAsJsonObject().has("Title")) {
+                            String title = element.getAsJsonObject().get("Title").getAsString();
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", title.getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+
+                            logData.setResultURL(title);
+                            webhookData.setResult(title);
+                            Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                            Function.WebhookData.put(logData.getLogID(), webhookData);
+                            System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + title);
+                        } else {
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", "(タイトルなし)".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+
+                            logData.setResultURL("(タイトルなし)");
+                            webhookData.setResult("(タイトルなし)");
+                            Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                            Function.WebhookData.put(logData.getLogID(), webhookData);
+                            System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> (タイトルなし)");
+                        }
+
+                        Function.CacheList.put((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
+                        return;
+
+                    }
+
+                    // エラー
+                    if (errorMessage != null) {
+                        byte[] content2 = Function.getErrorMessageVideo(client, errorMessage);
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content2, method != null && method.equals("HEAD"));
+
+                        Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                        Function.WebhookData.put(logData.getLogID(), webhookData);
+                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
+                        return;
+                    }
+
+                    if (cacheData.getDummyHLS() != null){
+                        if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", cacheData.getDummyHLS(), method != null && method.equals("HEAD"));
+                        } else {
+                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", cacheData.getHLS(), method != null && method.equals("HEAD"));
+                        }
+                    } else {
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", cacheData.getHLS(), method != null && method.equals("HEAD"));
+                    }
+
+                    Function.CacheList.put((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
+
+
 
                 } catch (Exception e){
                     // e.printStackTrace();
