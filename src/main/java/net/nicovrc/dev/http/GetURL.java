@@ -130,7 +130,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                 if (cacheData != null){
 
-                    if (!isHLSDummyPrint){
+                    if (!dummy_url.matcher(URL).find()){
                         System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + cacheData.getTargetURL());
                     }
                     byte[] content = null;
