@@ -130,7 +130,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                 if (cacheData != null){
 
-                    System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + cacheData.getTargetURL());
+                    if (!isHLSDummyPrint){
+                        System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + cacheData.getTargetURL());
+                    }
                     byte[] content = null;
 
                     if (cacheData.isRedirect()){
@@ -144,8 +146,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         out = null;
                         sb_header.setLength(0);
                         sb_header = null;
-                    } else if (!cacheData.isRedirect() && cacheData.getHLS() == null && cacheData.getDummyHLS() == null) {
 
+                        return;
                     }
 
                     if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
