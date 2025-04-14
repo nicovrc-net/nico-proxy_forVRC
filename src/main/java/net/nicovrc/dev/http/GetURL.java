@@ -407,7 +407,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
 
                 } catch (Exception e){
-                    // e.printStackTrace();
+                    e.printStackTrace();
                     try {
                         byte[] content = null;
                         File file = new File("./error-video/error_000.mp4");
@@ -423,6 +423,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     } catch (Exception ex){
                         // ex.printStackTrace();
                     }
+
+                    logData.setResultURL(e.getMessage());
+                    webhookData.setResult(e.getMessage());
+                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
+
+
                 }
 
             }
