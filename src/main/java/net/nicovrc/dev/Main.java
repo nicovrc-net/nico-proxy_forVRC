@@ -4,8 +4,6 @@ import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlSequence;
 import com.google.gson.JsonElement;
-import net.nicovrc.dev.Service.Result.NicoNicoVideo;
-import net.nicovrc.dev.Service.Result.TikTokResult;
 import net.nicovrc.dev.data.*;
 import net.nicovrc.dev.http.*;
 import redis.clients.jedis.Jedis;
@@ -28,7 +26,6 @@ import java.util.regex.Pattern;
 
 public class Main {
 
-    private static final List<NicoVRCHTTP> httpServiceList = new ArrayList<>();
     private static final Timer proxyCheckTimer = new Timer();
     private static final Timer logWriteTimer = new Timer();
     private static final Timer cacheRemoveTimer = new Timer();
@@ -488,15 +485,15 @@ NicoNico_user_session_secure: ""
         }, 0L, 60000L);
 
         // HTTP受付
-        httpServiceList.add(new NicoVRCWebAPI());
-        httpServiceList.add(new GetURL());
-        httpServiceList.add(new GetURL_dummy());
-        httpServiceList.add(new GetURL_dummy2()); // Quest/Pico用
-        httpServiceList.add(new GetURL_old1()); // v2互換用、様子見て削除
-        httpServiceList.add(new GetURL_old2()); // v2互換用、様子見て削除
-        httpServiceList.add(new GetVideo());
+        Function.httpServiceList.add(new NicoVRCWebAPI());
+        Function.httpServiceList.add(new GetURL());
+        Function.httpServiceList.add(new GetURL_dummy());
+        Function.httpServiceList.add(new GetURL_dummy2()); // Quest/Pico用
+        Function.httpServiceList.add(new GetURL_old1()); // v2互換用、様子見て削除
+        Function.httpServiceList.add(new GetURL_old2()); // v2互換用、様子見て削除
+        Function.httpServiceList.add(new GetVideo());
 
-        TCPServer tcpServer = new TCPServer(httpServiceList);
+        TCPServer tcpServer = new TCPServer();
         tcpServer.start();
         try {
             tcpServer.join();
@@ -577,6 +574,8 @@ NicoNico_user_session_secure: ""
                         } catch (Exception e){
                             // e.printStackTrace();
                         }
+                        redisServer = null;
+                        redisPass = null;
                     } else {
 
                         File file = new File("./log");
@@ -584,6 +583,7 @@ NicoNico_user_session_secure: ""
                         if (!file.exists()){
                             file.mkdir();
                         }
+                        file = null;
 
                         HashMap<String, LogData> temp = new HashMap<>(Function.GetURLAccessLog);
                         Function.GetURLAccessLog.clear();
@@ -724,12 +724,16 @@ NicoNico_user_session_secure: ""
                                 .POST(HttpRequest.BodyPublishers.ofString(Function.gson.toJson(webhookData)))
                                 .build();
                         HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                        send = null;
+                        request = null;
                         //System.out.println(send.body());
 
                         count[0]++;
                     } catch (Exception e){
                         // e.printStackTrace();
                     }
+                    embeds = null;
+                    webhookData = null;
                 });
                 System.out.println("[Info] Webhook送信完了 ("+count[0]+"件)");
 

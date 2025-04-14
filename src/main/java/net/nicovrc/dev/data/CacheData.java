@@ -3,16 +3,16 @@ package net.nicovrc.dev.data;
 
 public class CacheData {
 
-    private Long CacheDate;
-    private boolean isSet;
-    private String targetURL;
-    private boolean isRedirect;
-    private String proxy;
-    private String title;
-    private byte[] HLS;
-    private byte[] dummyHLS;
-    private String CookieText;
-    private String RefererText;
+    private Long CacheDate = null;
+    private boolean isSet = false;
+    private String targetURL = null;
+    private boolean isRedirect = false;
+    private String proxy = null;
+    private String title = null;
+    private byte[] HLS = null;
+    private byte[] dummyHLS = null;
+    private String CookieText = null;
+    private String RefererText = null;
 
     public Long getCacheDate() {
         return CacheDate;

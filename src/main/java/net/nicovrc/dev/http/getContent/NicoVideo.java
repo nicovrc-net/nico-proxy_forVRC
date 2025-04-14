@@ -209,7 +209,7 @@ public class NicoVideo implements GetContent {
 
                 } else {
                     File file = new File("./error-video/error_404_2.mp4");
-                    byte[] content = new byte[0];
+                    byte[] content = null;
                     if (file.exists()) {
                         FileInputStream stream = new FileInputStream(file);
                         content = stream.readAllBytes();

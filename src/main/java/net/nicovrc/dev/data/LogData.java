@@ -5,13 +5,13 @@ import java.util.UUID;
 
 public class LogData {
 
-    private String LogID;
-    private Long UnixTime;
-    private String HTTPRequest;
-    private String RequestURL;
-    private String ResultURL;
-    private String ResultTitle;
-    private String ErrorMessage;
+    private String LogID = null;
+    private Long UnixTime = null;
+    private String HTTPRequest = null;
+    private String RequestURL = null;
+    private String ResultURL = null;
+    private String ResultTitle = null;
+    private String ErrorMessage = null;
 
     public LogData(){
         LogID = UUID.randomUUID().toString() + "_" + new Date().getTime();

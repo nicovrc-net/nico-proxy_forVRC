@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.data.WebhookData;
+import net.nicovrc.dev.http.NicoVRCHTTP;
 
 import java.io.*;
 import java.net.Socket;
@@ -21,13 +22,16 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Function {
-    public static final String Version = "3.0.0-rc.3";
+    public static final String Version = "3.0.0-rc.4";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:136.0) Gecko/20100101 Firefox/136.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    public static final byte[] zeroByte = new byte[0];
+
     public static final List<String> ProxyList = new ArrayList<>();
     public static final List<String> JP_ProxyList = new ArrayList<>();
+    public static final List<NicoVRCHTTP> httpServiceList = new ArrayList<>();
 
     private static final Pattern HTTPVersion = Pattern.compile("HTTP/(\\d+\\.\\d+)");
     private static final Pattern HTTP = Pattern.compile("(CONNECT|DELETE|GET|HEAD|OPTIONS|PATCH|POST|PUT|TRACE) (.+) HTTP/(\\d\\.\\d)");
@@ -46,11 +50,16 @@ public class Function {
         int readSize = in.read(data);
 
         if (readSize <= 0) {
+            data = null;
+            sb = null;
+            in = null;
             return null;
         }
         //System.out.println("debug 2");
         data = Arrays.copyOf(data, readSize);
-        sb.append(new String(data, StandardCharsets.UTF_8));
+        String temp = new String(data, StandardCharsets.UTF_8);
+        sb.append(temp);
+        temp = null;
 
         if (readSize == 1024){
             data = new byte[1024];
@@ -59,9 +68,11 @@ public class Function {
             while (readSize >= 0){
                 //System.out.println(readSize);
                 data = Arrays.copyOf(data, readSize);
-                sb.append(new String(data, StandardCharsets.UTF_8));
+                temp = new String(data, StandardCharsets.UTF_8);
+                sb.append(temp);
 
                 data = null;
+                temp = null;
 
                 if (readSize < 1024){
                     isLoop = false;
@@ -85,6 +96,7 @@ public class Function {
         sb = null;
         in = null;
         //System.out.println("debug 3");
+        System.gc();
         return httpRequest;
     }
 
@@ -246,21 +258,6 @@ public class Function {
                     }
                 });
                 exec1.waitFor();
-                                /*byte[] read = null;
-                                try {
-                                    read = exec1.getInputStream().readAllBytes();
-                                } catch (Exception e){
-                                    read = new byte[0];
-                                }
-                                if (read.length == 0) {
-                                    try {
-                                        read = exec1.getErrorStream().readAllBytes();
-                                    } catch (Exception e){
-                                        read = new byte[0];
-                                    }
-                                }
-                                String infoMessage = new String(read, StandardCharsets.UTF_8);
-                                System.out.println(infoMessage);*/
                 //System.out.println(ffmpegPass);
                 file = new File("./error-video/" + videoId + ".jpg");
                 file.delete();

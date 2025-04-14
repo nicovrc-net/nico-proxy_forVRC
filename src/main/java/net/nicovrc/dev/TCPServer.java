@@ -17,14 +17,12 @@ public class TCPServer extends Thread {
 
     private final int HTTPPort;
     private final boolean[] temp = {true};
-    private final List<NicoVRCHTTP> httpServiceList;
 
     private final Timer stopTimer = new Timer();
     private final Timer accessCheckTimer = new Timer();
 
-    public TCPServer(List<NicoVRCHTTP> list){
+    public TCPServer(){
         this.HTTPPort = 25252;
-        this.httpServiceList = list;
 
         // 停止監視
         stopTimer.scheduleAtFixedRate(new TimerTask() {
@@ -33,10 +31,14 @@ public class TCPServer extends Thread {
                 File file = new File("./stop.txt");
                 File file2 = new File("./stop_lock.txt");
                 if (!file.exists()){
+                    file = null;
+                    file2 = null;
                     return;
                 }
 
                 if (file2.exists()){
+                    file = null;
+                    file2 = null;
                     return;
                 }
 
@@ -46,7 +48,7 @@ public class TCPServer extends Thread {
                         temp[0] = false;
                         Socket socket = new Socket("127.0.0.1", HTTPPort);
                         OutputStream stream = socket.getOutputStream();
-                        stream.write(new byte[0]);
+                        stream.write(Function.zeroByte);
                         stream.close();
                         socket.close();
                         stopTimer.cancel();
@@ -59,6 +61,8 @@ public class TCPServer extends Thread {
 
                 file.delete();
                 file2.delete();
+                file = null;
+                file2 = null;
             }
         }, 0L, 1000L);
 
@@ -71,17 +75,20 @@ public class TCPServer extends Thread {
                     if (!temp[0]){
                         file.createNewFile();
                         accessCheckTimer.cancel();
+                        file = null;
                         return;
                     }
 
                     try {
                         Socket socket = new Socket("127.0.0.1", HTTPPort);
                         OutputStream stream = socket.getOutputStream();
-                        stream.write(new byte[0]);
+                        stream.write(Function.zeroByte);
                         stream.close();
                         socket.close();
+                        file = null;
                     } catch (Exception e){
                         file.createNewFile();
+                        file = null;
                         accessCheckTimer.cancel();
                     }
                 } catch (Exception e){
@@ -109,7 +116,7 @@ public class TCPServer extends Thread {
                         InputStream in = sock.getInputStream();
                         OutputStream out = sock.getOutputStream();
 
-                        final String httpRequest = Function.getHTTPRequest(sock);
+                        String httpRequest = Function.getHTTPRequest(sock);
                         //System.out.println(httpRequest);
                         if (httpRequest == null) {
                             in.close();
@@ -136,6 +143,8 @@ public class TCPServer extends Thread {
 
                             in = null;
                             out = null;
+                            HTTPVersion = null;
+                            httpRequest = null;
                             return;
                         }
 
@@ -150,6 +159,8 @@ public class TCPServer extends Thread {
 
                             in = null;
                             out = null;
+                            httpRequest = null;
+                            Method = null;
                             return;
                         }
 
@@ -158,7 +169,7 @@ public class TCPServer extends Thread {
 
                         // それぞれの処理へ飛ぶ
                         boolean[] isFound = {false};
-                        for (NicoVRCHTTP vrchttp : httpServiceList) {
+                        for (NicoVRCHTTP vrchttp : Function.httpServiceList) {
                             if (URI.startsWith(vrchttp.getStartURI())) {
                                 vrchttp.setURL(URI);
                                 vrchttp.setHTTPRequest(httpRequest);
@@ -183,6 +194,8 @@ public class TCPServer extends Thread {
 
                             in = null;
                             out = null;
+                            URI = null;
+                            httpRequest = null;
                             return;
                         }
 
@@ -191,6 +204,8 @@ public class TCPServer extends Thread {
                         sock.close();
                         in = null;
                         out = null;
+                        URI = null;
+                        httpRequest = null;
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -200,6 +215,7 @@ public class TCPServer extends Thread {
                 } catch (Exception e){
                     // e.printStackTrace();
                 }
+                thread = null;
                 sock.close();
             } catch (Exception e) {
                 e.printStackTrace();
@@ -213,5 +229,6 @@ public class TCPServer extends Thread {
             // e.printStackTrace();
         }
         stopTimer.cancel();
+        accessCheckTimer.cancel();
     }
 }

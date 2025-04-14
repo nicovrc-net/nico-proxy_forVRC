@@ -87,12 +87,17 @@ public class SpankBang implements ServiceAPI {
                     .build();
 
             HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            GZIPInputStream stream = new GZIPInputStream(new ByteArrayInputStream(send.body()));
+            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(send.body());
+            GZIPInputStream stream = new GZIPInputStream(byteArrayInputStream);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             outputStream.write(stream.readAllBytes());
             String s = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
             outputStream.close();
             stream.close();
+            outputStream = null;
+            stream = null;
+            byteArrayInputStream = null;
+
 
             Matcher matcher = matcher_json.matcher(s);
             if (!matcher.find()){

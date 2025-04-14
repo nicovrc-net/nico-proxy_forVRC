@@ -2,8 +2,8 @@ package net.nicovrc.dev.data;
 
 public class WebhookFields {
 
-    private String name;
-    private String value;
+    private String name = null;
+    private String value = null;
 
     public String getName() {
         return name;

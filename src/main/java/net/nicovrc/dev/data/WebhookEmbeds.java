@@ -2,8 +2,8 @@ package net.nicovrc.dev.data;
 
 public class WebhookEmbeds {
 
-    private String title;
-    private String description;
+    private String title = null;
+    private String description = null;
 
     private WebhookFields[] fields;
 

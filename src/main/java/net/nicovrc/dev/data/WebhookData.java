@@ -4,11 +4,11 @@ import java.util.Date;
 
 public class WebhookData {
 
-    private String URL;
-    private String APIURI;
-    private String Result;
-    private String HTTPRequest;
-    private Date Date;
+    private String URL = null;
+    private String APIURI = null;
+    private String Result = null;
+    private String HTTPRequest = null;
+    private Date Date = null;
 
     public String getURL() {
         return URL;

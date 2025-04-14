@@ -52,6 +52,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             String method = Function.getMethod(httpRequest);
             String httpVersion = Function.getHTTPVersion(httpRequest);
 
+            httpRequest = null;
+
             String CookieText = null;
             String Referer = null;
             String URL = null;
@@ -92,17 +94,19 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             Matcher matcher_abematv = matcher_abema.matcher(URL);
             Matcher matcher_vimeourl = matcher_vimeo.matcher(URL);
 
-            try (HttpClient client = proxy == null ? HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_2)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .connectTimeout(Duration.ofSeconds(5))
-                    .build() :
-                    HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_2)
-                            .followRedirects(HttpClient.Redirect.NORMAL)
-                            .connectTimeout(Duration.ofSeconds(5))
-                            .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
-                            .build()) {
+            try {
+
+                HttpClient client = proxy == null ? HttpClient.newBuilder()
+                        .version(HttpClient.Version.HTTP_2)
+                        .followRedirects(HttpClient.Redirect.NORMAL)
+                        .connectTimeout(Duration.ofSeconds(5))
+                        .build() :
+                        HttpClient.newBuilder()
+                                .version(HttpClient.Version.HTTP_2)
+                                .followRedirects(HttpClient.Redirect.NORMAL)
+                                .connectTimeout(Duration.ofSeconds(5))
+                                .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
+                                .build();
 
                 HttpRequest request;
                 if (matcher_fc2url.find()){
@@ -176,6 +180,10 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                 //System.out.println("a");
                 byte[] body = send.body();
+
+                client.close();
+                client = null;
+
                 if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
                     String s = new String(body, StandardCharsets.UTF_8);
                     if (matcher_twit.find()) {
@@ -194,6 +202,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
 
                         s = sb.toString();
+                        sb.setLength(0);
+                        sb = null;
+
                     } else if (matcher_abematv.find()) {
                         //System.out.println("!!!!");
                         s = s.replaceAll("https://", "/https/cookie:[]/");
@@ -214,6 +225,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
 
                         s = sb.toString();
+                        sb.setLength(0);
+                        sb = null;
                     } else if (matcher_vimeourl.find()) {
 
                         StringBuilder sb = new StringBuilder();
@@ -224,6 +237,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                         s = s.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", sb.toString());
                         s = s.replaceAll("https://", "/https/cookie:[]/");
+
+                        sb.setLength(0);
+                        sb = null;
 
                     } else {
                         if (CookieText != null && !CookieText.isEmpty()){
@@ -242,6 +258,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     }
 
                     body = s.getBytes(StandardCharsets.UTF_8);
+                    s = null;
                 }
                 //System.out.println("b");
                 Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
@@ -251,8 +268,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 httpVersion = null;
                 send = null;
                 request = null;
-
-
+                contentType = null;
             } catch (Exception e){
                 e.printStackTrace();
                 try {
@@ -273,7 +289,6 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                      ex.printStackTrace();
                 }
             }
-
             matcher_fc2url = null;
             matcher_twit = null;
             matcher_abematv = null;

@@ -2,10 +2,10 @@ package net.nicovrc.dev.data;
 
 public class SendWebhookData {
 
-    private String username;
-    private String avatar_url;
-    private String content;
-    private WebhookEmbeds[] embeds;
+    private String username = null;
+    private String avatar_url = null;
+    private String content = null;
+    private WebhookEmbeds[] embeds = null;
 
     public String getUsername() {
         return username;
