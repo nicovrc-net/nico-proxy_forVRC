@@ -462,8 +462,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - ツイキャスのアーカイブが見れない問題を修正
-            - 内部リファクタリング
+            - メモリ使用量節約
           draft: false
           prerelease: true
 
