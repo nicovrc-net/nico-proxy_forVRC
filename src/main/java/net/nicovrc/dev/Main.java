@@ -13,7 +13,6 @@ import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
-import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -511,12 +510,13 @@ NicoNico_user_session_secure: ""
 
         File file2 = new File("./stop_lock.txt");
         if (file2.exists()){
-            file2.deleteOnExit();
+            file2.delete();
         }
         File file3 = new File("./stop.txt");
         if (file3.exists()){
-            file3.deleteOnExit();
+            file3.delete();
         }
+
     }
 
     private static void WriteLog(){

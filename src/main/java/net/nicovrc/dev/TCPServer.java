@@ -57,6 +57,10 @@ public class TCPServer extends Thread {
                     }
                 } catch (Exception e){
                     // e.printStackTrace();
+                } finally {
+                    stopTimer.cancel();
+                    accessCheckTimer.cancel();
+                    System.out.println("[Info] 終了処理を完了しました。");
                 }
 
                 file.delete();
