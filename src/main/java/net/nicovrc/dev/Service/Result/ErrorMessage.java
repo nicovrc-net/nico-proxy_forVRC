@@ -2,17 +2,17 @@ package net.nicovrc.dev.Service.Result;
 
 public class ErrorMessage {
 
-    private String ErrorMesage;
+    private String ErrorMessage;
 
     public ErrorMessage(String str){
-        ErrorMesage = str;
+        ErrorMessage = str;
     }
 
-    public String getErrorMesage() {
-        return ErrorMesage;
+    public String getErrorMessage() {
+        return ErrorMessage;
     }
 
-    public void setErrorMesage(String errorMesage) {
-        ErrorMesage = errorMesage;
+    public void setErrorMessage(String errorMessage) {
+        ErrorMessage = errorMessage;
     }
 }
