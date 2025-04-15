@@ -462,7 +462,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - メモリ使用量節約
+            - ニコ動で再生できない動画があるのを修正
           draft: false
           prerelease: true
 
