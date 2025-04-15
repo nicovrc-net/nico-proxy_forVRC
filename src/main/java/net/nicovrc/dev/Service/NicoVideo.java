@@ -285,7 +285,7 @@ public class NicoVideo implements ServiceAPI {
                     String trackId = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("client").get("watchTrackId").getAsString();
 
                     StringBuilder videoJson = new StringBuilder();
-                    System.out.println(json);
+                    //System.out.println(json);
 
                     String audioJson = "";
 
@@ -324,7 +324,7 @@ public class NicoVideo implements ServiceAPI {
                     }
 
                     uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId);
-                    System.out.println(sendJson);
+                    //System.out.println(sendJson);
                     request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
                             .uri(uri)
                             .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
