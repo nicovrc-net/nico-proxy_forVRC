@@ -463,6 +463,7 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - ニコ動で再生できない動画があるのを修正
+            - エラーメッセージが正しく表示されない場合があるのを修正
           draft: false
           prerelease: true
 
