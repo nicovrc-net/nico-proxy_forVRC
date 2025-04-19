@@ -292,7 +292,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         webhookData.setResult("対応してないURL");
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
                         Function.WebhookData.put(logData.getLogID(), webhookData);
-                        System.out.println("[Get URL (" + (isCache ? "キャッシュ," : "") + Function.sdf.format(date) + ")] " + URL + " ---> " + "対応してないURL");
+                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "対応してないURL");
                         File file = new File("./error-video/error_404.mp4");
                         if (file.exists()) {
                             FileInputStream stream = new FileInputStream(file);
@@ -319,6 +319,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         content.setHLSText(null);
                         content.setContentObject(null);
                         cacheData.setRedirect(true);
+                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
 
                     } else {
                         logData.setResultURL(targetURL);
@@ -388,18 +389,20 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
                         Function.WebhookData.put(logData.getLogID(), webhookData);
-                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
+                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + errorMessage);
                         return;
                     }
 
-                    if (cacheData.getDummyHLS() != null){
-                        if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
-                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", cacheData.getDummyHLS(), method != null && method.equals("HEAD"));
+                    if (!cacheData.isRedirect()){
+                        if (cacheData.getDummyHLS() != null){
+                            if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
+                                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", cacheData.getDummyHLS(), method != null && method.equals("HEAD"));
+                            } else {
+                                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", cacheData.getHLS(), method != null && method.equals("HEAD"));
+                            }
                         } else {
                             Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", cacheData.getHLS(), method != null && method.equals("HEAD"));
                         }
-                    } else {
-                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", cacheData.getHLS(), method != null && method.equals("HEAD"));
                     }
 
                     Function.CacheList.put((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
