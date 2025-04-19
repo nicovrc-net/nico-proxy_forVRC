@@ -58,6 +58,7 @@ public class TCPServer extends Thread {
                 } catch (Exception e){
                     // e.printStackTrace();
                 } finally {
+                    temp[0] = false;
                     stopTimer.cancel();
                     accessCheckTimer.cancel();
                     System.out.println("[Info] 終了処理を完了しました。");
