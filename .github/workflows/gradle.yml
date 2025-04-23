@@ -462,7 +462,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            -
+            - ニコ生が途中で接続切れてしまう問題の改善
           draft: false
           prerelease: false
 

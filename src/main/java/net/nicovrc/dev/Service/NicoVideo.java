@@ -486,6 +486,7 @@ public class NicoVideo implements ServiceAPI {
 
                                             if (type.equals("seat")){
 
+                                                webSocket.sendText("{\"type\":\"keepSeat\"}", true);
                                                 niconamaTimer.scheduleAtFixedRate(new TimerTask() {
                                                     @Override
                                                     public void run() {
