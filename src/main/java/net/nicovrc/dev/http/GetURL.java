@@ -103,7 +103,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             URL = URL.replaceAll("^(/(.*)\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
 
             ServiceAPI api = null;
-            CacheData cacheData = Function.CacheList.get((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
+            CacheData cacheData = Function.CacheList.get((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
 
             String json = null;
             String ServiceName = null;
@@ -117,7 +117,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                 int i = 0;
                 while (i == 0){
-                    cacheData = Function.CacheList.get((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
+                    cacheData = Function.CacheList.get((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
                     if (cacheData == null){
                         i = 1;
                         continue;
@@ -405,7 +405,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         }
                     }
 
-                    Function.CacheList.put((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
+                    Function.CacheList.put((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
 
 
 
