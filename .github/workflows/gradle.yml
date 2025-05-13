@@ -463,6 +463,7 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - ニコ生が途中で接続切れてしまう問題の改善
+            - YoutubeとPornhubで別の動画が再生されてしまう問題を修正
             - キャッシュ同期APIを追加 (複数サーバー用)
           draft: false
           prerelease: true
