@@ -462,6 +462,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
+            注意: 設定項目が増えているのでconfig.ymlを再生成してください。 
             - ニコ生が途中で接続切れてしまう問題の改善
             - YoutubeとPornhubで別の動画が再生されてしまう問題を修正
             - キャッシュ同期APIを追加 (複数サーバー用)
