@@ -12,7 +12,7 @@ on:
     branches: [ "v3" ]
     tags: ['3.*']
   pull_request:
-    branches: [ "v3" ]
+    branches: [ "master","v3" ]
 
 jobs:
   build-21:
