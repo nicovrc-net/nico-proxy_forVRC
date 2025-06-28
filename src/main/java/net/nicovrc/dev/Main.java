@@ -692,7 +692,7 @@ NicoNico_user_session_secure: ""
                 final String finalWebhookURL = WebhookURL;
                 temp.forEach((id, data) -> {
 
-                    int i = new SecureRandom().nextInt(0, proxyList.size());
+                    int i = !proxyList.isEmpty() ? new SecureRandom().nextInt(0, proxyList.size()) : 0;
                     String proxy = null;
                     if (!proxyList.isEmpty()){
                         proxy = proxyList.get(i);
