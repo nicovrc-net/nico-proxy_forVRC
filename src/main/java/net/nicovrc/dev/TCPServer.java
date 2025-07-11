@@ -1,5 +1,7 @@
 package net.nicovrc.dev;
 
+import com.amihaiemil.eoyaml.Yaml;
+import com.amihaiemil.eoyaml.YamlMapping;
 import net.nicovrc.dev.http.NicoVRCHTTP;
 
 import java.io.File;
@@ -22,7 +24,17 @@ public class TCPServer extends Thread {
     private final Timer accessCheckTimer = new Timer();
 
     public TCPServer(){
-        this.HTTPPort = 25252;
+
+        int tempPort;
+
+        try {
+            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+            tempPort = yamlMapping.integer("Port");
+        } catch (Exception e){
+            tempPort = 25252;
+        }
+
+        this.HTTPPort = tempPort;
 
         // 停止監視
         stopTimer.scheduleAtFixedRate(new TimerTask() {
