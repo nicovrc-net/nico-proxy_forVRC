@@ -6,8 +6,7 @@ import com.amihaiemil.eoyaml.YamlSequence;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.data.*;
 import net.nicovrc.dev.http.*;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.*;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -77,6 +76,8 @@ RedisPort: 6379
 # Redis AUTHパスワード
 # パスワードがない場合は以下の通りに設定してください
 RedisPass: ""
+# Redisの接続にSSL/TLSを使うか
+RedisSSL: false
 # ----------------------------
 #
 # Proxy設定
@@ -545,47 +546,100 @@ NicoNico_user_session_secure: ""
                         String redisServer = yamlMapping.string("RedisServer");
                         String redisPass = yamlMapping.string("RedisPass");
                         int redisPort = yamlMapping.integer("RedisPort");
+                        boolean redisTLS = false;
+                        try {
+                            redisTLS = yamlMapping.string("RedisSSL").equals("true");
+                        } catch (Exception e){
+                            //e.printStackTrace();
+                        }
 
-                        try (JedisPool jedisPool = new JedisPool(redisServer, redisPort);
-                             Jedis jedis = jedisPool.getResource()){
+                        if (redisTLS){
+                            JedisClientConfig config = redisPass.isEmpty() ? DefaultJedisClientConfig.builder()
+                                    .ssl(true)
+                                    .build() : DefaultJedisClientConfig.builder()
+                                    .ssl(true)
+                                    .password(redisPass)
+                                    .build();
+                            try (JedisPooled jedis = new JedisPooled(new HostAndPort(redisServer, redisPort), config)){
 
-                            if (!redisPass.isEmpty()){
-                                jedis.auth(redisPass);
+                                HashMap<String, LogData> temp = new HashMap<>(Function.GetURLAccessLog);
+                                Function.GetURLAccessLog.clear();
+
+                                temp.forEach((id, value)->{
+                                    try {
+                                        jedis.set("nicovrc:access_log:"+id, Function.gson.toJson(value));
+                                    } catch (Exception e) {
+                                        //e.printStackTrace();
+                                        Function.GetURLAccessLog.put(id, value);
+                                    }
+                                });
+                                count[0] = temp.size();
+                                temp.clear();
+                                temp = null;
+
+                                HashMap<String, String> temp2 = new HashMap<>(Function.APIAccessLog);
+                                Function.APIAccessLog.clear();
+
+                                temp2.forEach((id, value)->{
+                                    try {
+                                        jedis.set("nicovrc:api_log:"+id, value);
+                                    } catch (Exception e) {
+                                        //e.printStackTrace();
+                                        Function.APIAccessLog.put(id, value);
+                                    }
+                                });
+                                count[0] = count[0] + temp2.size();
+                                temp2.clear();
+                                temp2 = null;
+
+                            } catch (Exception e){
+                                // e.printStackTrace();
                             }
 
-                            HashMap<String, LogData> temp = new HashMap<>(Function.GetURLAccessLog);
-                            Function.GetURLAccessLog.clear();
+                        } else {
+                            try (JedisPool jedisPool = new JedisPool(redisServer, redisPort);
+                                 Jedis jedis = jedisPool.getResource()
+                            ){
 
-                            temp.forEach((id, value)->{
-                                try {
-                                    jedis.set("nicovrc:access_log:"+id, Function.gson.toJson(value));
-                                } catch (Exception e) {
-                                    //e.printStackTrace();
-                                    Function.GetURLAccessLog.put(id, value);
+                                if (!redisPass.isEmpty()){
+                                    jedis.auth(redisPass);
                                 }
-                            });
-                            count[0] = temp.size();
-                            temp.clear();
-                            temp = null;
 
-                            HashMap<String, String> temp2 = new HashMap<>(Function.APIAccessLog);
-                            Function.APIAccessLog.clear();
+                                HashMap<String, LogData> temp = new HashMap<>(Function.GetURLAccessLog);
+                                Function.GetURLAccessLog.clear();
 
-                            temp2.forEach((id, value)->{
-                                try {
-                                    jedis.set("nicovrc:api_log:"+id, value);
-                                } catch (Exception e) {
-                                    //e.printStackTrace();
-                                    Function.APIAccessLog.put(id, value);
-                                }
-                            });
-                            count[0] = count[0] + temp2.size();
-                            temp2.clear();
-                            temp2 = null;
+                                temp.forEach((id, value)->{
+                                    try {
+                                        jedis.set("nicovrc:access_log:"+id, Function.gson.toJson(value));
+                                    } catch (Exception e) {
+                                        //e.printStackTrace();
+                                        Function.GetURLAccessLog.put(id, value);
+                                    }
+                                });
+                                count[0] = temp.size();
+                                temp.clear();
+                                temp = null;
 
-                        } catch (Exception e){
-                            // e.printStackTrace();
+                                HashMap<String, String> temp2 = new HashMap<>(Function.APIAccessLog);
+                                Function.APIAccessLog.clear();
+
+                                temp2.forEach((id, value)->{
+                                    try {
+                                        jedis.set("nicovrc:api_log:"+id, value);
+                                    } catch (Exception e) {
+                                        //e.printStackTrace();
+                                        Function.APIAccessLog.put(id, value);
+                                    }
+                                });
+                                count[0] = count[0] + temp2.size();
+                                temp2.clear();
+                                temp2 = null;
+
+                            } catch (Exception e){
+                                // e.printStackTrace();
+                            }
                         }
+
                         redisServer = null;
                         redisPass = null;
                     } else {
