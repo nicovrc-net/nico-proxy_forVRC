@@ -462,7 +462,10 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
+            ※ config.ymlに項目追加したため再生成をお願いします。
             - プロキシが設定されてない場合にWebhookの送信に失敗するのを修正
+            - Redisの接続にTLSを使うかどうか選択できるように
+            - ポート番号をデフォルトから変えても反映されないのを修正
           draft: false
           prerelease: true
 
