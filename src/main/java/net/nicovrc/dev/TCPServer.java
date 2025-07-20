@@ -121,6 +121,9 @@ public class TCPServer extends Thread {
         try {
             svSock = new ServerSocket(HTTPPort);
         } catch (IOException e) {
+            temp[0] = false;
+            stopTimer.cancel();
+            accessCheckTimer.cancel();
             throw new RuntimeException(e);
         }
 
