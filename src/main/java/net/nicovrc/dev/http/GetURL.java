@@ -160,6 +160,24 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getHLS() != null ? cacheData.getHLS() : content, method != null && method.equals("HEAD"));
                     }
 
+                    Date date = new Date();
+
+                    LogData logData = new LogData();
+                    logData.setHTTPRequest(httpRequest);
+                    logData.setRequestURL(URL);
+                    logData.setUnixTime(date.getTime());
+
+                    WebhookData webhookData = new WebhookData();
+                    webhookData.setURL(URL);
+                    webhookData.setHTTPRequest(httpRequest);
+                    webhookData.setDate(date);
+
+                    logData.setResultURL("cache");
+                    webhookData.setResult("cache");
+
+                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
+
                     return;
                 }
             }
