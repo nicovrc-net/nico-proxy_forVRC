@@ -484,7 +484,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - キャッシュ時にログに書き込まれないのを修正
+            - TVerリアルタイム配信が見れない問題修正
           draft: false
           prerelease: true
 
