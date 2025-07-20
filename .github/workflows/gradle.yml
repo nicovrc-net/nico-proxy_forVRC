@@ -43,6 +43,28 @@ jobs:
           name: jar
           path: ./build/libs/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
 
+  build-24:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up JDK 24
+        uses: actions/setup-java@v4
+        with:
+          java-version: '24'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3.5.0
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build with Gradle Wrapper
+        run: ./gradlew shadowJar
+
   download_ffmpeg:
     runs-on: ubuntu-24.04
     permissions:
