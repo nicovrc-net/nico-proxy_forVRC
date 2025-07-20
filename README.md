@@ -1,5 +1,5 @@
 # nico-proxy_forVRC
-[VRChat向けニコニコ動画再生支援ツール](https://nicovrc.net/)のニコ動URLから動画URLに302転送するJavaプログラム
+[VRChat向けニコニコ動画再生支援ツール](https://nicovrc.net/)の動作プログラム
 ## 必要なもの
 - Java 21以降
 ## あれば嬉しいもの
