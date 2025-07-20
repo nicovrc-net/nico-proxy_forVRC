@@ -211,6 +211,11 @@ public class TVer implements ServiceAPI {
                 send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
                 json = Function.gson.fromJson(send.body(), JsonElement.class);
 
+                String programKey = json.getAsJsonObject().get("mrss").getAsJsonObject().get("programKey").getAsString();
+                String programCategory = json.getAsJsonObject().get("mrss").getAsJsonObject().get("programCategory").getAsString();
+                String episodeCode = json.getAsJsonObject().get("mrss").getAsJsonObject().get("episodeCode").getAsString();
+                String episodeSIEventID = json.getAsJsonObject().get("mrss").getAsJsonObject().get("episodeSIEventID").getAsString();
+
                 result.setDescription(json.getAsJsonObject().get("description").getAsString());
 
                 uri = new URI("https://playback.api.streaks.jp/v1/projects/tver-simul-"+id+"/medias/ref:simul-"+id);
@@ -233,9 +238,13 @@ public class TVer implements ServiceAPI {
                 }
 
                 json = Function.gson.fromJson(send.body(), JsonElement.class);
+
+                //System.out.println(json);
+                //System.out.println(videoId);
+
                 String hlsURL = json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString();
                 String session = json.getAsJsonObject().getAsJsonObject().get("id").getAsString();
-                //
+                String sessionId = json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("id").getAsString();
 
 
                 uri = new URI("https://ssai.api.streaks.jp/v1/projects/tver-simul-"+id+"/medias/"+session+"/ssai/session");
@@ -247,11 +256,14 @@ public class TVer implements ServiceAPI {
                         .headers("Origin", "https://tver.jp")
                         .headers("Referer", "https://tver.jp/")
                         .headers("Content-Type", "application/json")
-                        .POST(HttpRequest.BodyPublishers.ofString("{\"ads_params\":{\"tvcu_pcode\":\"\",\"tvcu_ccode\":\"\",\"tvcu_zcode\":\"\",\"tvcu_gender\":\"\",\"tvcu_gender_code\":\"\",\"tvcu_age\":\"\",\"tvcu_agegrp\":\"\",\"delivery_type\":\"simul\",\"is_dvr\":0,\"rdid\":\"\",\"idtype\":\"\",\"is_lat\":\"\",\"bundle\":\"\",\"iuid\":\"pbt4bylcc1g799128136\",\"interest\":\"\",\"video_id\":\"lenk0yvgh8\",\"device\":\"pc\",\"device_code\":\"0001\",\"tag_type\":\"browser\",\"item_eventid\":\"62357\",\"item_programkey\":\"00005\",\"item_category\":\"99\",\"item_episodecode\":\"cfca1a05-c507-42fb-8d62-50596518ac0c\",\"item_originalmeta1\":\"\",\"item_originalmeta2\":\"\",\"ntv_ppid\":\"z75i3v2w34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"tbs_ppid\":\"f87wu4in34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"tx_ppid\":\"t87wrus634cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"ex_ppid\":\"n6dsf79v34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"cx_ppid_gam\":\"b8a35iwj34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"mbs_ppid_gam\":\"x32ck84s34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"abc_ppid\":\"c2fq84em34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"tvo_ppid\":\"i3wtqjey34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"ktv_ppid\":\"g9byn7re34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"ytv_ppid\":\"g8kusm7634cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"ntv_ppid2\":\"z75i3v2w_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"tbs_ppid2\":\"f87wu4in_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"tx_ppid2\":\"t87wrus6_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"ex_ppid2\":\"n6dsf79v_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"cx_ppid2\":\"b8a35iwj_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"mbs_ppid2\":\"x32ck84s_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"abc_ppid2\":\"c2fq84em_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"tvo_ppid2\":\"i3wtqjey_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"ktv_ppid2\":\"g9byn7re_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"ytv_ppid2\":\"g8kusm76_2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"vr_uuid\":\"23768E3B-100F-4820-93DC-0AE4948DCE66\",\"personalIsLat\":\"0\",\"platformAdUid\":\"2b210aa5-ea11-4c56-9d7a-b81c29924bd8\",\"platformUid\":\"34cbcb764b3c4ed6b7a4c037e74ebc93a724\",\"memberId\":\"\",\"c\":\"simul\",\"luid\":\"23768E3B-100F-4820-93DC-0AE4948DCE66\",\"platformVrUid\":\"c0af47d1f9082f50dbb8d5beceb35af4c04915da46b551f884551a1648a77121\"},\"id\":\"ed089bc4b7f342b3bc8a7a2567039442\"}"))
+                        .POST(HttpRequest.BodyPublishers.ofString("{\"ads_params\":{\"tvcu_pcode\":\"\",\"tvcu_ccode\":\"\",\"tvcu_zcode\":\"\",\"tvcu_gender\":\"\",\"tvcu_gender_code\":\"\",\"tvcu_age\":\"\",\"tvcu_agegrp\":\"\",\"delivery_type\":\"simul\",\"is_dvr\":0,\"rdid\":\"\",\"idtype\":\"\",\"is_lat\":\"\",\"bundle\":\"\",\"interest\":\"\",\"video_id\":\""+videoId+"\",\"device\":\"pc\",\"device_code\":\"0001\",\"tag_type\":\"browser\",\"item_eventid\":\""+episodeSIEventID+"\",\"item_programkey\":\""+programKey+"\",\"item_category\":\""+programCategory+"\",\"item_episodecode\":\""+episodeCode+"\",\"item_originalmeta1\":\"\",\"item_originalmeta2\":\"\",\"ntv_ppid\":\"z75i3v2w5d0c3173d071452f85c1dd9f450d10d1ff57\",\"tbs_ppid\":\"f87wu4in5d0c3173d071452f85c1dd9f450d10d1ff57\",\"tx_ppid\":\"t87wrus65d0c3173d071452f85c1dd9f450d10d1ff57\",\"ex_ppid\":\"n6dsf79v5d0c3173d071452f85c1dd9f450d10d1ff57\",\"cx_ppid_gam\":\"b8a35iwj5d0c3173d071452f85c1dd9f450d10d1ff57\",\"mbs_ppid_gam\":\"x32ck84s5d0c3173d071452f85c1dd9f450d10d1ff57\",\"abc_ppid\":\"c2fq84em5d0c3173d071452f85c1dd9f450d10d1ff57\",\"tvo_ppid\":\"i3wtqjey5d0c3173d071452f85c1dd9f450d10d1ff57\",\"ktv_ppid\":\"g9byn7re5d0c3173d071452f85c1dd9f450d10d1ff57\",\"ytv_ppid\":\"g8kusm765d0c3173d071452f85c1dd9f450d10d1ff57\",\"ntv_ppid2\":\"z75i3v2w_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"tbs_ppid2\":\"f87wu4in_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"tx_ppid2\":\"t87wrus6_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"ex_ppid2\":\"n6dsf79v_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"cx_ppid2\":\"b8a35iwj_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"mbs_ppid2\":\"x32ck84s_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"abc_ppid2\":\"c2fq84em_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"tvo_ppid2\":\"i3wtqjey_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"ktv_ppid2\":\"g9byn7re_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"ytv_ppid2\":\"g8kusm76_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"vr_uuid\":\"993860D1-AC20-4F22-844B-443395E052A0\",\"personalIsLat\":\"0\",\"platformAdUid\":\"33512098-bab6-40be-91fc-8bf15ea01f5b\",\"platformUid\":\"5d0c3173d071452f85c1dd9f450d10d1ff57\",\"memberId\":\"\",\"c\":\"simul\",\"luid\":\"993860D1-AC20-4F22-844B-443395E052A0\",\"platformVrUid\":\"768126a8cc5be8411a221c5bc7d28bc00f61d3b11867f9423b379ec8fc6e35f8\"},\"id\":\""+sessionId+"\"}"))
                         .build();
 
                 send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
                 json = Function.gson.fromJson(send.body(), JsonElement.class);
+
+                //System.out.println(json);
+                //System.out.println(send.statusCode());
 
                 result.setLiveURL(hlsURL + "&"+json.getAsJsonArray().get(0).getAsJsonObject().get("query").getAsString());
 
