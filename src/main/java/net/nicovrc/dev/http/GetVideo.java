@@ -31,6 +31,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_vimeo = Pattern.compile("vimeocdn\\.com");
     private final Pattern matcher_fc2 = Pattern.compile("(.+)\\.live\\.fc2\\.com");
 
+    private final String http = "https://";
+
     @Override
     public void run() {
         try {
@@ -59,16 +61,16 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             String URL = null;
             if (matcher.find()){
                 CookieText = matcher.group(1);
-                URL = "https://"+matcher.group(2);
+                URL = http+matcher.group(2);
             }
             if (matcher2.find()) {
                 Referer = matcher2.group(1);
-                URL = "https://"+matcher2.group(2);
+                URL = http+matcher2.group(2);
             }
             if (matcher3.find()) {
                 Referer = matcher3.group(1);
                 CookieText = matcher3.group(2);
-                URL = "https://"+matcher3.group(3);
+                URL = http+matcher3.group(3);
             }
 
             if (CookieText == null && Referer == null && URL == null) {
@@ -187,7 +189,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
                     String s = new String(body, StandardCharsets.UTF_8);
                     if (matcher_twit.find()) {
-                        s = s.replaceAll("https://", "/https/referer:[" + Referer + "]/");
+                        s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");
                         s = s.replaceAll("\"/tc\\.vod\\.v2", "\"/https/referer:[" + Referer + "]/" + request.uri().getHost() + "/tc.vod.v2");
 
                         StringBuilder sb = new StringBuilder();
@@ -207,7 +209,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                     } else if (matcher_abematv.find()) {
                         //System.out.println("!!!!");
-                        s = s.replaceAll("https://", "/https/cookie:[]/");
+                        s = s.replaceAll(http, "/https/cookie:[]/");
 
                         StringBuilder sb = new StringBuilder();
                         for (String str : s.split("\n")) {
@@ -216,7 +218,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                 continue;
                             }
                             if (!str.startsWith("/preview")) {
-                                sb.append(str.replaceAll("https://", "/https/cookie:[]/")).append("\n");
+                                sb.append(str.replaceAll(http, "/https/cookie:[]/")).append("\n");
                                 continue;
                             }
 
@@ -236,7 +238,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
 
                         s = s.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", sb.toString());
-                        s = s.replaceAll("https://", "/https/cookie:[]/");
+                        s = s.replaceAll(http, "/https/cookie:[]/");
 
                         sb.setLength(0);
                         sb = null;
@@ -244,15 +246,15 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     } else {
                         if (CookieText != null && !CookieText.isEmpty()){
                             if (Referer == null || Referer.isEmpty()){
-                                s = s.replaceAll("https://", "/https/cookie:["+CookieText+"]/");
+                                s = s.replaceAll(http, "/https/cookie:["+CookieText+"]/");
                             } else {
-                                s = s.replaceAll("https://", "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
+                                s = s.replaceAll(http, "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
                             }
                         } else {
                             if (Referer == null || Referer.isEmpty()){
-                                s = s.replaceAll("https://", "/https/cookie:[]/");
+                                s = s.replaceAll(http, "/https/cookie:[]/");
                             } else {
-                                s = s.replaceAll("https://", "/https/referer:["+Referer+"]/");
+                                s = s.replaceAll(http, "/https/referer:["+Referer+"]/");
                             }
                         }
                     }
