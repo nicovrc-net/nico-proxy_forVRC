@@ -110,8 +110,9 @@ public class NicoVideo implements ServiceAPI {
 
         // Proxy
         if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
+            int i = Function.ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.ProxyList.size()) : 0;
             Proxy = Function.ProxyList.get(i);
+            //System.out.println(i);
         }
 
         String url = URL.split("\\?")[0];
@@ -157,7 +158,7 @@ public class NicoVideo implements ServiceAPI {
         if (isID || isNormal || isShort){
             if (id.startsWith("lv") || id.startsWith("so")){
                 if (!Function.JP_ProxyList.isEmpty()){
-                    int i = new SecureRandom().nextInt(0, Function.JP_ProxyList.size());
+                    int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
                     Proxy = Function.JP_ProxyList.get(i);
                 }
             }
@@ -165,7 +166,7 @@ public class NicoVideo implements ServiceAPI {
 
         if (isCas){
             if (!Function.JP_ProxyList.isEmpty()){
-                int i = new SecureRandom().nextInt(0, Function.JP_ProxyList.size());
+                int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
                 Proxy = Function.JP_ProxyList.get(i);
             }
         }
@@ -175,6 +176,7 @@ public class NicoVideo implements ServiceAPI {
         NicoNicoVideo result = new NicoNicoVideo();
         try {
             HttpClient client;
+            System.out.println(Proxy);
             if (Proxy == null){
                 client = HttpClient.newBuilder()
                         .version(HttpClient.Version.HTTP_2)
@@ -327,7 +329,6 @@ public class NicoVideo implements ServiceAPI {
                     //System.out.println(sendJson);
                     request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
                             .uri(uri)
-                            .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
                             .headers("X-Access-Right-Key", accessRightKey)
                             .headers("X-Frontend-Id", "6")
                             .headers("X-Frontend-Version", "0")
@@ -339,7 +340,6 @@ public class NicoVideo implements ServiceAPI {
                             .build() :
                             HttpRequest.newBuilder()
                                     .uri(uri)
-                                    .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
                                     .headers("X-Access-Right-Key", accessRightKey)
                                     .headers("X-Frontend-Id", "6")
                                     .headers("X-Frontend-Version", "0")
