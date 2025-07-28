@@ -176,7 +176,7 @@ public class NicoVideo implements ServiceAPI {
         NicoNicoVideo result = new NicoNicoVideo();
         try {
             HttpClient client;
-            System.out.println(Proxy);
+            //System.out.println(Proxy);
             if (Proxy == null){
                 client = HttpClient.newBuilder()
                         .version(HttpClient.Version.HTTP_2)
@@ -361,6 +361,44 @@ public class NicoVideo implements ServiceAPI {
                         System.out.println("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")");
                         return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
                     }
+
+                    uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId+"&__retry=0");
+                    //System.out.println(sendJson);
+                    request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
+                            .uri(uri)
+                            .headers("X-Access-Right-Key", accessRightKey)
+                            .headers("X-Frontend-Id", "6")
+                            .headers("X-Frontend-Version", "0")
+                            .headers("X-Niconico-Language", "ja-jp")
+                            .headers("X-Request-With", accessUrl)
+                            .headers("Cookie", "user_session="+user_session+"; user_session_secure="+user_session_secure+"; nicosid="+nicosid)
+                            .headers("User-Agent", Function.UserAgent)
+                            .POST(HttpRequest.BodyPublishers.ofString(sendJson))
+                            .build() :
+                            HttpRequest.newBuilder()
+                                    .uri(uri)
+                                    .headers("X-Access-Right-Key", accessRightKey)
+                                    .headers("X-Frontend-Id", "6")
+                                    .headers("X-Frontend-Version", "0")
+                                    .headers("X-Niconico-Language", "ja-jp")
+                                    .headers("X-Request-With", accessUrl)
+                                    .headers("Cookie", "nicosid="+nicosid)
+                                    .headers("User-Agent", Function.UserAgent)
+                                    .POST(HttpRequest.BodyPublishers.ofString(sendJson))
+                                    .build();
+
+                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                    if (send.statusCode() >= 400){
+                        //System.out.println("TEST");
+                        uri = null;
+                        request = null;
+                        client.close();
+                        client = null;
+
+                        System.out.println("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")");
+                        return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
+                    }
+
                     body = send.body();
                     //System.out.println(body);
                     json = gson.fromJson(body, JsonElement.class);
