@@ -140,11 +140,10 @@ public class NicoVideo implements ServiceAPI {
         String accessUrl = null;
         if (isID){
             id = matcher_idOnly.group(1);
-            accessUrl = "https://nico.ms/" + id;
+            accessUrl = "https://www.nicovideo.jp/watch/" + id;
         }
         if (isNormal){
-            id = matcher_normal.group(3);
-            accessUrl = "https://nico.ms/" + id;
+            accessUrl = matcher_normal.group(1) + "://" + matcher_normal.group(2) + ".nicovideo.jp/watch/" + matcher_normal.group(3);
         }
 
         if (isShort){
@@ -194,11 +193,13 @@ public class NicoVideo implements ServiceAPI {
             }
 
             URI uri = new URI(accessUrl);
+            //System.out.println(accessUrl);
             HttpRequest request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
                     .uri(uri)
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    //.headers("Cookie", "user_session=user_session_135865057_995f8590f25308170c1647117233812b314bd60cbc9eacb13e4dfded7873da55; user_session_secure=MTM1ODY1MDU3OnFUM2h4N0wzendMMDFUVWF1NndjMmE3ekpQdi5TSzlCVnhGdC1OSXJEdi4")
                     .headers("Cookie", "user_session="+user_session+"; user_session_secure="+user_session_secure)
                     .GET()
                     .build() :
@@ -211,6 +212,22 @@ public class NicoVideo implements ServiceAPI {
                             .build();
 
             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            String nicosid = null;
+
+            List<String> cookieText = new ArrayList<>();
+            if (!send.headers().allValues("Set-Cookie").isEmpty()){
+                cookieText = send.headers().allValues("Set-Cookie");
+            }
+            if (!send.headers().allValues("set-cookie").isEmpty()){
+                cookieText = send.headers().allValues("set-cookie");
+            }
+
+            String[] split = cookieText.get(0).split(";");
+
+            if (split[0].startsWith("nicosid=")){
+                nicosid = split[0].replaceAll("nicosid=", "");
+            }
+
             if (send.statusCode() >= 400){
                 uri = null;
                 request = null;
@@ -259,7 +276,6 @@ public class NicoVideo implements ServiceAPI {
 
             if (json != null){
                 if (json.isJsonObject() && json.getAsJsonObject().has("data")){
-                    String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
                     // 動画
                     result.setURL(json.getAsJsonObject().get("data").getAsJsonObject().get("metadata").getAsJsonObject().get("jsonLds").getAsJsonArray().get(0).getAsJsonObject().get("@id").getAsString());
                     result.setTitle(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("title").getAsString());
@@ -289,12 +305,18 @@ public class NicoVideo implements ServiceAPI {
                     StringBuilder videoJson = new StringBuilder();
                     //System.out.println(json);
 
-                    String audioJson = "";
+                    String audioJson1 = null;
+                    String audioJson2 = null;
 
                     for (JsonElement element : json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").getAsJsonArray("audios")) {
                         //System.out.println(element);
-                        if (element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
-                            audioJson = element.getAsJsonObject().get("id").getAsString();
+                        if (audioJson1 == null && element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
+                            audioJson1 = element.getAsJsonObject().get("id").getAsString();
+
+                            continue;
+                        }
+                        if (audioJson1 != null && element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
+                            audioJson2 = element.getAsJsonObject().get("id").getAsString();
                             break;
                         }
                     }
@@ -302,7 +324,7 @@ public class NicoVideo implements ServiceAPI {
                     for (JsonElement element : json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").getAsJsonArray("videos")) {
                         //System.out.println(element);
                         if (element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
-                            videoJson.append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson).append("\"],");
+                            videoJson.append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson1).append("\"],").append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson2).append("\"],");
                         }
                     }
 
@@ -326,10 +348,13 @@ public class NicoVideo implements ServiceAPI {
                     }
 
                     uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId);
+                    //System.out.println(trackId);
                     //System.out.println(sendJson);
+                    //System.out.println(nicosid);
                     request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
                             .uri(uri)
                             .headers("X-Access-Right-Key", accessRightKey)
+                            .headers("Content-Type", "application/json")
                             .headers("X-Frontend-Id", "6")
                             .headers("X-Frontend-Version", "0")
                             .headers("X-Niconico-Language", "ja-jp")
@@ -341,6 +366,7 @@ public class NicoVideo implements ServiceAPI {
                             HttpRequest.newBuilder()
                                     .uri(uri)
                                     .headers("X-Access-Right-Key", accessRightKey)
+                                    .headers("Content-Type", "application/json")
                                     .headers("X-Frontend-Id", "6")
                                     .headers("X-Frontend-Version", "0")
                                     .headers("X-Niconico-Language", "ja-jp")
@@ -350,45 +376,11 @@ public class NicoVideo implements ServiceAPI {
                                     .POST(HttpRequest.BodyPublishers.ofString(sendJson))
                                     .build();
 
+                    //System.out.println("accessRightKey "+accessRightKey);
                     send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
                     if (send.statusCode() >= 400){
-                        //System.out.println("TEST");
-                        uri = null;
-                        request = null;
-                        client.close();
-                        client = null;
-
-                        System.out.println("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")");
-                        return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
-                    }
-
-                    uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId+"&__retry=0");
-                    //System.out.println(sendJson);
-                    request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
-                            .uri(uri)
-                            .headers("X-Access-Right-Key", accessRightKey)
-                            .headers("X-Frontend-Id", "6")
-                            .headers("X-Frontend-Version", "0")
-                            .headers("X-Niconico-Language", "ja-jp")
-                            .headers("X-Request-With", accessUrl)
-                            .headers("Cookie", "user_session="+user_session+"; user_session_secure="+user_session_secure+"; nicosid="+nicosid)
-                            .headers("User-Agent", Function.UserAgent)
-                            .POST(HttpRequest.BodyPublishers.ofString(sendJson))
-                            .build() :
-                            HttpRequest.newBuilder()
-                                    .uri(uri)
-                                    .headers("X-Access-Right-Key", accessRightKey)
-                                    .headers("X-Frontend-Id", "6")
-                                    .headers("X-Frontend-Version", "0")
-                                    .headers("X-Niconico-Language", "ja-jp")
-                                    .headers("X-Request-With", accessUrl)
-                                    .headers("Cookie", "nicosid="+nicosid)
-                                    .headers("User-Agent", Function.UserAgent)
-                                    .POST(HttpRequest.BodyPublishers.ofString(sendJson))
-                                    .build();
-
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                    if (send.statusCode() >= 400){
+                        //System.out.println(send.body());
                         //System.out.println("TEST");
                         uri = null;
                         request = null;
@@ -404,7 +396,9 @@ public class NicoVideo implements ServiceAPI {
                     json = gson.fromJson(body, JsonElement.class);
                     client.close();
 
-                    List<String> cookieText = new ArrayList<>();
+                    cookieText = null;
+                    split = null;
+                    cookieText = new ArrayList<>();
                     if (!send.headers().allValues("Set-Cookie").isEmpty()){
                         cookieText = send.headers().allValues("Set-Cookie");
                     }
@@ -412,17 +406,56 @@ public class NicoVideo implements ServiceAPI {
                         cookieText = send.headers().allValues("set-cookie");
                     }
 
+                    split = cookieText.get(0).split(";");
+
+                    HashMap<String, String> cookie = new HashMap<>();
+                    String domand_bid = null;
+                    cookie.put("nicosid", nicosid);
+                    if (split[0].startsWith("domand_bid=")){
+                        cookie.put("domand_bid", split[0].replaceAll("domand_bid=", ""));
+                        domand_bid = split[0].replaceAll("domand_bid=", "");
+                    }
+                    result.setVideoAccessCookie(cookie);
+
+                    uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId+"&__retry=0");
+                    //System.out.println(sendJson);
+                    request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
+                            .uri(uri)
+                            .headers("X-Access-Right-Key", accessRightKey)
+                            .headers("X-Frontend-Id", "6")
+                            .headers("X-Frontend-Version", "0")
+                            .headers("X-Niconico-Language", "ja-jp")
+                            .headers("X-Request-With", accessUrl)
+                            .headers("Cookie", "user_session="+user_session+"; user_session_secure="+user_session_secure+"; nicosid="+nicosid + "; domand_bid="+domand_bid)
+                            .headers("User-Agent", Function.UserAgent)
+                            .POST(HttpRequest.BodyPublishers.ofString(sendJson))
+                            .build() :
+                            HttpRequest.newBuilder()
+                                    .uri(uri)
+                                    .headers("X-Access-Right-Key", accessRightKey)
+                                    .headers("X-Frontend-Id", "6")
+                                    .headers("X-Frontend-Version", "0")
+                                    .headers("X-Niconico-Language", "ja-jp")
+                                    .headers("X-Request-With", accessUrl)
+                                    .headers("Cookie", "nicosid="+nicosid + "; domand_bid="+domand_bid)
+                                    .headers("User-Agent", Function.UserAgent)
+                                    .POST(HttpRequest.BodyPublishers.ofString(sendJson))
+                                    .build();
+
+                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                    if (send.statusCode() >= 400){
+                        //System.out.println("TEST");
+                        uri = null;
+                        request = null;
+                        client.close();
+                        client = null;
+
+                        System.out.println("取得に失敗しました。2 (HTTPエラーコード : "+send.statusCode()+")");
+                        return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
+                    }
+
                     if (json.isJsonObject() && json.getAsJsonObject().has("data") && json.getAsJsonObject().get("data").getAsJsonObject().has("contentUrl")){
                         result.setVideoURL(json.getAsJsonObject().get("data").getAsJsonObject().get("contentUrl").getAsString());
-
-                        String[] split = cookieText.get(0).split(";");
-
-                        HashMap<String, String> cookie = new HashMap<>();
-                        cookie.put("nicosid", nicosid);
-                        if (split[0].startsWith("domand_bid=")){
-                            cookie.put("domand_bid", split[0].replaceAll("domand_bid=", ""));
-                        }
-                        result.setVideoAccessCookie(cookie);
                     } else {
                         System.out.println("動画取得に失敗しました。");
                         return gson.toJson(new ErrorMessage("動画取得に失敗しました。"));
@@ -588,7 +621,8 @@ public class NicoVideo implements ServiceAPI {
                                     liveData.setLiveURL(resultData[0]);
                                     if (resultData[2] != null){
                                         for (String s : resultData[2].split(";")) {
-                                            String[] split = s.split("=");
+                                            split = null;
+                                            split = s.split("=");
                                             h.put(split[0], split[1]);
                                         }
                                     } else {
