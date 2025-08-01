@@ -175,8 +175,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     logData.setResultURL(cacheData.getTargetURL());
                     webhookData.setResult(cacheData.getTargetURL());
 
-                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                    Function.WebhookData.put(logData.getLogID(), webhookData);
+                    if (!dummy_url.matcher(URL).find()){
+                        Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                        Function.WebhookData.put(logData.getLogID(), webhookData);
+                    }
 
                     return;
                 }
