@@ -1,6 +1,6 @@
 plugins {
     id "java"
-    id "com.gradleup.shadow" version "9.0.0-rc1"
+    id "com.gradleup.shadow" version "9.0.0-rc2"
 }
 
 
@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.3'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'
 
     implementation 'com.amihaiemil.web:eo-yaml:8.0.6'
 
