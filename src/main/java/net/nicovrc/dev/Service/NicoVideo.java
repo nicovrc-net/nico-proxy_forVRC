@@ -176,7 +176,7 @@ public class NicoVideo implements ServiceAPI {
         NicoNicoVideo result = new NicoNicoVideo();
         try {
             HttpClient client;
-            System.out.println(Proxy);
+            //System.out.println(Proxy);
             if (Proxy == null){
                 client = HttpClient.newBuilder()
                         .version(HttpClient.Version.HTTP_2)
@@ -461,7 +461,7 @@ public class NicoVideo implements ServiceAPI {
                                     @Override
                                     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
                                         String message = data.toString();
-                                        //System.out.println(message);
+                                        System.out.println(message);
 
                                         JsonElement json1 = gson.fromJson(message, JsonElement.class);
                                         //System.out.println("<--- "+json1);
@@ -533,6 +533,8 @@ public class NicoVideo implements ServiceAPI {
                                         return null;
                                     }
                                 };
+
+                                //System.out.println(WebsocketURL);
                                 CompletableFuture<WebSocket> comp = wsb.buildAsync(new URI(WebsocketURL), listener);
                                 try {
                                     WebSocket webSocket = comp.get();
