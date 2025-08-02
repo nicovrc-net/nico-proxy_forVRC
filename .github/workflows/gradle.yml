@@ -485,6 +485,7 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - TVerリアルタイム配信が見れない問題修正
+            - TVerで一部動画が見れない問題修正
           draft: false
           prerelease: true
 
