@@ -345,7 +345,7 @@ public class NicoVideo implements ServiceAPI {
                                 .build();
                         //System.out.println("Proxy : " + Proxy);
                     }*/
-
+                    /*
                     uri = new URI("https://ipinfo.io/ip");
                     request = HttpRequest.newBuilder()
                             .uri(uri)
@@ -353,8 +353,10 @@ public class NicoVideo implements ServiceAPI {
                             .build();
                     send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-                    System.out.println(send.body());
+                    System.out.println(send.body());*/
 
+                    // https://nvapi.nicovideo.jp/v1/watch/sm45021027/access-rights/hls?actionTrackId=IpQvCiNIUy_1754217531720
+                    System.out.println(trackId);
                     uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId);
                     //System.out.println(sendJson);
                     request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
@@ -443,7 +445,7 @@ public class NicoVideo implements ServiceAPI {
                         }
                         result.setVideoAccessCookie(cookie);
                     } else {
-                        System.out.println("動画取得に失敗しました。");
+                        //System.out.println("動画取得に失敗しました。");
                         return gson.toJson(new ErrorMessage("動画取得に失敗しました。"));
                     }
 
@@ -518,7 +520,7 @@ public class NicoVideo implements ServiceAPI {
                                     @Override
                                     public CompletionStage<?> onText(WebSocket webSocket, CharSequence data, boolean last) {
                                         String message = data.toString();
-                                        System.out.println(message);
+                                        //System.out.println(message);
 
                                         JsonElement json1 = gson.fromJson(message, JsonElement.class);
                                         //System.out.println("<--- "+json1);
