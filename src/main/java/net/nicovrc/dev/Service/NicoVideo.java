@@ -292,12 +292,18 @@ public class NicoVideo implements ServiceAPI {
                     StringBuilder videoJson = new StringBuilder();
                     //System.out.println(json);
 
-                    String audioJson = "";
+                    String audioJson1 = null;
+                    String audioJson2 = null;
 
                     for (JsonElement element : json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").getAsJsonArray("audios")) {
                         //System.out.println(element);
-                        if (element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
-                            audioJson = element.getAsJsonObject().get("id").getAsString();
+                        if (audioJson1 == null && element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
+                            audioJson1 = element.getAsJsonObject().get("id").getAsString();
+
+                            continue;
+                        }
+                        if (audioJson1 != null && element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
+                            audioJson2 = element.getAsJsonObject().get("id").getAsString();
                             break;
                         }
                     }
@@ -305,8 +311,7 @@ public class NicoVideo implements ServiceAPI {
                     for (JsonElement element : json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").getAsJsonArray("videos")) {
                         //System.out.println(element);
                         if (element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
-
-                            videoJson.append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson).append("\"],");
+                            videoJson.append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson1).append("\"],").append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson2).append("\"],");
                         }
                     }
 
@@ -328,13 +333,11 @@ public class NicoVideo implements ServiceAPI {
                                 .connectTimeout(Duration.ofSeconds(5))
                                 .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
                                 .build();
-                        System.out.println("Proxy : " + Proxy);
+                        //System.out.println("Proxy : " + Proxy);
                     }
 
                     uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId);
                     //System.out.println(sendJson);
-                    System.out.println("X-Access-Right-Key : " + accessRightKey);
-                    System.out.println("nicosid : "+nicosid);
                     request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
                             .uri(uri)
                             .headers("Accept", "application/json;charset=utf-8")
