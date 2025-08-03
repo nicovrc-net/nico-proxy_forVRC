@@ -312,7 +312,7 @@ public class NicoVideo implements ServiceAPI {
                     String sendJson = "{\"outputs\":["+videoJson.substring(0, videoJson.length() - 1)+"]}";
                     //System.out.println(sendJson);
 
-                    System.out.println(Proxy);
+                    //System.out.println(Proxy);
                     if (Proxy == null){
                         client = HttpClient.newBuilder()
                                 .version(HttpClient.Version.HTTP_2)
