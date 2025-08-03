@@ -146,7 +146,7 @@ public class NicoVideo implements ServiceAPI {
         }
         if (isNormal){
             id = matcher_normal.group(3);
-            accessUrl = "https://nico.ms/" + id;
+            accessUrl = "https://"+matcher_normal.group(2)+".nicovideo.jp/watch/" + id;
         }
 
         if (isShort){
@@ -254,6 +254,15 @@ public class NicoVideo implements ServiceAPI {
 
             //System.out.println(json);
             //return json.toString();
+
+            uri = new URI("https://ipinfo.io/ip");
+            request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .headers("User-Agent", Function.UserAgent)
+                    .build();
+            send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+            System.out.println(send.body());
 
             uri = null;
             request = null;
