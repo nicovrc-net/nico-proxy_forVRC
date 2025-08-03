@@ -254,20 +254,20 @@ public class NicoVideo implements ServiceAPI {
 
             //System.out.println(json);
             //return json.toString();
-
+            /*
             uri = new URI("https://ipinfo.io/ip");
             request = HttpRequest.newBuilder()
                     .uri(uri)
                     .headers("User-Agent", Function.UserAgent)
                     .build();
             send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
             System.out.println(send.body());
+             */
 
             uri = null;
             request = null;
-            client.close();
-            client = null;
+            //client.close();
+            //client = null;
 
             if (json != null){
                 if (json.isJsonObject() && json.getAsJsonObject().has("data")){
@@ -328,6 +328,7 @@ public class NicoVideo implements ServiceAPI {
                     //System.out.println(sendJson);
 
                     //System.out.println(Proxy);
+                    /*
                     if (Proxy == null){
                         client = HttpClient.newBuilder()
                                 .version(HttpClient.Version.HTTP_2)
@@ -343,7 +344,7 @@ public class NicoVideo implements ServiceAPI {
                                 .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
                                 .build();
                         //System.out.println("Proxy : " + Proxy);
-                    }
+                    }*/
 
                     uri = new URI("https://ipinfo.io/ip");
                     request = HttpRequest.newBuilder()
@@ -476,7 +477,7 @@ public class NicoVideo implements ServiceAPI {
                             NicoNicoVideo cacheData = LiveCacheList.get(liveData.getURL());
                             if (cacheData == null){
                                 String WebsocketURL = json.getAsJsonObject().get("site").getAsJsonObject().get("relive").getAsJsonObject().get("webSocketUrl").getAsString();
-
+                                /*
                                 if (Proxy == null){
                                     client = HttpClient.newBuilder()
                                             .version(HttpClient.Version.HTTP_2)
@@ -491,7 +492,7 @@ public class NicoVideo implements ServiceAPI {
                                             .connectTimeout(Duration.ofSeconds(5))
                                             .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
                                             .build();
-                                }
+                                }*/
 
                                 final String[] resultData = new String[]{"", "", null};
                                 final Timer niconamaTimer = new Timer();
