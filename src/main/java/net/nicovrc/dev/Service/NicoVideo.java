@@ -184,6 +184,7 @@ public class NicoVideo implements ServiceAPI {
                         .connectTimeout(Duration.ofSeconds(5))
                         .build();
             } else {
+                System.out.println(Proxy);
                 String[] s = Proxy.split(":");
                 client = HttpClient.newBuilder()
                         .version(HttpClient.Version.HTTP_2)
