@@ -356,6 +356,7 @@ public class NicoVideo implements ServiceAPI {
                     System.out.println(send.body());*/
 
                     // https://nvapi.nicovideo.jp/v1/watch/sm45021027/access-rights/hls?actionTrackId=IpQvCiNIUy_1754217531720
+                    System.out.println(id);
                     System.out.println(trackId);
                     uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId);
                     //System.out.println(sendJson);
