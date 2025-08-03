@@ -115,6 +115,8 @@ public class NicoVideo implements ServiceAPI {
             //System.out.println(i);
         }
 
+        System.out.println(Proxy);
+
         String url = URL.split("\\?")[0];
         Matcher matcher_normal = NicoID1.matcher(url);
         Matcher matcher_short = NicoID2.matcher(url);
@@ -184,7 +186,7 @@ public class NicoVideo implements ServiceAPI {
                         .connectTimeout(Duration.ofSeconds(5))
                         .build();
             } else {
-                System.out.println(Proxy);
+                //System.out.println(Proxy);
                 String[] s = Proxy.split(":");
                 client = HttpClient.newBuilder()
                         .version(HttpClient.Version.HTTP_2)
