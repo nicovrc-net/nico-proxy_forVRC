@@ -305,6 +305,7 @@ public class NicoVideo implements ServiceAPI {
                     for (JsonElement element : json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").getAsJsonArray("videos")) {
                         //System.out.println(element);
                         if (element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
+
                             videoJson.append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson).append("\"],");
                         }
                     }
@@ -327,10 +328,13 @@ public class NicoVideo implements ServiceAPI {
                                 .connectTimeout(Duration.ofSeconds(5))
                                 .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
                                 .build();
+                        System.out.println("Proxy : " + Proxy);
                     }
 
                     uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId);
                     //System.out.println(sendJson);
+                    System.out.println("X-Access-Right-Key : " + accessRightKey);
+                    System.out.println("nicosid : "+nicosid);
                     request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
                             .uri(uri)
                             .headers("Accept", "application/json;charset=utf-8")
