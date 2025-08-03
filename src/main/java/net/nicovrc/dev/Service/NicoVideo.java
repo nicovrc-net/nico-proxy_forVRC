@@ -334,7 +334,7 @@ public class NicoVideo implements ServiceAPI {
                     request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
                             .uri(uri)
                             .headers("Accept", "application/json;charset=utf-8")
-                            .headers("Accept-Encoding", "gzip, deflate, br, zstd")
+                            //.headers("Accept-Encoding", "gzip, deflate, br, zstd")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                             .headers("Connection", "keep-alive")
                             .headers("Content-Type", "application/json")
@@ -358,7 +358,7 @@ public class NicoVideo implements ServiceAPI {
                             HttpRequest.newBuilder()
                                     .uri(uri)
                                     .headers("Accept", "application/json;charset=utf-8")
-                                    .headers("Accept-Encoding", "gzip, deflate, br, zstd")
+                                    //.headers("Accept-Encoding", "gzip, deflate, br, zstd")
                                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                                     .headers("Connection", "keep-alive")
                                     .headers("Content-Type", "application/json")
@@ -389,6 +389,7 @@ public class NicoVideo implements ServiceAPI {
                         client = null;
 
                         System.out.println("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")");
+                        System.out.println(send.body());
                         return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
                     }
                     body = send.body();
