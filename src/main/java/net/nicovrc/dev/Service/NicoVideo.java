@@ -336,6 +336,15 @@ public class NicoVideo implements ServiceAPI {
                         //System.out.println("Proxy : " + Proxy);
                     }
 
+                    uri = new URI("https://ipinfo.io/ip");
+                    request = HttpRequest.newBuilder()
+                            .uri(uri)
+                            .headers("User-Agent", Function.UserAgent)
+                            .build();
+                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                    System.out.println(send.body());
+
                     uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId);
                     //System.out.println(sendJson);
                     request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
