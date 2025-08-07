@@ -418,6 +418,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         byte[] content2 = Function.getErrorMessageVideo(client, errorMessage);
                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "video/mp4", content2, method != null && method.equals("HEAD"));
 
+                        logData.setErrorMessage(errorMessage);
+                        webhookData.setResult(errorMessage);
+
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
                         Function.WebhookData.put(logData.getLogID(), webhookData);
                         System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + errorMessage);
