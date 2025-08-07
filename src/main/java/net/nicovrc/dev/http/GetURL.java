@@ -130,34 +130,40 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                 if (cacheData != null){
 
-                    if (!dummy_url.matcher(URL).find()){
-                        System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + cacheData.getTargetURL());
-                    }
-                    byte[] content = null;
+                    if (isGetTitle){
+                        System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + cacheData.getTitle());
 
-                    if (cacheData.isRedirect()){
-                        OutputStream out = sock.getOutputStream();
-                        StringBuilder sb_header = new StringBuilder();
+                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", cacheData.getTitle().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                    } else {
+                        if (!dummy_url.matcher(URL).find()){
+                            System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + cacheData.getTargetURL());
+                        }
+                        byte[] content = null;
 
-                        sb_header.append("HTTP/").append(Function.getHTTPVersion(httpRequest)).append(" 302 Found\r\nLocation: ").append(cacheData.getTargetURL()).append("\r\n\r\n");
-                        out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
-                        out.flush();
+                        if (cacheData.isRedirect()){
+                            OutputStream out = sock.getOutputStream();
+                            StringBuilder sb_header = new StringBuilder();
 
-                        out = null;
-                        sb_header.setLength(0);
-                        sb_header = null;
+                            sb_header.append("HTTP/").append(Function.getHTTPVersion(httpRequest)).append(" 302 Found\r\nLocation: ").append(cacheData.getTargetURL()).append("\r\n\r\n");
+                            out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
+                            out.flush();
 
-                        return;
-                    }
+                            out = null;
+                            sb_header.setLength(0);
+                            sb_header = null;
 
-                    if (cacheData.getDummyHLS() != null){
-                        if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
-                            Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getDummyHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getDummyHLS() != null ? cacheData.getDummyHLS() : content, method != null && method.equals("HEAD"));
+                            return;
+                        }
+
+                        if (cacheData.getDummyHLS() != null){
+                            if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
+                                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getDummyHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getDummyHLS() != null ? cacheData.getDummyHLS() : content, method != null && method.equals("HEAD"));
+                            } else {
+                                Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getHLS() != null ? cacheData.getHLS() : content, method != null && method.equals("HEAD"));
+                            }
                         } else {
                             Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getHLS() != null ? cacheData.getHLS() : content, method != null && method.equals("HEAD"));
                         }
-                    } else {
-                        Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getHLS() != null ? cacheData.getHLS() : content, method != null && method.equals("HEAD"));
                     }
 
                     Date date = new Date();
@@ -172,8 +178,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     webhookData.setHTTPRequest(httpRequest);
                     webhookData.setDate(date);
 
-                    logData.setResultURL(cacheData.getTargetURL());
-                    webhookData.setResult(cacheData.getTargetURL());
+                    if (!isGetTitle){
+                        logData.setResultURL(cacheData.getTargetURL());
+                        webhookData.setResult(cacheData.getTargetURL());
+                    } else {
+                        logData.setResultURL(cacheData.getTitle());
+                        webhookData.setResult(cacheData.getTitle());
+                    }
 
                     if (!dummy_url.matcher(URL).find()){
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
