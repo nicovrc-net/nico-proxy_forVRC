@@ -419,6 +419,7 @@ NicoNico_user_session_secure: ""
 
                         if (data.isSet() && time - data.getCacheDate() >= 86400000L) {
                             Function.CacheList.remove(url);
+                            return;
                         }
 
 
