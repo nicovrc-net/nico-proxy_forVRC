@@ -390,7 +390,7 @@ public class NicoVideo implements ServiceAPI {
                         request = null;
                         client.close();
                         client = null;
-
+                        /*
                         System.out.println("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")");
                         send.headers().map().forEach((a, b)->{
                             System.out.println("--- "+a+" ---");
@@ -398,7 +398,7 @@ public class NicoVideo implements ServiceAPI {
                                 System.out.println(b.get(x));
                             }
                         });
-                        System.out.println(send.body());
+                        System.out.println(send.body());*/
                         return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
                     }
                     body = send.body();
