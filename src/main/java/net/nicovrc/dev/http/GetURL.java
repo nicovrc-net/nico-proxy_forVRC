@@ -48,8 +48,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
 
-    private final HashMap<String, Long> tempCacheList = new HashMap<>();
-    private final Timer tempCacheCheckTimer = new Timer();
 
     public GetURL(){
 
@@ -69,14 +67,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         GetContentList.put("XVIDEOS.COM", new XVIDEOS());
         GetContentList.put("Pornhub", new Pornhub());
 
-        tempCacheCheckTimer.scheduleAtFixedRate(new TimerTask() {
+        Function.tempCacheCheckTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                HashMap<String, Long> temp = new HashMap<>(tempCacheList);
+                HashMap<String, Long> temp = new HashMap<>(Function.tempCacheList);
 
                 temp.forEach((url, time) ->{
                     if (new Date().getTime() - time >= 150000L){
-                        tempCacheList.remove(url);
+                        Function.tempCacheList.remove(url);
                     }
                 });
 
@@ -153,9 +151,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 }
 
                 if (cacheData != null){
-                    if (tempCacheList.get(targetUrl) == null){
+                    if (Function.tempCacheList.get(targetUrl) == null){
                         if (new Date().getTime() - cacheData.getCacheDate() <= 1800000L){
-                            tempCacheList.put(targetUrl, new Date().getTime());
+                            Function.tempCacheList.put(targetUrl, new Date().getTime());
                         } else {
                             String targetURL = cacheData.getTargetURL();
                             String cookieText = cacheData.getCookieText();
@@ -216,7 +214,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             }
 
                             if (isFound){
-                                tempCacheList.put(targetUrl, new Date().getTime());
+                                Function.tempCacheList.put(targetUrl, new Date().getTime());
                             } else {
                                 Function.CacheList.remove(targetUrl);
                                 cacheData = null;

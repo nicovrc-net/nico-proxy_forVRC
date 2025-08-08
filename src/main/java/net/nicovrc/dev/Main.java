@@ -450,6 +450,7 @@ NicoNico_user_session_secure: ""
         //proxyCheckTimer.cancel();
         logWriteTimer.cancel();
         cacheRemoveTimer.cancel();
+        Function.tempCacheCheckTimer.cancel();
         WriteLog();
         SendWebhook();
         System.out.println("[Info] 終了します...");
