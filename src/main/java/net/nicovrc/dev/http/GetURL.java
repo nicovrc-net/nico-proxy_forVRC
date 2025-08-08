@@ -230,7 +230,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", cacheData.getTitle().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                     } else {
-                        if (!isHLSDummyPrint){
+                        if (isHLSDummyPrint){
                             System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + cacheData.getTargetURL());
                         }
                         byte[] content = null;
@@ -281,7 +281,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         webhookData.setResult(cacheData.getTitle());
                     }
 
-                    if (!isHLSDummyPrint){
+                    if (isHLSDummyPrint){
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
                         Function.WebhookData.put(logData.getLogID(), webhookData);
                     }
