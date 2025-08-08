@@ -17,6 +17,8 @@ import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.net.*;
 import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
@@ -46,6 +48,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
 
+    private final HashMap<String, Long> tempCacheList = new HashMap<>();
+    private final Timer tempCacheCheckTimer = new Timer();
 
     public GetURL(){
 
@@ -65,11 +69,28 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         GetContentList.put("XVIDEOS.COM", new XVIDEOS());
         GetContentList.put("Pornhub", new Pornhub());
 
+        tempCacheCheckTimer.scheduleAtFixedRate(new TimerTask() {
+            @Override
+            public void run() {
+                HashMap<String, Long> temp = new HashMap<>(tempCacheList);
+
+                temp.forEach((url, time) ->{
+                    if (new Date().getTime() - time >= 150000L){
+                        tempCacheList.remove(url);
+                    }
+                });
+
+                temp.clear();
+                temp = null;
+            }
+        }, 0L, 1000L);
+
     }
 
     @Override
     public void run() {
         String method = Function.getMethod(httpRequest);
+        final String targetUrl = (NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", "");
 
         try {
             //System.out.println(URL);
@@ -103,21 +124,21 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             URL = URL.replaceAll("^(/(.*)\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
 
             ServiceAPI api = null;
-            CacheData cacheData = Function.CacheList.get((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
+            CacheData cacheData = Function.CacheList.get(targetUrl);
 
             String json = null;
             String ServiceName = null;
             String proxy = null;
 
-            boolean isCache = false;
+            final boolean isCache = cacheData != null;
             final boolean isHLSDummyPrint = !dummy_url.matcher(URL).find();
             final boolean isGetTitle = vrc_getStringUA.matcher(httpRequest).find();
 
-            if (cacheData != null) {
+            if (isCache) {
 
                 int i = 0;
                 while (i == 0){
-                    cacheData = Function.CacheList.get((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""));
+                    cacheData = Function.CacheList.get(targetUrl);
                     if (cacheData == null){
                         i = 1;
                         continue;
@@ -129,13 +150,86 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 }
 
                 if (cacheData != null){
+                    if (tempCacheList.get(targetUrl) == null){
+                        if (new Date().getTime() - cacheData.getCacheDate() <= 1800000L){
+                            tempCacheList.put(targetUrl, new Date().getTime());
+                        } else {
+                            String targetURL = cacheData.getTargetURL();
+                            String cookieText = cacheData.getCookieText();
+                            String refererText = cacheData.getRefererText();
+                            boolean isFound = true;
+
+                            try (HttpClient client = cacheData.getProxy() == null || cacheData.getProxy().split(":").length != 2 ? HttpClient.newBuilder()
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .followRedirects(HttpClient.Redirect.NORMAL)
+                                    .connectTimeout(Duration.ofSeconds(5))
+                                    .build()
+                                    :
+                                    HttpClient.newBuilder()
+                                            .version(HttpClient.Version.HTTP_2)
+                                            .followRedirects(HttpClient.Redirect.NORMAL)
+                                            .connectTimeout(Duration.ofSeconds(5))
+                                            .proxy(ProxySelector.of(new InetSocketAddress(cacheData.getProxy().split(":")[0], Integer.parseInt(cacheData.getProxy().split(":")[1]))))
+                                            .build()
+                            ) {
+
+                                HttpRequest request = null;
+                                if (cookieText == null && refererText == null){
+                                    request = HttpRequest.newBuilder()
+                                            .uri(new URI(targetURL))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .GET()
+                                            .build();
+                                } else if (cookieText != null && refererText == null){
+                                    request = HttpRequest.newBuilder()
+                                            .uri(new URI(targetURL))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .headers("Cookie", cookieText)
+                                            .GET()
+                                            .build();
+                                } else if (cookieText == null){
+                                    request = HttpRequest.newBuilder()
+                                            .uri(new URI(targetURL))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .headers("Referer", refererText)
+                                            .GET()
+                                            .build();
+                                } else {
+                                    request = HttpRequest.newBuilder()
+                                            .uri(new URI(targetURL))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .headers("Cookie", cookieText)
+                                            .headers("Referer", refererText)
+                                            .GET()
+                                            .build();
+                                }
+
+                                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                                if (send.statusCode() >= 300 && send.statusCode() <= 199){
+                                    isFound = false;
+                                }
+                                send = null;
+
+                            }
+
+                            if (isFound){
+                                tempCacheList.put(targetUrl, new Date().getTime());
+                            } else {
+                                Function.CacheList.remove(targetUrl);
+                                cacheData = null;
+                            }
+                        }
+                    }
+                }
+
+                if (cacheData != null){
 
                     if (isGetTitle){
                         System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + cacheData.getTitle());
 
                         Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "text/plain; charset=utf-8", cacheData.getTitle().getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                     } else {
-                        if (!dummy_url.matcher(URL).find()){
+                        if (!isHLSDummyPrint){
                             System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + cacheData.getTargetURL());
                         }
                         byte[] content = null;
@@ -156,7 +250,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         }
 
                         if (cacheData.getDummyHLS() != null){
-                            if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
+                            if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find()) {
                                 Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getDummyHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getDummyHLS() != null ? cacheData.getDummyHLS() : content, method != null && method.equals("HEAD"));
                             } else {
                                 Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, cacheData.getHLS() != null ? "application/vnd.apple.mpegurl" : "video/mp4", cacheData.getHLS() != null ? cacheData.getHLS() : content, method != null && method.equals("HEAD"));
@@ -429,7 +523,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                     if (!cacheData.isRedirect()){
                         if (cacheData.getDummyHLS() != null){
-                            if (!dummy_url.matcher(URL).find() && !vlc_ua.matcher(httpRequest).find()) {
+                            if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find()) {
                                 Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", cacheData.getDummyHLS(), method != null && method.equals("HEAD"));
                             } else {
                                 Function.sendHTTPRequest(sock, Function.getHTTPVersion(httpRequest), 200, "application/vnd.apple.mpegurl", cacheData.getHLS(), method != null && method.equals("HEAD"));
