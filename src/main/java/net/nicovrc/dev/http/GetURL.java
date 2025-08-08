@@ -122,10 +122,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             URL = URL.replaceAll("^(/(.*)\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
             final String targetUrl = (NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", "");
-            System.out.println(targetUrl);
+            //System.out.println(targetUrl);
 
             ServiceAPI api = null;
-            System.out.println(targetUrl);
+            //System.out.println(targetUrl);
             CacheData cacheData = Function.CacheList.get(targetUrl);
 
             String json = null;
@@ -136,7 +136,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             final boolean isHLSDummyPrint = !dummy_url.matcher(URL).find();
             final boolean isGetTitle = vrc_getStringUA.matcher(httpRequest).find();
 
-            System.out.println(isCache);
+            //System.out.println(isCache);
             if (isCache) {
 
                 int i = 0;
