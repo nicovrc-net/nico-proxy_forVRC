@@ -320,7 +320,11 @@ public class NicoVideo implements ServiceAPI {
                     for (JsonElement element : json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").getAsJsonArray("videos")) {
                         //System.out.println(element);
                         if (element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
-                            videoJson.append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson1).append("\"],").append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson2).append("\"],");
+                            if (audioJson2 != null){
+                                videoJson.append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson1).append("\"],").append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson2).append("\"],");
+                            } else {
+                                videoJson.append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson1).append("\"],");
+                            }
                         }
                     }
 
