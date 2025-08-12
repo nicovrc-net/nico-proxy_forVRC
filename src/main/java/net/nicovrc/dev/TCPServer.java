@@ -201,7 +201,7 @@ public class TCPServer extends Thread {
 
                         // それぞれの処理へ飛ぶ
                         boolean isFound = false;
-                        NicoVRCHTTP vrchttp = httpService.get(URI.substring(0, 5));
+                        NicoVRCHTTP vrchttp = httpService.get(URI.substring(0, Math.min(URI.length(), 5)));
                         if (vrchttp != null){
                             isFound = true;
                             vrchttp.setURL(URI);
