@@ -5,7 +5,6 @@ import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlSequence;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.data.*;
-import net.nicovrc.dev.http.*;
 import redis.clients.jedis.*;
 
 import java.io.*;
@@ -24,9 +23,7 @@ import java.util.regex.Pattern;
 
 public class Main {
 
-    //private static final Timer proxyCheckTimer = new Timer();
-    private static final Timer logWriteTimer = new Timer();
-    private static final Timer cacheRemoveTimer = new Timer();
+    private static final Timer mainTimer = new Timer();
 
     private static final Pattern matcher_Json = Pattern.compile("<meta name=\"server-response\" content=\"\\{(.+)}\" />");
 
@@ -128,8 +125,7 @@ NicoNico_user_session_secure: ""
                 // 終了処理
                 try {
                     //proxyCheckTimer.cancel();
-                    logWriteTimer.cancel();
-                    cacheRemoveTimer.cancel();
+                    mainTimer.cancel();
                 } catch (Exception e){
                     // e.printStackTrace();
                 }
@@ -398,17 +394,8 @@ NicoNico_user_session_secure: ""
             // e.printStackTrace();
         }
 
-        // ログ、Webhook書き出し
-        logWriteTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                WriteLog();
-                SendWebhook();
-            }
-        }, 0L, 60000L);
-
-        // キャッシュ掃除
-        cacheRemoveTimer.scheduleAtFixedRate(new TimerTask() {
+        // ログ、Webhook書き出し & キャッシュ削除
+        mainTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 Thread.ofVirtual().start(()->{
@@ -426,18 +413,12 @@ NicoNico_user_session_secure: ""
                     map.clear();
                     map = null;
                 });
+                WriteLog();
+                SendWebhook();
             }
         }, 0L, 60000L);
 
         // HTTP受付
-        Function.httpServiceList.add(new NicoVRCWebAPI());
-        Function.httpServiceList.add(new GetURL());
-        Function.httpServiceList.add(new GetURL_dummy());
-        Function.httpServiceList.add(new GetURL_dummy2()); // Quest/Pico用
-        Function.httpServiceList.add(new GetURL_old1()); // v2互換用、様子見て削除
-        Function.httpServiceList.add(new GetURL_old2()); // v2互換用、様子見て削除
-        Function.httpServiceList.add(new GetVideo());
-
         TCPServer tcpServer = new TCPServer();
         tcpServer.start();
         try {
@@ -448,8 +429,7 @@ NicoNico_user_session_secure: ""
 
         // 終了処理
         //proxyCheckTimer.cancel();
-        logWriteTimer.cancel();
-        cacheRemoveTimer.cancel();
+        mainTimer.cancel();
         Function.tempCacheCheckTimer.cancel();
         WriteLog();
         SendWebhook();

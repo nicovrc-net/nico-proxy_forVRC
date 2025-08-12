@@ -2,7 +2,7 @@ package net.nicovrc.dev;
 
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
-import net.nicovrc.dev.http.NicoVRCHTTP;
+import net.nicovrc.dev.http.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -11,7 +11,7 @@ import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -20,10 +20,26 @@ public class TCPServer extends Thread {
     private final int HTTPPort;
     private final boolean[] temp = {true};
 
-    private final Timer stopTimer = new Timer();
-    private final Timer accessCheckTimer = new Timer();
+    private final Timer checkTimer = new Timer();
+
+    private final HashMap<String, NicoVRCHTTP> httpService = new HashMap<>();
 
     public TCPServer(){
+        final GetURL getURL = new GetURL();
+        final GetURL_dummy getURLDummy = new GetURL_dummy();
+        final GetURL_dummy2 getURLDummy2 = new GetURL_dummy2();
+        final GetURL_old1 getURLOld1 = new GetURL_old1();
+        final GetURL_old2 getURLOld2 = new GetURL_old2();
+        final GetVideo getVideo = new GetVideo();
+        final NicoVRCWebAPI nicoVRCWebAPI = new NicoVRCWebAPI();
+
+        httpService.put(getURL.getStartURI().substring(0, 5), getURL);
+        httpService.put(getURLDummy.getStartURI().substring(0, 5), getURLDummy);
+        httpService.put(getURLDummy2.getStartURI().substring(0, 5), getURLDummy2);
+        httpService.put(getURLOld1.getStartURI().substring(0, 5), getURLOld1);
+        httpService.put(getURLOld2.getStartURI().substring(0, 5), getURLOld2);
+        httpService.put(getVideo.getStartURI().substring(0, 5), getVideo);
+        httpService.put(nicoVRCWebAPI.getStartURI().substring(0, 5), nicoVRCWebAPI);
 
         int tempPort;
 
@@ -36,81 +52,78 @@ public class TCPServer extends Thread {
 
         this.HTTPPort = tempPort;
 
-        // 停止監視
-        stopTimer.scheduleAtFixedRate(new TimerTask() {
+        // 停止監視 & 死活監視
+        checkTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                File file = new File("./stop.txt");
-                File file2 = new File("./stop_lock.txt");
-                if (!file.exists()){
-                    file = null;
-                    file2 = null;
-                    return;
-                }
 
-                if (file2.exists()){
-                    file = null;
-                    file2 = null;
-                    return;
-                }
-
-                try {
-                    if (file2.createNewFile()){
-                        System.out.println("[Info] 終了処理を開始します。");
-                        temp[0] = false;
-                        Socket socket = new Socket("127.0.0.1", HTTPPort);
-                        OutputStream stream = socket.getOutputStream();
-                        stream.write(Function.zeroByte);
-                        stream.close();
-                        socket.close();
-                        stopTimer.cancel();
-                        accessCheckTimer.cancel();
-                        System.out.println("[Info] 終了処理を完了しました。");
-                    }
-                } catch (Exception e){
-                    // e.printStackTrace();
-                } finally {
-                    temp[0] = false;
-                    stopTimer.cancel();
-                    accessCheckTimer.cancel();
-                    System.out.println("[Info] 終了処理を完了しました。");
-                }
-
-                file.delete();
-                file2.delete();
-                file = null;
-                file2 = null;
-            }
-        }, 0L, 1000L);
-
-        // 死活監視
-        accessCheckTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                try {
+                Thread.ofVirtual().start(()->{
                     File file = new File("./stop.txt");
-                    if (!temp[0]){
-                        file.createNewFile();
-                        accessCheckTimer.cancel();
+                    File file2 = new File("./stop_lock.txt");
+                    if (!file.exists()){
                         file = null;
+                        file2 = null;
+                        return;
+                    }
+
+                    if (file2.exists()){
+                        file = null;
+                        file2 = null;
                         return;
                     }
 
                     try {
-                        Socket socket = new Socket("127.0.0.1", HTTPPort);
-                        OutputStream stream = socket.getOutputStream();
-                        stream.write(Function.zeroByte);
-                        stream.close();
-                        socket.close();
-                        file = null;
+                        if (file2.createNewFile()){
+                            System.out.println("[Info] 終了処理を開始します。");
+                            temp[0] = false;
+                            Socket socket = new Socket("127.0.0.1", HTTPPort);
+                            OutputStream stream = socket.getOutputStream();
+                            stream.write(Function.zeroByte);
+                            stream.close();
+                            socket.close();
+                            checkTimer.cancel();
+                            System.out.println("[Info] 終了処理を完了しました。");
+                        }
                     } catch (Exception e){
-                        file.createNewFile();
-                        file = null;
-                        accessCheckTimer.cancel();
+                        // e.printStackTrace();
+                    } finally {
+                        temp[0] = false;
+                        checkTimer.cancel();
+                        System.out.println("[Info] 終了処理を完了しました。");
                     }
-                } catch (Exception e){
-                    // e.printStackTrace();
-                }
+
+                    file.delete();
+                    file2.delete();
+                    file = null;
+                    file2 = null;
+                });
+
+                Thread.ofVirtual().start(()->{
+                    try {
+                        File file = new File("./stop.txt");
+                        if (!temp[0]){
+                            file.createNewFile();
+                            checkTimer.cancel();
+                            file = null;
+                            return;
+                        }
+
+                        try {
+                            Socket socket = new Socket("127.0.0.1", HTTPPort);
+                            OutputStream stream = socket.getOutputStream();
+                            stream.write(Function.zeroByte);
+                            stream.close();
+                            socket.close();
+                            file = null;
+                        } catch (Exception e){
+                            file.createNewFile();
+                            file = null;
+                            checkTimer.cancel();
+                        }
+                    } catch (Exception e){
+                        // e.printStackTrace();
+                    }
+                });
             }
         }, 1000L, 1000L);
     }
@@ -122,8 +135,7 @@ public class TCPServer extends Thread {
             svSock = new ServerSocket(HTTPPort);
         } catch (IOException e) {
             temp[0] = false;
-            stopTimer.cancel();
-            accessCheckTimer.cancel();
+            checkTimer.cancel();
             throw new RuntimeException(e);
         }
 
@@ -188,23 +200,22 @@ public class TCPServer extends Thread {
                         //System.out.println("[Debug] " + URI);
 
                         // それぞれの処理へ飛ぶ
-                        boolean[] isFound = {false};
-                        for (NicoVRCHTTP vrchttp : Function.httpServiceList) {
-                            if (URI.startsWith(vrchttp.getStartURI())) {
-                                vrchttp.setURL(URI);
-                                vrchttp.setHTTPRequest(httpRequest);
-                                vrchttp.setHTTPSocket(sock);
-                                Thread sub_thread = Thread.ofVirtual().start((Runnable) vrchttp);
-                                try {
-                                    sub_thread.join();
-                                } catch (Exception e){
-                                    // e.printStackTrace();
-                                }
-                                isFound[0] = true;
+                        boolean isFound = false;
+                        NicoVRCHTTP vrchttp = httpService.get(URI.substring(0, 5));
+                        if (vrchttp != null){
+                            isFound = true;
+                            vrchttp.setURL(URI);
+                            vrchttp.setHTTPRequest(httpRequest);
+                            vrchttp.setHTTPSocket(sock);
+                            Thread start = Thread.ofVirtual().start((Runnable) vrchttp);
+                            try {
+                                start.join();
+                            } catch (Exception e){
+                                // e.printStackTrace();
                             }
                         }
 
-                        if (!isFound[0]) {
+                        if (!isFound) {
                             Function.sendHTTPRequest(sock, null, 400, "text/plain; charset=utf-8", "Bad Request".getBytes(StandardCharsets.UTF_8), isHead);
 
                             in.close();
@@ -248,7 +259,6 @@ public class TCPServer extends Thread {
         } catch (Exception e){
             // e.printStackTrace();
         }
-        stopTimer.cancel();
-        accessCheckTimer.cancel();
+        checkTimer.cancel();
     }
 }

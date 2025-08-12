@@ -31,7 +31,6 @@ public class Function {
 
     public static final List<String> ProxyList = new ArrayList<>();
     public static final List<String> JP_ProxyList = new ArrayList<>();
-    public static final List<NicoVRCHTTP> httpServiceList = new ArrayList<>();
 
     private static final Pattern HTTPVersion = Pattern.compile("HTTP/(\\d+\\.\\d+)");
     private static final Pattern HTTP = Pattern.compile("(CONNECT|DELETE|GET|HEAD|OPTIONS|PATCH|POST|PUT|TRACE) (.+) HTTP/(\\d\\.\\d)");
@@ -159,9 +158,9 @@ public class Function {
     }
 
     public static String getMethod(String HTTPRequest){
-        String temp = HTTPRequest.substring(0, 3);
-        if (temp.toUpperCase(Locale.ROOT).equals("GET") || temp.toUpperCase(Locale.ROOT).equals("POS") || temp.toUpperCase(Locale.ROOT).equals("HEA")){
-            return temp;
+        Matcher matcher = HTTP.matcher(HTTPRequest);
+        if (matcher.find()){
+            return matcher.group(1);
         }
 
         return null;
