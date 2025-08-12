@@ -48,7 +48,8 @@ public class Function {
         //System.out.println("debug 1");
         InputStream in = sock.getInputStream();
         StringBuilder sb = new StringBuilder();
-        byte[] data = new byte[1024];
+        int readMaxsize = 2048;
+        byte[] data = new byte[readMaxsize];
         int readSize = in.read(data);
 
         if (readSize <= 0) {
@@ -63,8 +64,8 @@ public class Function {
         sb.append(temp);
         temp = null;
 
-        if (readSize == 1024){
-            data = new byte[1024];
+        if (readSize == readMaxsize){
+            data = new byte[readMaxsize];
             readSize = in.read(data);
             boolean isLoop = true;
             while (readSize >= 0){
@@ -76,7 +77,7 @@ public class Function {
                 data = null;
                 temp = null;
 
-                if (readSize < 1024){
+                if (readSize < readMaxsize){
                     isLoop = false;
                 }
 
@@ -84,9 +85,9 @@ public class Function {
                     break;
                 }
 
-                data = new byte[1024];
+                data = new byte[readMaxsize];
                 readSize = in.read(data);
-                if (readSize < 1024){
+                if (readSize < readMaxsize){
                     isLoop = false;
                 }
             }
