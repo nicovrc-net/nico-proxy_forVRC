@@ -197,7 +197,22 @@ public class NicoVideo implements ServiceAPI {
             }
 
             URI uri = new URI(accessUrl);
-            HttpRequest request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .headers("User-Agent", Function.UserAgent)
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .GET()
+                    .build();
+            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (send.statusCode() >= 400){
+                if (!Function.JP_ProxyList.isEmpty()){
+                    int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
+                    Proxy = Function.JP_ProxyList.get(i);
+                }
+            }
+
+            request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
                     .uri(uri)
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
@@ -213,7 +228,7 @@ public class NicoVideo implements ServiceAPI {
                             .GET()
                             .build();
 
-            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             if (send.statusCode() >= 400){
                 uri = null;
                 request = null;
