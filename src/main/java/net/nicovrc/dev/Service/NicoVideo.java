@@ -207,9 +207,19 @@ public class NicoVideo implements ServiceAPI {
             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             if (send.statusCode() >= 400){
                 if (!Function.JP_ProxyList.isEmpty()){
+                    client.close();
                     int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
                     Proxy = Function.JP_ProxyList.get(i);
+
+                    String[] s = Proxy.split(":");
+                    client = HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_2)
+                            .followRedirects(HttpClient.Redirect.NORMAL)
+                            .connectTimeout(Duration.ofSeconds(5))
+                            .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
+                            .build();
                 }
+
             }
 
             request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
