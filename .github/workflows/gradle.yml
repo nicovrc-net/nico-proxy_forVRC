@@ -485,6 +485,8 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - 内部処理改良
+            - TikTokが見れない問題修正
+            - bilibili.comが見れない問題修正
           draft: false
           prerelease: true
 
