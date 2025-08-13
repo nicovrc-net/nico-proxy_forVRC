@@ -229,7 +229,7 @@ public class NicoVideo implements ServiceAPI {
             });
              */
 
-            System.out.println(cookieText);
+            //System.out.println(cookieText);
             List<String> cookieList = new ArrayList<>();
             if (!send.headers().allValues("Set-Cookie").isEmpty()){
                 cookieList = send.headers().allValues("Set-Cookie");
@@ -243,7 +243,7 @@ public class NicoVideo implements ServiceAPI {
                 cookieText.append((!cookieText.isEmpty()) ? "; " : "").append(split1[0]).append("=").append(split1[1]);
             }
 
-            System.out.println(cookieText);
+            //System.out.println(cookieText);
 
             if (send.statusCode() >= 400){
                 uri = null;
