@@ -41,7 +41,7 @@ public class Function {
     public static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, WebhookData> WebhookData = new ConcurrentHashMap<>();
 
-    public static final HashMap<String, Long> tempCacheList = new HashMap<>();
+    public static final ConcurrentHashMap<String, Long> tempCacheList = new ConcurrentHashMap<>();
     public static final Timer tempCacheCheckTimer = new Timer();
 
     public static String getHTTPRequest(Socket sock) throws Exception{
@@ -99,7 +99,7 @@ public class Function {
         sb = null;
         in = null;
         //System.out.println("debug 3");
-        System.gc();
+        //System.gc();
         return httpRequest;
     }
 
