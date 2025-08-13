@@ -176,6 +176,12 @@ public class NicoVideo implements ServiceAPI {
         //System.out.println(accessUrl);
 
         NicoNicoVideo result = new NicoNicoVideo();
+
+        String cookieText = "";
+        if (user_session != null && user_session_secure != null){
+            cookieText = "user_session="+user_session+"; user_session_secure="+user_session_secure;
+        }
+
         try {
             HttpClient client;
             //System.out.println(Proxy);
@@ -197,37 +203,12 @@ public class NicoVideo implements ServiceAPI {
             }
 
             URI uri = new URI(accessUrl);
-            HttpRequest request = HttpRequest.newBuilder()
+            HttpRequest request = !cookieText.isEmpty() ? HttpRequest.newBuilder()
                     .uri(uri)
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                    .GET()
-                    .build();
-            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            if (send.statusCode() >= 400){
-                if (!Function.JP_ProxyList.isEmpty()){
-                    client.close();
-                    int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
-                    Proxy = Function.JP_ProxyList.get(i);
-
-                    String[] s = Proxy.split(":");
-                    client = HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_2)
-                            .followRedirects(HttpClient.Redirect.NORMAL)
-                            .connectTimeout(Duration.ofSeconds(5))
-                            .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                            .build();
-                }
-
-            }
-
-            request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
-                    .uri(uri)
-                    .headers("User-Agent", Function.UserAgent)
-                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                    .headers("Cookie", "user_session="+user_session+"; user_session_secure="+user_session_secure)
+                    .headers("Cookie", cookieText)
                     .GET()
                     .build() :
                     HttpRequest.newBuilder()
@@ -238,7 +219,7 @@ public class NicoVideo implements ServiceAPI {
                             .GET()
                             .build();
 
-            send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
             if (send.statusCode() >= 400){
                 uri = null;
                 request = null;
@@ -297,6 +278,8 @@ public class NicoVideo implements ServiceAPI {
             if (json != null){
                 if (json.isJsonObject() && json.getAsJsonObject().has("data")){
                     String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
+                    cookieText = (cookieText.isEmpty() ? "; " : "") + "nicosid="+nicosid;
+
                     // 動画
                     result.setURL(json.getAsJsonObject().get("data").getAsJsonObject().get("metadata").getAsJsonObject().get("jsonLds").getAsJsonArray().get(0).getAsJsonObject().get("@id").getAsString());
                     result.setTitle(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("title").getAsString());
@@ -389,25 +372,14 @@ public class NicoVideo implements ServiceAPI {
                     //System.out.println(trackId);
                     uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId);
                     //System.out.println(sendJson);
-                    request = user_session != null && user_session_secure != null ? HttpRequest.newBuilder()
-                            .uri(uri)
-                            .headers("X-Access-Right-Key", accessRightKey)
-                            .headers("X-Frontend-Id", "6")
-                            .headers("X-Frontend-Version", "0")
-                            .headers("X-Niconico-Language", "ja-jp")
-                            .headers("X-Request-With", "nicovideo")
-                            .headers("Cookie", "user_session="+user_session+"; user_session_secure="+user_session_secure+"; nicosid="+nicosid + ";")
-                            .headers("User-Agent", Function.UserAgent)
-                            .POST(HttpRequest.BodyPublishers.ofString(sendJson))
-                            .build() :
-                            HttpRequest.newBuilder()
+                    request = HttpRequest.newBuilder()
                                     .uri(uri)
                                     .headers("X-Access-Right-Key", accessRightKey)
                                     .headers("X-Frontend-Id", "6")
                                     .headers("X-Frontend-Version", "0")
                                     .headers("X-Niconico-Language", "ja-jp")
                                     .headers("X-Request-With", "nicovideo")
-                                    .headers("Cookie", "nicosid="+nicosid)
+                                    .headers("Cookie", cookieText)
                                     .headers("User-Agent", Function.UserAgent)
                                     .POST(HttpRequest.BodyPublishers.ofString(sendJson))
                                     .build();
@@ -435,20 +407,24 @@ public class NicoVideo implements ServiceAPI {
                     json = gson.fromJson(body, JsonElement.class);
                     client.close();
 
-                    List<String> cookieText = new ArrayList<>();
+                    List<String> cookieTextList = new ArrayList<>();
                     if (!send.headers().allValues("Set-Cookie").isEmpty()){
-                        cookieText = send.headers().allValues("Set-Cookie");
+                        cookieTextList = send.headers().allValues("Set-Cookie");
                     }
                     if (!send.headers().allValues("set-cookie").isEmpty()){
-                        cookieText = send.headers().allValues("set-cookie");
+                        cookieTextList = send.headers().allValues("set-cookie");
                     }
 
                     if (json.isJsonObject() && json.getAsJsonObject().has("data") && json.getAsJsonObject().get("data").getAsJsonObject().has("contentUrl")){
                         result.setVideoURL(json.getAsJsonObject().get("data").getAsJsonObject().get("contentUrl").getAsString());
 
-                        String[] split = cookieText.get(0).split(";");
+                        String[] split = cookieTextList.get(0).split(";");
 
                         HashMap<String, String> cookie = new HashMap<>();
+                        if (user_session != null && user_session_secure != null){
+                            cookie.put("user_session", user_session);
+                            cookie.put("user_session_secure", user_session_secure);
+                        }
                         cookie.put("nicosid", nicosid);
                         if (split[0].startsWith("domand_bid=")){
                             cookie.put("domand_bid", split[0].replaceAll("domand_bid=", ""));

@@ -18,6 +18,10 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
     private Socket sock = null;
     private final Gson gson = Function.gson;
 
+    private final String contentType_text = "text/plain; charset=utf-8";
+
+    private final byte[] errorAPINotFound = "API Not Found".getBytes(StandardCharsets.UTF_8);
+
     public NicoVRCWebAPI(){
         // WebAPIを追加する
         GetVideoInfo getVideoInfo = new GetVideoInfo();
@@ -39,6 +43,10 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
     public void run() {
         try {
             Date date = new Date();
+            final String method = Function.getMethod(HTTPRequest);
+            final String httpVersion = Function.getHTTPVersion(HTTPRequest);
+            final boolean isHead = method != null && method.equals("HEAD");
+
             System.out.println("[API Access ("+Function.sdf.format(date)+")] " + URL);
 
             String[] split = UUID.randomUUID().toString().split("-");
@@ -50,37 +58,34 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
             if (apiList.isEmpty()){
                 // 何もAPI実装されてなければ意味ないので
+                Function.sendHTTPRequest(sock, httpVersion, 404, contentType_text, errorAPINotFound, isHead);
                 return;
             }
 
-            final String[] result = {null};
+            String result = null;
 
             NicoVRCAPI vrcapi = apiList.get(URL.substring(0, Math.min(URL.length(), 10)));
             if (vrcapi != null){
                 try {
-                    result[0] = vrcapi.Run(HTTPRequest);
+                    result = vrcapi.Run(HTTPRequest);
                     webhookData.setAPIURI(vrcapi.getURI());
                 } catch (Exception e){
                     throw new RuntimeException(e);
                 }
             }
 
-            //System.out.println(result[0]);
-            webhookData.setDate(new Date());
+            //System.out.println(result);
+            webhookData.setDate(date);
             Function.WebhookData.put(split[0]+split[1], webhookData);
 
-            String method = Function.getMethod(HTTPRequest);
-            String httpVersion = Function.getHTTPVersion(HTTPRequest);
-            if (result[0] == null){
-                Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8","API Not Found".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-                method = null;
-                httpVersion = null;
+            if (result == null){
+                Function.sendHTTPRequest(sock, httpVersion, 404, contentType_text, errorAPINotFound, isHead);
                 return;
             }
 
-            JsonElement json = null;
+            JsonElement json;
             try {
-                json = gson.fromJson(result[0], JsonElement.class);
+                json = gson.fromJson(result, JsonElement.class);
             } catch (Exception e){
                 json = null;
             }
@@ -94,9 +99,7 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
                 }
             }
 
-            Function.sendHTTPRequest(sock, httpVersion, code, "application/json; charset=utf-8", "*",result[0].getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
-            method = null;
-            httpVersion = null;
+            Function.sendHTTPRequest(sock, httpVersion, code, "application/json; charset=utf-8", "*",result.getBytes(StandardCharsets.UTF_8), isHead);
             json = null;
 
         } catch (Exception e){
