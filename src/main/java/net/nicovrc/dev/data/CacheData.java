@@ -1,6 +1,8 @@
 package net.nicovrc.dev.data;
 
 
+import net.nicovrc.dev.Function;
+
 public class CacheData {
 
     private Long CacheDate = null;
@@ -63,6 +65,9 @@ public class CacheData {
     }
 
     public byte[] getHLS() {
+        if (HLS == null){
+            return Function.zeroByte;
+        }
         return HLS;
     }
 
@@ -71,6 +76,9 @@ public class CacheData {
     }
 
     public byte[] getDummyHLS() {
+        if (dummyHLS == null){
+            return Function.zeroByte;
+        }
         return dummyHLS;
     }
 
