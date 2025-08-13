@@ -123,10 +123,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             Matcher matcher_m = dummy_url2.matcher(URL);
             if (matcher_m.find()){
-                System.out.println(URL);
+                //System.out.println(URL);
                 //URL = "/?url="+matcher_m.group(1)+"&dummy=true";
                 URL = matcher_m.group(2) + "&dummy=true";
-                System.out.println(URL);
+                //System.out.println(URL);
             }
 
             URL = URL.replaceAll("^(/(.*)\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
