@@ -31,7 +31,7 @@ public class Abema implements ServiceAPI {
 
     @Override
     public String[] getCorrespondingURL() {
-        return new String[]{"abema.tv", "abema.app"};
+        return new String[]{"abema.tv", "abema.app", "abema.go.link"};
     }
 
     @Override
@@ -50,7 +50,7 @@ public class Abema implements ServiceAPI {
             return gson.toJson(new ErrorMessage("URLがありません"));
         }
 
-        if (url.startsWith("https://abema.app")){
+        if (url.startsWith("https://abema.app") || url.startsWith("https://abema.go.link")){
             try (HttpClient client = Proxy == null ? HttpClient.newBuilder()
                     .version(HttpClient.Version.HTTP_2)
                     .followRedirects(HttpClient.Redirect.NORMAL)
