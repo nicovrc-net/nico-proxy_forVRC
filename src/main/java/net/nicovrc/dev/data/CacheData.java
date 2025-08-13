@@ -15,6 +15,7 @@ public class CacheData {
     private byte[] dummyHLS = null;
     private String CookieText = null;
     private String RefererText = null;
+    private boolean isHLS = true;
 
     public Long getCacheDate() {
         return CacheDate;
@@ -100,5 +101,13 @@ public class CacheData {
 
     public void setRefererText(String refererText) {
         RefererText = refererText;
+    }
+
+    public boolean isHLS() {
+        return isHLS;
+    }
+
+    public void setHLSFlag(boolean HLS) {
+        isHLS = HLS;
     }
 }

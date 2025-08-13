@@ -4,9 +4,9 @@ public class ContentObject {
 
     private String HLSText = null;
     private String DummyHLSText = null;
-    private byte[] ContentObject = null;
     private String CookieText = null;
     private String RefererText = null;
+    private boolean isHLS = true;
 
     public String getHLSText() {
         return HLSText;
@@ -24,14 +24,6 @@ public class ContentObject {
         DummyHLSText = dummyHLSText;
     }
 
-    public byte[] getContentObject() {
-        return ContentObject;
-    }
-
-    public void setContentObject(byte[] contentObject) {
-        ContentObject = contentObject;
-    }
-
     public String getCookieText() {
         return CookieText;
     }
@@ -46,5 +38,13 @@ public class ContentObject {
 
     public void setRefererText(String refererText) {
         RefererText = refererText;
+    }
+
+    public boolean isHLS() {
+        return isHLS;
+    }
+
+    public void setHLS(boolean HLS) {
+        isHLS = HLS;
     }
 }

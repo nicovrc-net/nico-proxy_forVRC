@@ -31,6 +31,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_abema = Pattern.compile("(.+)-abematv\\.akamaized\\.net");
     private final Pattern matcher_vimeo = Pattern.compile("vimeocdn\\.com");
     private final Pattern matcher_fc2 = Pattern.compile("(.+)\\.live\\.fc2\\.com");
+    private final Pattern matcher_tiktok = Pattern.compile("tiktok\\.com");
 
     private final String http = "https://";
 
@@ -123,6 +124,10 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             Matcher matcher_twit = matcher_twitcasting.matcher(URL);
             Matcher matcher_abematv = matcher_abema.matcher(URL);
             Matcher matcher_vimeourl = matcher_vimeo.matcher(URL);
+            Matcher matcher_tiktok = this.matcher_tiktok.matcher(URL);
+            if (matcher_tiktok.find()){
+                URL = URL.replaceAll("\\|", "%7C");
+            }
 
             try {
 

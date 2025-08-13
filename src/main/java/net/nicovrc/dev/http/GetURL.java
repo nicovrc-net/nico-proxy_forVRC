@@ -65,6 +65,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         GetContentList.put("fc2", new fc2());
         GetContentList.put("XVIDEOS.COM", new XVIDEOS());
         GetContentList.put("Pornhub", new Pornhub());
+        GetContentList.put("bilibili.com", new bilibili_com());
 
         Function.tempCacheCheckTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
@@ -266,14 +267,28 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             return;
                         }
 
-                        if (cacheData.getDummyHLS() != null){
-                            if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find()) {
-                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getDummyHLS(), isHead);
+                        if (cacheData.isHLS()){
+                            if (cacheData.getDummyHLS() != null){
+                                if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find()) {
+                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getDummyHLS(), isHead);
+                                } else {
+                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getHLS(), isHead);
+                                }
                             } else {
                                 Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getHLS(), isHead);
                             }
                         } else {
-                            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getHLS(), isHead);
+                            OutputStream out = sock.getOutputStream();
+                            StringBuilder sb_header = new StringBuilder();
+
+                            sb_header.append("HTTP/").append(httpVersion).append(" 302 Found\r\nDate: ").append(new Date()).append("\r\nLocation: /https/cookie:[").append(cacheData.getCookieText()).append("]/referer:[").append(cacheData.getRefererText()).append("]/").append(cacheData.getTargetURL().replaceAll("https://", "")).append("\r\n\r\n");
+                            System.out.println(sb_header);
+                            out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
+                            out.flush();
+
+                            out = null;
+                            sb_header.setLength(0);
+                            sb_header = null;
                         }
                     }
 
@@ -453,11 +468,11 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         content = new ContentObject();
                         content.setDummyHLSText(null);
                         content.setHLSText(null);
-                        content.setContentObject(null);
                         cacheData.setRedirect(true);
                         System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
 
                     } else {
+                        System.out.println("!");
                         logData.setResultURL(targetURL);
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
                         if (isHLSDummyPrint) {
@@ -473,6 +488,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         cacheData.setRedirect(false);
                         cacheData.setCookieText(content.getCookieText());
                         cacheData.setRefererText(content.getRefererText());
+                        cacheData.setHLSFlag(content.isHLS());
 
                     }
 
@@ -522,15 +538,29 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     }
 
                     if (!cacheData.isRedirect()){
-                        if (cacheData.getDummyHLS() != null){
-                            if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find()) {
-                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getDummyHLS(), isHead);
+                        if (cacheData.isHLS()){
+                            if (cacheData.getDummyHLS() != null){
+                                if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find()) {
+                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getDummyHLS(), isHead);
+                                } else {
+                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getHLS(), isHead);
+                                }
                             } else {
                                 Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getHLS(), isHead);
                             }
                         } else {
-                            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getHLS(), isHead);
+                            OutputStream out = sock.getOutputStream();
+                            StringBuilder sb_header = new StringBuilder();
+
+                            sb_header.append("HTTP/").append(httpVersion).append(" 302 Found\r\nDate: ").append(new Date()).append("\r\nLocation: /https/cookie:[").append(cacheData.getCookieText()).append("]/referer:[").append(cacheData.getRefererText()).append("]/").append(cacheData.getTargetURL().replaceAll("http(.*)://", "")).append("\r\n\r\n");
+                            out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
+                            out.flush();
+
+                            out = null;
+                            sb_header.setLength(0);
+                            sb_header = null;
                         }
+
                     }
 
                     Function.CacheList.put((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
