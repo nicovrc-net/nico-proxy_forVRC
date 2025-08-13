@@ -531,7 +531,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         } else {
                             Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getHLS(), isHead);
                         }
-                        return;
                     }
 
                     Function.CacheList.put((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
