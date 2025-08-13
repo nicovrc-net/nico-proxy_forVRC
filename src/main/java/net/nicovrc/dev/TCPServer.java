@@ -24,6 +24,10 @@ public class TCPServer extends Thread {
 
     private final HashMap<String, NicoVRCHTTP> httpService = new HashMap<>();
 
+    private final String textPlain = "text/plain; charset=utf-8";
+    private final byte[] err400 = "Bad Request".getBytes(StandardCharsets.UTF_8);
+    private final byte[] err405 = "Not Support Method".getBytes(StandardCharsets.UTF_8);
+
     public TCPServer(){
         final GetURL getURL = new GetURL();
         final GetURL_dummy getURLDummy = new GetURL_dummy();
@@ -33,13 +37,13 @@ public class TCPServer extends Thread {
         final GetVideo getVideo = new GetVideo();
         final NicoVRCWebAPI nicoVRCWebAPI = new NicoVRCWebAPI();
 
-        httpService.put(getURL.getStartURI().substring(0, 5), getURL);
-        httpService.put(getURLDummy.getStartURI().substring(0, 5), getURLDummy);
-        httpService.put(getURLDummy2.getStartURI().substring(0, 5), getURLDummy2);
-        httpService.put(getURLOld1.getStartURI().substring(0, 5), getURLOld1);
-        httpService.put(getURLOld2.getStartURI().substring(0, 5), getURLOld2);
-        httpService.put(getVideo.getStartURI().substring(0, 5), getVideo);
-        httpService.put(nicoVRCWebAPI.getStartURI().substring(0, 5), nicoVRCWebAPI);
+        httpService.put(getURL.getStartURI().substring(0, Math.min(getURL.getStartURI().length(), 5)), getURL);
+        httpService.put(getURLDummy.getStartURI().substring(0, Math.min(getURLDummy.getStartURI().length(), 5)), getURLDummy);
+        httpService.put(getURLDummy2.getStartURI().substring(0, Math.min(getURLDummy2.getStartURI().length(), 5)), getURLDummy2);
+        httpService.put(getURLOld1.getStartURI().substring(0, Math.min(getURLOld1.getStartURI().length(), 5)), getURLOld1);
+        httpService.put(getURLOld2.getStartURI().substring(0, Math.min(getURLOld2.getStartURI().length(), 5)), getURLOld2);
+        httpService.put(getVideo.getStartURI().substring(0, Math.min(getVideo.getStartURI().length(), 5)), getVideo);
+        httpService.put(nicoVRCWebAPI.getStartURI().substring(0, Math.min(nicoVRCWebAPI.getStartURI().length(), 5)), nicoVRCWebAPI);
 
         int tempPort;
 
@@ -166,7 +170,7 @@ public class TCPServer extends Thread {
                         String Method = Function.getMethod(httpRequest);
                         if (Method == null) {
 
-                            Function.sendHTTPRequest(sock, HTTPVersion, 405, "text/plain; charset=utf-8", "Not Support Method".getBytes(StandardCharsets.UTF_8), false);
+                            Function.sendHTTPRequest(sock, HTTPVersion, 405, textPlain, err405, false);
 
                             in.close();
                             out.close();
@@ -182,7 +186,7 @@ public class TCPServer extends Thread {
 
                         final boolean isHead = Method.equals("HEAD");
                         if (HTTPVersion == null) {
-                            Function.sendHTTPRequest(sock, null, 400, "text/plain; charset=utf-8", "Bad Request".getBytes(StandardCharsets.UTF_8), isHead);
+                            Function.sendHTTPRequest(sock, null, 400, textPlain, err400, isHead);
 
                             in.close();
                             out.close();
@@ -212,7 +216,7 @@ public class TCPServer extends Thread {
                                 // e.printStackTrace();
                             }
                         } else {
-                            Function.sendHTTPRequest(sock, null, 400, "text/plain; charset=utf-8", "Bad Request".getBytes(StandardCharsets.UTF_8), isHead);
+                            Function.sendHTTPRequest(sock, null, 400, textPlain, err400, isHead);
 
                             in.close();
                             out.close();
