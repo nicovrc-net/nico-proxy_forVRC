@@ -484,7 +484,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - リファクタリング
+            - 内部処理改良
           draft: false
           prerelease: true
 
