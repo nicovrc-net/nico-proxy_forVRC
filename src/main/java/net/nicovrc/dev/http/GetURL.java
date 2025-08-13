@@ -50,6 +50,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     
     private final String contentType_video_mp4 = "video/mp4";
     private final String contentType_hls = "application/vnd.apple.mpegurl";
+    private final String contentType_text = "text/plain; charset=utf-8";
 
 
     public GetURL(){
@@ -115,7 +116,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     @Override
     public void run() {
         final String method = Function.getMethod(httpRequest);
-        final String httpVersion = Function.getHTTPVersion(httpRequest);
+        final String httpVersion = Function.getHTTPVersion(httpRequest) != null ? Function.getHTTPVersion(httpRequest) : "1.1";
         final boolean isHead = method != null && method.equals("HEAD");
 
         try {
@@ -245,18 +246,17 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     if (isGetTitle){
                         Thread.ofVirtual().start(()-> System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + fCacheData.getTitle()));
 
-                        Function.sendHTTPRequest(sock, httpVersion, 200, "text/plain; charset=utf-8", cacheData.getTitle().getBytes(StandardCharsets.UTF_8), isHead);
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, cacheData.getTitle().getBytes(StandardCharsets.UTF_8), isHead);
                     } else {
                         if (isHLSDummyPrint){
                             Thread.ofVirtual().start(() -> System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + fCacheData.getTargetURL()));
                         }
-                        byte[] content = null;
 
                         if (cacheData.isRedirect()){
                             OutputStream out = sock.getOutputStream();
                             StringBuilder sb_header = new StringBuilder();
 
-                            sb_header.append("HTTP/").append(Function.getHTTPVersion(httpRequest)).append(" 302 Found\r\nLocation: ").append(cacheData.getTargetURL()).append("\r\n\r\n");
+                            sb_header.append("HTTP/").append(httpVersion).append(" 302 Found\r\nDate: ").append(new Date()).append("\r\nLocation: ").append(cacheData.getTargetURL()).append("\r\n\r\n");
                             out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
                             out.flush();
 
@@ -444,7 +444,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         OutputStream out = sock.getOutputStream();
                         StringBuilder sb_header = new StringBuilder();
 
-                        sb_header.append("HTTP/").append(httpVersion).append(" 302 Found\r\nLocation: ").append(targetURL).append("\r\n\r\n");
+                        sb_header.append("HTTP/").append(httpVersion).append(" 302 Found\r\nDate: ").append(new Date()).append("\r\nLocation: ").append(targetURL).append("\r\n\r\n");
                         out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
                         out.flush();
 
@@ -488,7 +488,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     if (isGetTitle) {
 
                         if (errorMessage != null) {
-                            Function.sendHTTPRequest(sock, httpVersion, 200, "text/plain; charset=utf-8", ("エラー : " + errorMessage).getBytes(StandardCharsets.UTF_8), isHead);
+                            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, ("エラー : " + errorMessage).getBytes(StandardCharsets.UTF_8), isHead);
 
                             Function.GetURLAccessLog.put(logData.getLogID(), logData);
                             Function.WebhookData.put(logData.getLogID(), webhookData);
@@ -496,24 +496,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             return;
                         }
 
-                        if (element.getAsJsonObject().has("Title")) {
-                            String title = element.getAsJsonObject().get("Title").getAsString();
-                            Function.sendHTTPRequest(sock, httpVersion, 200, "text/plain; charset=utf-8", title.getBytes(StandardCharsets.UTF_8), isHead);
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, cacheData.getTitle().getBytes(StandardCharsets.UTF_8), isHead);
 
-                            logData.setResultURL(title);
-                            webhookData.setResult(title);
-                            Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                            Function.WebhookData.put(logData.getLogID(), webhookData);
-                            System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + title);
-                        } else {
-                            Function.sendHTTPRequest(sock, httpVersion, 200, "text/plain; charset=utf-8", "(タイトルなし)".getBytes(StandardCharsets.UTF_8), isHead);
-
-                            logData.setResultURL("(タイトルなし)");
-                            webhookData.setResult("(タイトルなし)");
-                            Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                            Function.WebhookData.put(logData.getLogID(), webhookData);
-                            System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> (タイトルなし)");
-                        }
+                        logData.setResultURL(cacheData.getTitle());
+                        webhookData.setResult(cacheData.getTitle());
+                        Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                        Function.WebhookData.put(logData.getLogID(), webhookData);
+                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + cacheData.getTitle());
 
                         Function.CacheList.put((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
                         return;
@@ -553,17 +542,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 } catch (Exception e){
                     e.printStackTrace();
                     try {
-                        byte[] content = null;
-                        File file = new File("./error-video/error_000.mp4");
-                        if (file.exists()){
-                            FileInputStream stream = new FileInputStream(file);
-                            content = stream.readAllBytes();
-                            stream.close();
-                            stream = null;
-                        }
-
-                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, content, isHead);
-                        content = null;
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, errContent000, isHead);
                     } catch (Exception ex){
                         // ex.printStackTrace();
                     }
