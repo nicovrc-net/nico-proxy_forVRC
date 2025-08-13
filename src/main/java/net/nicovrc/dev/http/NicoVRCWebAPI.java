@@ -8,27 +8,31 @@ import net.nicovrc.dev.data.WebhookData;
 
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
     private String HTTPRequest = null;
     private String URL = null;
-    private final List<NicoVRCAPI> list = new ArrayList<>();
+    private final HashMap<String, NicoVRCAPI> apiList = new HashMap<>();
     private Socket sock = null;
     private final Gson gson = Function.gson;
 
     public NicoVRCWebAPI(){
         // WebAPIを追加する
-        list.add(new GetVideoInfo());
-        list.add(new Test());
-        list.add(new GetVersion());
-        list.add(new GetSupportList());
-        list.add(new GetCacheList());
-        list.add(new AddCache());
+        GetVideoInfo getVideoInfo = new GetVideoInfo();
+        Test test = new Test();
+        GetVersion getVersion = new GetVersion();
+        GetSupportList getSupportList = new GetSupportList();
+        GetCacheList getCacheList = new GetCacheList();
+        AddCache addCache = new AddCache();
+
+        apiList.put(getVideoInfo.getURI().substring(0, Math.min(getVideoInfo.getURI().length(), 10)), getVideoInfo);
+        apiList.put(test.getURI().substring(0, Math.min(test.getURI().length(), 10)), test);
+        apiList.put(getVersion.getURI().substring(0, Math.min(getVersion.getURI().length(), 10)), getVersion);
+        apiList.put(getSupportList.getURI().substring(0, Math.min(getSupportList.getURI().length(), 10)), getSupportList);
+        apiList.put(getCacheList.getURI().substring(0, Math.min(getCacheList.getURI().length(), 10)), getCacheList);
+        apiList.put(addCache.getURI().substring(0, Math.min(addCache.getURI().length(), 10)), addCache);
     }
 
     @Override
@@ -44,24 +48,23 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
             webhookData.setURL(URL);
             webhookData.setHTTPRequest(HTTPRequest);
 
-            if (list.isEmpty()){
+            if (apiList.isEmpty()){
                 // 何もAPI実装されてなければ意味ないので
                 return;
             }
 
             final String[] result = {null};
-            list.forEach((api)->{
 
-                if (URL.startsWith(api.getURI())){
-                    try {
-                        result[0] = api.Run(HTTPRequest);
-                        webhookData.setAPIURI(api.getURI());
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
+            NicoVRCAPI vrcapi = apiList.get(URL.substring(0, Math.min(URL.length(), 10)));
+            if (vrcapi != null){
+                try {
+                    result[0] = vrcapi.Run(HTTPRequest);
+                    webhookData.setAPIURI(vrcapi.getURI());
+                } catch (Exception e){
+                    throw new RuntimeException(e);
                 }
+            }
 
-            });
             //System.out.println(result[0]);
             webhookData.setDate(new Date());
             Function.WebhookData.put(split[0]+split[1], webhookData);
