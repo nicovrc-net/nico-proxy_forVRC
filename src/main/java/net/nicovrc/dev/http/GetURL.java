@@ -47,6 +47,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     private byte[] errContent000;
     private byte[] errContent404;
+    
+    private final String contentType_video_mp4 = "video/mp4";
+    private final String contentType_hls = "application/vnd.apple.mpegurl";
 
 
     public GetURL(){
@@ -266,12 +269,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                         if (cacheData.getDummyHLS() != null){
                             if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find()) {
-                                Function.sendHTTPRequest(sock, httpVersion, 200, "application/vnd.apple.mpegurl", cacheData.getDummyHLS() != null ? cacheData.getDummyHLS() : Function.zeroByte, isHead);
+                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getDummyHLS() != null ? cacheData.getDummyHLS() : Function.zeroByte, isHead);
                             } else {
-                                Function.sendHTTPRequest(sock, httpVersion, 200, "application/vnd.apple.mpegurl", cacheData.getHLS() != null ? cacheData.getHLS() : Function.zeroByte, isHead);
+                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getHLS() != null ? cacheData.getHLS() : Function.zeroByte, isHead);
                             }
                         } else {
-                            Function.sendHTTPRequest(sock, httpVersion, 200, "application/vnd.apple.mpegurl", cacheData.getHLS() != null ? cacheData.getHLS() : Function.zeroByte, isHead);
+                            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getHLS() != null ? cacheData.getHLS() : Function.zeroByte, isHead);
                         }
                     }
 
@@ -436,7 +439,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
                         Function.WebhookData.put(logData.getLogID(), webhookData);
                         System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "対応してないURL");
-                        Function.sendHTTPRequest(sock, httpVersion, 200, "video/mp4", errContent404, isHead);
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, errContent404, isHead);
                     } else if (hls == null) {
                         OutputStream out = sock.getOutputStream();
                         StringBuilder sb_header = new StringBuilder();
@@ -520,7 +523,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     // エラー
                     if (errorMessage != null) {
                         byte[] content2 = Function.getErrorMessageVideo(client, errorMessage);
-                        Function.sendHTTPRequest(sock, httpVersion, 200, "video/mp4", content2, isHead);
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, content2, isHead);
 
                         logData.setErrorMessage(errorMessage);
                         webhookData.setResult(errorMessage);
@@ -534,12 +537,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     if (!cacheData.isRedirect()){
                         if (cacheData.getDummyHLS() != null){
                             if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find()) {
-                                Function.sendHTTPRequest(sock, httpVersion, 200, "application/vnd.apple.mpegurl", cacheData.getDummyHLS(), isHead);
+                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getDummyHLS(), isHead);
                             } else {
-                                Function.sendHTTPRequest(sock, httpVersion, 200, "application/vnd.apple.mpegurl", cacheData.getHLS(), isHead);
+                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getHLS(), isHead);
                             }
                         } else {
-                            Function.sendHTTPRequest(sock, httpVersion, 200, "application/vnd.apple.mpegurl", cacheData.getHLS(), isHead);
+                            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, cacheData.getHLS(), isHead);
                         }
                     }
 
@@ -559,7 +562,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             stream = null;
                         }
 
-                        Function.sendHTTPRequest(sock, httpVersion, 200, "video/mp4", content, isHead);
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, content, isHead);
                         content = null;
                     } catch (Exception ex){
                         // ex.printStackTrace();
@@ -577,8 +580,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         } catch (Exception e){
             e.printStackTrace();
             try {
-
-                Function.sendHTTPRequest(sock, httpVersion, 200, "video/mp4", errContent000, isHead);
+                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, errContent000, isHead);
             } catch (Exception ex){
                 // ex.printStackTrace();
             }
