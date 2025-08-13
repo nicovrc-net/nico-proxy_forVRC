@@ -4,6 +4,7 @@ import net.nicovrc.dev.Function;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.OutputStream;
 import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -11,6 +12,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.Date;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,6 +34,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_vimeo = Pattern.compile("vimeocdn\\.com");
     private final Pattern matcher_fc2 = Pattern.compile("(.+)\\.live\\.fc2\\.com");
     private final Pattern matcher_tiktok = Pattern.compile("tiktok\\.com");
+    private final Pattern matcher_bilicom = Pattern.compile("bilibili\\.com");
 
     private final String http = "https://";
 
@@ -125,6 +128,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             Matcher matcher_abematv = matcher_abema.matcher(URL);
             Matcher matcher_vimeourl = matcher_vimeo.matcher(URL);
             Matcher matcher_tiktok = this.matcher_tiktok.matcher(URL);
+            Matcher matcher_bilibilicom = matcher_bilicom.matcher(Referer != null ? Referer : "");
+            boolean isBiliCom = matcher_bilibilicom.find();
             if (matcher_tiktok.find()){
                 URL = URL.replaceAll("\\|", "%7C");
             }
@@ -144,7 +149,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                 .build();
 
                 HttpRequest request;
-                if (matcher_fc2url.find()){
+                if (matcher_fc2url.find()) {
                     request = HttpRequest.newBuilder()
                             .uri(new URI(URL))
                             .headers("User-Agent", Function.UserAgent)
@@ -156,7 +161,17 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                             .GET()
                             .build();
                 } else {
-                    if (CookieText == null || CookieText.isEmpty()){
+
+                    if (isBiliCom){
+                        request = HttpRequest.newBuilder()
+                                .uri(new URI(URL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                .headers("Referer", Referer)
+                                .HEAD()
+                                .build();
+                    } else if (CookieText == null || CookieText.isEmpty()){
                         if (Referer == null || Referer.isEmpty()){
                             request = HttpRequest.newBuilder()
                                     .uri(new URI(URL))
@@ -200,110 +215,148 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     }
                 }
 
-
                 HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
                 String contentType = send.headers().firstValue("Content-Type").isPresent() ? send.headers().firstValue("Content-Type").get() : send.headers().firstValue("content-type").isPresent() ? send.headers().firstValue("content-type").get() : "";
+                if (!isBiliCom) {
 /*
-                System.out.println("----");
-                send.headers().map().forEach((name, value)->{
-                    System.out.println(name + " : ");
-                    value.forEach((v)->{
-                        System.out.println("   " + v);
+                    System.out.println("----");
+                    send.headers().map().forEach((name, value)->{
+                        System.out.println(name + " : ");
+                        value.forEach((v)->{
+                            System.out.println("   " + v);
+                        });
                     });
-                });
-                System.out.println("----");*/
+                    System.out.println("----");*/
 
-                //System.out.println("a");
-                byte[] body = send.body();
+                    //System.out.println("a");
+                    byte[] body = send.body();
 
-                client.close();
-                client = null;
+                    client.close();
+                    client = null;
 
-                if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
-                    String s = new String(body, StandardCharsets.UTF_8);
-                    if (matcher_twit.find()) {
-                        s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");
-                        s = s.replaceAll("\"/tc\\.vod\\.v2", "\"/https/referer:[" + Referer + "]/" + request.uri().getHost() + "/tc.vod.v2");
+                    if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
+                        String s = new String(body, StandardCharsets.UTF_8);
+                        if (matcher_twit.find()) {
+                            s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");
+                            s = s.replaceAll("\"/tc\\.vod\\.v2", "\"/https/referer:[" + Referer + "]/" + request.uri().getHost() + "/tc.vod.v2");
 
-                        StringBuilder sb = new StringBuilder();
-                        for (String str : s.split("\n")) {
-                            if (!str.startsWith("/mpegts") && !str.startsWith("/tc.vod.v2")) {
-                                sb.append(str).append("\n");
-                                continue;
+                            StringBuilder sb = new StringBuilder();
+                            for (String str : s.split("\n")) {
+                                if (!str.startsWith("/mpegts") && !str.startsWith("/tc.vod.v2")) {
+                                    sb.append(str).append("\n");
+                                    continue;
+                                }
+
+                                sb.append("/https/referer:[").append(Referer).append("]/").append(request.uri().getHost()).append(str).append("\n");
+
                             }
 
-                            sb.append("/https/referer:[").append(Referer).append("]/").append(request.uri().getHost()).append(str).append("\n");
+                            s = sb.toString();
+                            sb.setLength(0);
+                            sb = null;
 
-                        }
+                        } else if (matcher_abematv.find()) {
+                            //System.out.println("!!!!");
+                            s = s.replaceAll(http, "/https/cookie:[]/");
 
-                        s = sb.toString();
-                        sb.setLength(0);
-                        sb = null;
+                            StringBuilder sb = new StringBuilder();
+                            for (String str : s.split("\n")) {
+                                if (str.startsWith("/tsad")){
+                                    sb.append("/https/referer:[]/").append(request.uri().getHost()).append(str).append("\n");
+                                    continue;
+                                }
+                                if (!str.startsWith("/preview")) {
+                                    sb.append(str.replaceAll(http, "/https/cookie:[]/")).append("\n");
+                                    continue;
+                                }
 
-                    } else if (matcher_abematv.find()) {
-                        //System.out.println("!!!!");
-                        s = s.replaceAll(http, "/https/cookie:[]/");
-
-                        StringBuilder sb = new StringBuilder();
-                        for (String str : s.split("\n")) {
-                            if (str.startsWith("/tsad")){
                                 sb.append("/https/referer:[]/").append(request.uri().getHost()).append(str).append("\n");
-                                continue;
-                            }
-                            if (!str.startsWith("/preview")) {
-                                sb.append(str.replaceAll(http, "/https/cookie:[]/")).append("\n");
-                                continue;
+
                             }
 
-                            sb.append("/https/referer:[]/").append(request.uri().getHost()).append(str).append("\n");
+                            s = sb.toString();
+                            sb.setLength(0);
+                            sb = null;
+                        } else if (matcher_vimeourl.find()) {
 
-                        }
-
-                        s = sb.toString();
-                        sb.setLength(0);
-                        sb = null;
-                    } else if (matcher_vimeourl.find()) {
-
-                        StringBuilder sb = new StringBuilder();
-                        String[] split = URL.split("/");
-                        for (int i = 0; i < split.length - 6; i++) {
-                            sb.append(split[i]).append("/");
-                        }
-
-                        s = s.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", sb.toString());
-                        s = s.replaceAll(http, "/https/cookie:[]/");
-
-                        sb.setLength(0);
-                        sb = null;
-
-                    } else {
-                        if (CookieText != null && !CookieText.isEmpty()){
-                            if (Referer == null || Referer.isEmpty()){
-                                s = s.replaceAll(http, "/https/cookie:["+CookieText+"]/");
-                            } else {
-                                s = s.replaceAll(http, "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
+                            StringBuilder sb = new StringBuilder();
+                            String[] split = URL.split("/");
+                            for (int i = 0; i < split.length - 6; i++) {
+                                sb.append(split[i]).append("/");
                             }
+
+                            s = s.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", sb.toString());
+                            s = s.replaceAll(http, "/https/cookie:[]/");
+
+                            sb.setLength(0);
+                            sb = null;
+
                         } else {
-                            if (Referer == null || Referer.isEmpty()){
-                                s = s.replaceAll(http, "/https/cookie:[]/");
+                            if (CookieText != null && !CookieText.isEmpty()){
+                                if (Referer == null || Referer.isEmpty()){
+                                    s = s.replaceAll(http, "/https/cookie:["+CookieText+"]/");
+                                } else {
+                                    s = s.replaceAll(http, "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
+                                }
                             } else {
-                                s = s.replaceAll(http, "/https/referer:["+Referer+"]/");
+                                if (Referer == null || Referer.isEmpty()){
+                                    s = s.replaceAll(http, "/https/cookie:[]/");
+                                } else {
+                                    s = s.replaceAll(http, "/https/referer:["+Referer+"]/");
+                                }
                             }
                         }
+
+                        body = s.getBytes(StandardCharsets.UTF_8);
+                        s = null;
                     }
+                    //System.out.println("b");
+                    Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
+                    body = null;
+                } else {
 
-                    body = s.getBytes(StandardCharsets.UTF_8);
-                    s = null;
+                    int length = Integer.parseInt(send.headers().firstValue("content-length").isPresent() ? send.headers().firstValue("content-length").get() : "0");
+                    int max = length / 10;
+
+                    OutputStream out = sock.getOutputStream();
+                    StringBuilder sb_header = new StringBuilder();
+
+                    sb_header.append("HTTP/").append(httpVersion == null ? "1.1" : httpVersion).append(" 200 OK\r\n");
+                    sb_header.append("Content-Length: ").append(length).append("\r\n");
+                    sb_header.append("Content-Type: ").append(contentType).append("\r\n");
+
+                    sb_header.append("Date: ").append(new Date()).append("\r\n");
+
+                    sb_header.append("\r\n");
+                    out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
+
+                    for (int i = 0; i < 10; i++) {
+                        int mi = max * i;
+                        int mx = max * (i + 1);
+                        //System.out.println(mi + " - " +Math.min(mx - 1, length - 1));
+                        request = HttpRequest.newBuilder()
+                                .uri(new URI(URL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Referer", Referer)
+                                // Range bytes=0-1227
+                                .headers("Range", "bytes=" + mi + "-" + Math.min(mx - 1, length - 1))
+                                .build();
+                        send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+                        //System.out.println(send.statusCode());
+                        out.write(send.body());
+
+                    }
+                    out.flush();
+                    out = null;
+
                 }
-                //System.out.println("b");
-                Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
-
-                body = null;
                 method = null;
                 httpVersion = null;
                 send = null;
                 request = null;
                 contentType = null;
+
             } catch (Exception e){
                 e.printStackTrace();
                 Function.sendHTTPRequest(sock, httpVersion, 200, "video/mp4", content, method != null && method.equals("HEAD"));
