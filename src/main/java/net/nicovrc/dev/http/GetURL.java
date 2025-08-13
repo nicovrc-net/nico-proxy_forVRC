@@ -125,7 +125,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             if (matcher_m.find()){
                 System.out.println(URL);
                 //URL = "/?url="+matcher_m.group(1)+"&dummy=true";
-                URL = matcher_m.group(1) + matcher_m.group(2) + "&dummy=true";
+                URL = matcher_m.group(2) + "&dummy=true";
                 System.out.println(URL);
             }
 
