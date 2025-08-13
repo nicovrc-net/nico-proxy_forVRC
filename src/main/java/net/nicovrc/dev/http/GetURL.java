@@ -123,10 +123,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             Matcher matcher_m = dummy_url2.matcher(URL);
             if (matcher_m.find()){
-                //System.out.println(URL);
+                System.out.println(URL);
                 //URL = "/?url="+matcher_m.group(1)+"&dummy=true";
                 URL = matcher_m.group(1) + matcher_m.group(2) + "&dummy=true";
-                //System.out.println(URL);
+                System.out.println(URL);
             }
 
             URL = URL.replaceAll("^(/(.*)\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
@@ -559,11 +559,11 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             // ここには来ないと思うけど一応
             try {
                 logData.setResultURL(null);
-                webhookData.setResult("対応してないURL");
+                webhookData.setResult("内部エラー");
                 Function.GetURLAccessLog.put(logData.getLogID(), logData);
                 Function.WebhookData.put(logData.getLogID(), webhookData);
-                System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "対応してないURL");
-                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, errContent404, isHead);
+                System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "内部エラー");
+                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, errContent000, isHead);
             } catch (Exception ex){
                 // ex.printStackTrace();
             }
