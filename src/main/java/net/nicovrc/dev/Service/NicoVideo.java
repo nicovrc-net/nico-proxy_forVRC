@@ -177,9 +177,9 @@ public class NicoVideo implements ServiceAPI {
 
         NicoNicoVideo result = new NicoNicoVideo();
 
-        String cookieText = "";
+        StringBuilder cookieText = new StringBuilder();
         if (user_session != null && user_session_secure != null){
-            cookieText = "user_session="+user_session+"; user_session_secure="+user_session_secure;
+            cookieText = new StringBuilder("user_session=" + user_session + "; user_session_secure=" + user_session_secure);
         }
 
         try {
@@ -203,12 +203,12 @@ public class NicoVideo implements ServiceAPI {
             }
 
             URI uri = new URI(accessUrl);
-            HttpRequest request = !cookieText.isEmpty() ? HttpRequest.newBuilder()
+            HttpRequest request = (!cookieText.isEmpty()) ? HttpRequest.newBuilder()
                     .uri(uri)
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                    .headers("Cookie", cookieText)
+                    .headers("Cookie", cookieText.toString())
                     .GET()
                     .build() :
                     HttpRequest.newBuilder()
@@ -220,6 +220,31 @@ public class NicoVideo implements ServiceAPI {
                             .build();
 
             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            /*
+            send.headers().map().forEach((name, value)->{
+                System.out.println("--- " + name + " ---");
+                for (String s : value) {
+                    System.out.println(s);
+                }
+            });
+             */
+
+            System.out.println(cookieText);
+            List<String> cookieList = new ArrayList<>();
+            if (!send.headers().allValues("Set-Cookie").isEmpty()){
+                cookieList = send.headers().allValues("Set-Cookie");
+            }
+            if (!send.headers().allValues("set-Cookie").isEmpty()){
+                cookieList = send.headers().allValues("set-Cookie");
+            }
+            for (String s : cookieList) {
+                String[] split = s.split(";");
+                String[] split1 = split[0].split("=");
+                cookieText.append((!cookieText.isEmpty()) ? "; " : "").append(split1[0]).append("=").append(split1[1]);
+            }
+
+            System.out.println(cookieText);
+
             if (send.statusCode() >= 400){
                 uri = null;
                 request = null;
@@ -278,7 +303,7 @@ public class NicoVideo implements ServiceAPI {
             if (json != null){
                 if (json.isJsonObject() && json.getAsJsonObject().has("data")){
                     String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
-                    cookieText = (cookieText.isEmpty() ? "; " : "") + "nicosid="+nicosid;
+                    //cookieText = (cookieText.isEmpty() ? "; " : "") + "nicosid="+nicosid;
 
                     // 動画
                     result.setURL(json.getAsJsonObject().get("data").getAsJsonObject().get("metadata").getAsJsonObject().get("jsonLds").getAsJsonArray().get(0).getAsJsonObject().get("@id").getAsString());
@@ -374,12 +399,14 @@ public class NicoVideo implements ServiceAPI {
                     //System.out.println(sendJson);
                     request = HttpRequest.newBuilder()
                                     .uri(uri)
+                                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                                     .headers("X-Access-Right-Key", accessRightKey)
                                     .headers("X-Frontend-Id", "6")
                                     .headers("X-Frontend-Version", "0")
                                     .headers("X-Niconico-Language", "ja-jp")
                                     .headers("X-Request-With", "nicovideo")
-                                    .headers("Cookie", cookieText)
+                                    .headers("Cookie", cookieText.toString())
                                     .headers("User-Agent", Function.UserAgent)
                                     .POST(HttpRequest.BodyPublishers.ofString(sendJson))
                                     .build();
