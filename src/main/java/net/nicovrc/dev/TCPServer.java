@@ -200,10 +200,8 @@ public class TCPServer extends Thread {
                         //System.out.println("[Debug] " + URI);
 
                         // それぞれの処理へ飛ぶ
-                        boolean isFound = false;
                         NicoVRCHTTP vrchttp = httpService.get(URI.substring(0, Math.min(URI.length(), 5)));
                         if (vrchttp != null){
-                            isFound = true;
                             vrchttp.setURL(URI);
                             vrchttp.setHTTPRequest(httpRequest);
                             vrchttp.setHTTPSocket(sock);
@@ -213,9 +211,7 @@ public class TCPServer extends Thread {
                             } catch (Exception e){
                                 // e.printStackTrace();
                             }
-                        }
-
-                        if (!isFound) {
+                        } else {
                             Function.sendHTTPRequest(sock, null, 400, "text/plain; charset=utf-8", "Bad Request".getBytes(StandardCharsets.UTF_8), isHead);
 
                             in.close();
