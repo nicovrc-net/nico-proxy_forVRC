@@ -2,6 +2,7 @@ package net.nicovrc.dev.http;
 
 import net.nicovrc.dev.Function;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
@@ -12,6 +13,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -317,6 +319,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                     int length = Integer.parseInt(send.headers().firstValue("content-length").isPresent() ? send.headers().firstValue("content-length").get() : "0");
                     int max = length / 10;
+                    byte[][] temp = new byte[max][11];
 
                     OutputStream out = sock.getOutputStream();
                     StringBuilder sb_header = new StringBuilder();
@@ -344,9 +347,12 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
                         //System.out.println(send.statusCode());
-                        out.write(send.body());
+                        //out.write(send.body());
+                        temp[i] = send.body();
 
                     }
+                    out.write(concatByteArrays(temp[0],temp[1],temp[2],temp[3],temp[4],temp[5],temp[6],temp[7],temp[8],temp[9]));
+
                     out.flush();
                     out = null;
 
@@ -389,5 +395,13 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     @Override
     public void setHTTPSocket(Socket sock) {
         this.sock = sock;
+    }
+
+    private static byte[] concatByteArrays(byte[]... arrays) {
+        return Arrays.stream(arrays)
+                .collect(ByteArrayOutputStream::new,
+                        ByteArrayOutputStream::writeBytes,
+                        (left, right) -> left.writeBytes(right.toByteArray()))
+                .toByteArray();
     }
 }
