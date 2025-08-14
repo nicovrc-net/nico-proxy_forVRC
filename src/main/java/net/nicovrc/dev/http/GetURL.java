@@ -400,6 +400,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 json = api.Get();
                 //ServiceName = api.getServiceName();
                 proxy = api.getUseProxy();
+            } else {
+                json = "{}";
             }
 
             //System.out.println(json);
@@ -445,8 +447,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 ) {
 
                     ContentObject content;
+                    //System.out.println("debug : " + ServiceName);
                     GetContent hls = GetContentList.get(ServiceName);
-                    if (hls == null && ServiceName.isEmpty()) {
+                    if (hls == null && (ServiceName == null || ServiceName.isEmpty())) {
                         logData.setResultURL(null);
                         webhookData.setResult("対応してないURL");
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
@@ -472,7 +475,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
 
                     } else {
-                        System.out.println("!");
+                        //System.out.println("!");
                         logData.setResultURL(targetURL);
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
                         if (isHLSDummyPrint) {
