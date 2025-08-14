@@ -319,19 +319,10 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                     int length = Integer.parseInt(send.headers().firstValue("content-length").isPresent() ? send.headers().firstValue("content-length").get() : "0");
                     int max = length / 10;
-                    byte[][] temp = new byte[max][11];
+                    byte[][] temp = new byte[max][10];
 
                     OutputStream out = sock.getOutputStream();
                     StringBuilder sb_header = new StringBuilder();
-
-                    sb_header.append("HTTP/").append(httpVersion == null ? "1.1" : httpVersion).append(" 200 OK\r\n");
-                    sb_header.append("Content-Length: ").append(length).append("\r\n");
-                    sb_header.append("Content-Type: ").append(contentType).append("\r\n");
-
-                    sb_header.append("Date: ").append(new Date()).append("\r\n");
-
-                    sb_header.append("\r\n");
-                    out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
 
                     for (int i = 0; i < 10; i++) {
                         int mi = max * i;
@@ -351,7 +342,16 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         temp[i] = send.body();
 
                     }
-                    out.write(concatByteArrays(temp[0],temp[1],temp[2],temp[3],temp[4],temp[5],temp[6],temp[7],temp[8],temp[9]));
+                    byte[] bytes = concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]);
+                    sb_header.append("HTTP/").append(httpVersion == null ? "1.1" : httpVersion).append(" 200 OK\r\n");
+                    sb_header.append("Content-Length: ").append(bytes.length).append("\r\n");
+                    sb_header.append("Content-Type: ").append(contentType).append("\r\n");
+
+                    sb_header.append("Date: ").append(new Date()).append("\r\n");
+
+                    sb_header.append("\r\n");
+                    out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
+                    out.write(bytes);
 
                     out.flush();
                     out = null;
