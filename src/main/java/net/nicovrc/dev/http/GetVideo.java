@@ -332,6 +332,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                 .uri(new URI(URL))
                                 .headers("User-Agent", Function.UserAgent)
                                 .headers("Referer", Referer)
+                                .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                                 // Range bytes=0-1227
                                 .headers("Range", "bytes=" + mi + "-" + Math.min(mx - 1, length - 1))
                                 .build();
@@ -340,6 +342,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         //System.out.println(send.statusCode());
                         //out.write(send.body());
                         temp[i] = send.body();
+                        if (send.statusCode() >= 300){
+                            break;
+                        }
 
                     }
                     byte[] bytes = concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]);
