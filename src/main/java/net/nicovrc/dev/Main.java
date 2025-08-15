@@ -399,13 +399,13 @@ NicoNico_user_session_secure: ""
             @Override
             public void run() {
                 Thread.ofVirtual().start(()->{
-                    HashMap<String, CacheData> map = new HashMap<>(Function.CacheList);
+                    HashMap<String, CacheData> map = Function.getCacheList();
 
                     long time = new Date().getTime();
                     map.forEach((url, data)->{
 
                         if (data.isSet() && time - data.getCacheDate() >= 86400000L) {
-                            Function.CacheList.remove(url);
+                            Function.deleteCache(url);
                         }
 
                     });

@@ -56,7 +56,7 @@ public class AddCache implements NicoVRCAPI {
                 cacheData.setDummyHLS(dummyHlsText.getBytes(StandardCharsets.UTF_8));
                 cacheData.setCookieText(cookieText);
                 cacheData.setRefererText(refererText);
-                Function.CacheList.put(addUrl, cacheData);
+                Function.addCache(addUrl, cacheData);
 
                 group = null;
                 json = null;

@@ -136,7 +136,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             ServiceAPI api = null;
             //System.out.println(targetUrl);
-            CacheData cacheData = Function.CacheList.get(targetUrl);
+            CacheData cacheData = Function.getCache(targetUrl);
 
             String json = null;
             String ServiceName = null;
@@ -149,10 +149,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             //System.out.println(isCache);
             if (isCache) {
-                cacheData = Function.CacheList.get(targetUrl);
+                cacheData = Function.getCache(targetUrl);
                 int i = cacheData == null ? 1 : 0;
                 while (i == 0){
-                    cacheData = Function.CacheList.get(targetUrl);
+                    cacheData = Function.getCache(targetUrl);
                     if (cacheData == null){
                         i = 1;
                         continue;
@@ -233,7 +233,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             if (isFound){
                                 Function.tempCacheList.put(targetUrl, currentTimeLong);
                             } else {
-                                Function.CacheList.remove(targetUrl);
+                                Function.deleteCache(targetUrl);
                                 cacheData = null;
                             }
                         }
@@ -521,7 +521,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         Function.WebhookData.put(logData.getLogID(), webhookData);
                         System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + cacheData.getTitle());
 
-                        Function.CacheList.put((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
+                        Function.addCache((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
                         return;
 
                     }
@@ -566,7 +566,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                     }
 
-                    Function.CacheList.put((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
+                    Function.addCache((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
 
                     return;
 

@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.data.WebhookData;
-import net.nicovrc.dev.http.NicoVRCHTTP;
 
 import java.io.*;
 import java.net.Socket;
@@ -38,7 +37,7 @@ public class Function {
     public static final ConcurrentHashMap<String, String> APIAccessLog = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, LogData> GetURLAccessLog = new ConcurrentHashMap<>();
 
-    public static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, WebhookData> WebhookData = new ConcurrentHashMap<>();
 
     public static final ConcurrentHashMap<String, Long> tempCacheList = new ConcurrentHashMap<>();
@@ -293,5 +292,21 @@ public class Function {
         }
 
         return content;
+    }
+
+    public static void addCache(String url, CacheData data){
+        CacheList.put(url, data);
+    }
+
+    public static CacheData getCache(String url){
+        return CacheList.get(url);
+    }
+
+    public static HashMap<String, CacheData> getCacheList(){
+        return new HashMap<>(CacheList);
+    }
+
+    public static void deleteCache(String url){
+        CacheList.remove(url);
     }
 }

@@ -21,7 +21,7 @@ public class GetCacheList implements NicoVRCAPI {
 
         HashMap<String, String> map = new HashMap<>();
 
-        Function.CacheList.forEach((url, data)->{
+        Function.getCacheList().forEach((url, data)->{
             map.put(url, format.format(new Date(data.getCacheDate())));
         });
 
