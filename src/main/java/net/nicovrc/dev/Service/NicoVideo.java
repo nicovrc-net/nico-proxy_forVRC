@@ -179,7 +179,8 @@ public class NicoVideo implements ServiceAPI {
 
         StringBuilder cookieText = new StringBuilder();
         if (user_session != null && user_session_secure != null){
-            cookieText = new StringBuilder("user_session=" + user_session + "; user_session_secure=" + user_session_secure + "; common-header-oshirasebox-new-allival=false");
+            //cookieText = new StringBuilder("user_session=" + user_session + "; user_session_secure=" + user_session_secure + "; common-header-oshirasebox-new-allival=false");
+            cookieText = new StringBuilder("nicosid=1755271148.1361864714; _gcl_au=1.1.1578283378.1755271141; _ga_5LM4HED1NJ=GS2.1.s1755271141$o1$g1$t1755271249$j8$l0$h0; _ga=GA1.1.748821415.1755271141; _ga_FS29H4ZGX2=GS2.1.s1755271141$o1$g1$t1755271249$j8$l0$h0; _yjsu_yjad=1755271141.2be86c29-a9e5-4ed2-a7cb-21c42b948019; pbjs_sharedId=9df63e56-be1e-48c3-9c66-58edbdce51dc; pbjs_sharedId_cst=zix7LPQsHA%3D%3D; _tt_enable_cookie=1; _ttp=01K2Q506Q42CEDKE6M790AQHCC_.tt.1; ttcsid_CFCCOPBC77U208RT9TAG=1755271142117::03iL0qxJeZeZHNcuvl2R.1.1755271239491; ttc…VlBiZFlCS0tTN080bnAwSDRNM1gzVHphclZyQ0R3VEF2aE1seUs4WVJTVEYzOHFsMmh0emhCNnk1QU1kdlJwbGtpZHhaUTVsSEZWeUduS0JxUjZidDhqMkxjNDdJOXVOT0V1QmNFOGJrdgFiaXZ4IGFRRHZ2NzBIRSsrL3ZYWHZ2NzN2djcxTVQrKy92UT09/w==; cto_dna_bundle=hDa-8V96a281QnpQeFhLSERQQWdtYWhRWWlJcUtYUTlDZnZUcHdWOWVGWHd0UUZoVmtBcHVXMlhIbnh4TGpTNEFZZHNHZ1EzcUE0MWJXM1YyTTBZZ0FmRkRYUSUzRCUzRA; domand_bid=131256034:e65a70ede95af0ea5ccf0d86cec2b918dfa694e6e34ff8bf1e0ce1ddadca920f; ttcsid_CFEBGABC77U6VUESBQR0=1755271216574::gwI7S3IH1iqjRtEBvLL7.1.1755271239491");
         }
 
         try {
