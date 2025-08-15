@@ -136,19 +136,17 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 URL = URL.replaceAll("\\|", "%7C");
             }
 
-            try {
-
-                HttpClient client = proxy == null ? HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .build() :
-                        HttpClient.newBuilder()
-                                .version(HttpClient.Version.HTTP_2)
-                                .followRedirects(HttpClient.Redirect.NORMAL)
-                                .connectTimeout(Duration.ofSeconds(5))
-                                .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
-                                .build();
+            try (HttpClient client = proxy == null ? HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_2)
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .connectTimeout(Duration.ofSeconds(5))
+                    .build() :
+                    HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_2)
+                            .followRedirects(HttpClient.Redirect.NORMAL)
+                            .connectTimeout(Duration.ofSeconds(5))
+                            .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
+                            .build()) {
 
                 HttpRequest request;
                 if (matcher_fc2url.find()) {
@@ -220,21 +218,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
                 String contentType = send.headers().firstValue("Content-Type").isPresent() ? send.headers().firstValue("Content-Type").get() : send.headers().firstValue("content-type").isPresent() ? send.headers().firstValue("content-type").get() : "";
                 if (!isBiliCom) {
-/*
-                    System.out.println("----");
-                    send.headers().map().forEach((name, value)->{
-                        System.out.println(name + " : ");
-                        value.forEach((v)->{
-                            System.out.println("   " + v);
-                        });
-                    });
-                    System.out.println("----");*/
-
                     //System.out.println("a");
                     byte[] body = send.body();
-
-                    client.close();
-                    client = null;
 
                     if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
                         String s = new String(body, StandardCharsets.UTF_8);
