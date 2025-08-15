@@ -61,18 +61,15 @@ public class TCPServer extends Thread {
             @Override
             public void run() {
 
+                final File file = new File("./stop.txt");
+                final File file2 = new File("./stop_lock.txt");
+
                 Thread.ofVirtual().start(()->{
-                    File file = new File("./stop.txt");
-                    File file2 = new File("./stop_lock.txt");
                     if (!file.exists()){
-                        file = null;
-                        file2 = null;
                         return;
                     }
 
                     if (file2.exists()){
-                        file = null;
-                        file2 = null;
                         return;
                     }
 
@@ -98,17 +95,13 @@ public class TCPServer extends Thread {
 
                     file.delete();
                     file2.delete();
-                    file = null;
-                    file2 = null;
                 });
 
                 Thread.ofVirtual().start(()->{
                     try {
-                        File file = new File("./stop.txt");
                         if (!temp[0]){
                             file.createNewFile();
                             checkTimer.cancel();
-                            file = null;
                             return;
                         }
 
@@ -118,10 +111,8 @@ public class TCPServer extends Thread {
                             stream.write(Function.zeroByte);
                             stream.close();
                             socket.close();
-                            file = null;
                         } catch (Exception e){
                             file.createNewFile();
-                            file = null;
                             checkTimer.cancel();
                         }
                     } catch (Exception e){
