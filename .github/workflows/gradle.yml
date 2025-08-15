@@ -340,12 +340,12 @@ jobs:
           mv ./*.mp4 ./error-video
         shell: bash
 
-      - name: Wait for the application to start
-        run: sleep 1
-
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 1
 
       - name: URL Request Test (Error)
         run: |
