@@ -456,6 +456,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         Function.WebhookData.put(logData.getLogID(), webhookData);
                         System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "対応してないURL");
                         Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, errContent404, isHead);
+
+                        return;
                     } else if (hls == null) {
                         OutputStream out = sock.getOutputStream();
                         StringBuilder sb_header = new StringBuilder();
