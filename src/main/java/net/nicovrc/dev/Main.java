@@ -23,8 +23,6 @@ import java.util.regex.Pattern;
 
 public class Main {
 
-    private static final Timer mainTimer = new Timer();
-
     private static final Pattern matcher_Json = Pattern.compile("<meta name=\"server-response\" content=\"\\{(.+)}\" />");
 
     public static void main(String[] args) {
@@ -125,7 +123,7 @@ NicoNico_user_session_secure: ""
                 // 終了処理
                 try {
                     //proxyCheckTimer.cancel();
-                    mainTimer.cancel();
+                    Function.mainTimer.cancel();
                 } catch (Exception e){
                     // e.printStackTrace();
                 }
@@ -395,7 +393,7 @@ NicoNico_user_session_secure: ""
         }
 
         // ログ、Webhook書き出し & キャッシュ削除
-        mainTimer.scheduleAtFixedRate(new TimerTask() {
+        Function.mainTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 Thread.ofVirtual().start(()->{
@@ -429,7 +427,7 @@ NicoNico_user_session_secure: ""
 
         // 終了処理
         //proxyCheckTimer.cancel();
-        mainTimer.cancel();
+        Function.mainTimer.cancel();
         Function.tempCacheCheckTimer.cancel();
         WriteLog();
         SendWebhook();

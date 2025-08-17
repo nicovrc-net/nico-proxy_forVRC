@@ -41,6 +41,9 @@ public class Function {
     public static final ConcurrentHashMap<String, WebhookData> WebhookData = new ConcurrentHashMap<>();
 
     public static final ConcurrentHashMap<String, Long> tempCacheList = new ConcurrentHashMap<>();
+
+    public static final Timer mainTimer = new Timer();
+    public static final Timer checkTimer = new Timer();
     public static final Timer tempCacheCheckTimer = new Timer();
 
     public static String getHTTPRequest(Socket sock) throws Exception{

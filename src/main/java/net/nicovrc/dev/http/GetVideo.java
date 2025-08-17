@@ -345,6 +345,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                     out.flush();
                     out = null;
+                    bytes = null;
+                    sb_header.setLength(0);
+                    sb_header = null;
 
                 }
                 method = null;
@@ -361,6 +364,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             matcher_twit = null;
             matcher_abematv = null;
             matcher_vimeourl = null;
+            matcher_bilibilicom = null;
 
         } catch (Exception e){
              e.printStackTrace();

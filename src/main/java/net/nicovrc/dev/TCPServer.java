@@ -20,7 +20,6 @@ public class TCPServer extends Thread {
     private final int HTTPPort;
     private final boolean[] temp = {true};
 
-    private final Timer checkTimer = new Timer();
 
     private final HashMap<String, NicoVRCHTTP> httpService = new HashMap<>();
 
@@ -57,7 +56,7 @@ public class TCPServer extends Thread {
         this.HTTPPort = tempPort;
 
         // 停止監視 & 死活監視
-        checkTimer.scheduleAtFixedRate(new TimerTask() {
+        Function.checkTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
 
@@ -82,14 +81,14 @@ public class TCPServer extends Thread {
                             stream.write(Function.zeroByte);
                             stream.close();
                             socket.close();
-                            checkTimer.cancel();
+                            Function.checkTimer.cancel();
                             System.out.println("[Info] 終了処理を完了しました。");
                         }
                     } catch (Exception e){
                         // e.printStackTrace();
                     } finally {
                         temp[0] = false;
-                        checkTimer.cancel();
+                        Function.checkTimer.cancel();
                         System.out.println("[Info] 終了処理を完了しました。");
                     }
 
@@ -101,7 +100,7 @@ public class TCPServer extends Thread {
                     try {
                         if (!temp[0]){
                             file.createNewFile();
-                            checkTimer.cancel();
+                            Function.checkTimer.cancel();
                             return;
                         }
 
@@ -113,7 +112,7 @@ public class TCPServer extends Thread {
                             socket.close();
                         } catch (Exception e){
                             file.createNewFile();
-                            checkTimer.cancel();
+                            Function.checkTimer.cancel();
                         }
                     } catch (Exception e){
                         // e.printStackTrace();
@@ -130,7 +129,7 @@ public class TCPServer extends Thread {
             svSock = new ServerSocket(HTTPPort);
         } catch (IOException e) {
             temp[0] = false;
-            checkTimer.cancel();
+            Function.checkTimer.cancel();
             throw new RuntimeException(e);
         }
 
@@ -250,6 +249,6 @@ public class TCPServer extends Thread {
         } catch (Exception e){
             // e.printStackTrace();
         }
-        checkTimer.cancel();
+        Function.checkTimer.cancel();
     }
 }
