@@ -66,6 +66,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         GetContentList.put("XVIDEOS.COM", new XVIDEOS());
         GetContentList.put("Pornhub", new Pornhub());
         GetContentList.put("bilibili.com", new bilibili_com());
+        GetContentList.put("Twitter", new Twitter());
 
         Function.tempCacheCheckTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
