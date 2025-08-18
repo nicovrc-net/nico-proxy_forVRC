@@ -220,6 +220,14 @@ public class NicoVideo implements ServiceAPI {
                             .build();
 
             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+            request.headers().map().forEach((name, value)->{
+                System.out.println("--- "+name+" ---");
+                for (String s : value) {
+                    System.out.println(s);
+                }
+            });
+
             /*
             send.headers().map().forEach((name, value)->{
                 System.out.println("--- " + name + " ---");
