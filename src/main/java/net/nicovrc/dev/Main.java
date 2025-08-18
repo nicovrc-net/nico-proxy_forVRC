@@ -47,18 +47,8 @@ TwitcastingClientID: ""
 TwitcastingClientSecret: ""
 # Discord Webhook URL (設定しない場合は空欄)
 DiscordWebhookURL: ""
-# ----------------------------
-#
-# キャッシュ同期設定
-#
-# ----------------------------
-# 複数サーバー間で同期する場合はtrue
-CacheSync: false
-# キャッシュリストを保持するサーバー
-CacheListServer: "127.0.0.1:25252"
-# キャッシュが追加された際に同期するサーバーのリスト
-CacheSendServer:
-  - "127.0.0.1:25252"
+# Redisにキャッシュするかどうか
+CacheToRedis: false
 # ----------------------------
 #
 # Redis設定
@@ -90,6 +80,8 @@ JPProxy:
 # ※センシティブ設定になっている動画を見れるようにはなりますが何があっても自己責任です
 #
 # ----------------------------
+# Cookie nicosidの値
+NicoNico_nicosid: ""
 # Cookie user_sessionの値
 NicoNico_user_session: ""
 # Cookie user_session_secureの値

@@ -484,9 +484,12 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
+            ※ config.ymlに項目追加 & 削除しました。バックアップを取ってから再生成して設定し直すことをおすすめします
             - 内部処理改良
             - TikTokが見れない問題修正
             - bilibili.comが見れない問題修正
+            - Twitterが見れない問題修正
+            - ニコニコ動画の一部動画が見れない問題を修正
           draft: false
           prerelease: true
 

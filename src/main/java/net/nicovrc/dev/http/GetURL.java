@@ -357,17 +357,19 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 if (ServiceName.equals("ニコニコ")) {
                     String user_session = null;
                     String user_session_secure = null;
+                    String nicosid = null;
 
                     try {
                         final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
                         user_session = yamlMapping.string("NicoNico_user_session");
                         user_session_secure = yamlMapping.string("NicoNico_user_session_secure");
+                        nicosid = yamlMapping.string("NicoNico_nicosid");
                     } catch (Exception e) {
                         //e.printStackTrace();
                     }
 
-                    if (user_session != null && user_session_secure != null) {
-                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + user_session + "\", \"user_session_secure\":\"" + user_session_secure + "\"}");
+                    if (user_session != null && user_session_secure != null && nicosid != null) {
+                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + user_session + "\", \"user_session_secure\":\"" + user_session_secure + "\", \"nicosid\": \""+nicosid+"\"}");
                     } else {
                         api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
                     }
