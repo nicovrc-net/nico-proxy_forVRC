@@ -226,14 +226,14 @@ public class NicoVideo implements ServiceAPI {
 
             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
-            System.out.println("----- debug -----");
+            /*System.out.println("----- debug -----");
             request.headers().map().forEach((name, value)->{
                 System.out.println("--- "+name+" ---");
                 for (String s : value) {
                     System.out.println(s);
                 }
             });
-            System.out.println("----- debug -----");
+            System.out.println("----- debug -----");*/
 
             /*
             send.headers().map().forEach((name, value)->{
