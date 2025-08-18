@@ -177,9 +177,9 @@ public class NicoVideo implements ServiceAPI {
 
         NicoNicoVideo result = new NicoNicoVideo();
 
-        StringBuilder cookieText = new StringBuilder();
+        StringBuilder cookieText = new StringBuilder("nicosid=1755272188.2083107898");
         if (user_session != null && user_session_secure != null){
-            cookieText = new StringBuilder("user_session=" + user_session + "; user_session_secure=" + user_session_secure);
+            cookieText = new StringBuilder("user_session=" + user_session + "; user_session_secure=" + user_session_secure + "; nicosid=1755272188.2083107898");
         }
 
         try {
