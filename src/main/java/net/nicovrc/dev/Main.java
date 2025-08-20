@@ -116,6 +116,8 @@ NicoNico_user_session_secure: ""
                 try {
                     //proxyCheckTimer.cancel();
                     Function.mainTimer.cancel();
+                    Function.checkTimer.cancel();
+                    Function.tempCacheCheckTimer.cancel();
                 } catch (Exception e){
                     // e.printStackTrace();
                 }
