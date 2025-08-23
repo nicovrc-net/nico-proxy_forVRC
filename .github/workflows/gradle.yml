@@ -141,6 +141,11 @@ jobs:
         with:
           name: jar
 
+      - name: Download brotli File
+        uses: actions/download-artifact@v4
+        with:
+          name: brotli
+
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar &
         shell: bash
@@ -175,6 +180,11 @@ jobs:
         with:
           name: jar
 
+      - name: Download brotli File
+        uses: actions/download-artifact@v4
+        with:
+          name: brotli
+
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
@@ -208,6 +218,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar
+
+      - name: Download brotli File
+        uses: actions/download-artifact@v4
+        with:
+          name: brotli
 
       - name: Download Video
         uses: actions/download-artifact@v4
@@ -254,6 +269,11 @@ jobs:
         with:
           name: jar
 
+      - name: Download brotli File
+        uses: actions/download-artifact@v4
+        with:
+          name: brotli
+
       - name: Download Video
         uses: actions/download-artifact@v4
         with:
@@ -299,6 +319,11 @@ jobs:
         with:
           name: jar
 
+      - name: Download brotli File
+        uses: actions/download-artifact@v4
+        with:
+          name: brotli
+
       - name: Download Video
         uses: actions/download-artifact@v4
         with:
@@ -343,6 +368,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar
+
+      - name: Download brotli File
+        uses: actions/download-artifact@v4
+        with:
+          name: brotli
 
       - name: Download ffmpeg
         uses: actions/download-artifact@v4
@@ -394,6 +424,11 @@ jobs:
         with:
           name: jar
 
+      - name: Download brotli File
+        uses: actions/download-artifact@v4
+        with:
+          name: brotli
+
       - name: Download Video
         uses: actions/download-artifact@v4
         with:
@@ -437,6 +472,11 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: jar
+
+      - name: Download brotli File
+        uses: actions/download-artifact@v4
+        with:
+          name: brotli
 
       - name: Download Video
         uses: actions/download-artifact@v4
