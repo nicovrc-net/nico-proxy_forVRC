@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPOutputStream;
 
 public class Function {
     public static final String Version = "3.0.0-rc.11";
@@ -335,5 +336,55 @@ public class Function {
 
     public static void deleteCache(String url){
         CacheList.remove(url);
+    }
+
+    public static byte[] compressByte(byte[] content, String compressType) throws Exception{
+        compressType = compressType.toLowerCase(Locale.ROOT);
+
+        if (compressType.equals("br") || compressType.equals("brotli")){
+            String brotliPath = Function.getBrotliPath();
+            String d_file = "./text_"+ UUID.randomUUID().toString()+"_"+new Date().getTime()+".txt.br";
+            String o_file = "./text_"+ UUID.randomUUID().toString()+"_"+new Date().getTime()+".txt";
+
+            Runtime runtime = Runtime.getRuntime();
+            if (!brotliPath.isEmpty()) {
+
+                FileOutputStream outputStream = new FileOutputStream(o_file);
+                outputStream.write(content);
+                outputStream.close();
+
+                final Process exec0 = runtime.exec(new String[]{brotliPath, "-9", "-o", d_file, o_file});
+                Thread.ofVirtual().start(() -> {
+                    try {
+                        Thread.sleep(5000L);
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+
+                    if (exec0.isAlive()) {
+                        exec0.destroy();
+                    }
+                });
+                exec0.waitFor();
+
+                FileInputStream inputStream = new FileInputStream(d_file);
+                byte[] body = inputStream.readAllBytes();
+                inputStream.close();
+
+                new File(d_file).delete();
+                new File(o_file).delete();
+
+                return body;
+            }
+        } else if (compressType.equals("gzip")){
+            ByteArrayOutputStream compressBaos = new ByteArrayOutputStream();
+            try (OutputStream gzip = new GZIPOutputStream(compressBaos)) {
+                gzip.write(content);
+            }
+
+            return compressBaos.toByteArray();
+        }
+
+        return null;
     }
 }

@@ -418,46 +418,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         contentEncoding = "";
 
                         if (ce_list.matches(".*br.*")){
-                            String brotliPath = Function.getBrotliPath();
-                            String d_file = "./text_"+ UUID.randomUUID().toString()+"_"+new Date().getTime()+".txt.br";
-                            String o_file = "./text_"+ UUID.randomUUID().toString()+"_"+new Date().getTime()+".txt";
+                            body = Function.compressByte(body, "br");
 
-                            Runtime runtime = Runtime.getRuntime();
-                            if (!brotliPath.isEmpty()) {
-
-                                FileOutputStream outputStream = new FileOutputStream(o_file);
-                                outputStream.write(body);
-                                outputStream.close();
-
-                                final Process exec0 = runtime.exec(new String[]{brotliPath, "-9", "-o", d_file, o_file});
-                                Thread.ofVirtual().start(() -> {
-                                    try {
-                                        Thread.sleep(5000L);
-                                    } catch (Exception e) {
-                                        //e.printStackTrace();
-                                    }
-
-                                    if (exec0.isAlive()) {
-                                        exec0.destroy();
-                                    }
-                                });
-                                exec0.waitFor();
-
-                                FileInputStream inputStream = new FileInputStream(d_file);
-                                body = inputStream.readAllBytes();
-                                inputStream.close();
-
-                                new File(d_file).delete();
-                                new File(o_file).delete();
-
-                                contentEncoding = "br";
-                            }
+                            contentEncoding = "br";
                         } else if (ce_list.matches(".*gzip.*")){
-                            ByteArrayOutputStream compressBaos = new ByteArrayOutputStream();
-                            try (OutputStream gzip = new GZIPOutputStream(compressBaos)) {
-                                gzip.write(body);
-                            }
-                            body = compressBaos.toByteArray();
+                            body = Function.compressByte(body, "gzip");
 
                             contentEncoding = "gzip";
 
