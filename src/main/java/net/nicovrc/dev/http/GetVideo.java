@@ -280,6 +280,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
                 String contentType = send.headers().firstValue("Content-Type").isPresent() ? send.headers().firstValue("Content-Type").get() : send.headers().firstValue("content-type").isPresent() ? send.headers().firstValue("content-type").get() : "";
                 String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+
+                ContentEncoding = ContentEncoding == null ? "" : ContentEncoding;
                 //System.out.println(ContentEncoding);
                 //System.out.println(contentEncoding);
 
@@ -427,6 +429,22 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         s = null;
                     }
                     //System.out.println("b");
+                    if (contentEncoding.isEmpty()){
+                        String ce_list = ContentEncoding.toLowerCase(Locale.ROOT);
+                        //System.out.println(ce_list);
+                        contentEncoding = "";
+
+                        if (ce_list.matches(".*br.*")){
+                            body = Function.compressByte(body, "br");
+
+                            contentEncoding = "br";
+                        } else if (ce_list.matches(".*gzip.*")){
+                            body = Function.compressByte(body, "gzip");
+
+                            contentEncoding = "gzip";
+
+                        }
+                    }
                     Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, contentEncoding, body, method != null && method.equals("HEAD"));
                     body = null;
                 } else {
