@@ -103,8 +103,29 @@ jobs:
           name: video
           path: ./*.mp4
 
+  build_br:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Build brotli
+        run: |
+          apt install -y cmake
+          https://github.com/google/brotli.git
+          cd brotli
+          mkdir out && cd out
+          cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./installed ..
+          cmake --build . --config Release --target install
+        shell: bash
+
+      - name: Upload brotli
+        uses: actions/upload-artifact@v4
+        with:
+          name: brotli
+          path: ./brotli/out/brotli
+
   autotest1:
-    needs: build-21
+    needs: [build-21, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -138,7 +159,7 @@ jobs:
         shell: bash
 
   autotest2:
-    needs: build-21
+    needs: [build-21, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -172,7 +193,7 @@ jobs:
         shell: bash
 
   autotest3:
-    needs: [build-21, download_errorVideo]
+    needs: [build-21, download_errorVideo, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -217,7 +238,7 @@ jobs:
         shell: bash
 
   autotest4:
-    needs: [build-21, download_errorVideo]
+    needs: [build-21, download_errorVideo, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -262,7 +283,7 @@ jobs:
         shell: bash
 
   autotest5:
-    needs: [build-21, download_errorVideo]
+    needs: [build-21, download_errorVideo, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -307,7 +328,7 @@ jobs:
         shell: bash
 
   autotest6:
-    needs: [build-21, download_ffmpeg, download_errorVideo]
+    needs: [build-21, download_ffmpeg, download_errorVideo, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -357,7 +378,7 @@ jobs:
         shell: bash
 
   autotest7:
-    needs: [build-21, download_errorVideo]
+    needs: [build-21, download_errorVideo, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -401,7 +422,7 @@ jobs:
           fi
         shell: bash
   autotest8:
-    needs: [build-21, download_errorVideo]
+    needs: [build-21, download_errorVideo, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -511,3 +532,4 @@ jobs:
             jar
             ffmpeg
             video
+            brotli

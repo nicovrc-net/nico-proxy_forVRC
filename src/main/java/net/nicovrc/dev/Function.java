@@ -46,6 +46,8 @@ public class Function {
     public static final Timer checkTimer = new Timer();
     public static final Timer tempCacheCheckTimer = new Timer();
 
+    public static final Pattern matcher_contentEncoding = Pattern.compile("([aA])ccept-([eE])ncoding: (.+)");
+
     public static String getHTTPRequest(Socket sock) throws Exception{
         //System.out.println("debug 1");
         InputStream in = sock.getInputStream();
@@ -105,11 +107,16 @@ public class Function {
         return httpRequest;
     }
 
+    @Deprecated
     public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, byte[] body, boolean isHEAD) throws Exception{
-        sendHTTPRequest(sock, httpVersion, code, contentType, null, body, isHEAD);
+        sendHTTPRequest(sock, httpVersion, code, contentType, null, null, body, isHEAD);
     }
 
-    public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String AccessControlAllowOrigin, byte[] body, boolean isHEAD) throws Exception {
+    public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, byte[] body, boolean isHEAD) throws Exception{
+        sendHTTPRequest(sock, httpVersion, code, contentType, contentEncoding, null, body, isHEAD);
+    }
+
+    public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, boolean isHEAD) throws Exception {
         OutputStream out = sock.getOutputStream();
         StringBuilder sb_header = new StringBuilder();
 
@@ -128,6 +135,9 @@ public class Function {
             sb_header.append("Access-Control-Allow-Origin: ").append(AccessControlAllowOrigin).append("\r\n");
         }
         sb_header.append("Content-Length: ").append(body.length).append("\r\n");
+        if (contentEncoding != null && !contentEncoding.isEmpty()) {
+            sb_header.append("Content-Encoding: ").append(contentEncoding).append("\r\n");
+        }
         sb_header.append("Content-Type: ").append(contentType).append("\r\n");
 
         sb_header.append("Date: ").append(new Date()).append("\r\n");
@@ -203,6 +213,20 @@ public class Function {
         }
 
         return ffmpegPass;
+
+    }
+
+    public static String getBrotliPath(){
+
+        if (new File("./brotli.exe").exists()){
+            return "./brotli.exe";
+        }
+
+        if (new File("./brotli").exists()){
+            return "./brotli";
+        }
+
+        return "";
 
     }
 

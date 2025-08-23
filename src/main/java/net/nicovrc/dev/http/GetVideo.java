@@ -2,10 +2,7 @@ package net.nicovrc.dev.http;
 
 import net.nicovrc.dev.Function;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -16,8 +13,11 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 public class GetVideo implements Runnable, NicoVRCHTTP {
 
@@ -72,15 +72,24 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             //System.out.println(URL);
 
             URL = URLDecoder.decode(URL, StandardCharsets.UTF_8);
-
-            Matcher matcher = matcher_cookie.matcher(URL);
-            Matcher matcher2 = matcher_referer.matcher(URL);
+            Matcher matcher_c = Function.matcher_contentEncoding.matcher(httpRequest);
 
             String method = Function.getMethod(httpRequest);
             String httpVersion = Function.getHTTPVersion(httpRequest);
 
+            String ContentEncoding = null;
+            if (matcher_c.find()){
+                ContentEncoding = matcher_c.group(3);
+            }
+
+            if (ContentEncoding != null){
+                ContentEncoding = ContentEncoding.replaceAll(", deflate", "").replaceAll("deflate", "").replaceAll(", zstd", "").replaceAll("zstd", "");
+            }
+
             httpRequest = null;
 
+            Matcher matcher = matcher_cookie.matcher(URL);
+            Matcher matcher2 = matcher_referer.matcher(URL);
             String CookieText = null;
             String Referer = null;
             String URL = null;
@@ -109,7 +118,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
             if (URL == null) {
                 //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
-                Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8","Video Not Found".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8", null,"Video Not Found".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                 method = null;
                 httpVersion = null;
 
@@ -150,79 +159,187 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                 HttpRequest request;
                 if (matcher_fc2url.find()) {
-                    request = HttpRequest.newBuilder()
+                    request = ContentEncoding != null ? HttpRequest.newBuilder()
                             .uri(new URI(URL))
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", ContentEncoding)
+                            .headers("Connection", "keep-alive")
                             .headers("Cookie", "live_media_session=JD052LLx2GF0CXAJuPdlT")
                             .headers("Origin", "https://live.fc2.com")
                             .headers("Referer", "https://live.fc2.com/")
                             .GET()
-                            .build();
+                            .build() : HttpRequest.newBuilder()
+                            .uri(new URI(URL))
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Connection", "keep-alive")
+                            .headers("Cookie", "live_media_session=JD052LLx2GF0CXAJuPdlT")
+                            .headers("Origin", "https://live.fc2.com")
+                            .headers("Referer", "https://live.fc2.com/")
+                            .GET()
+                            .build()
+                    ;
                 } else {
 
                     if (isBiliCom){
-                        request = HttpRequest.newBuilder()
+                        request = ContentEncoding != null ? HttpRequest.newBuilder()
                                 .uri(new URI(URL))
                                 .headers("User-Agent", Function.UserAgent)
                                 .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                                 .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                .headers("Accept-Encoding", ContentEncoding)
                                 .headers("Referer", Referer)
                                 .HEAD()
-                                .build();
+                                .build() :
+                                HttpRequest.newBuilder()
+                                        .uri(new URI(URL))
+                                        .headers("User-Agent", Function.UserAgent)
+                                        .headers("Accept", "*/*")
+                                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                        .headers("Referer", Referer)
+                                        .HEAD()
+                                        .build();
                     } else if (CookieText == null || CookieText.isEmpty()){
                         if (Referer == null || Referer.isEmpty()){
-                            request = HttpRequest.newBuilder()
+                            request = ContentEncoding != null ? HttpRequest.newBuilder()
                                     .uri(new URI(URL))
                                     .headers("User-Agent", Function.UserAgent)
-                                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                    .headers("Accept", "*/*")
                                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                    .headers("Accept-Encoding", ContentEncoding)
+                                    .GET()
+                                    .build() :
+                                    HttpRequest.newBuilder()
+                                            .uri(new URI(URL))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .headers("Accept", "*/*")
+                                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                                     .GET()
                                     .build();
                         } else {
-                            request = HttpRequest.newBuilder()
+                            request = ContentEncoding != null ? HttpRequest.newBuilder()
                                     .uri(new URI(URL))
                                     .headers("User-Agent", Function.UserAgent)
                                     .headers("Referer", Referer)
-                                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                    .headers("Accept", "*/*")
                                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                    .headers("Accept-Encoding", ContentEncoding)
                                     .GET()
-                                    .build();
+                                    .build() :
+                                    HttpRequest.newBuilder()
+                                            .uri(new URI(URL))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .headers("Referer", Referer)
+                                            .headers("Accept", "*/*")
+                                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                            .GET()
+                                            .build();
                         }
                     } else {
                         //System.out.println(URL);
                         if (Referer == null || Referer.isEmpty()){
-                            request = HttpRequest.newBuilder()
+                            request = ContentEncoding != null ? HttpRequest.newBuilder()
                                     .uri(new URI(URL))
                                     .headers("User-Agent", Function.UserAgent)
                                     .headers("Cookie", CookieText)
-                                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                    .headers("Accept", "*/*")
                                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                    .headers("Accept-Encoding", ContentEncoding)
                                     .GET()
-                                    .build();
+                                    .build() :
+                                    HttpRequest.newBuilder()
+                                            .uri(new URI(URL))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .headers("Cookie", CookieText)
+                                            .headers("Accept", "*/*")
+                                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                            .GET()
+                                            .build();
                         } else {
-                            request = HttpRequest.newBuilder()
+                            request = ContentEncoding != null ? HttpRequest.newBuilder()
                                     .uri(new URI(URL))
                                     .headers("User-Agent", Function.UserAgent)
                                     .headers("Cookie", CookieText)
                                     .headers("Referer", Referer)
-                                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                    .headers("Accept", "*/*")
                                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                    .headers("Accept-Encoding", ContentEncoding)
                                     .GET()
-                                    .build();
+                                    .build() :
+                                    HttpRequest.newBuilder()
+                                            .uri(new URI(URL))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .headers("Cookie", CookieText)
+                                            .headers("Accept", "*/*")
+                                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                            .GET()
+                                            .build();
                         }
                     }
                 }
 
                 HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
                 String contentType = send.headers().firstValue("Content-Type").isPresent() ? send.headers().firstValue("Content-Type").get() : send.headers().firstValue("content-type").isPresent() ? send.headers().firstValue("content-type").get() : "";
+                String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                //System.out.println(ContentEncoding);
+                //System.out.println(contentEncoding);
+
                 if (!isBiliCom) {
                     //System.out.println("a");
                     byte[] body = send.body();
 
                     if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
+                        ByteArrayInputStream stream = new ByteArrayInputStream(body);
+                        if (contentEncoding.toLowerCase(Locale.ROOT).equals("gzip")){
+                            GZIPInputStream gis = new GZIPInputStream(stream);
+                            body = gis.readAllBytes();
+                            gis.close();
+
+                        } else if (contentEncoding.toLowerCase(Locale.ROOT).equals("br")){
+
+                            String brotliPath = Function.getBrotliPath();
+                            String d_file = "./text_"+ UUID.randomUUID().toString()+"_"+new Date().getTime()+".txt";
+                            String o_file = "./text_"+ UUID.randomUUID().toString()+"_"+new Date().getTime()+".txt.br";
+
+                            Runtime runtime = Runtime.getRuntime();
+                            if (!brotliPath.isEmpty()){
+
+                                FileOutputStream outputStream = new FileOutputStream(o_file);
+                                outputStream.write(body);
+                                outputStream.close();
+
+                                //final Process exec0 = runtime.exec(new String[]{brotliPath, "-9", "-o", "text.br2", "text.txt"});
+                                final Process exec0 = runtime.exec(new String[]{brotliPath, "-o" , d_file, "-d" , o_file});
+                                Thread.ofVirtual().start(() -> {
+                                    try {
+                                        Thread.sleep(5000L);
+                                    } catch (Exception e) {
+                                        //e.printStackTrace();
+                                    }
+
+                                    if (exec0.isAlive()) {
+                                        exec0.destroy();
+                                    }
+                                });
+                                exec0.waitFor();
+
+                                FileInputStream inputStream = new FileInputStream(d_file);
+                                body = inputStream.readAllBytes();
+                                inputStream.close();
+
+                                new File(d_file).delete();
+                                new File(o_file).delete();
+
+                            }
+
+                        }
+                        stream.close();
+
                         String s = new String(body, StandardCharsets.UTF_8);
+                        //System.out.println(s);
                         if (matcher_twit.find()) {
                             s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");
                             s = s.replaceAll("\"/tc\\.vod\\.v2", "\"/https/referer:[" + Referer + "]/" + request.uri().getHost() + "/tc.vod.v2");
@@ -295,10 +412,53 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
 
                         body = s.getBytes(StandardCharsets.UTF_8);
+
+                        if (contentEncoding.toLowerCase(Locale.ROOT).equals("gzip")){
+                            ByteArrayOutputStream compressBaos = new ByteArrayOutputStream();
+                            try (OutputStream gzip = new GZIPOutputStream(compressBaos)) {
+                                gzip.write(body);
+                            }
+                            body = compressBaos.toByteArray();;
+                        } else if (contentEncoding.toLowerCase(Locale.ROOT).equals("br")){
+                            String brotliPath = Function.getBrotliPath();
+                            String d_file = "./text_"+ UUID.randomUUID().toString()+"_"+new Date().getTime()+".txt.br";
+                            String o_file = "./text_"+ UUID.randomUUID().toString()+"_"+new Date().getTime()+".txt";
+
+                            Runtime runtime = Runtime.getRuntime();
+                            if (!brotliPath.isEmpty()) {
+
+                                FileOutputStream outputStream = new FileOutputStream(o_file);
+                                outputStream.write(body);
+                                outputStream.close();
+
+                                //final Process exec0 = runtime.exec(new String[]{brotliPath, "-9", "-o", "text.br2", "text.txt"});
+                                final Process exec0 = runtime.exec(new String[]{brotliPath, "-9", "-o", d_file, "-d", o_file});
+                                Thread.ofVirtual().start(() -> {
+                                    try {
+                                        Thread.sleep(5000L);
+                                    } catch (Exception e) {
+                                        //e.printStackTrace();
+                                    }
+
+                                    if (exec0.isAlive()) {
+                                        exec0.destroy();
+                                    }
+                                });
+                                exec0.waitFor();
+
+                                FileInputStream inputStream = new FileInputStream(d_file);
+                                body = inputStream.readAllBytes();
+                                inputStream.close();
+
+                                new File(d_file).delete();
+                                new File(o_file).delete();
+                            }
+                        }
+
                         s = null;
                     }
                     //System.out.println("b");
-                    Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, body, method != null && method.equals("HEAD"));
+                    Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, contentEncoding, body, method != null && method.equals("HEAD"));
                     body = null;
                 } else {
 
@@ -319,6 +479,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                 .headers("Referer", Referer)
                                 .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                                 .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                .headers("Accept-Encoding", "gzip, deflate, br, zstd")
                                 // Range bytes=0-1227
                                 .headers("Range", "bytes=" + mi + "-" + Math.min(mx - 1, length - 1))
                                 .build();
@@ -358,7 +519,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
             } catch (Exception e){
                 e.printStackTrace();
-                Function.sendHTTPRequest(sock, httpVersion, 200, "video/mp4", content, method != null && method.equals("HEAD"));
+                Function.sendHTTPRequest(sock, httpVersion, 200, "video/mp4", null, content, method != null && method.equals("HEAD"));
             }
             matcher_fc2url = null;
             matcher_twit = null;

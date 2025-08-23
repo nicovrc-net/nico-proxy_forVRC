@@ -124,6 +124,16 @@ NicoNico_user_session_secure: ""
                 return;
             }
         }
+
+        if (Function.getBrotliPath().isEmpty()){
+            System.out.println("[Info] brotliの実行ファイルを設置してください。");
+            Function.mainTimer.cancel();
+            Function.checkTimer.cancel();
+            Function.tempCacheCheckTimer.cancel();
+
+            return;
+        }
+
         file1 = null;
         // 設定読み込み
         String FolderPass = "";
