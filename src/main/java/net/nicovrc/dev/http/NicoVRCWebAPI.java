@@ -47,6 +47,14 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
             final String httpVersion = Function.getHTTPVersion(HTTPRequest);
             final boolean isHead = method != null && method.equals("HEAD");
 
+            String b_contentEncoding = Function.getContentEncoding(HTTPRequest);
+            String sendContentEncoding = "";
+            if (b_contentEncoding != null && b_contentEncoding.matches(".*br.*")){
+                sendContentEncoding = "br";
+            } else if (b_contentEncoding != null && b_contentEncoding.matches(".*gzip.*")){
+                sendContentEncoding = "gzip";
+            }
+
             System.out.println("[API Access ("+Function.sdf.format(date)+")] " + URL);
 
             String[] split = UUID.randomUUID().toString().split("-");
@@ -58,7 +66,8 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
             if (apiList.isEmpty()){
                 // 何もAPI実装されてなければ意味ないので
-                Function.sendHTTPRequest(sock, httpVersion, 404, contentType_text, errorAPINotFound, isHead);
+                byte[] bytes = Function.compressByte(errorAPINotFound, sendContentEncoding);
+                Function.sendHTTPRequest(sock, httpVersion, 404, contentType_text, sendContentEncoding, bytes == null ? errorAPINotFound : bytes, isHead);
                 return;
             }
 
@@ -79,7 +88,8 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
             Function.WebhookData.put(split[0]+split[1], webhookData);
 
             if (result == null){
-                Function.sendHTTPRequest(sock, httpVersion, 404, contentType_text, errorAPINotFound, isHead);
+                byte[] bytes = Function.compressByte(errorAPINotFound, sendContentEncoding);
+                Function.sendHTTPRequest(sock, httpVersion, 404, contentType_text, sendContentEncoding, bytes == null ? errorAPINotFound : bytes, isHead);
                 return;
             }
 
@@ -99,7 +109,8 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
                 }
             }
 
-            Function.sendHTTPRequest(sock, httpVersion, code, "application/json; charset=utf-8", "*",result.getBytes(StandardCharsets.UTF_8), isHead);
+            byte[] bytes = Function.compressByte(result.getBytes(StandardCharsets.UTF_8), sendContentEncoding);
+            Function.sendHTTPRequest(sock, httpVersion, code, "application/json; charset=utf-8", sendContentEncoding, "*", bytes == null ? result.getBytes(StandardCharsets.UTF_8) : bytes, isHead);
             json = null;
 
         } catch (Exception e){

@@ -108,11 +108,6 @@ public class Function {
         return httpRequest;
     }
 
-    @Deprecated
-    public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, byte[] body, boolean isHEAD) throws Exception{
-        sendHTTPRequest(sock, httpVersion, code, contentType, null, null, body, isHEAD);
-    }
-
     public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, byte[] body, boolean isHEAD) throws Exception{
         sendHTTPRequest(sock, httpVersion, code, contentType, contentEncoding, null, body, isHEAD);
     }

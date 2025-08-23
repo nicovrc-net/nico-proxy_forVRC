@@ -158,9 +158,18 @@ public class TCPServer extends Thread {
 
                         String HTTPVersion = Function.getHTTPVersion(httpRequest);
                         String Method = Function.getMethod(httpRequest);
+                        String b_contentEncoding = Function.getContentEncoding(httpRequest);
+                        String sendContentEncoding = "";
+                        if (b_contentEncoding != null && b_contentEncoding.matches(".*br.*")){
+                            sendContentEncoding = "br";
+                        } else if (b_contentEncoding != null && b_contentEncoding.matches(".*gzip.*")){
+                            sendContentEncoding = "gzip";
+                        }
+
                         if (Method == null) {
 
-                            Function.sendHTTPRequest(sock, HTTPVersion, 405, textPlain, err405, false);
+                            byte[] bytes = Function.compressByte(err405, sendContentEncoding);
+                            Function.sendHTTPRequest(sock, HTTPVersion, 405, textPlain, sendContentEncoding, bytes == null ? err405 : bytes, false);
 
                             in.close();
                             out.close();
@@ -176,7 +185,8 @@ public class TCPServer extends Thread {
 
                         final boolean isHead = Method.equals("HEAD");
                         if (HTTPVersion == null) {
-                            Function.sendHTTPRequest(sock, null, 400, textPlain, err400, isHead);
+                            byte[] bytes = Function.compressByte(err400, sendContentEncoding);
+                            Function.sendHTTPRequest(sock, null, 400, textPlain, sendContentEncoding, bytes == null ? err400 : bytes, isHead);
 
                             in.close();
                             out.close();
@@ -206,7 +216,8 @@ public class TCPServer extends Thread {
                                 // e.printStackTrace();
                             }
                         } else {
-                            Function.sendHTTPRequest(sock, null, 400, textPlain, err400, isHead);
+                            byte[] bytes = Function.compressByte(err400, sendContentEncoding);
+                            Function.sendHTTPRequest(sock, null, 400, textPlain, sendContentEncoding, bytes == null ? err400 : bytes, isHead);
 
                             in.close();
                             out.close();

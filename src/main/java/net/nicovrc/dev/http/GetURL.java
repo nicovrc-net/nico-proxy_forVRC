@@ -290,7 +290,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
                                 }
                             } else {
-                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
+                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
                             }
                         } else {
                             OutputStream out = sock.getOutputStream();
