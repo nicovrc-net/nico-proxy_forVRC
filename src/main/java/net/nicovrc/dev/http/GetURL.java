@@ -283,7 +283,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             StringBuilder sb_header = new StringBuilder();
 
                             sb_header.append("HTTP/").append(httpVersion).append(" 302 Found\r\nDate: ").append(new Date()).append("\r\nLocation: /https/cookie:[").append(cacheData.getCookieText()).append("]/referer:[").append(cacheData.getRefererText()).append("]/").append(cacheData.getTargetURL().replaceAll("https://", "")).append("\r\n\r\n");
-                            System.out.println(sb_header);
+                            //System.out.println(sb_header);
                             out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
                             out.flush();
 
