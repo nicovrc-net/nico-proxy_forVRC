@@ -72,15 +72,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             //System.out.println(URL);
 
             URL = URLDecoder.decode(URL, StandardCharsets.UTF_8);
-            Matcher matcher_c = Function.matcher_contentEncoding.matcher(httpRequest);
 
             String method = Function.getMethod(httpRequest);
             String httpVersion = Function.getHTTPVersion(httpRequest);
 
-            String ContentEncoding = null;
-            if (matcher_c.find()){
-                ContentEncoding = matcher_c.group(3);
-            }
+            String ContentEncoding = Function.getContentEncoding(httpRequest);
 
             if (ContentEncoding != null){
                 ContentEncoding = ContentEncoding.replaceAll(", deflate", "").replaceAll("deflate", "").replaceAll(", zstd", "").replaceAll("zstd", "");
