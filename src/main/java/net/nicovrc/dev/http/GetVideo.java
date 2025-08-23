@@ -413,13 +413,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                         body = s.getBytes(StandardCharsets.UTF_8);
 
-                        if (contentEncoding.toLowerCase(Locale.ROOT).equals("gzip")){
-                            ByteArrayOutputStream compressBaos = new ByteArrayOutputStream();
-                            try (OutputStream gzip = new GZIPOutputStream(compressBaos)) {
-                                gzip.write(body);
-                            }
-                            body = compressBaos.toByteArray();;
-                        } else if (contentEncoding.toLowerCase(Locale.ROOT).equals("br")){
+                        String ce_list = ContentEncoding.toLowerCase(Locale.ROOT);
+                        //System.out.println(ce_list);
+                        contentEncoding = "";
+
+                        if (ce_list.matches(".*br.*")){
                             String brotliPath = Function.getBrotliPath();
                             String d_file = "./text_"+ UUID.randomUUID().toString()+"_"+new Date().getTime()+".txt.br";
                             String o_file = "./text_"+ UUID.randomUUID().toString()+"_"+new Date().getTime()+".txt";
@@ -431,8 +429,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                 outputStream.write(body);
                                 outputStream.close();
 
-                                //final Process exec0 = runtime.exec(new String[]{brotliPath, "-9", "-o", "text.br2", "text.txt"});
-                                final Process exec0 = runtime.exec(new String[]{brotliPath, "-9", "-o", d_file, "-d", o_file});
+                                final Process exec0 = runtime.exec(new String[]{brotliPath, "-9", "-o", d_file, o_file});
                                 Thread.ofVirtual().start(() -> {
                                     try {
                                         Thread.sleep(5000L);
@@ -452,7 +449,18 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                                 new File(d_file).delete();
                                 new File(o_file).delete();
+
+                                contentEncoding = "br";
                             }
+                        } else if (ce_list.matches(".*gzip.*")){
+                            ByteArrayOutputStream compressBaos = new ByteArrayOutputStream();
+                            try (OutputStream gzip = new GZIPOutputStream(compressBaos)) {
+                                gzip.write(body);
+                            }
+                            body = compressBaos.toByteArray();
+
+                            contentEncoding = "gzip";
+
                         }
 
                         s = null;
