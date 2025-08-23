@@ -110,7 +110,7 @@ jobs:
     steps:
       - name: Build brotli
         run: |
-          https://github.com/google/brotli.git
+          git clone https://github.com/google/brotli.git
           cd brotli
           mkdir out && cd out
           cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=./installed ..
