@@ -110,7 +110,6 @@ jobs:
     steps:
       - name: Build brotli
         run: |
-          apt install -y cmake
           https://github.com/google/brotli.git
           cd brotli
           mkdir out && cd out
