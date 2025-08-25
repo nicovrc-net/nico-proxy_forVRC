@@ -255,7 +255,9 @@ public class NicoVideo implements ServiceAPI {
             for (String s : cookieList) {
                 String[] split = s.split(";");
                 String[] split1 = split[0].split("=");
-                cookieText.append((!cookieText.isEmpty()) ? "; " : "").append(split1[0]).append("=").append(split1[1]);
+                if (split1.length == 2){
+                    cookieText.append((!cookieText.isEmpty()) ? "; " : "").append(split1[0]).append("=").append(split1[1]);
+                }
             }
 
             //System.out.println(cookieText);
