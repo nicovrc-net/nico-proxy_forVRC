@@ -206,7 +206,21 @@ public class TCPServer extends Thread {
                         // それぞれの処理へ飛ぶ
                         String[] split = URI.split("\\?");
 
-                        String s = (split.length > 1  ? split[0] : "/"+split[0].split("/")[1]+"/") + (split.length == 2 ? (split[1].startsWith("url") ? ("?" + split[1].split("=")[0] + "=") : "") : "");
+                        String s = "";
+                        if (split.length == 1){
+                            s = "/" + split[0].split("/")[1] + "/";
+                        }
+                        if (split.length == 2){
+                            s = split[0];
+                            if (split[1].startsWith("url")){
+                                s = s + "?url=";
+                            } else if (split[1].startsWith("vi")){
+                                s = s + "?vi=";
+                            } else if (split[0].startsWith("/proxy")){
+                                s = s + "?";
+                            }
+                        }
+
                         //System.out.println(s);
                         NicoVRCHTTP vrchttp = httpService.get(s.substring(0, Math.min(s.length(), 15)));
                         if (vrchttp != null){
