@@ -73,7 +73,7 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
             String result = null;
 
-            NicoVRCAPI vrcapi = apiList.get(URL.split("\\?")[0].substring(0, Math.min(URL.length(), 15)));
+            NicoVRCAPI vrcapi = apiList.get((URL.split("\\?")[0] + (URL.split("\\?")[1].startsWith("url") ? URL.split("\\?")[1] : "")).substring(0, Math.min(URL.length(), 15)));
             if (vrcapi != null){
                 try {
                     result = vrcapi.Run(HTTPRequest);

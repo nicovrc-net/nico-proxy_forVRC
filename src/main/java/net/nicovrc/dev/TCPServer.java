@@ -204,7 +204,7 @@ public class TCPServer extends Thread {
                         //System.out.println("[Debug] " + URI);
 
                         // それぞれの処理へ飛ぶ
-                        NicoVRCHTTP vrchttp = httpService.get(URI.split("\\?")[0].substring(0, Math.min(URI.length(), 10)));
+                        NicoVRCHTTP vrchttp = httpService.get((URI.split("\\?")[0] + (URI.split("\\?")[1].startsWith("url") ? URI.split("\\?")[1] : "")).substring(0, Math.min(URI.length(), 10)));
                         if (vrchttp != null){
                             vrchttp.setURL(URI);
                             vrchttp.setHTTPRequest(httpRequest);
