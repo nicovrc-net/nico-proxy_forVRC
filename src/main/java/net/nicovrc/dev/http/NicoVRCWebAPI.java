@@ -31,12 +31,12 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
         GetCacheList getCacheList = new GetCacheList();
         AddCache addCache = new AddCache();
 
-        apiList.put(getVideoInfo.getURI().substring(0, Math.min(getVideoInfo.getURI().length(), 10)), getVideoInfo);
-        apiList.put(test.getURI().substring(0, Math.min(test.getURI().length(), 10)), test);
-        apiList.put(getVersion.getURI().substring(0, Math.min(getVersion.getURI().length(), 10)), getVersion);
-        apiList.put(getSupportList.getURI().substring(0, Math.min(getSupportList.getURI().length(), 10)), getSupportList);
-        apiList.put(getCacheList.getURI().substring(0, Math.min(getCacheList.getURI().length(), 10)), getCacheList);
-        apiList.put(addCache.getURI().substring(0, Math.min(addCache.getURI().length(), 10)), addCache);
+        apiList.put(getVideoInfo.getURI().substring(0, Math.min(getVideoInfo.getURI().length(), 15)), getVideoInfo);
+        apiList.put(test.getURI().substring(0, Math.min(test.getURI().length(), 15)), test);
+        apiList.put(getVersion.getURI().substring(0, Math.min(getVersion.getURI().length(), 15)), getVersion);
+        apiList.put(getSupportList.getURI().substring(0, Math.min(getSupportList.getURI().length(), 15)), getSupportList);
+        apiList.put(getCacheList.getURI().substring(0, Math.min(getCacheList.getURI().length(), 15)), getCacheList);
+        apiList.put(addCache.getURI().substring(0, Math.min(addCache.getURI().length(), 15)), addCache);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
             String result = null;
 
-            NicoVRCAPI vrcapi = apiList.get(URL.substring(0, Math.min(URL.length(), 10)));
+            NicoVRCAPI vrcapi = apiList.get(URL.split("\\?")[0].substring(0, Math.min(URL.length(), 15)));
             if (vrcapi != null){
                 try {
                     result = vrcapi.Run(HTTPRequest);
