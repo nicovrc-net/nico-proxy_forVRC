@@ -31,12 +31,12 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
         GetCacheList getCacheList = new GetCacheList();
         AddCache addCache = new AddCache();
 
-        apiList.put(getVideoInfo.getURI().substring(0, Math.min(getVideoInfo.getURI().length(), 10)), getVideoInfo);
-        apiList.put(test.getURI().substring(0, Math.min(test.getURI().length(), 10)), test);
-        apiList.put(getVersion.getURI().substring(0, Math.min(getVersion.getURI().length(), 10)), getVersion);
-        apiList.put(getSupportList.getURI().substring(0, Math.min(getSupportList.getURI().length(), 10)), getSupportList);
-        apiList.put(getCacheList.getURI().substring(0, Math.min(getCacheList.getURI().length(), 10)), getCacheList);
-        apiList.put(addCache.getURI().substring(0, Math.min(addCache.getURI().length(), 10)), addCache);
+        apiList.put(getVideoInfo.getURI().substring(0, Math.min(getVideoInfo.getURI().length(), 30)), getVideoInfo);
+        apiList.put(test.getURI().substring(0, Math.min(test.getURI().length(), 30)), test);
+        apiList.put(getVersion.getURI().substring(0, Math.min(getVersion.getURI().length(), 30)), getVersion);
+        apiList.put(getSupportList.getURI().substring(0, Math.min(getSupportList.getURI().length(), 30)), getSupportList);
+        apiList.put(getCacheList.getURI().substring(0, Math.min(getCacheList.getURI().length(), 30)), getCacheList);
+        apiList.put(addCache.getURI().substring(0, Math.min(addCache.getURI().length(), 30)), addCache);
     }
 
     @Override
@@ -73,7 +73,10 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
             String result = null;
 
-            NicoVRCAPI vrcapi = apiList.get(URL.substring(0, Math.min(URL.length(), 10)));
+            String[] sp = URL.split("\\?");
+            String s = sp[0];
+            //System.out.println(s);
+            NicoVRCAPI vrcapi = apiList.get(s.substring(0, Math.min(s.length(), 30)));
             if (vrcapi != null){
                 try {
                     result = vrcapi.Run(HTTPRequest);

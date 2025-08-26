@@ -36,13 +36,13 @@ public class TCPServer extends Thread {
         final GetVideo getVideo = new GetVideo();
         final NicoVRCWebAPI nicoVRCWebAPI = new NicoVRCWebAPI();
 
-        httpService.put(getURL.getStartURI().substring(0, Math.min(getURL.getStartURI().length(), 5)), getURL);
-        httpService.put(getURLDummy.getStartURI().substring(0, Math.min(getURLDummy.getStartURI().length(), 5)), getURLDummy);
-        httpService.put(getURLDummy2.getStartURI().substring(0, Math.min(getURLDummy2.getStartURI().length(), 5)), getURLDummy2);
-        httpService.put(getURLOld1.getStartURI().substring(0, Math.min(getURLOld1.getStartURI().length(), 5)), getURLOld1);
-        httpService.put(getURLOld2.getStartURI().substring(0, Math.min(getURLOld2.getStartURI().length(), 5)), getURLOld2);
-        httpService.put(getVideo.getStartURI().substring(0, Math.min(getVideo.getStartURI().length(), 5)), getVideo);
-        httpService.put(nicoVRCWebAPI.getStartURI().substring(0, Math.min(nicoVRCWebAPI.getStartURI().length(), 5)), nicoVRCWebAPI);
+        httpService.put(getURL.getStartURI().substring(0, Math.min(getURL.getStartURI().length(), 15)), getURL);
+        httpService.put(getURLDummy.getStartURI().substring(0, Math.min(getURLDummy.getStartURI().length(), 15)), getURLDummy);
+        httpService.put(getURLDummy2.getStartURI().substring(0, Math.min(getURLDummy2.getStartURI().length(), 15)), getURLDummy2);
+        httpService.put(getURLOld1.getStartURI().substring(0, Math.min(getURLOld1.getStartURI().length(), 15)), getURLOld1);
+        httpService.put(getURLOld2.getStartURI().substring(0, Math.min(getURLOld2.getStartURI().length(), 15)), getURLOld2);
+        httpService.put(getVideo.getStartURI().substring(0, Math.min(getVideo.getStartURI().length(), 15)), getVideo);
+        httpService.put(nicoVRCWebAPI.getStartURI().substring(0, Math.min(nicoVRCWebAPI.getStartURI().length(), 15)), nicoVRCWebAPI);
 
         int tempPort;
 
@@ -204,7 +204,11 @@ public class TCPServer extends Thread {
                         //System.out.println("[Debug] " + URI);
 
                         // それぞれの処理へ飛ぶ
-                        NicoVRCHTTP vrchttp = httpService.get(URI.substring(0, Math.min(URI.length(), 5)));
+                        String[] split = URI.split("\\?");
+
+                        String s = (split.length > 1  ? split[0] : "/"+split[0].split("/")[1]+"/") + (split.length == 2 ? (split[1].startsWith("url") ? ("?" + split[1].split("=")[0] + "=") : "") : "");
+                        //System.out.println(s);
+                        NicoVRCHTTP vrchttp = httpService.get(s.substring(0, Math.min(s.length(), 15)));
                         if (vrchttp != null){
                             vrchttp.setURL(URI);
                             vrchttp.setHTTPRequest(httpRequest);
