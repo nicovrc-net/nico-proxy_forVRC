@@ -95,9 +95,10 @@ public class NicoVideo implements ServiceAPI {
         if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("user_session")){
             this.user_session = jsonElement.getAsJsonObject().get("user_session").getAsString();
         }
+        /*
         if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("user_session_secure")){
             this.user_session_secure = jsonElement.getAsJsonObject().get("user_session_secure").getAsString();
-        }
+        }*/
         if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("nicosid")){
             this.nicosid = jsonElement.getAsJsonObject().get("nicosid").getAsString();
         }
@@ -183,8 +184,8 @@ public class NicoVideo implements ServiceAPI {
         NicoNicoVideo result = new NicoNicoVideo();
 
         StringBuilder cookieText = new StringBuilder();
-        if (user_session != null && user_session_secure != null && nicosid != null){
-            cookieText = new StringBuilder("user_session=" + user_session + "; user_session_secure=" + user_session_secure + "; nicosid="+nicosid);
+        if (user_session != null && nicosid != null){
+            cookieText = new StringBuilder("user_session=" + user_session + "; nicosid="+nicosid);
         }
 
         try {

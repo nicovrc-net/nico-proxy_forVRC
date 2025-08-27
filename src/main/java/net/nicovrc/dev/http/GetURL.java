@@ -370,8 +370,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 ServiceName = api.getServiceName();
                 if (ServiceName.equals("ニコニコ")) {
 
-                    if (Function.config_user_session != null && Function.config_user_session_secure != null && Function.config_nicosid != null) {
-                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + Function.config_user_session + "\", \"user_session_secure\":\"" + Function.config_user_session_secure + "\", \"nicosid\": \"" + Function.config_nicosid + "\"}");
+                    if (Function.config_user_session != null && Function.config_nicosid != null) {
+                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + Function.config_user_session + "\", \"nicosid\": \"" + Function.config_nicosid + "\"}");
                     } else {
                         api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
                     }

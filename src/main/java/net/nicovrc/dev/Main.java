@@ -84,8 +84,6 @@ JPProxy:
 NicoNico_nicosid: ""
 # Cookie user_sessionの値
 NicoNico_user_session: ""
-# Cookie user_session_secureの値
-NicoNico_user_session_secure: ""
                     """;
 
         File file1 = new File("./config.yml");
@@ -143,7 +141,6 @@ NicoNico_user_session_secure: ""
             Function.config_FolderPass = yamlMapping.string("LogFileFolderPass");
 
             Function.config_user_session = yamlMapping.string("NicoNico_user_session");
-            Function.config_user_session_secure = yamlMapping.string("NicoNico_user_session_secure");
             Function.config_nicosid = yamlMapping.string("NicoNico_nicosid");
 
 
@@ -157,7 +154,6 @@ NicoNico_user_session_secure: ""
             Function.config_FolderPass = "";
 
             Function.config_user_session = null;
-            Function.config_user_session_secure = null;
             Function.config_nicosid = null;
 
             Function.config_twitcast_ClientId = null;

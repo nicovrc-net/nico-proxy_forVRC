@@ -22,7 +22,7 @@ import java.util.regex.Pattern;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.0.0-rc.11";
+    public static final String Version = "3.0.0-rc.12";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:142.0) Gecko/20100101 Firefox/142.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -52,7 +52,6 @@ public class Function {
     public static int config_httpPort = 25252;
     public static String config_FolderPass = "";
     public static String config_user_session = null;
-    public static String config_user_session_secure = null;
     public static String config_nicosid = null;
     public static String config_twitcast_ClientId = null;
     public static String config_twitcast_ClientSecret = null;
