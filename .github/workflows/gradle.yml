@@ -544,9 +544,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - config.ymlの設定値の読み込みは起動時のみに変更
-            - 一部APIがおかしいのを修正
-            - ニコ生が見れない問題を修正
+            - バグ修正
           draft: false
           prerelease: true
 
