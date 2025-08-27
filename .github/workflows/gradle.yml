@@ -544,7 +544,8 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - gzipまたはbrotliを使ったHTTP通信の圧縮に対応
+            - config.ymlの設定値の読み込みは起動時のみに変更
+            - 一部APIがおかしいのを修正
           draft: false
           prerelease: true
 
