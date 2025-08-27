@@ -51,8 +51,8 @@ public class GetVideoInfo implements NicoVRCAPI {
                         //System.out.println("a");
                         site.Set("{\"URL\": \"" + inputUrl + "\", \"ClientID\": \"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\": \"" + Function.config_twitcast_ClientSecret + "\"}");
                     } else if (site.getServiceName().equals("ニコニコ")){
-                        if (Function.config_user_session != null && Function.config_user_session_secure != null && Function.config_nicosid != null){
-                            site.Set("{\"URL\":\""+inputUrl+"\", \"user_session\":\""+Function.config_user_session+"\", \"user_session_secure\":\""+Function.config_user_session_secure+"\", \"nicosid\":\""+Function.config_nicosid+"\"}");
+                        if (Function.config_user_session != null && Function.config_nicosid != null){
+                            site.Set("{\"URL\":\""+inputUrl+"\", \"user_session\":\""+Function.config_user_session+"\", \"nicosid\":\""+Function.config_nicosid+"\"}");
                         } else {
                             site.Set("{\"URL\":\""+inputUrl+"\"}");
                         }
