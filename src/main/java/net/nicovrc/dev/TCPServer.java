@@ -218,6 +218,8 @@ public class TCPServer extends Thread {
                                 s = s + "?";
                             } else if (split[0].startsWith("/api")){
                                 s = "/" + split[0].split("/")[1] + "/";
+                            } else if (split[0].startsWith("http")){
+                                s = "/https/"
                             }
                         }
 
