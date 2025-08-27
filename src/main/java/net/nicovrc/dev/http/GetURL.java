@@ -369,41 +369,18 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 //System.out.println(URL.startsWith("https://twitcasting.tv"));
                 ServiceName = api.getServiceName();
                 if (ServiceName.equals("ニコニコ")) {
-                    String user_session = null;
-                    String user_session_secure = null;
-                    String nicosid = null;
 
-                    try {
-                        final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-                        user_session = yamlMapping.string("NicoNico_user_session");
-                        user_session_secure = yamlMapping.string("NicoNico_user_session_secure");
-                        nicosid = yamlMapping.string("NicoNico_nicosid");
-                    } catch (Exception e) {
-                        //e.printStackTrace();
-                    }
-
-                    if (user_session != null && user_session_secure != null && nicosid != null) {
-                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + user_session + "\", \"user_session_secure\":\"" + user_session_secure + "\", \"nicosid\": \""+nicosid+"\"}");
+                    if (Function.config_user_session != null && Function.config_user_session_secure != null && Function.config_nicosid != null) {
+                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + Function.config_user_session + "\", \"user_session_secure\":\"" + Function.config_user_session_secure + "\", \"nicosid\": \"" + Function.config_nicosid + "\"}");
                     } else {
                         api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
                     }
 
                 } else if (URL.startsWith("https://twitcasting.tv")) {
-                    String ClientId = "";
-                    String ClientSecret = "";
-
-                    try {
-                        final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-                        ClientId = yamlMapping.string("TwitcastingClientID");
-                        ClientSecret = yamlMapping.string("TwitcastingClientSecret");
-                    } catch (Exception e) {
-                        //e.printStackTrace();
-                    }
-
                     if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
-                        api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + ClientId + "\", \"ClientSecret\":\"" + ClientSecret + "\"}");
+                        api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\":\"" + Function.config_twitcast_ClientSecret + "\"}");
                     } else {
-                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + ClientId + "\", \"ClientSecret\":\"" + ClientSecret + "\"}");
+                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\":\"" + Function.config_twitcast_ClientSecret + "\"}");
                     }
                 } else {
                     if (NotRemoveQuestionMarkURL.matcher(URL).find()) {

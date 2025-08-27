@@ -136,18 +136,38 @@ NicoNico_user_session_secure: ""
 
         file1 = null;
         // 設定読み込み
-        String FolderPass = "";
         try {
             final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-            FolderPass = yamlMapping.string("LogFileFolderPass");
+            Function.config_httpPort = yamlMapping.integer("Port");
+
+            Function.config_FolderPass = yamlMapping.string("LogFileFolderPass");
+
+            Function.config_user_session = yamlMapping.string("NicoNico_user_session");
+            Function.config_user_session_secure = yamlMapping.string("NicoNico_user_session_secure");
+            Function.config_nicosid = yamlMapping.string("NicoNico_nicosid");
+
+
+            Function.config_twitcast_ClientId = yamlMapping.string("TwitcastingClientID");
+            Function.config_twitcast_ClientSecret = yamlMapping.string("TwitcastingClientSecret");
+
         } catch (Exception e){
             // e.printStackTrace();
-            FolderPass = "";
+            Function.config_httpPort = 25252;
+
+            Function.config_FolderPass = "";
+
+            Function.config_user_session = null;
+            Function.config_user_session_secure = null;
+            Function.config_nicosid = null;
+
+            Function.config_twitcast_ClientId = null;
+            Function.config_twitcast_ClientSecret = null;
+
         }
 
         // ログフォルダ作成
-        File file = new File(FolderPass);
-        if (!FolderPass.isEmpty() && !file.exists()){
+        File file = new File(Function.config_FolderPass);
+        if (!Function.config_FolderPass.isEmpty() && !file.exists()){
             boolean mkdir = file.mkdir();
         }
 

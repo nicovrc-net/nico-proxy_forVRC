@@ -48,36 +48,14 @@ public class GetVideoInfo implements NicoVRCAPI {
 
 
                     if (url.startsWith("twitcasting.tv")) {
-                        String ClientId = "";
-                        String ClientSecret = "";
-
-                        try {
-                            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-                            ClientId = yamlMapping.string("TwitcastingClientID");
-                            ClientSecret = yamlMapping.string("TwitcastingClientSecret");
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
                         //System.out.println("a");
-                        site.Set("{\"URL\": \"" + inputUrl + "\", \"ClientID\": \"" + ClientId + "\", \"ClientSecret\": \"" + ClientSecret + "\"}");
+                        site.Set("{\"URL\": \"" + inputUrl + "\", \"ClientID\": \"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\": \"" + Function.config_twitcast_ClientSecret + "\"}");
                     } else if (site.getServiceName().equals("ニコニコ")){
-                        String user_session = null;
-                        String user_session_secure = null;
-
-                        try {
-                            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-                            user_session = yamlMapping.string("NicoNico_user_session");
-                            user_session_secure = yamlMapping.string("NicoNico_user_session_secure");
-                        } catch (Exception e){
-                            //e.printStackTrace();
-                        }
-
-                        if (user_session != null && user_session_secure != null){
-                            site.Set("{\"URL\":\""+inputUrl+"\", \"user_session\":\""+user_session+"\", \"user_session_secure\":\""+user_session_secure+"\"}");
+                        if (Function.config_user_session != null && Function.config_user_session_secure != null && Function.config_nicosid != null){
+                            site.Set("{\"URL\":\""+inputUrl+"\", \"user_session\":\""+Function.config_user_session+"\", \"user_session_secure\":\""+Function.config_user_session_secure+"\", \"nicosid\":\""+Function.config_nicosid+"\"}");
                         } else {
                             site.Set("{\"URL\":\""+inputUrl+"\"}");
                         }
-
                     } else {
                         site.Set("{\"URL\": \""+inputUrl+"\"}");
                     }

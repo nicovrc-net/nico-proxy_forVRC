@@ -44,16 +44,7 @@ public class TCPServer extends Thread {
         httpService.put(getVideo.getStartURI().substring(0, Math.min(getVideo.getStartURI().length(), 15)), getVideo);
         httpService.put(nicoVRCWebAPI.getStartURI().substring(0, Math.min(nicoVRCWebAPI.getStartURI().length(), 15)), nicoVRCWebAPI);
 
-        int tempPort;
-
-        try {
-            final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-            tempPort = yamlMapping.integer("Port");
-        } catch (Exception e){
-            tempPort = 25252;
-        }
-
-        this.HTTPPort = tempPort;
+        this.HTTPPort = Function.config_httpPort;
 
         // 停止監視 & 死活監視
         Function.checkTimer.scheduleAtFixedRate(new TimerTask() {

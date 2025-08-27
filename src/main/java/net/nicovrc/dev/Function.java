@@ -49,6 +49,14 @@ public class Function {
 
     public static final Pattern matcher_contentEncoding = Pattern.compile("([aA])ccept-([eE])ncoding: (.+)");
 
+    public static int config_httpPort = 25252;
+    public static String config_FolderPass = "";
+    public static String config_user_session = null;
+    public static String config_user_session_secure = null;
+    public static String config_nicosid = null;
+    public static String config_twitcast_ClientId = null;
+    public static String config_twitcast_ClientSecret = null;
+
     public static String getHTTPRequest(Socket sock) throws Exception{
         //System.out.println("debug 1");
         InputStream in = sock.getInputStream();
