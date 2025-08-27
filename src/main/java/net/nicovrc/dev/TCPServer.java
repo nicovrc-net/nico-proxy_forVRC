@@ -198,13 +198,20 @@ public class TCPServer extends Thread {
                         String[] split = URI.split("\\?");
 
                         String s = "";
+                        //System.out.println("debug0 : " + split.length);
                         if (split.length == 1){
                             s = "/" + split[0].split("/")[1] + "/";
+                            //System.out.println("debug1 : "+s);
                         }
-                        if (split.length == 2){
+                        if (split.length >= 2){
                             s = split[0];
-                            if (split[1].startsWith("url")){
+                            //System.out.println("debug2 : "+s);
+                            if (split[0].startsWith("/dummy")){
+                                s = "/dummy.m3u8";
+                            } else if (split[1].startsWith("url")){
                                 s = s + "?url=";
+                            } else if (split[1].startsWith("dummy")){
+                                s = s + "?dummy=";
                             } else if (split[1].startsWith("vi")){
                                 s = s + "?vi=";
                             } else if (split[0].startsWith("/proxy")){
