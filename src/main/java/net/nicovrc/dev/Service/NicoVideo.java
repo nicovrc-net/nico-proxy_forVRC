@@ -149,6 +149,27 @@ public class NicoVideo implements ServiceAPI {
         if (isID){
             id = matcher_idOnly.group(1);
             accessUrl = "https://nico.ms/" + id;
+
+            try (HttpClient client = HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_2)
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .connectTimeout(Duration.ofSeconds(5))
+                    .build()
+            ) {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(new URI(accessUrl))
+                        .headers("User-Agent", Function.UserAgent)
+                        .GET()
+                        .build();
+
+                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                accessUrl = send.uri().toURL().toString();
+
+            } catch (Exception e){
+                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
+            }
+
         }
         if (isNormal){
             id = matcher_normal.group(3);
@@ -157,6 +178,26 @@ public class NicoVideo implements ServiceAPI {
 
         if (isShort){
             id = matcher_short.group(2);
+
+            try (HttpClient client = HttpClient.newBuilder()
+                    .version(HttpClient.Version.HTTP_2)
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .connectTimeout(Duration.ofSeconds(5))
+                    .build()
+            ) {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(new URI("https://nico.ms/"+id))
+                        .headers("User-Agent", Function.UserAgent)
+                        .GET()
+                        .build();
+
+                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                accessUrl = send.uri().toURL().toString();
+
+            } catch (Exception e){
+                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
+            }
         }
 
         if (isShort || isCas){
