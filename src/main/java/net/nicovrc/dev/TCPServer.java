@@ -201,11 +201,11 @@ public class TCPServer extends Thread {
                         //System.out.println("debug0 : " + split.length);
                         if (split.length == 1){
                             s = "/" + split[0].split("/")[1] + "/";
-                            //System.out.println("debug1 : "+s);
+                            System.out.println("debug1 : "+s);
                         }
                         if (split.length >= 2){
                             s = split[0];
-                            //System.out.println("debug2 : "+s);
+                            System.out.println("debug2 : "+s);
                             if (split[0].startsWith("/dummy")){
                                 s = "/dummy.m3u8";
                             } else if (split[1].startsWith("url")){
@@ -218,12 +218,12 @@ public class TCPServer extends Thread {
                                 s = s + "?";
                             } else if (split[0].startsWith("/api")){
                                 s = "/" + split[0].split("/")[1] + "/";
-                            } else if (split[0].startsWith("http")){
+                            } else if (split[0].startsWith("http") || split[0].startsWith("/http")){
                                 s = "/https/";
                             }
                         }
 
-                        //System.out.println(s);
+                        System.out.println(s);
                         NicoVRCHTTP vrchttp = httpService.get(s.substring(0, Math.min(s.length(), 15)));
                         if (vrchttp != null){
                             vrchttp.setURL(URI);
