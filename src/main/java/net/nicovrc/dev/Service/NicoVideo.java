@@ -200,7 +200,7 @@ public class NicoVideo implements ServiceAPI {
             }
         }
 
-        if (isShort || isCas){
+        if (isCas){
             accessUrl = url;
         }
 
