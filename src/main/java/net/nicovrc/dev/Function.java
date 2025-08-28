@@ -19,6 +19,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
@@ -340,7 +341,60 @@ public class Function {
         CacheList.remove(url);
     }
 
-    public static byte[] compressByte(byte[] content, String compressType) throws Exception{
+    public static byte[] decompressByte(byte[] content, String compressType) throws Exception {
+        byte[] body = content;
+        if (compressType.toLowerCase(Locale.ROOT).equals("gzip")){
+
+            ByteArrayInputStream stream = new ByteArrayInputStream(content);
+            GZIPInputStream gis = new GZIPInputStream(stream);
+            body = gis.readAllBytes();
+            gis.close();
+            stream.close();
+
+        } else if (compressType.toLowerCase(Locale.ROOT).equals("br")){
+
+            String brotliPath = Function.getBrotliPath();
+            String d_file = "./text_d_"+ UUID.randomUUID().toString()+"_"+new Date().getTime()+".txt";
+            String o_file = "./text_d_"+ UUID.randomUUID().toString()+"_"+new Date().getTime()+".txt.br";
+
+            Runtime runtime = Runtime.getRuntime();
+            if (!brotliPath.isEmpty()){
+
+                FileOutputStream outputStream = new FileOutputStream(o_file);
+                outputStream.write(content);
+                outputStream.close();
+
+                //final Process exec0 = runtime.exec(new String[]{brotliPath, "-9", "-o", "text.br2", "text.txt"});
+                final Process exec0 = runtime.exec(new String[]{brotliPath, "-o" , d_file, "-d" , o_file});
+                Thread.ofVirtual().start(() -> {
+                    try {
+                        Thread.sleep(5000L);
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+
+                    if (exec0.isAlive()) {
+                        exec0.destroy();
+                    }
+                });
+                exec0.waitFor();
+
+                FileInputStream inputStream = new FileInputStream(d_file);
+                body = inputStream.readAllBytes();
+                inputStream.close();
+
+                new File(d_file).delete();
+                new File(o_file).delete();
+
+                System.out.println(body.length);
+
+            }
+
+        }
+        return body;
+    }
+
+    public static byte[] compressByte(byte[] content, String compressType) throws Exception {
         compressType = compressType.toLowerCase(Locale.ROOT);
 
         if (compressType.equals("br") || compressType.equals("brotli")){
