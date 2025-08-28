@@ -343,6 +343,11 @@ public class Function {
 
     public static byte[] decompressByte(byte[] content, String compressType) throws Exception {
         byte[] body = content;
+
+        if (compressType == null || compressType.isEmpty()){
+            return body;
+        }
+
         if (compressType.toLowerCase(Locale.ROOT).equals("gzip")){
 
             ByteArrayInputStream stream = new ByteArrayInputStream(content);

@@ -368,6 +368,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                     }
                     contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    System.out.println("d : "+contentEncoding);
                     byte[] bytes = Function.decompressByte(concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]), contentEncoding);
                     sb_header.append("HTTP/").append(httpVersion == null ? "1.1" : httpVersion).append(" 200 OK\r\n");
                     sb_header.append("Content-Length: ").append(bytes.length).append("\r\n");
@@ -388,19 +389,18 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                         }
 
+                        System.out.println("d : "+contentEncoding);
 
                         if (!contentEncoding.isEmpty()){
                             sb_header.append("Content-Encoding: ").append(contentEncoding).append("\r\n");
                         }
                     }
-
-                    out.write(bytes);
-
                     sb_header.append("Date: ").append(new Date()).append("\r\n");
 
                     sb_header.append("\r\n");
                     out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
 
+                    out.write(bytes);
                     out.flush();
                     out = null;
                     bytes = null;
