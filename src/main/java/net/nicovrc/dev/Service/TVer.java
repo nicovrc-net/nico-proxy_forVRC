@@ -89,20 +89,29 @@ public class TVer implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .headers("Referer", "https://tver.jp/")
                         .GET()
                         .build();
 
-                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                String text = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
 
                 //System.out.println(send.body());
 
-                if (!send.body().startsWith("{") || !send.body().endsWith("}")){
+                if (!text.startsWith("{") || !text.endsWith("}")){
                     client.close();
                     return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
-                JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
+                JsonElement json = Function.gson.fromJson(text, JsonElement.class);
                 String projectID = json.getAsJsonObject().get("streaks").getAsJsonObject().get("projectID").getAsString();
                 String videoRefID = json.getAsJsonObject().get("streaks").getAsJsonObject().get("videoRefID").getAsString();
                 String channel = json.getAsJsonObject().get("video").getAsJsonObject().get("channelID").getAsString();
@@ -116,12 +125,21 @@ public class TVer implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .headers("Referer", "https://tver.jp/")
                         .GET()
                         .build();
 
-                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                json = Function.gson.fromJson(send.body(), JsonElement.class);
+                send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                text = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+                json = Function.gson.fromJson(text, JsonElement.class);
 
                 // System.out.println(json);
                 String ati = json.getAsJsonObject().get(projectID).getAsJsonObject().get("pc").getAsString();
@@ -132,12 +150,21 @@ public class TVer implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .headers("Referer", "https://tver.jp/")
                         .GET()
                         .build();
 
-                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                json = Function.gson.fromJson(send.body(), JsonElement.class);
+                send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                text = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+                json = Function.gson.fromJson(text, JsonElement.class);
 
                 boolean isFound = false;
                 int i = 1;
@@ -154,13 +181,22 @@ public class TVer implements ServiceAPI {
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
                             .headers("Origin", "https://tver.jp")
                             .headers("Referer", "https://tver.jp/")
                             .headers("X-Streaks-Api-Key", key)
                             .GET()
                             .build();
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    text = "{}";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        text = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        text = new String(send.body(), StandardCharsets.UTF_8);
+                    }
 
                     if (send.statusCode() >= 200 && send.statusCode() <= 399){
                         isFound = true;
@@ -169,7 +205,7 @@ public class TVer implements ServiceAPI {
                     i++;
                 }
 
-                json = Function.gson.fromJson(send.body(), JsonElement.class);
+                json = Function.gson.fromJson(text, JsonElement.class);
 
                 //System.out.println(json);
 
@@ -204,16 +240,25 @@ public class TVer implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .headers("Origin", "https://tver.jp")
                         .headers("Referer", "https://tver.jp/")
                         .headers("x-tver-platform-type", "web")
                         .GET()
                         .build();
 
-                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                String text = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
 
                 //System.out.println(send.body());
-                JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
+                JsonElement json = Function.gson.fromJson(text, JsonElement.class);
                 if (!json.getAsJsonObject().has("result")){
                     client.close();
                     return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
@@ -242,14 +287,23 @@ public class TVer implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .headers("Origin", "https://tver.jp")
                         .headers("Referer", "https://tver.jp/")
                         .headers("X-Streaks-Api-Key", id)
                         .GET()
                         .build();
 
-                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                json = Function.gson.fromJson(send.body(), JsonElement.class);
+                send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                text = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+                json = Function.gson.fromJson(text, JsonElement.class);
 
                 String programKey = json.getAsJsonObject().get("mrss").getAsJsonObject().get("programKey").getAsString();
                 String programCategory = json.getAsJsonObject().get("mrss").getAsJsonObject().get("programCategory").getAsString();
@@ -264,20 +318,29 @@ public class TVer implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .headers("Origin", "https://tver.jp")
                         .headers("Referer", "https://tver.jp/")
                         .headers("X-Streaks-Api-Key", id)
                         .GET()
                         .build();
 
-                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                text = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
 
-                if (!send.body().startsWith("{") || !send.body().endsWith("}")){
+                if (!text.startsWith("{") || !text.endsWith("}")){
                     client.close();
                     return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
-                json = Function.gson.fromJson(send.body(), JsonElement.class);
+                json = Function.gson.fromJson(text, JsonElement.class);
 
                 //System.out.println(json);
                 //System.out.println(videoId);
@@ -293,14 +356,23 @@ public class TVer implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .headers("Origin", "https://tver.jp")
                         .headers("Referer", "https://tver.jp/")
                         .headers("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString("{\"ads_params\":{\"tvcu_pcode\":\"\",\"tvcu_ccode\":\"\",\"tvcu_zcode\":\"\",\"tvcu_gender\":\"\",\"tvcu_gender_code\":\"\",\"tvcu_age\":\"\",\"tvcu_agegrp\":\"\",\"delivery_type\":\"simul\",\"is_dvr\":0,\"rdid\":\"\",\"idtype\":\"\",\"is_lat\":\"\",\"bundle\":\"\",\"interest\":\"\",\"video_id\":\""+videoId+"\",\"device\":\"pc\",\"device_code\":\"0001\",\"tag_type\":\"browser\",\"item_eventid\":\""+episodeSIEventID+"\",\"item_programkey\":\""+programKey+"\",\"item_category\":\""+programCategory+"\",\"item_episodecode\":\""+episodeCode+"\",\"item_originalmeta1\":\"\",\"item_originalmeta2\":\"\",\"ntv_ppid\":\"z75i3v2w5d0c3173d071452f85c1dd9f450d10d1ff57\",\"tbs_ppid\":\"f87wu4in5d0c3173d071452f85c1dd9f450d10d1ff57\",\"tx_ppid\":\"t87wrus65d0c3173d071452f85c1dd9f450d10d1ff57\",\"ex_ppid\":\"n6dsf79v5d0c3173d071452f85c1dd9f450d10d1ff57\",\"cx_ppid_gam\":\"b8a35iwj5d0c3173d071452f85c1dd9f450d10d1ff57\",\"mbs_ppid_gam\":\"x32ck84s5d0c3173d071452f85c1dd9f450d10d1ff57\",\"abc_ppid\":\"c2fq84em5d0c3173d071452f85c1dd9f450d10d1ff57\",\"tvo_ppid\":\"i3wtqjey5d0c3173d071452f85c1dd9f450d10d1ff57\",\"ktv_ppid\":\"g9byn7re5d0c3173d071452f85c1dd9f450d10d1ff57\",\"ytv_ppid\":\"g8kusm765d0c3173d071452f85c1dd9f450d10d1ff57\",\"ntv_ppid2\":\"z75i3v2w_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"tbs_ppid2\":\"f87wu4in_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"tx_ppid2\":\"t87wrus6_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"ex_ppid2\":\"n6dsf79v_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"cx_ppid2\":\"b8a35iwj_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"mbs_ppid2\":\"x32ck84s_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"abc_ppid2\":\"c2fq84em_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"tvo_ppid2\":\"i3wtqjey_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"ktv_ppid2\":\"g9byn7re_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"ytv_ppid2\":\"g8kusm76_33512098-bab6-40be-91fc-8bf15ea01f5b\",\"vr_uuid\":\"993860D1-AC20-4F22-844B-443395E052A0\",\"personalIsLat\":\"0\",\"platformAdUid\":\"33512098-bab6-40be-91fc-8bf15ea01f5b\",\"platformUid\":\"5d0c3173d071452f85c1dd9f450d10d1ff57\",\"memberId\":\"\",\"c\":\"simul\",\"luid\":\"993860D1-AC20-4F22-844B-443395E052A0\",\"platformVrUid\":\"768126a8cc5be8411a221c5bc7d28bc00f61d3b11867f9423b379ec8fc6e35f8\"},\"id\":\""+sessionId+"\"}"))
                         .build();
 
-                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                json = Function.gson.fromJson(send.body(), JsonElement.class);
+                send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                text = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+                json = Function.gson.fromJson(text, JsonElement.class);
 
                 //System.out.println(json);
                 //System.out.println(send.statusCode());
@@ -323,14 +395,24 @@ public class TVer implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .headers("Origin", "https://tver.jp")
                         .headers("Referer", "https://tver.jp/")
                         .headers("x-tver-platform-type", "web")
                         .GET()
                         .build();
 
-                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                String text = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+
+                JsonElement json = Function.gson.fromJson(text, JsonElement.class);
                 version = json.getAsJsonObject().get("result").getAsJsonObject().get("episode").getAsJsonObject().get("content").getAsJsonObject().get("version").getAsInt();
 
                 uri = new URI("https://statics.tver.jp/content/live/"+id+".json?v="+version);
@@ -339,14 +421,23 @@ public class TVer implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .headers("Origin", "https://tver.jp")
                         .headers("Referer", "https://tver.jp/")
                         .headers("X-Streaks-Api-Key", id)
                         .GET()
                         .build();
 
-                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                json = Function.gson.fromJson(send.body(), JsonElement.class);
+                send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                text = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+                json = Function.gson.fromJson(text, JsonElement.class);
                 //System.out.println(json);
 
                 String projectID = "";
@@ -369,13 +460,22 @@ public class TVer implements ServiceAPI {
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
                             .headers("Origin", "https://tver.jp")
                             .headers("Referer", "https://tver.jp/")
                             .headers("X-Streaks-Api-Key", apiKey)
                             .GET()
                             .build();
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    text = "{}";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        text = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        text = new String(send.body(), StandardCharsets.UTF_8);
+                    }
 
                 } else {
 
@@ -385,14 +485,24 @@ public class TVer implements ServiceAPI {
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
                             .headers("Origin", "https://tver.jp")
                             .headers("Referer", "https://tver.jp/")
                             .headers("x-tver-platform-type", "web")
                             .GET()
                             .build();
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                    json = Function.gson.fromJson(send.body(), JsonElement.class);
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    text = "{}";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        text = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        text = new String(send.body(), StandardCharsets.UTF_8);
+                    }
+
+                    json = Function.gson.fromJson(text, JsonElement.class);
                     String videoId = json.getAsJsonObject().get("result").getAsJsonObject().get("content").getAsJsonObject().get("id").getAsString();
 
                     uri = new URI("https://statics.tver.jp/content/episode/"+videoId+".json?v=20");
@@ -401,11 +511,20 @@ public class TVer implements ServiceAPI {
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
                             .headers("Referer", "https://tver.jp/")
                             .GET()
                             .build();
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                    json = Function.gson.fromJson(send.body(), JsonElement.class);
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    text = "{}";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        text = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        text = new String(send.body(), StandardCharsets.UTF_8);
+                    }
+                    json = Function.gson.fromJson(text, JsonElement.class);
 
                     projectID = json.getAsJsonObject().get("streaks").getAsJsonObject().get("projectID").getAsString();
                     String videoRefID = json.getAsJsonObject().get("streaks").getAsJsonObject().get("videoRefID").getAsString();
@@ -415,12 +534,21 @@ public class TVer implements ServiceAPI {
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
                             .headers("Referer", "https://tver.jp/")
                             .GET()
                             .build();
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                    json = Function.gson.fromJson(send.body(), JsonElement.class);
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    text = "{}";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        text = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        text = new String(send.body(), StandardCharsets.UTF_8);
+                    }
+                    json = Function.gson.fromJson(text, JsonElement.class);
 
                     String ati = json.getAsJsonObject().get(projectID).getAsJsonObject().get("pc").getAsString();
 
@@ -429,13 +557,22 @@ public class TVer implements ServiceAPI {
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
                             .headers("Origin", "https://tver.jp")
                             .headers("Referer", "https://tver.jp/")
                             .GET()
                             .build();
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                    json = Function.gson.fromJson(send.body(), JsonElement.class);
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    text = "{}";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        text = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        text = new String(send.body(), StandardCharsets.UTF_8);
+                    }
+                    json = Function.gson.fromJson(text, JsonElement.class);
 
                     if (json.isJsonObject() && json.getAsJsonObject().has("sources")){
                         result = new TVerResult();
@@ -446,7 +583,7 @@ public class TVer implements ServiceAPI {
                         result.setThumbnail(json.getAsJsonObject().get("thumbnail").getAsJsonObject().get("src").getAsString());
 
                         result.setVideoURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
-                        //return send.body();
+                        //return text;
                         client.close();
                         return Function.gson.toJson(result);
                     } else {
@@ -457,7 +594,7 @@ public class TVer implements ServiceAPI {
                 //
 
 
-                json = Function.gson.fromJson(send.body(), JsonElement.class);
+                json = Function.gson.fromJson(text, JsonElement.class);
                 result.setLiveURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
 
                 client.close();
@@ -472,13 +609,22 @@ public class TVer implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     .headers("Origin", "https://tver.jp")
                     .headers("Referer", "https://tver.jp/")
                     .GET()
                     .build();
 
-            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
+            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            String text = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                text = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                text = new String(send.body(), StandardCharsets.UTF_8);
+            }
+            JsonElement json = Function.gson.fromJson(text, JsonElement.class);
 
             result.setTitle(json.getAsJsonObject().get("title").getAsString());
             result.setDescription(json.getAsJsonObject().get("description").getAsString());
@@ -487,13 +633,22 @@ public class TVer implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     .headers("Origin", "https://tver.jp")
                     .headers("Referer", "https://tver.jp/")
                     .headers("X-Streaks-Api-Key", id)
                     .GET()
                     .build();
-            send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            json = Function.gson.fromJson(send.body(), JsonElement.class);
+            send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            text = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                text = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                text = new String(send.body(), StandardCharsets.UTF_8);
+            }
+            json = Function.gson.fromJson(text, JsonElement.class);
             result.setLiveURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
 
             client.close();

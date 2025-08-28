@@ -94,13 +94,22 @@ public class fc2 implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .GET()
                         .build();
 
-                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                String text = "";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
 
                 String description = null;
-                Matcher matcher = matcher_description.matcher(send.body());
+                Matcher matcher = matcher_description.matcher(text);
                 if (matcher.find()){
                     description = matcher.group(1);
                 }
@@ -112,17 +121,26 @@ public class fc2 implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .GET()
                         .build();
 
-                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                text = "";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
 
                 if (send.statusCode() != 200){
                     client.close();
                     return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
-                JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
+                JsonElement json = Function.gson.fromJson(text, JsonElement.class);
 
                 if (json.getAsJsonObject().has("videoURL")){
                     result.setURL(json.getAsJsonObject().get("videoURL").getAsString());
@@ -142,11 +160,20 @@ public class fc2 implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .GET()
                         .build();
 
-                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                json = Function.gson.fromJson(send.body(), JsonElement.class);
+                send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                text = "";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+                json = Function.gson.fromJson(text, JsonElement.class);
 
                 String uri = "";
                 if (json.getAsJsonObject().get("playlist").getAsJsonObject().has("hq")){
@@ -180,11 +207,20 @@ public class fc2 implements ServiceAPI {
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                         .headers("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+                        .headers("Accept-Encoding", "gzip, br")
                         .POST(HttpRequest.BodyPublishers.ofString("channel=1&profile=1&user=1&streamid="+id))
                         .build();
 
-                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                String text = "";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+                JsonElement json = Function.gson.fromJson(text, JsonElement.class);
 
                 if (json.getAsJsonObject().get("data").getAsJsonObject().get("channel_data").getAsJsonObject().get("image").getAsString().isEmpty()){
                     return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
@@ -205,10 +241,19 @@ public class fc2 implements ServiceAPI {
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
                             .build();
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                    ip = send.body();
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    text = "";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        text = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        text = new String(send.body(), StandardCharsets.UTF_8);
+                    }
+                    ip = text;
 
                 } catch (Exception e){
                     // e.printStackTrace();
@@ -220,11 +265,20 @@ public class fc2 implements ServiceAPI {
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
                             .build();
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    text = "";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        text = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        text = new String(send.body(), StandardCharsets.UTF_8);
+                    }
                     //System.out.println(send.body());
-                    ip = send.body();
+                    ip = text;
                     isIpv4 = true;
 
                 }
@@ -236,11 +290,20 @@ public class fc2 implements ServiceAPI {
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                         .headers("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
                         .headers("X-Requested-With", "XMLHttpRequest")
+                        .headers("Accept-Encoding", "gzip, br")
                         .POST(HttpRequest.BodyPublishers.ofString("channel_id="+channelid+"&mode=play&orz=&channel_version="+Version+"&client_version=2.5.0++%5B1%5D&client_type=pc&client_app=browser_hls&ipv"+(isIpv4 ? "4" : "6")+"="+ip+"&comment=2"+id))
                         .build();
 
-                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                json = Function.gson.fromJson(send.body(), JsonElement.class);
+                send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                text = "";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+                json = Function.gson.fromJson(text, JsonElement.class);
 
                 if (json.isJsonObject() && json.getAsJsonObject().has("status") && json.getAsJsonObject().get("status").getAsInt() != 11){
 

@@ -87,8 +87,16 @@ public class Mixcloud implements ServiceAPI {
                     .POST(HttpRequest.BodyPublishers.ofString(post))
                     .build();
 
-            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            JsonElement json = gson.fromJson(send.body(), JsonElement.class);
+            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            String jsonText = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                jsonText = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                jsonText = new String(send.body(), StandardCharsets.UTF_8);
+            }
+            JsonElement json = gson.fromJson(jsonText, JsonElement.class);
 
             if (json.getAsJsonObject().get("data").getAsJsonObject().get("cloudcast").isJsonNull()){
                 return gson.toJson(new ErrorMessage("対応してないURLです。"));

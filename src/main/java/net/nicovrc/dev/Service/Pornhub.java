@@ -78,11 +78,20 @@ public class Pornhub implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     .GET()
                     .build();
 
-            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            Matcher matcher1 = matcher_json.matcher(send.body());
+            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            String text = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                text = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                text = new String(send.body(), StandardCharsets.UTF_8);
+            }
+            Matcher matcher1 = matcher_json.matcher(text);
             if (!matcher1.find()){
                 return gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }

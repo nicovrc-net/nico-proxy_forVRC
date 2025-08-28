@@ -255,6 +255,7 @@ public class NicoVideo implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     .headers("Cookie", cookieText.toString())
                     .GET()
                     .build() :
@@ -263,10 +264,19 @@ public class NicoVideo implements ServiceAPI {
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
                             .GET()
                             .build();
 
-            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            String jsonText = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                jsonText = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                jsonText = new String(send.body(), StandardCharsets.UTF_8);
+            }
 
             /*System.out.println("----- debug -----");
             request.headers().map().forEach((name, value)->{
@@ -310,14 +320,14 @@ public class NicoVideo implements ServiceAPI {
                 client.close();
                 client = null;
 
-                //System.out.println(send.body());
+                //System.out.println(jsonText);
 
-                Matcher matcher = matcher_videoError1.matcher(send.body());
+                Matcher matcher = matcher_videoError1.matcher(jsonText);
                 if (matcher.find()){
                     matcher = null;
                     return gson.toJson(new ErrorMessage("この動画は存在しないか、削除された可能性があります。"));
                 }
-                matcher = matcher_videoError2.matcher(send.body());
+                matcher = matcher_videoError2.matcher(jsonText);
                 if (matcher.find()){
                     String str = matcher.group(1);
                     matcher = null;
@@ -327,7 +337,7 @@ public class NicoVideo implements ServiceAPI {
                 return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
             }
 
-            String body = send.body();
+            String body = jsonText;
             //System.out.println(body);
             Matcher matcher = matcher_Json.matcher(body);
             JsonElement json = null;
@@ -460,6 +470,7 @@ public class NicoVideo implements ServiceAPI {
                                     .uri(uri)
                                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                    .headers("Accept-Encoding", "gzip, br")
                                     .headers("X-Access-Right-Key", accessRightKey)
                                     .headers("X-Frontend-Id", "6")
                                     .headers("X-Frontend-Version", "0")
@@ -470,7 +481,15 @@ public class NicoVideo implements ServiceAPI {
                                     .POST(HttpRequest.BodyPublishers.ofString(sendJson))
                                     .build();
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    jsonText = "{}";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        jsonText = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        jsonText = new String(send.body(), StandardCharsets.UTF_8);
+                    }
                     if (send.statusCode() >= 400){
                         //System.out.println("TEST");
                         uri = null;
@@ -488,9 +507,8 @@ public class NicoVideo implements ServiceAPI {
                         System.out.println(send.body());*/
                         return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
                     }
-                    body = send.body();
                     //System.out.println(body);
-                    json = gson.fromJson(body, JsonElement.class);
+                    json = gson.fromJson(jsonText, JsonElement.class);
                     client.close();
 
                     List<String> cookieTextList = new ArrayList<>();
@@ -507,9 +525,8 @@ public class NicoVideo implements ServiceAPI {
                         String[] split = cookieTextList.get(0).split(";");
 
                         HashMap<String, String> cookie = new HashMap<>();
-                        if (user_session != null && user_session_secure != null){
+                        if (user_session != null){
                             cookie.put("user_session", user_session);
-                            cookie.put("user_session_secure", user_session_secure);
                         }
                         cookie.put("nicosid", nicosid);
                         if (split[0].startsWith("domand_bid=")){

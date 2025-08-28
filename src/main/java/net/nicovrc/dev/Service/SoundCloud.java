@@ -79,11 +79,20 @@ public class SoundCloud implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     .GET()
                     .build();
 
-            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            Matcher matcher1 = jsonData.matcher(send.body());
+            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            String text = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                text = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                text = new String(send.body(), StandardCharsets.UTF_8);
+            }
+            Matcher matcher1 = jsonData.matcher(text);
 
             JsonElement json = null;
             if (matcher1.find()){
@@ -105,12 +114,21 @@ public class SoundCloud implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     .GET()
                     .build();
 
-            send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            text = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                text = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                text = new String(send.body(), StandardCharsets.UTF_8);
+            }
             final String ClientId;
-            Matcher matcher2 = clientId.matcher(send.body());
+            Matcher matcher2 = clientId.matcher(text);
             if (matcher2.find()){
                 ClientId = matcher2.group(1);
             } else {
@@ -164,11 +182,20 @@ public class SoundCloud implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     .GET()
                     .build();
 
-            send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            json = Function.gson.fromJson(send.body(), JsonElement.class);
+            send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            text = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                text = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                text = new String(send.body(), StandardCharsets.UTF_8);
+            }
+            json = Function.gson.fromJson(text, JsonElement.class);
 
             if (json != null){
                 result.setAudioURL(json.getAsJsonObject().get("url").getAsString());
@@ -179,11 +206,20 @@ public class SoundCloud implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                         .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
                         .GET()
                         .build();
 
-                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                json = Function.gson.fromJson(send.body(), JsonElement.class);
+                send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                text = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+                json = Function.gson.fromJson(text, JsonElement.class);
 
                 if (json == null){
                     ClientID = "YHtBnq6bxM7DhJkIfzrGq3gYrueyLDMM";
@@ -192,11 +228,20 @@ public class SoundCloud implements ServiceAPI {
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
                             .GET()
                             .build();
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                    json = Function.gson.fromJson(send.body(), JsonElement.class);
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    text = "{}";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        text = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        text = new String(send.body(), StandardCharsets.UTF_8);
+                    }
+                    json = Function.gson.fromJson(text, JsonElement.class);
 
                     hlsUrl = json.getAsJsonObject().get("media").getAsJsonObject().get("transcodings").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString();
                     //System.out.println(hlsUrl);
@@ -205,16 +250,26 @@ public class SoundCloud implements ServiceAPI {
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
                             .GET()
                             .build() : HttpRequest.newBuilder()
                             .uri(new URI(hlsUrl + "?client_id="+ClientID))
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
                             .GET()
                             .build();
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                    json = Function.gson.fromJson(send.body(), JsonElement.class);
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    text = "{}";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        text = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        text = new String(send.body(), StandardCharsets.UTF_8);
+                    }
+                    json = Function.gson.fromJson(text, JsonElement.class);
 
                     result.setAudioURL(json.getAsJsonObject().get("url").getAsString());
                 } else {

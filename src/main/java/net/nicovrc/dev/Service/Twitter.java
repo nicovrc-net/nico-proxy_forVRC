@@ -87,14 +87,23 @@ public class Twitter implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     .headers("authorization", "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA")
                     .POST(HttpRequest.BodyPublishers.noBody())
                     .build();
 
-            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            String text = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                text = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                text = new String(send.body(), StandardCharsets.UTF_8);
+            }
 
             String token = "";
-            JsonElement json = gson.fromJson(send.body(), JsonElement.class);
+            JsonElement json = gson.fromJson(text, JsonElement.class);
             if (json.isJsonObject() && json.getAsJsonObject().has("guest_token")) {
                 token = json.getAsJsonObject().get("guest_token").getAsString();
             }
@@ -104,15 +113,24 @@ public class Twitter implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     .headers("authorization", "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA")
                     .header("X-Client-Transaction-Id", "ozoi3NmSR6Q+mm10a6SD6Ip273gbYKGGhsUVW72QUk6s1chfi1qeS14PIS0fkt/XDlZCcaNY2e8U09ILFtFf++WNxmR3og")
                     .header("x-guest-token", token)
                     .GET()
                     .build();
 
-            send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            text = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                text = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                text = new String(send.body(), StandardCharsets.UTF_8);
+            }
 
-            json = gson.fromJson(send.body(), JsonElement.class);
+            json = gson.fromJson(text, JsonElement.class);
             TwitterResult result = new TwitterResult();
 
             //System.out.println(json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().has("legacy"));

@@ -73,11 +73,20 @@ public class Iwara implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     .GET()
                     .build();
 
-            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            JsonElement json = new Gson().fromJson(send.body(), JsonElement.class);
+            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            String jsonText = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                jsonText = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                jsonText = new String(send.body(), StandardCharsets.UTF_8);
+            }
+            JsonElement json = new Gson().fromJson(jsonText, JsonElement.class);
 /*
     private String Title;
     private String Description;
@@ -100,12 +109,21 @@ public class Iwara implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     // いつかこのX-Versionを取れるようにする
                     // .headers("X-Version","3f8ce8c9518993ed46b9f388988b4ad0781eff7d")
                     .GET()
                     .build();
-            send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-            json = new Gson().fromJson(send.body(), JsonElement.class);
+            send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            jsonText = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                jsonText = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                jsonText = new String(send.body(), StandardCharsets.UTF_8);
+            }
+            json = new Gson().fromJson(jsonText, JsonElement.class);
 
             result.setVideoURL("https:"+json.getAsJsonArray().get(0).getAsJsonObject().get("src").getAsJsonObject().get("view").getAsString());
 

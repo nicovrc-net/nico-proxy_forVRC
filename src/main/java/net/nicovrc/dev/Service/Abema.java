@@ -15,6 +15,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -67,6 +68,7 @@ public class Abema implements ServiceAPI {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(new URI(url))
                         .headers("User-Agent", Function.UserAgent)
+                        .headers("Accept-Encoding", "gzip, br")
                         .GET()
                         .build();
 
@@ -119,15 +121,25 @@ public class Abema implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Authorization","bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXYiOiI3YWQ5NjQ1Ni0zZjFmLTRiYTctOTQ1OC1jOTA0MzQyYTNiNDMiLCJleHAiOjIxNDc0ODM2NDcsImlzcyI6ImFiZW1hLmlvL3YxIiwic3ViIjoiOTRjeXh3UGR5OVdHcHcifQ.Muv9eT4Tmy4JsSOGTVexwxuGnf2ZkwL1RkBo6MrSZGg")
                         .headers("Referer", "https://abema.tv/")
+                        .headers("Accept-Encoding", "gzip, br")
                         .GET()
                         .build();
 
-                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                //HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                String jsonText = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    jsonText = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    jsonText = new String(send.body(), StandardCharsets.UTF_8);
+                }
                 //System.out.println(send.body());
 
                 JsonElement json;
                 try {
-                    json = gson.fromJson(send.body(), JsonElement.class);
+                    json = gson.fromJson(jsonText, JsonElement.class);
                 } catch (Exception e){
                     return gson.toJson(new ErrorMessage("対応していないURLです"));
                 }
@@ -185,14 +197,23 @@ public class Abema implements ServiceAPI {
                         .headers("User-Agent", Function.UserAgent)
                         .headers("Authorization","bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJkZXYiOiI3YWQ5NjQ1Ni0zZjFmLTRiYTctOTQ1OC1jOTA0MzQyYTNiNDMiLCJleHAiOjIxNDc0ODM2NDcsImlzcyI6ImFiZW1hLmlvL3YxIiwic3ViIjoiOTRjeXh3UGR5OVdHcHcifQ.Muv9eT4Tmy4JsSOGTVexwxuGnf2ZkwL1RkBo6MrSZGg")
                         .headers("Referer", "https://abema.tv/")
+                        .headers("Accept-Encoding", "gzip, br")
                         .GET()
                         .build();
 
-                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                String jsonText = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    jsonText = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    jsonText = new String(send.body(), StandardCharsets.UTF_8);
+                }
 
                 JsonElement json;
                 try {
-                    json = gson.fromJson(send.body(), JsonElement.class);
+                    json = gson.fromJson(jsonText, JsonElement.class);
                 } catch (Exception e){
                     return gson.toJson(new ErrorMessage("対応していないURLです"));
                 }
@@ -220,14 +241,23 @@ public class Abema implements ServiceAPI {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(new URI("https://api.abema.io/v1/channels"))
                         .headers("User-Agent", Function.UserAgent)
+                        .headers("Accept-Encoding", "gzip, br")
                         .GET()
                         .build();
 
-                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                String jsonText = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    jsonText = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    jsonText = new String(send.body(), StandardCharsets.UTF_8);
+                }
 
                 JsonElement json;
                 try {
-                    json = gson.fromJson(send.body(), JsonElement.class);
+                    json = gson.fromJson(jsonText, JsonElement.class);
                 } catch (Exception e){
                     return gson.toJson(new ErrorMessage("対応していないURLです"));
                 }

@@ -80,26 +80,23 @@ public class SpankBang implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                    .headers("Accept-Encoding", "gzip")
+                    .headers("Accept-Encoding", "gzip, br")
                     .headers("DNT", "1")
                     .headers("Priority","u=0, i")
                     .GET()
                     .build();
 
             HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(send.body());
-            GZIPInputStream stream = new GZIPInputStream(byteArrayInputStream);
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            outputStream.write(stream.readAllBytes());
-            String s = new String(outputStream.toByteArray(), StandardCharsets.UTF_8);
-            outputStream.close();
-            stream.close();
-            outputStream = null;
-            stream = null;
-            byteArrayInputStream = null;
+            String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            String text = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                text = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                text = new String(send.body(), StandardCharsets.UTF_8);
+            }
 
-
-            Matcher matcher = matcher_json.matcher(s);
+            Matcher matcher = matcher_json.matcher(text);
             if (!matcher.find()){
                 //System.out.println(s);
                 return gson.toJson(new ErrorMessage("取得に失敗しました。"));
@@ -107,7 +104,7 @@ public class SpankBang implements ServiceAPI {
             JsonElement json = gson.fromJson("{" + matcher.group(1) + "}", JsonElement.class);
 
             SpankBangResult result = new SpankBangResult();
-            Matcher matcher1 = matcher_Title.matcher(s);
+            Matcher matcher1 = matcher_Title.matcher(text);
             if (matcher1.find()){
                 result.setTitle(matcher1.group(1));
             }

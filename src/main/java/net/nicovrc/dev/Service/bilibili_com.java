@@ -91,10 +91,19 @@ public class bilibili_com implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     .GET()
                     .build();
 
-            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            String jsonText = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                jsonText = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                jsonText = new String(send.body(), StandardCharsets.UTF_8);
+            }
 
             if (send.statusCode() >= 400){
                 client.close();
@@ -128,7 +137,7 @@ public class bilibili_com implements ServiceAPI {
             *
              */
 
-            JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
+            JsonElement json = Function.gson.fromJson(jsonText, JsonElement.class);
 
             bilibili result = new bilibili();
             long cid = -1;
@@ -165,12 +174,21 @@ public class bilibili_com implements ServiceAPI {
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Accept-Encoding", "gzip, br")
                     .GET()
                     .build();
 
-            send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+            jsonText = "{}";
+            if (!contentEncoding.isEmpty()){
+                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                jsonText = new String(bytes, StandardCharsets.UTF_8);
+            } else {
+                jsonText = new String(send.body(), StandardCharsets.UTF_8);
+            }
 
-            json = Function.gson.fromJson(send.body(), JsonElement.class);
+            json = Function.gson.fromJson(jsonText, JsonElement.class);
             if (json.getAsJsonObject().has("data")){
                 JsonArray elements = json.getAsJsonObject().get("data").getAsJsonObject().get("durl").getAsJsonArray();
                 for (JsonElement element : elements) {
@@ -185,10 +203,11 @@ public class bilibili_com implements ServiceAPI {
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                             .headers("Referer", url)
+                            .headers("Accept-Encoding", "gzip, br")
                             .HEAD()
                             .build();
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
                     if (send.statusCode() < 400){
                         result.setVideoURL(element.getAsJsonObject().get("url").getAsString());
@@ -202,10 +221,11 @@ public class bilibili_com implements ServiceAPI {
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                             .headers("Referer", url)
+                            .headers("Accept-Encoding", "gzip, br")
                             .HEAD()
                             .build();
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
                     if (send.statusCode() < 400){
                         result.setVideoURL(element.getAsJsonObject().get("url").getAsString());
