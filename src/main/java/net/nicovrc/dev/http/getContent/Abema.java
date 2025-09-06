@@ -38,7 +38,7 @@ public class Abema implements GetContent {
 
         ContentObject object = new ContentObject();
         object.setHLSText(hlsText);
-        object.setDummyHLSText(null);
+        object.setDummyHLSText(hlsText);
 
         return object;
     }
