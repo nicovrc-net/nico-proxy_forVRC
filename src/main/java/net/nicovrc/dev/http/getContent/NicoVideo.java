@@ -123,88 +123,56 @@ public class NicoVideo implements GetContent {
             } else if (result.getLiveURL() != null) {
                 // ニコ生
                 String liveURL = result.getLiveURL();
-                if (result.getLiveAccessCookie() != null && !result.getLiveAccessCookie().isEmpty()) {
-                    // 新鯖
+                final StringBuilder sb = new StringBuilder();
+                result.getLiveAccessCookie().forEach((name, value) -> {
+                    sb.append(name).append("=").append(value).append("; ");
+                });
 
-                    final StringBuilder sb = new StringBuilder();
-                    result.getLiveAccessCookie().forEach((name, value) -> {
-                        sb.append(name).append("=").append(value).append("; ");
-                    });
+                cookieText = sb.substring(0, sb.length() - 2);
 
-                    cookieText = sb.substring(0, sb.length() - 2);
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(new URI(liveURL))
+                        .headers("User-Agent", Function.UserAgent)
+                        .headers("Cookie", cookieText)
+                        .GET()
+                        .build();
 
-                    HttpRequest request = HttpRequest.newBuilder()
-                            .uri(new URI(liveURL))
-                            .headers("User-Agent", Function.UserAgent)
-                            .headers("Cookie", cookieText)
-                            .GET()
-                            .build();
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
-                    HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-
-                    String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
-                    byte[] body = send.body();
-                    if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")) {
-                        String s = new String(body, StandardCharsets.UTF_8);
-                        //System.out.println(s);
-                        s = s.replaceAll("https://", "/https/cookie:[" + (sb.substring(0, sb.length() - 2) == null || sb.substring(0, sb.length() - 2).isEmpty() ? "" : sb.substring(0, sb.length() - 2)) + "]/");
-                        body = s.getBytes(StandardCharsets.UTF_8);
-                    }
-
-                    hlsText = new String(body, StandardCharsets.UTF_8);
-
-                    sb.setLength(0);
-
-                    String hls = new String(body, StandardCharsets.UTF_8);
-                    Matcher matcher1 = hlslive_video.matcher(hls);
-                    Matcher matcher2 = hlslive_audio.matcher(hls);
-
-                    if (matcher1.find() && matcher2.find()) {
-                        hls = "#EXTM3U\n" +
-                                "#EXT-X-VERSION:6\n" +
-                                "#EXT-X-INDEPENDENT-SEGMENTS\n" +
-                                "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"main\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
-                                "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"main\"\n" +
-                                "dummy";
-                    }
-
-                    String[] split = hls.split("\n");
-                    split[split.length - 1] = "/dummy.m3u8?url=" + URL + "&dummy=true";
-
-                    for (String str : split) {
-                        sb.append(str).append("\n");
-                    }
-
-                    dummy_hlsText = sb.toString();
-
-                } else {
-                    // dmc
-                    String[] split = liveURL.split("/");
-
-                    HttpRequest request = HttpRequest.newBuilder()
-                            .uri(new URI(liveURL))
-                            .headers("User-Agent", Function.UserAgent)
-                            .GET()
-                            .build();
-
-                    HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-                    String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").isPresent() ? send.headers().firstValue("content-type").get() : "" : send.headers().firstValue("Content-Type").get();
-                    byte[] body = send.body();
-                    if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")) {
-                        // https://liveedge231.dmc.nico/hlslive/ht2_nicolive/nicolive-production-pg130607675867723_4ad3364a300b5325d4b25e4013a11ea9a50ef78c26d1d643c642f4ab14b905d4/4/mp4/playlist.m3u8?ht2_nicolive=131256034.ggfv0cb1a7_ss31uh_1u5gfs7lsf63i&__poll__=0
-                        String s = new String(body, StandardCharsets.UTF_8);
-                        //System.out.println(liveURL.replaceAll(split[split.length - 1].replaceAll("\\?", "\\\\?"), ""));
-                        String s1 = "/https/cookie:[]/" + (liveURL.replaceAll(split[split.length - 1].replaceAll("\\?", "\\\\?"), "").replaceAll("https://", ""));
-                        s = s.replaceAll("1/ts/playlist\\.m3u8", s1 + "/1/ts/playlist.m3u8");
-                        s = s.replaceAll("2/ts/playlist\\.m3u8", s1 + "/2/ts/playlist.m3u8");
-                        s = s.replaceAll("3/ts/playlist\\.m3u8", s1 + "/3/ts/playlist.m3u8");
-                        s = s.replaceAll("4/ts/playlist\\.m3u8", s1 + "/4/ts/playlist.m3u8");
-                        s = s.replaceAll("5/ts/playlist\\.m3u8", s1 + "/5/ts/playlist.m3u8");
-                        s = s.replaceAll("6/ts/playlist\\.m3u8", s1 + "/6/ts/playlist.m3u8");
-                        body = s.getBytes(StandardCharsets.UTF_8);
-                    }
-                    hlsText = new String(body, StandardCharsets.UTF_8);
+                String contentType = send.headers().firstValue("Content-Type").isEmpty() ? send.headers().firstValue("content-type").get() : send.headers().firstValue("Content-Type").get();
+                byte[] body = send.body();
+                if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl")) {
+                    String s = new String(body, StandardCharsets.UTF_8);
+                    //System.out.println(s);
+                    s = s.replaceAll("https://", "/https/cookie:[" + (sb.substring(0, sb.length() - 2) == null || sb.substring(0, sb.length() - 2).isEmpty() ? "" : sb.substring(0, sb.length() - 2)) + "]/");
+                    body = s.getBytes(StandardCharsets.UTF_8);
                 }
+
+                hlsText = new String(body, StandardCharsets.UTF_8);
+
+                sb.setLength(0);
+
+                String hls = new String(body, StandardCharsets.UTF_8);
+                Matcher matcher1 = hlslive_video.matcher(hls);
+                Matcher matcher2 = hlslive_audio.matcher(hls);
+
+                if (matcher1.find() && matcher2.find()) {
+                    hls = "#EXTM3U\n" +
+                            "#EXT-X-VERSION:6\n" +
+                            "#EXT-X-INDEPENDENT-SEGMENTS\n" +
+                            "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"main\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
+                            "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"main\"\n" +
+                            "dummy";
+                }
+
+                String[] split = hls.split("\n");
+                split[split.length - 1] = "/dummy.m3u8?url=" + URL + "&dummy=true";
+
+                for (String str : split) {
+                    sb.append(str).append("\n");
+                }
+
+                dummy_hlsText = sb.toString();
 
             } else {
                 File file = new File("./error-video/error_404_2.mp4");
