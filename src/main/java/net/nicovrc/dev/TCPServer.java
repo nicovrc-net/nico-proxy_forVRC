@@ -208,7 +208,7 @@ public class TCPServer extends Thread {
                             //System.out.println("debug2 : "+s);
                             if (split[0].startsWith("/dummy")){
                                 s = "/dummy.m3u8";
-                            } else if (split[1].startsWith("url")){
+                            } else if (split[1].startsWith("url") || URI.matches(".*&url=.*")){
                                 s = s + "?url=";
                             } else if (split[1].startsWith("dummy")){
                                 s = s + "?dummy=";
