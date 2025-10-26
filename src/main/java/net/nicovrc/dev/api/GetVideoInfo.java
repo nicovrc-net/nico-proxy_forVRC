@@ -25,7 +25,11 @@ public class GetVideoInfo implements NicoVRCAPI {
         String uri = Function.getURI(httpRequest);
         String inputUrl = "";
         if (!uri.equals(getURI())){
-            inputUrl = uri.split("&url=")[1];
+            if (uri.split("&url=").length > 1){
+                inputUrl = uri.split("&url=")[1];
+            } else {
+                inputUrl = uri.split("\\?url=")[1];
+            }
         }
 
 

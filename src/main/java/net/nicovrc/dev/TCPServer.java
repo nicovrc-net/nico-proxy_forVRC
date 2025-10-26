@@ -206,7 +206,9 @@ public class TCPServer extends Thread {
                         if (split.length >= 2){
                             s = split[0];
                             //System.out.println("debug2 : "+s);
-                            if (split[0].startsWith("/dummy")){
+                            if (split[0].startsWith("/api")) {
+                                s = "/" + split[0].split("/")[1] + "/";
+                            } else if (split[0].startsWith("/dummy")){
                                 s = "/dummy.m3u8";
                             } else if (split[1].startsWith("url") || URI.matches(".*&url=.*")){
                                 s = s + "?url=";
@@ -216,8 +218,6 @@ public class TCPServer extends Thread {
                                 s = s + "?vi=";
                             } else if (split[0].startsWith("/proxy")){
                                 s = s + "?";
-                            } else if (split[0].startsWith("/api")){
-                                s = "/" + split[0].split("/")[1] + "/";
                             } else if (split[0].startsWith("http") || split[0].startsWith("/http")){
                                 s = "/https/";
                             }
