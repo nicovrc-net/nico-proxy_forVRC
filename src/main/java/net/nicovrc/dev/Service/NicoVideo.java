@@ -66,7 +66,7 @@ public class NicoVideo implements ServiceAPI {
     private String URL = null;
 
     private final Pattern matcher_Json = Pattern.compile("<meta name=\"server-response\" content=\"\\{(.+)}\" />");
-    private final Pattern matcher_JsonNico = Pattern.compile("<script id=\"embedded-data\" data-props=\"\\{(.+)\\}\"");
+    private final Pattern matcher_JsonNico = Pattern.compile("<script id=\"embedded-data\" data-props=\"(.+)\"></script><script id=\"");
 
     private final Pattern matcher_videoError1 = Pattern.compile("(この動画は存在しないか、削除された可能性があります。|お探しのページは、すでに削除されたか存在しない可能性があります|errorCode&quot;:&quot;NOT_FOUND&)");
     private final Pattern matcher_videoError2 = Pattern.compile("この動画は(.+)の申立により、著作権侵害として削除されました。");
@@ -346,7 +346,8 @@ public class NicoVideo implements ServiceAPI {
             } else {
                 matcher = matcher_JsonNico.matcher(body);
                 if (matcher.find()){
-                    json = gson.fromJson("{" + matcher.group(1).replaceAll("&quot;", "\"") + "}", JsonElement.class);
+                    //System.out.println(matcher.group(1).replaceAll("&quot;", "\""));
+                    json = gson.fromJson(matcher.group(1).replaceAll("&quot;", "\""), JsonElement.class);
                 }
             }
             matcher = null;
