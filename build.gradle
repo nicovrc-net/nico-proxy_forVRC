@@ -16,7 +16,7 @@ dependencies {
 
     implementation 'com.amihaiemil.web:eo-yaml:8.0.6'
 
-    implementation 'redis.clients:jedis:7.0.0'
+    implementation 'redis.clients:jedis:7.1.0'
     implementation 'com.google.code.gson:gson:2.13.2'
 }
 
