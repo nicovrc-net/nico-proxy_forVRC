@@ -243,6 +243,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                 }
                                 send = null;
 
+                            } catch (Exception e){
+                                e.printStackTrace();
                             }
 
                             if (isFound){
