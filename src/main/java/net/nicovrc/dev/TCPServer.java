@@ -125,6 +125,8 @@ public class TCPServer extends Thread {
         }
 
         System.out.println("[Info] TCP Port " + HTTPPort + "で 処理受付用HTTPサーバー待機開始");
+        System.out.println("[Info] VRC動画プレーヤーからはhttp://(サーバーIP):"+HTTPPort+"/?url=(URL)");
+
         while (temp[0]) {
             try {
                 final Socket sock = svSock.accept();
