@@ -2,10 +2,8 @@
 [VRChat向けニコニコ動画再生支援ツール](https://nicovrc.net/)の動作プログラム
 ## 必要なもの
 - Java 21以降
-- brotli ([Windowsはここから](https://github.com/google/brotli/releases)staticの方をDLして同じフォルダに配置する)
-## あれば嬉しいもの
-- HTTPS接続ができるHTTP Proxy
-- Redis
+- [brotli](https://github.com/google/brotli) (Ver 3.xでは必須)
+- Redis (Ver 4.xでは必須)
 
 ## このプロジェクトのbranch
 (適当に運用なのでたまーにmasterに直コミットする場合あり)
@@ -13,4 +11,5 @@
 - v0     : ver 0.x (開発終了)
 - v1     : ver 1.x (開発終了)
 - v2     : ver 2.x (開発終了)
-- v3     : ver 3.x (開発中ブランチ)
+- v3     : ver 3.x (安定版ブランチ)
+- v4     : ver 4.x (開発中ブランチ)
