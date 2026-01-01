@@ -122,14 +122,14 @@ public class Main {
         if (Function.config.getRedisServer() != null){
 
             if (Function.config.isRedisSSL()){
-                config = Function.config.getRedisPass().isEmpty() ? DefaultJedisClientConfig.builder()
+                config = Function.config.getRedisPass() != null && Function.config.getRedisPass().isEmpty() ? DefaultJedisClientConfig.builder()
                         .ssl(true)
                         .build() : DefaultJedisClientConfig.builder()
                         .ssl(true)
                         .password(Function.config.getRedisPass())
                         .build();
             } else {
-                config = Function.config.getRedisPass().isEmpty() ? DefaultJedisClientConfig.builder()
+                config = Function.config.getRedisPass() != null && Function.config.getRedisPass().isEmpty() ? DefaultJedisClientConfig.builder()
                         .build() : DefaultJedisClientConfig.builder()
                         .password(Function.config.getRedisPass())
                         .build();
