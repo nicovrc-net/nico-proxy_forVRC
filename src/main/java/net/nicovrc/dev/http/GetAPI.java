@@ -31,7 +31,6 @@ public class GetAPI implements GetInterface {
 
             final StringBuilder sb = new StringBuilder();
 
-
             if (json.getAsJsonObject().has("ErrorMessage")){
                 sb.append("HTTP/").append(Function.getHTTPVersion(httpRequest)).append(" ").append("400 Bad Request\r\n");
             } else {
