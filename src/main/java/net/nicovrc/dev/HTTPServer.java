@@ -63,11 +63,11 @@ public class HTTPServer extends Thread {
 
                         GetInterface run = null;
                         if (uri.startsWith("/?url=")){
-                            run = new GetURL(uri);
+                            run = new GetURL(httpRequest, uri);
                         } else if (uri.startsWith("/api")){
-                            run = new GetAPI(uri);
+                            run = new GetAPI(httpRequest, uri);
                         } else if (uri.startsWith("/video")){
-                            run = new GetVideo(uri);
+                            run = new GetVideo(httpRequest, uri);
                         }
 
                         if (run != null){

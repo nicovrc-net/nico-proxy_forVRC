@@ -4,9 +4,11 @@ import net.nicovrc.dev.Function;
 
 public class GetURL implements GetInterface {
 
+    private final String httpRequest;
     private final String URI;
 
-    public GetURL(String uri){
+    public GetURL(String httpRequest, String uri){
+        this.httpRequest = httpRequest;
         this.URI = uri;
     }
 
