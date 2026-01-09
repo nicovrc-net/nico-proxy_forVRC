@@ -43,7 +43,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern dummy_url2 = Pattern.compile("^/(\\?dummy=true&url=|dummy\\.m3u8\\?dummy=true&url=|proxy/\\?dummy=true&|\\?dummy=true&vi=)(.+)");
     private final Pattern getUrl2 = Pattern.compile("&url=(.+)");
     private final Pattern vrc_getStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
-    private final Pattern ffmpegUA = Pattern.compile("Lavf/");
+    private final Pattern ffmpegUA = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
 
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
 
