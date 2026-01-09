@@ -43,6 +43,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern dummy_url2 = Pattern.compile("^/(\\?dummy=true&url=|dummy\\.m3u8\\?dummy=true&url=|proxy/\\?dummy=true&|\\?dummy=true&vi=)(.+)");
     private final Pattern getUrl2 = Pattern.compile("&url=(.+)");
     private final Pattern vrc_getStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
+    private final Pattern ffmpegUA = Pattern.compile("Lavf/");
 
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
 
@@ -158,7 +159,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             String proxy = null;
 
             final boolean isCache = cacheData != null;
-            final boolean isHLSDummyPrint = !dummy_url.matcher(URL).find();
+            final boolean isHLSDummyPrint = !dummy_url.matcher(URL).find() || ffmpegUA.matcher(httpRequest).find();
             final boolean isGetTitle = vrc_getStringUA.matcher(httpRequest).find();
             final long currentTimeLong = new Date().getTime();
 
