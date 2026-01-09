@@ -161,7 +161,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             String proxy = null;
 
             final boolean isCache = cacheData != null;
-            final boolean isHLSDummyPrint = !dummy_url.matcher(URL).find() || ffmpegUA.matcher(httpRequest).find();
+            final boolean isHLSDummyPrint = !dummy_url.matcher(URL).find();// || ffmpegUA.matcher(httpRequest).find();
             final boolean isGetTitle = vrc_getStringUA.matcher(httpRequest).find();
             final long currentTimeLong = new Date().getTime();
 
