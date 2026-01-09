@@ -13,11 +13,8 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.Locale;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 public class GetVideo implements Runnable, NicoVRCHTTP {
 
@@ -69,7 +66,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             }
 
             //System.out.println("/https/");
-            //System.out.println(URL);
+            System.out.println(URL);
 
             URL = URLDecoder.decode(URL, StandardCharsets.UTF_8);
 
