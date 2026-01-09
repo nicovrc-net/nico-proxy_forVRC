@@ -104,7 +104,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 }
             }
 
-            System.out.println(URL);
+            System.out.println("Cookie : " + CookieText);
+            System.out.println("Referer : " + Referer);
 
             //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
             if (URL == null) {
