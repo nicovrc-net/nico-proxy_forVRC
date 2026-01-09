@@ -68,7 +68,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             //System.out.println("/https/");
             //System.out.println(URL);
 
-            System.out.println(httpRequest);
+            //System.out.println(httpRequest);
 
             URL = URLDecoder.decode(URL, StandardCharsets.UTF_8);
 
@@ -105,9 +105,6 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     URL = http+matcher3.group(3);
                 }
             }
-
-            //System.out.println("Cookie : " + CookieText);
-            //System.out.println("Referer : " + Referer);
 
             //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
             if (URL == null) {
