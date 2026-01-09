@@ -444,6 +444,8 @@ public class Function {
             }
 
             return compressBaos.toByteArray();
+        } else if (compressType.isEmpty()) {
+            return content;
         }
 
         return null;
