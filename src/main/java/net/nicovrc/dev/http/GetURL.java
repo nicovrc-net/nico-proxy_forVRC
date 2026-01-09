@@ -129,6 +129,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         } else if (conent_encoding != null && conent_encoding.matches(".*gzip.*")){
             sendContentEncoding = "gzip";
         }
+        System.out.println(conent_encoding);
+        System.out.println(sendContentEncoding);
 
         try {
             //System.out.println(URL);
