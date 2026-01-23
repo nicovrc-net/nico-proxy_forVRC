@@ -147,7 +147,7 @@ public class TCPServer extends Thread {
                             return;
                         }
 
-                        System.out.println(httpRequest);
+                        //System.out.println(httpRequest);
 
                         String HTTPVersion = Function.getHTTPVersion(httpRequest);
                         String Method = Function.getMethod(httpRequest);
