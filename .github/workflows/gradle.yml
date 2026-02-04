@@ -544,9 +544,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            3.x.x正式リリース
-            - (3.0.0-rc.14から) ニコ生が見れない問題修正
-            - (2.19.5から) 内部仕様を一から作り直してなるべくリダイレクトを抑えるように
+            - ffmpegからでも取得できるように
           draft: false
           prerelease: false
 
