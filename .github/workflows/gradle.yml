@@ -544,7 +544,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - ffmpegからでも取得できるように
+            - TVerのオリンピック配信に対応
           draft: false
           prerelease: false
 

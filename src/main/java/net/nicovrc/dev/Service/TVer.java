@@ -1,5 +1,6 @@
 package net.nicovrc.dev.Service;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
@@ -13,6 +14,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -27,6 +29,7 @@ public class TVer implements ServiceAPI {
     private final Pattern Support_URLLive1 = Pattern.compile("https://tver\\.jp/live/(.+)");
     private final Pattern Support_URLLive2 = Pattern.compile("https://tver\\.jp/live/simul/(.+)");
     private final Pattern Support_URLLive3 = Pattern.compile("https://tver.jp/live/special/(.+)");
+    private final Pattern Support_Olympic = Pattern.compile("https://tver\\.jp/olympic/(.+)/live/play/(.+)");
 
     @Override
     public String[] getCorrespondingURL() {
@@ -70,13 +73,15 @@ public class TVer implements ServiceAPI {
         Matcher matcher2 = Support_URLLive1.matcher(url);
         Matcher matcher3 = Support_URLLive2.matcher(url);
         Matcher matcher4 = Support_URLLive3.matcher(url);
+        Matcher matcher5 = Support_Olympic.matcher(url);
 
         final boolean video1 = matcher1.find();
         final boolean live1 = matcher2.find();
         final boolean live2 = matcher3.find();
         final boolean live3 = matcher4.find();
+        final boolean olympic = matcher5.find();
 
-        if (!video1 && !live1 && !live2 && !live3){
+        if (!video1 && !live1 && !live2 && !live3 && !olympic){
             client.close();
             return Function.gson.toJson(new ErrorMessage("対応してないURLです。"));
         }
@@ -600,65 +605,144 @@ public class TVer implements ServiceAPI {
                 client.close();
                 return Function.gson.toJson(result);
             }
-            TVerResult result = new TVerResult();
 
-            String id = matcher4.group(1);
+            if (live3){
+                TVerResult result = new TVerResult();
 
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI("https://statics.tver.jp/content/live/"+id+".json?v=3"))
-                    .headers("User-Agent", Function.UserAgent)
-                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                    .headers("Accept-Encoding", "gzip, br")
-                    .headers("Origin", "https://tver.jp")
-                    .headers("Referer", "https://tver.jp/")
-                    .GET()
-                    .build();
+                String id = matcher4.group(1);
 
-            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
-            String text = "{}";
-            if (!contentEncoding.isEmpty()){
-                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
-                text = new String(bytes, StandardCharsets.UTF_8);
-            } else {
-                text = new String(send.body(), StandardCharsets.UTF_8);
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(new URI("https://statics.tver.jp/content/live/"+id+".json?v=3"))
+                        .headers("User-Agent", Function.UserAgent)
+                        .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
+                        .headers("Origin", "https://tver.jp")
+                        .headers("Referer", "https://tver.jp/")
+                        .GET()
+                        .build();
+
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                String text = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+                JsonElement json = Function.gson.fromJson(text, JsonElement.class);
+
+                result.setTitle(json.getAsJsonObject().get("title").getAsString());
+                result.setDescription(json.getAsJsonObject().get("description").getAsString());
+                request = HttpRequest.newBuilder()
+                        .uri(new URI("https://playback.api.streaks.jp/v1/projects/tver-splive/medias/ref:"+id))
+                        .headers("User-Agent", Function.UserAgent)
+                        .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
+                        .headers("Origin", "https://tver.jp")
+                        .headers("Referer", "https://tver.jp/")
+                        .headers("X-Streaks-Api-Key", id)
+                        .GET()
+                        .build();
+                send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                text = "{}";
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+                json = Function.gson.fromJson(text, JsonElement.class);
+                result.setLiveURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
+
+                client.close();
+                return Function.gson.toJson(result);
             }
-            JsonElement json = Function.gson.fromJson(text, JsonElement.class);
 
-            result.setTitle(json.getAsJsonObject().get("title").getAsString());
-            result.setDescription(json.getAsJsonObject().get("description").getAsString());
-            request = HttpRequest.newBuilder()
-                    .uri(new URI("https://playback.api.streaks.jp/v1/projects/tver-splive/medias/ref:"+id))
-                    .headers("User-Agent", Function.UserAgent)
-                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                    .headers("Accept-Encoding", "gzip, br")
-                    .headers("Origin", "https://tver.jp")
-                    .headers("Referer", "https://tver.jp/")
-                    .headers("X-Streaks-Api-Key", id)
-                    .GET()
-                    .build();
-            send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
-            text = "{}";
-            if (!contentEncoding.isEmpty()){
-                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
-                text = new String(bytes, StandardCharsets.UTF_8);
-            } else {
-                text = new String(send.body(), StandardCharsets.UTF_8);
+            if (olympic){
+                // https://tver.jp/olympic/milanocortina2026/live/play/eocqrh3x908m/
+
+                String olympic_code = matcher5.group(1);
+                String id = matcher5.group(2).split("/")[0];
+                //System.out.println(id);
+
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(new URI("https://olympic-data.tver.jp/api/live/"+id))
+                        .headers("User-Agent", Function.UserAgent)
+                        .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
+                        .headers("Origin", "https://tver.jp")
+                        .headers("Referer", "https://tver.jp/olympic/milanocortina2026/live/play/"+id+"/")
+                        .GET()
+                        .build();
+
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                String text = null;
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+
+                //System.out.println(text);
+                JsonElement json = Function.gson.fromJson(text, JsonElement.class);
+                TVerResult tverResult = new TVerResult();
+                tverResult.setTitle(json.getAsJsonObject().get("contents").getAsJsonObject().get("live").getAsJsonObject().get("title").getAsString());
+                tverResult.setDescription(json.getAsJsonObject().get("contents").getAsJsonObject().get("live").getAsJsonObject().get("description").getAsString());
+                tverResult.setURL("https://tver.jp/olympic/"+olympic_code+"/live/play/"+id);
+                tverResult.setThumbnail(json.getAsJsonObject().get("contents").getAsJsonObject().get("live").getAsJsonObject().get("picture_l_url").getAsString());
+
+                // https://playback.api.streaks.jp/v1/projects/tver-olympic-live/medias/ref:sp_260201_spc_01_dvr
+                long time = new Date().getTime();
+                Date dvr_start_date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(json.getAsJsonObject().get("contents").getAsJsonObject().get("live").getAsJsonObject().get("dvr_start_date").getAsString());
+                Date dvr_end_date = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss").parse(json.getAsJsonObject().get("contents").getAsJsonObject().get("live").getAsJsonObject().get("dvr_end_date").getAsString());
+
+                String video_id = json.getAsJsonObject().get("contents").getAsJsonObject().get("live").getAsJsonObject().get("video_id").getAsString() + (dvr_start_date.getTime() <= time && time <= dvr_end_date.getTime() ? "_dvr" : "");
+                request = HttpRequest.newBuilder()
+                        .uri(new URI("https://playback.api.streaks.jp/v1/projects/tver-olympic-live/medias/ref:"+video_id))
+                        .headers("User-Agent", Function.UserAgent)
+                        .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Accept-Encoding", "gzip, br")
+                        .headers("Origin", "https://tver.jp")
+                        .headers("Referer", "https://tver.jp/")
+                        .headers("X-Streaks-Api-Key", "a35ebb1ca7d443758dc7fcc5d99b1f72")
+                        .GET()
+                        .build();
+
+                send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+
+                if (!contentEncoding.isEmpty()){
+                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                    text = new String(bytes, StandardCharsets.UTF_8);
+                } else {
+                    text = new String(send.body(), StandardCharsets.UTF_8);
+                }
+
+                //System.out.println(text);
+                json = Function.gson.fromJson(text, JsonElement.class);
+
+                JsonArray sources = json.getAsJsonObject().get("sources").getAsJsonArray();
+                tverResult.setVideoURL(sources.get(0).getAsJsonObject().get("src").getAsString());
+
+                client.close();
+                return Function.gson.toJson(tverResult);
             }
-            json = Function.gson.fromJson(text, JsonElement.class);
-            result.setLiveURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
 
-            client.close();
-            return Function.gson.toJson(result);
         } catch (Exception e){
             e.printStackTrace();
             client.close();
             return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
 
+        return "{}";
     }
 
     @Override
