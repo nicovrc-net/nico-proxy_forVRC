@@ -546,6 +546,7 @@ jobs:
           body: |
             - TVerのオリンピック配信に対応
             - 一部処理リファクタリング
+            - Linux環境にてBrotliがインストールされている場合はそれを使うように
           draft: false
           prerelease: true
 

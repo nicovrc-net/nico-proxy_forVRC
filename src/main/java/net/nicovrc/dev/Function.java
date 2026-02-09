@@ -229,20 +229,20 @@ public class Function {
 
     public static String getBrotliPath(){
 
-        if (new File("./brotli.exe").exists()){
-            return "./brotli.exe";
-        }
-
-        if (new File("./brotli").exists()){
-            return "./brotli";
-        }
-
         if (new File("/usr/share/brotli").exists()){
             return "/usr/share/brotli";
         }
 
         if (new File("/usr/bin/brotli").exists()){
             return "/usr/share/brotli";
+        }
+
+        if (new File("./brotli.exe").exists()){
+            return "./brotli.exe";
+        }
+
+        if (new File("./brotli").exists()){
+            return "./brotli";
         }
 
         return "";
