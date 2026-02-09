@@ -237,6 +237,14 @@ public class Function {
             return "./brotli";
         }
 
+        if (new File("/usr/share/brotli").exists()){
+            return "/usr/share/brotli";
+        }
+
+        if (new File("/usr/bin/brotli").exists()){
+            return "/usr/share/brotli";
+        }
+
         return "";
 
     }
