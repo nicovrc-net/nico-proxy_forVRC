@@ -22,6 +22,7 @@ public class bilibili_com implements ServiceAPI {
 
     private String url = null;
     private String Proxy = null;
+    private HttpClient client = null;
 
     private final Pattern Support_URL1 = Pattern.compile("https://www\\.bilibili\\.com/video/(.+)/");
     private final Pattern Support_URL2 = Pattern.compile("https://www\\.bilibili\\.com/video/(.+)");
@@ -34,13 +35,14 @@ public class bilibili_com implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
         JsonElement json_object = Function.gson.fromJson(json, JsonElement.class);
 
         if (json_object.isJsonObject() && json_object.getAsJsonObject().has("URL")){
             this.url = json_object.getAsJsonObject().get("URL").getAsString();
         }
 
+        this.client = client;
     }
 
     @Override
@@ -68,23 +70,6 @@ public class bilibili_com implements ServiceAPI {
         }
 
         try {
-            HttpClient client;
-            if (Proxy == null){
-                client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .build();
-            } else {
-                String[] s = Proxy.split(":");
-                client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                        .build();
-            }
-
             URI uri = new URI("https://api.bilibili.com/x/web-interface/view?bvid="+VideoID);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)

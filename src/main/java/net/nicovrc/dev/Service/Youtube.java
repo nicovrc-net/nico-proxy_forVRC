@@ -17,6 +17,7 @@ public class Youtube implements ServiceAPI {
 
     private String url = null;
     private String Proxy = null;
+    private HttpClient client = null;
 
     @Override
     public String[] getCorrespondingURL() {
@@ -24,39 +25,17 @@ public class Youtube implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
         JsonElement element = Function.gson.fromJson(json, JsonElement.class);
         if (element.isJsonObject() && element.getAsJsonObject().has("URL")){
             url = element.getAsJsonObject().get("URL").getAsString();
         }
+        this.client = client;
     }
 
     @Override
     public String Get() {
         try {
-            // Proxy
-            if (!Function.ProxyList.isEmpty()){
-                int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-                Proxy = Function.ProxyList.get(i);
-            }
-
-            HttpClient client;
-            if (Proxy == null){
-                client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .build();
-            } else {
-                String[] s = Proxy.split(":");
-                client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                        .build();
-            }
-
             URI uri = new URI("https://yt.8uro.net/r?v="+url+"&o=nicovrc");
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)

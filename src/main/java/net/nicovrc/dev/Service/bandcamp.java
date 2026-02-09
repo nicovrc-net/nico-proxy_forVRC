@@ -24,6 +24,7 @@ public class bandcamp implements ServiceAPI {
 
     private String url = null;
     private String proxy = null;
+    private HttpClient client = null;
 
     private final Gson gson = Function.gson;
 
@@ -35,12 +36,14 @@ public class bandcamp implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
         JsonElement jsonElement = gson.fromJson(json, JsonElement.class);
 
         if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("URL")){
             this.url = jsonElement.getAsJsonObject().get("URL").getAsString();
         }
+
+        this.client = client;
     }
 
     @Override
@@ -48,28 +51,6 @@ public class bandcamp implements ServiceAPI {
 
         if (url  == null || url.isEmpty()){
             return gson.toJson(new ErrorMessage("URLがありません"));
-        }
-
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            proxy = Function.ProxyList.get(i);
-        }
-
-        final HttpClient client;
-        if (proxy != null){
-            client = HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_2)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .connectTimeout(Duration.ofSeconds(5))
-                    .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
-                    .build();
-        } else {
-            client = HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_2)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .connectTimeout(Duration.ofSeconds(5))
-                    .build();
         }
 
         try {

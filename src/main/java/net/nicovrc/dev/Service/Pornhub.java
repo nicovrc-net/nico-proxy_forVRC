@@ -22,6 +22,7 @@ public class Pornhub implements ServiceAPI {
 
     private String url = null;
     private String proxy = null;
+    private HttpClient client = null;
 
     private final Gson gson = Function.gson;
     private final Pattern Support_URL = Pattern.compile("https://(.+)\\.pornhub\\.com/view_video\\.php\\?viewkey=(.+)");
@@ -33,7 +34,7 @@ public class Pornhub implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
         JsonElement jsonElement = gson.fromJson(json, JsonElement.class);
 
         if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("URL")){
@@ -46,13 +47,6 @@ public class Pornhub implements ServiceAPI {
         if (url  == null || url.isEmpty()){
             return gson.toJson(new ErrorMessage("URLが入力されていません。"));
         }
-
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            proxy = Function.ProxyList.get(i);
-        }
-
         Matcher matcher = Support_URL.matcher(url);
 
         if (!matcher.find()){
@@ -61,17 +55,7 @@ public class Pornhub implements ServiceAPI {
 
         String id = matcher.group(2);
 
-        try (HttpClient client = proxy == null ? HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_2)
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .connectTimeout(Duration.ofSeconds(5))
-                .build() :
-                HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
-                        .build()) {
+        try {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI("https://jp.pornhub.com/view_video.php?viewkey="+id))

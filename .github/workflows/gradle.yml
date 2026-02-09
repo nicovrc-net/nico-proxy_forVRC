@@ -545,6 +545,7 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - TVerのオリンピック配信に対応
+            - 一部処理リファクタリング
           draft: false
           prerelease: true
 

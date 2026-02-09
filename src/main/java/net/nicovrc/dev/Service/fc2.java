@@ -27,6 +27,7 @@ public class fc2 implements ServiceAPI {
 
     private String proxy = null;
     private String url = null;
+    private HttpClient client = null;
 
     private Pattern matcher_description = Pattern.compile("<meta name=\"description\" content=\"(.+)\" />");
     private final ConcurrentHashMap<String, fc2Result> LiveCacheList = new ConcurrentHashMap<>();
@@ -37,12 +38,14 @@ public class fc2 implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
         JsonElement json_object = Function.gson.fromJson(json, JsonElement.class);
 
         if (json_object.isJsonObject() && json_object.getAsJsonObject().has("URL")){
             this.url = json_object.getAsJsonObject().get("URL").getAsString();
         }
+
+        this.client = client;
     }
 
     @Override
@@ -58,23 +61,6 @@ public class fc2 implements ServiceAPI {
         }
 
         try {
-            HttpClient client;
-            if (proxy == null){
-                client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .build();
-            } else {
-                String[] s = proxy.split(":");
-                client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                        .build();
-            }
-
             if (url.startsWith("http://video.fc2.com") || url.startsWith("https://video.fc2.com")){
                 String id = "";
                 int i = 0;

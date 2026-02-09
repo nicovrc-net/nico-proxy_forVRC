@@ -27,6 +27,7 @@ public class SpankBang implements ServiceAPI {
 
     private String url = null;
     private String proxy = null;
+    private HttpClient client = null;
 
     private final Gson gson = Function.gson;
     private final Pattern matcher_json = Pattern.compile("var stream_data = \\{(.+)};");
@@ -38,12 +39,13 @@ public class SpankBang implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
         JsonElement jsonElement = gson.fromJson(json, JsonElement.class);
 
         if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("URL")){
             this.url = jsonElement.getAsJsonObject().get("URL").getAsString();
         }
+        this.client = client;
     }
 
     @Override
@@ -52,28 +54,7 @@ public class SpankBang implements ServiceAPI {
             return "{\"ErrorMessage\": \"URLがありません\"}";
         }
 
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            proxy = Function.ProxyList.get(i);
-        }
-
-        CookieManager manager = new CookieManager();
-        try (HttpClient client = proxy == null ? HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_1_1)
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .sslContext(SSLContext.getDefault())
-                .cookieHandler(manager)
-                .connectTimeout(Duration.ofSeconds(5))
-                .build() :
-                HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_1_1)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .cookieHandler(manager)
-                        .sslContext(SSLContext.getDefault())
-                        .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
-                        .build()) {
+        try {
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(new URI(url))

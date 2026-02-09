@@ -23,6 +23,7 @@ public class Abema implements ServiceAPI {
 
     private String url = null;
     private String Proxy = null;
+    private HttpClient client = null;
 
     private final Gson gson = Function.gson;
 
@@ -36,12 +37,14 @@ public class Abema implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
         JsonElement jsonElement = gson.fromJson(json, JsonElement.class);
 
         if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("URL")){
             this.url = jsonElement.getAsJsonObject().get("URL").getAsString();
         }
+
+        this.client = client;
     }
 
     @Override
@@ -101,19 +104,7 @@ public class Abema implements ServiceAPI {
             Proxy = Function.ProxyList.get(i);
         }
 
-        try (HttpClient client = Proxy == null ? HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_2)
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .connectTimeout(Duration.ofSeconds(5))
-                .build()
-                :
-                HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .proxy(ProxySelector.of(new InetSocketAddress(Proxy.split(":")[0], Integer.parseInt(Proxy.split(":")[1]))))
-                        .build()
-        ) {
+        try {
 
             if (video){
                 HttpRequest request = HttpRequest.newBuilder()

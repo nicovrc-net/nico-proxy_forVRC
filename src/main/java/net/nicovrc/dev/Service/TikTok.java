@@ -28,6 +28,7 @@ public class TikTok implements ServiceAPI {
 
     private String url = null;
     private String Proxy = null;
+    private HttpClient client = null;
 
     private final Gson gson = Function.gson;
 
@@ -39,12 +40,13 @@ public class TikTok implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
         JsonElement jsonElement = gson.fromJson(json, JsonElement.class);
 
         if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("URL")){
             this.url = jsonElement.getAsJsonObject().get("URL").getAsString();
         }
+        this.client = client;
     }
 
     @Override
@@ -54,35 +56,7 @@ public class TikTok implements ServiceAPI {
             return Function.gson.toJson(new ErrorMessage("URLがありません"));
         }
 
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            Proxy = Function.ProxyList.get(i);
-        }
-
-        String[] split = url.split("/");
-        int i = 0;
-        for (String str : split){
-            if (str.startsWith("video")){
-                break;
-            }
-            i++;
-        }
-
-        final String id = split[i + 1];
-        try (HttpClient client = Proxy == null ? HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .build()
-                :
-                HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .proxy(ProxySelector.of(new InetSocketAddress(Proxy.split(":")[0], Integer.parseInt(Proxy.split(":")[1]))))
-                        .build()
-        ) {
+        try {
 
             //System.out.println(Proxy);
             HttpRequest request = HttpRequest.newBuilder()

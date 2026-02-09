@@ -20,6 +20,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -49,6 +50,11 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     private byte[] errContent000;
     private byte[] errContent404;
+
+    private final Pattern NicoID1 = Pattern.compile("(http|https)://(live|www)\\.nicovideo\\.jp/watch/(.+)");
+    private final Pattern NicoID2 = Pattern.compile("(http|https)://nico\\.ms/(.+)");
+    private final Pattern NicoID3 = Pattern.compile("(http|https)://cas\\.nicovideo\\.jp/user/(.+)");
+    private final Pattern NicoID4 = Pattern.compile("^(sm\\d+|nm\\d+|am\\d+|fz\\d+|ut\\d+|dm\\d+|so\\d+|ax\\d+|ca\\d+|cd\\d+|cw\\d+|fx\\d+|ig\\d+|na\\d+|om\\d+|sd\\d+|sk\\d+|yk\\d+|yo\\d+|za\\d+|zb\\d+|zc\\d+|zd\\d+|ze\\d+|nl\\d+|ch\\d+|\\d+|lv\\d+)");
 
     public GetURL(){
 
@@ -375,38 +381,106 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 }
             }
 
-            if (api != null) {
-                //System.out.println("aaa");
-                //System.out.println(URL.startsWith("https://twitcasting.tv"));
-                ServiceName = api.getServiceName();
-                if (ServiceName.equals("ニコニコ")) {
+            // Proxy
+            String p = null;
+            if (!Function.ProxyList.isEmpty()){
+                int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
+                p = Function.ProxyList.get(i);
+            }
 
-                    if (Function.config_user_session != null && Function.config_nicosid != null) {
-                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + Function.config_user_session + "\", \"nicosid\": \"" + Function.config_nicosid + "\"}");
-                    } else {
-                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
-                    }
+            final String url = URL.split("\\?")[0];
+            final Matcher matcher_normal = NicoID1.matcher(url);
+            final Matcher matcher_short = NicoID2.matcher(url);
+            final Matcher matcher_cas = NicoID3.matcher(url);
+            final Matcher matcher_idOnly = NicoID4.matcher(url);
 
-                } else if (URL.startsWith("https://twitcasting.tv")) {
-                    if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
-                        api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\":\"" + Function.config_twitcast_ClientSecret + "\"}");
-                    } else {
-                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\":\"" + Function.config_twitcast_ClientSecret + "\"}");
-                    }
-                } else {
-                    if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
-                        api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\"}");
-                    } else {
-                        api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}");
+            final boolean isNormal = matcher_normal.find();
+            final boolean isShort = matcher_short.find();
+            final boolean isCas = matcher_cas.find();
+            final boolean isID = matcher_idOnly.find();
+
+            String id = "";
+
+            if (isID){
+                id = matcher_idOnly.group(1);
+            } else if (isNormal){
+                id = matcher_normal.group(3);
+            } else if (isShort) {
+                id = matcher_short.group(2);
+            }
+
+            if (isID || isNormal || isShort){
+                if (id.startsWith("lv") || id.startsWith("so")){
+                    if (!Function.JP_ProxyList.isEmpty()){
+                        int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
+                        p = Function.JP_ProxyList.get(i);
                     }
                 }
+            }
 
+            if (isCas){
+                if (!Function.JP_ProxyList.isEmpty()){
+                    int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
+                    p = Function.JP_ProxyList.get(i);
+                }
+            }
 
-                json = api.Get();
-                //ServiceName = api.getServiceName();
-                proxy = api.getUseProxy();
-            } else {
-                json = "{}";
+            HttpClient httpClient = null;
+            try {
+                if (p == null){
+                    httpClient = HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_2)
+                            .followRedirects(HttpClient.Redirect.NORMAL)
+                            .connectTimeout(Duration.ofSeconds(5))
+                            .build();
+                } else {
+                    String[] s = p.split(":");
+                    httpClient = HttpClient.newBuilder()
+                            .version(HttpClient.Version.HTTP_2)
+                            .followRedirects(HttpClient.Redirect.NORMAL)
+                            .connectTimeout(Duration.ofSeconds(5))
+                            .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
+                            .build();
+                }
+
+                if (api != null) {
+                    //System.out.println("aaa");
+                    //System.out.println(URL.startsWith("https://twitcasting.tv"));
+                    ServiceName = api.getServiceName();
+                    if (ServiceName.equals("ニコニコ")) {
+
+                        if (Function.config_user_session != null && Function.config_nicosid != null) {
+                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + Function.config_user_session + "\", \"nicosid\": \"" + Function.config_nicosid + "\"}", httpClient);
+                        } else {
+                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}", httpClient);
+                        }
+
+                    } else if (URL.startsWith("https://twitcasting.tv")) {
+                        if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
+                            api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\":\"" + Function.config_twitcast_ClientSecret + "\"}", httpClient);
+                        } else {
+                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\":\"" + Function.config_twitcast_ClientSecret + "\"}", httpClient);
+                        }
+                    } else {
+                        if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
+                            api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\"}", httpClient);
+                        } else {
+                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}", httpClient);
+                        }
+                    }
+                    json = api.Get();
+                    //ServiceName = api.getServiceName();
+                    proxy = api.getUseProxy();
+                } else {
+                    json = "{}";
+                }
+
+                httpClient.close();
+            } catch (Exception e){
+                e.printStackTrace();
+                if (httpClient != null){
+                    httpClient.close();
+                }
             }
 
             //System.out.println(json);

@@ -5,16 +5,12 @@ import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.SoundCloudResult;
 
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
-import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +18,7 @@ public class SoundCloud implements ServiceAPI {
 
     private String url = null;
     private String proxy = null;
+    private HttpClient client = null;
 
     private final Pattern clientId = Pattern.compile("client_id:\"(.+)\",env:\"production\"");
     private final Pattern jsonData = Pattern.compile("window\\.__sc_hydration = \\[(.+)\\];");
@@ -33,42 +30,20 @@ public class SoundCloud implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
 
         JsonElement element = Function.gson.fromJson(json, JsonElement.class);
         if (element.isJsonObject() && element.getAsJsonObject().has("URL")){
             url = element.getAsJsonObject().get("URL").getAsString();
         }
+        this.client = client;
 
     }
 
     @Override
     public String Get() {
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            proxy = Function.ProxyList.get(i);
-        }
-
         if (url == null || url.isEmpty()){
             return Function.gson.toJson(new ErrorMessage("URLが入力されていません。"));
-        }
-
-        HttpClient client;
-        if (proxy == null){
-            client = HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_2)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .connectTimeout(Duration.ofSeconds(5))
-                    .build();
-        } else {
-            String[] s = proxy.split(":");
-            client = HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_2)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .connectTimeout(Duration.ofSeconds(5))
-                    .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                    .build();
         }
 
         try {

@@ -19,6 +19,7 @@ public class OPENREC implements ServiceAPI {
 
     private String url = null;
     private String Proxy = null;
+    private HttpClient client = null;
 
     @Override
     public String[] getCorrespondingURL() {
@@ -26,39 +27,17 @@ public class OPENREC implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
         JsonElement element = Function.gson.fromJson(json, JsonElement.class);
         if (element.isJsonObject() && element.getAsJsonObject().has("URL")){
             url = element.getAsJsonObject().get("URL").getAsString();
         }
+        this.client = client;
     }
 
     @Override
     public String Get() {
         try {
-            // Proxy
-            if (!Function.ProxyList.isEmpty()){
-                int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-                Proxy = Function.ProxyList.get(i);
-            }
-
-            HttpClient client;
-            if (Proxy == null){
-                client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .build();
-            } else {
-                String[] s = Proxy.split(":");
-                client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                        .build();
-            }
-
             String[] split = url.split("/");
             String id = split[split.length - 1];
 
@@ -83,19 +62,6 @@ public class OPENREC implements ServiceAPI {
             }
             JsonElement json = Function.gson.fromJson(jsonText, JsonElement.class);
             jsonText = null;
-            /*
-    private String URL;
-    private String Title;
-    private String Introduction;
-    private String Thumbnail;
-    private Long LiveViews;
-    private Long TotalViews;
-
-    private boolean isLive;
-
-    private String VideoURL;
-    private String LiveURL;
-             */
             OPENREC_Result result = new OPENREC_Result();
             if (json.getAsJsonObject().has("id")){
                 if (json.getAsJsonObject().get("is_live").getAsBoolean()){

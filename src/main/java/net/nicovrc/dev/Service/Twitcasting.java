@@ -28,6 +28,7 @@ public class Twitcasting implements ServiceAPI {
     private String ClientID = null;
     private String ClientSecret = null;
     private String Proxy = null;
+    private HttpClient client = null;
 
     private final Gson gson = Function.gson;
 
@@ -39,7 +40,7 @@ public class Twitcasting implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
 
         JsonElement element = gson.fromJson(json, JsonElement.class);
 
@@ -54,6 +55,7 @@ public class Twitcasting implements ServiceAPI {
         if (element.isJsonObject() && element.getAsJsonObject().has("ClientSecret")){
             this.ClientSecret = element.getAsJsonObject().get("ClientSecret").getAsString();
         }
+        this.client = client;
 
     }
 
@@ -65,12 +67,6 @@ public class Twitcasting implements ServiceAPI {
 
         if (ClientID == null || ClientID.isEmpty() || ClientSecret == null || ClientSecret.isEmpty()){
             return gson.toJson(new ErrorMessage("ツイキャス APIキーがありません"));
-        }
-
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            Proxy = Function.ProxyList.get(i);
         }
 
         String base64 = new String(Base64.getEncoder().encode((ClientID+":"+ClientSecret).getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
@@ -94,17 +90,7 @@ public class Twitcasting implements ServiceAPI {
         }
 
         //
-        try (HttpClient client = Proxy == null ? HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_2)
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .connectTimeout(Duration.ofSeconds(5))
-                .build() :
-                HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .proxy(ProxySelector.of(new InetSocketAddress(Proxy.split(":")[0], Integer.parseInt(Proxy.split(":")[1]))))
-                        .build()){
+        try {
 
             //System.out.println(userId);
             URI uri = videoId.isEmpty() ? new URI("https://apiv2.twitcasting.tv/users/"+userId+"/current_live") : new URI("https://apiv2.twitcasting.tv/movies/"+videoId);

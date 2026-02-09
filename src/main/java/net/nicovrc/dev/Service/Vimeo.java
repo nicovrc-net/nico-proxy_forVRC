@@ -22,6 +22,7 @@ public class Vimeo implements ServiceAPI {
 
     private String proxy = null;
     private String url = null;
+    private HttpClient client = null;
 
     private final Pattern matcher_JsonData = Pattern.compile("<script id=\"microdata\" type=\"application/ld\\+json\">\n(.+)</script>");
     private final Pattern SupportURL = Pattern.compile("https://vimeo\\.com/(\\d+)");
@@ -32,40 +33,19 @@ public class Vimeo implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
         JsonElement element = Function.gson.fromJson(json, JsonElement.class);
         if (element.isJsonObject() && element.getAsJsonObject().has("URL")){
             url = element.getAsJsonObject().get("URL").getAsString();
         }
+        this.client = client;
     }
 
     @Override
     public String Get() {
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            proxy = Function.ProxyList.get(i);
-        }
 
         if (url == null || url.isEmpty()){
             return Function.gson.toJson(new ErrorMessage("URLが入力されていません。"));
-        }
-
-        HttpClient client;
-        if (proxy == null){
-            client = HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_2)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .connectTimeout(Duration.ofSeconds(5))
-                    .build();
-        } else {
-            String[] s = proxy.split(":");
-            client = HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_2)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .connectTimeout(Duration.ofSeconds(5))
-                    .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                    .build();
         }
 
         try {

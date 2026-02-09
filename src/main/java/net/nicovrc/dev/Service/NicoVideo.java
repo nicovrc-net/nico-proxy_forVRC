@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 public class NicoVideo implements ServiceAPI {
     private final Gson gson = Function.gson;
+    private HttpClient client = null;
     private final String[] SupportURL = {
             "www.nicovideo.jp",
             "live.nicovideo.jp",
@@ -85,7 +86,7 @@ public class NicoVideo implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json) {
+    public void Set(String json, HttpClient client) {
         JsonElement jsonElement = gson.fromJson(json, JsonElement.class);
 
         if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("URL")){
@@ -103,6 +104,7 @@ public class NicoVideo implements ServiceAPI {
             this.nicosid = jsonElement.getAsJsonObject().get("nicosid").getAsString();
         }
 
+        this.client = client;
 
         //System.out.println(user_session + " / " + user_session_secure);
 
@@ -113,15 +115,6 @@ public class NicoVideo implements ServiceAPI {
         if (URL == null || URL.isEmpty()){
             return gson.toJson(new ErrorMessage("URLがありません"));
         }
-
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = Function.ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.ProxyList.size()) : 0;
-            Proxy = Function.ProxyList.get(i);
-            //System.out.println(i);
-        }
-
-        //System.out.println(Proxy);
 
         String url = URL.split("\\?")[0];
         Matcher matcher_normal = NicoID1.matcher(url);
@@ -145,17 +138,12 @@ public class NicoVideo implements ServiceAPI {
             return gson.toJson(new ErrorMessage("URLが間違っているか対応してないURLです。"));
         }
 
-        String accessUrl = null;
+        String accessUrl = "";
         if (isID){
             id = matcher_idOnly.group(1);
             accessUrl = "https://nico.ms/" + id;
 
-            try (HttpClient client = HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_2)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .connectTimeout(Duration.ofSeconds(5))
-                    .build()
-            ) {
+            try  {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(new URI(accessUrl))
                         .headers("User-Agent", Function.UserAgent)
@@ -178,46 +166,10 @@ public class NicoVideo implements ServiceAPI {
 
         if (isShort){
             id = matcher_short.group(2);
-
-            try (HttpClient client = HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_2)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .connectTimeout(Duration.ofSeconds(5))
-                    .build()
-            ) {
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(new URI("https://nico.ms/"+id))
-                        .headers("User-Agent", Function.UserAgent)
-                        .GET()
-                        .build();
-
-                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-                accessUrl = send.uri().toURL().toString();
-
-            } catch (Exception e){
-                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
-            }
         }
 
         if (isCas){
             accessUrl = url;
-        }
-
-        if (isID || isNormal || isShort){
-            if (id.startsWith("lv") || id.startsWith("so")){
-                if (!Function.JP_ProxyList.isEmpty()){
-                    int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
-                    Proxy = Function.JP_ProxyList.get(i);
-                }
-            }
-        }
-
-        if (isCas){
-            if (!Function.JP_ProxyList.isEmpty()){
-                int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
-                Proxy = Function.JP_ProxyList.get(i);
-            }
         }
 
         //System.out.println(accessUrl);
@@ -230,25 +182,6 @@ public class NicoVideo implements ServiceAPI {
         }
 
         try {
-            HttpClient client;
-            //System.out.println(Proxy);
-            if (Proxy == null){
-                client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .build();
-            } else {
-                //System.out.println(Proxy);
-                String[] s = Proxy.split(":");
-                client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                        .build();
-            }
-
             URI uri = new URI(accessUrl);
             HttpRequest request = (!cookieText.isEmpty()) ? HttpRequest.newBuilder()
                     .uri(uri)
@@ -433,34 +366,6 @@ public class NicoVideo implements ServiceAPI {
 
                     String sendJson = "{\"outputs\":["+videoJson.substring(0, videoJson.length() - 1)+"]}";
                     //System.out.println(sendJson);
-
-                    //System.out.println(Proxy);
-                    /*
-                    if (Proxy == null){
-                        client = HttpClient.newBuilder()
-                                .version(HttpClient.Version.HTTP_2)
-                                .followRedirects(HttpClient.Redirect.NORMAL)
-                                .connectTimeout(Duration.ofSeconds(5))
-                                .build();
-                    } else {
-                        String[] s = Proxy.split(":");
-                        client = HttpClient.newBuilder()
-                                .version(HttpClient.Version.HTTP_2)
-                                .followRedirects(HttpClient.Redirect.NORMAL)
-                                .connectTimeout(Duration.ofSeconds(5))
-                                .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                                .build();
-                        //System.out.println("Proxy : " + Proxy);
-                    }*/
-                    /*
-                    uri = new URI("https://ipinfo.io/ip");
-                    request = HttpRequest.newBuilder()
-                            .uri(uri)
-                            .headers("User-Agent", Function.UserAgent)
-                            .build();
-                    send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-                    System.out.println(send.body());*/
 
                     // https://nvapi.nicovideo.jp/v1/watch/sm45021027/access-rights/hls?actionTrackId=IpQvCiNIUy_1754217531720
                     //System.out.println(id);
