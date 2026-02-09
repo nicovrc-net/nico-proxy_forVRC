@@ -57,6 +57,13 @@ public class Function {
     public static String config_twitcast_ClientId = null;
     public static String config_twitcast_ClientSecret = null;
 
+
+    public static final Pattern NicoID1 = Pattern.compile("(http|https)://(live|www)\\.nicovideo\\.jp/watch/(.+)");
+    public static final Pattern NicoID2 = Pattern.compile("(http|https)://nico\\.ms/(.+)");
+    public static final Pattern NicoID3 = Pattern.compile("(http|https)://cas\\.nicovideo\\.jp/user/(.+)");
+    public static final Pattern NicoID4 = Pattern.compile("^(sm\\d+|nm\\d+|am\\d+|fz\\d+|ut\\d+|dm\\d+|so\\d+|ax\\d+|ca\\d+|cd\\d+|cw\\d+|fx\\d+|ig\\d+|na\\d+|om\\d+|sd\\d+|sk\\d+|yk\\d+|yo\\d+|za\\d+|zb\\d+|zc\\d+|zd\\d+|ze\\d+|nl\\d+|ch\\d+|\\d+|lv\\d+)");
+
+
     public static String getHTTPRequest(Socket sock) throws Exception{
         //System.out.println("debug 1");
         InputStream in = sock.getInputStream();

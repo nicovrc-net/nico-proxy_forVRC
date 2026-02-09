@@ -51,11 +51,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private byte[] errContent000;
     private byte[] errContent404;
 
-    private final Pattern NicoID1 = Pattern.compile("(http|https)://(live|www)\\.nicovideo\\.jp/watch/(.+)");
-    private final Pattern NicoID2 = Pattern.compile("(http|https)://nico\\.ms/(.+)");
-    private final Pattern NicoID3 = Pattern.compile("(http|https)://cas\\.nicovideo\\.jp/user/(.+)");
-    private final Pattern NicoID4 = Pattern.compile("^(sm\\d+|nm\\d+|am\\d+|fz\\d+|ut\\d+|dm\\d+|so\\d+|ax\\d+|ca\\d+|cd\\d+|cw\\d+|fx\\d+|ig\\d+|na\\d+|om\\d+|sd\\d+|sk\\d+|yk\\d+|yo\\d+|za\\d+|zb\\d+|zc\\d+|zd\\d+|ze\\d+|nl\\d+|ch\\d+|\\d+|lv\\d+)");
-
     public GetURL(){
 
         GetContentList.put("ニコニコ", new NicoVideo());
@@ -389,10 +384,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             }
 
             final String url = URL.split("\\?")[0];
-            final Matcher matcher_normal = NicoID1.matcher(url);
-            final Matcher matcher_short = NicoID2.matcher(url);
-            final Matcher matcher_cas = NicoID3.matcher(url);
-            final Matcher matcher_idOnly = NicoID4.matcher(url);
+            final Matcher matcher_normal = Function.NicoID1.matcher(url);
+            final Matcher matcher_short = Function.NicoID2.matcher(url);
+            final Matcher matcher_cas = Function.NicoID3.matcher(url);
+            final Matcher matcher_idOnly = Function.NicoID4.matcher(url);
 
             final boolean isNormal = matcher_normal.find();
             final boolean isShort = matcher_short.find();
