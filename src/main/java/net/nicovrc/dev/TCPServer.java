@@ -270,6 +270,7 @@ public class TCPServer extends Thread {
                                     if (!Function.JP_ProxyList.isEmpty()){
                                         int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
                                         p = Function.JP_ProxyList.get(i);
+                                        st = p.split(":");
                                     }
                                 }
                             }
@@ -278,6 +279,7 @@ public class TCPServer extends Thread {
                                 if (!Function.JP_ProxyList.isEmpty()){
                                     int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
                                     p = Function.JP_ProxyList.get(i);
+                                    st = p.split(":");
                                 }
                             }
 
