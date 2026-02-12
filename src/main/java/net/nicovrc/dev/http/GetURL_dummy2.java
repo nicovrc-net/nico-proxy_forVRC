@@ -1,6 +1,7 @@
 package net.nicovrc.dev.http;
 
 import java.net.Socket;
+import java.net.http.HttpClient;
 
 public class GetURL_dummy2 implements Runnable, NicoVRCHTTP {
 
@@ -29,5 +30,10 @@ public class GetURL_dummy2 implements Runnable, NicoVRCHTTP {
     @Override
     public void setHTTPSocket(Socket sock) {
         getURL.setHTTPSocket(sock);
+    }
+
+    @Override
+    public void setHTTPClient(HttpClient client) {
+        getURL.setHTTPClient(client);
     }
 }

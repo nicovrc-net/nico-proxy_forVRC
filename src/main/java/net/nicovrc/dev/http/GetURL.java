@@ -1,7 +1,5 @@
 package net.nicovrc.dev.http;
 
-import com.amihaiemil.eoyaml.Yaml;
-import com.amihaiemil.eoyaml.YamlMapping;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.data.CacheData;
@@ -31,6 +29,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private Socket sock = null;
     private String URL = null;
     private String httpRequest = null;
+    private HttpClient client = null;
     private final HashMap<String, GetContent> GetContentList = new HashMap<>();
 
     private final Gson gson = Function.gson;
@@ -115,6 +114,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     @Override
     public void run() {
+        if (client == null){
+            return;
+        }
+
         final String method = Function.getMethod(httpRequest);
         final String httpVersion = Function.getHTTPVersion(httpRequest) != null ? Function.getHTTPVersion(httpRequest) : "1.1";
         final boolean isHead = method != null && method.equals("HEAD");
@@ -376,68 +379,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 }
             }
 
-            // Proxy
-            String p = null;
-            if (!Function.ProxyList.isEmpty()){
-                int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-                p = Function.ProxyList.get(i);
-            }
-
-            final String url = URL.split("\\?")[0];
-            final Matcher matcher_normal = Function.NicoID1.matcher(url);
-            final Matcher matcher_short = Function.NicoID2.matcher(url);
-            final Matcher matcher_cas = Function.NicoID3.matcher(url);
-            final Matcher matcher_idOnly = Function.NicoID4.matcher(url);
-
-            final boolean isNormal = matcher_normal.find();
-            final boolean isShort = matcher_short.find();
-            final boolean isCas = matcher_cas.find();
-            final boolean isID = matcher_idOnly.find();
-
-            String id = "";
-
-            if (isID){
-                id = matcher_idOnly.group(1);
-            } else if (isNormal){
-                id = matcher_normal.group(3);
-            } else if (isShort) {
-                id = matcher_short.group(2);
-            }
-
-            if (isID || isNormal || isShort){
-                if (id.startsWith("lv") || id.startsWith("so")){
-                    if (!Function.JP_ProxyList.isEmpty()){
-                        int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
-                        p = Function.JP_ProxyList.get(i);
-                    }
-                }
-            }
-
-            if (isCas){
-                if (!Function.JP_ProxyList.isEmpty()){
-                    int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
-                    p = Function.JP_ProxyList.get(i);
-                }
-            }
-
-            HttpClient httpClient = null;
             try {
-                if (p == null){
-                    httpClient = HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_2)
-                            .followRedirects(HttpClient.Redirect.NORMAL)
-                            .connectTimeout(Duration.ofSeconds(5))
-                            .build();
-                } else {
-                    String[] s = p.split(":");
-                    httpClient = HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_2)
-                            .followRedirects(HttpClient.Redirect.NORMAL)
-                            .connectTimeout(Duration.ofSeconds(5))
-                            .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                            .build();
-                }
-
                 if (api != null) {
                     //System.out.println("aaa");
                     //System.out.println(URL.startsWith("https://twitcasting.tv"));
@@ -445,22 +387,22 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     if (ServiceName.equals("ニコニコ")) {
 
                         if (Function.config_user_session != null && Function.config_nicosid != null) {
-                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + Function.config_user_session + "\", \"nicosid\": \"" + Function.config_nicosid + "\"}", httpClient);
+                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + Function.config_user_session + "\", \"nicosid\": \"" + Function.config_nicosid + "\"}", client);
                         } else {
-                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}", httpClient);
+                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}", client);
                         }
 
                     } else if (URL.startsWith("https://twitcasting.tv")) {
                         if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
-                            api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\":\"" + Function.config_twitcast_ClientSecret + "\"}", httpClient);
+                            api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\":\"" + Function.config_twitcast_ClientSecret + "\"}", client);
                         } else {
-                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\":\"" + Function.config_twitcast_ClientSecret + "\"}", httpClient);
+                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\":\"" + Function.config_twitcast_ClientSecret + "\"}", client);
                         }
                     } else {
                         if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
-                            api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\"}", httpClient);
+                            api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\"}", client);
                         } else {
-                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}", httpClient);
+                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}", client);
                         }
                     }
                     json = api.Get();
@@ -469,12 +411,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 } else {
                     json = "{}";
                 }
-
-                httpClient.close();
             } catch (Exception e){
                 e.printStackTrace();
-                if (httpClient != null){
-                    httpClient.close();
+                if (client != null){
+                    client.close();
                 }
             }
 
@@ -729,5 +669,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     @Override
     public void setHTTPSocket(Socket sock) {
         this.sock = sock;
+    }
+
+    @Override
+    public void setHTTPClient(HttpClient client) {
+        this.client = client;
     }
 }

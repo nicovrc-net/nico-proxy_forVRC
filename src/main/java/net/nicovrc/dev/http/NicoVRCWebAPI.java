@@ -7,6 +7,7 @@ import net.nicovrc.dev.api.*;
 import net.nicovrc.dev.data.WebhookData;
 
 import java.net.Socket;
+import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -140,5 +141,10 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
     @Override
     public void setHTTPSocket(Socket sock) {
         this.sock = sock;
+    }
+
+    @Override
+    public void setHTTPClient(HttpClient client) {
+
     }
 }

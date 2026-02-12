@@ -8,12 +8,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.time.Duration;
 import java.util.HashMap;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.regex.Matcher;
 
 public class TCPServer extends Thread {
 
@@ -228,11 +234,68 @@ public class TCPServer extends Thread {
                         //System.out.println(s);
                         NicoVRCHTTP vrchttp = httpService.get(s.substring(0, Math.min(s.length(), 15)));
                         if (vrchttp != null){
-                            vrchttp.setURL(URI);
-                            vrchttp.setHTTPRequest(httpRequest);
-                            vrchttp.setHTTPSocket(sock);
-                            Thread start = Thread.ofVirtual().start((Runnable) vrchttp);
-                            try {
+                            // Proxy
+                            String p = null;
+                            String[] st = null;
+                            if (!Function.ProxyList.isEmpty()){
+                                int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
+                                p = Function.ProxyList.get(i);
+                                st = p.split(":");
+                            }
+
+
+                            final String url = URI.split("\\?")[0];
+                            final Matcher matcher_normal = Function.NicoID1.matcher(url);
+                            final Matcher matcher_short = Function.NicoID2.matcher(url);
+                            final Matcher matcher_cas = Function.NicoID3.matcher(url);
+                            final Matcher matcher_idOnly = Function.NicoID4.matcher(url);
+
+                            final boolean isNormal = matcher_normal.find();
+                            final boolean isShort = matcher_short.find();
+                            final boolean isCas = matcher_cas.find();
+                            final boolean isID = matcher_idOnly.find();
+
+                            String id = "";
+
+                            if (isID){
+                                id = matcher_idOnly.group(1);
+                            } else if (isNormal){
+                                id = matcher_normal.group(3);
+                            } else if (isShort) {
+                                id = matcher_short.group(2);
+                            }
+
+                            if (isID || isNormal || isShort){
+                                if (id.startsWith("lv") || id.startsWith("so")){
+                                    if (!Function.JP_ProxyList.isEmpty()){
+                                        int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
+                                        p = Function.JP_ProxyList.get(i);
+                                    }
+                                }
+                            }
+
+                            if (isCas){
+                                if (!Function.JP_ProxyList.isEmpty()){
+                                    int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
+                                    p = Function.JP_ProxyList.get(i);
+                                }
+                            }
+
+                            try (HttpClient httpClient = (p == null ? HttpClient.newBuilder()
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .followRedirects(HttpClient.Redirect.NORMAL)
+                                    .connectTimeout(Duration.ofSeconds(5))
+                                    .build() : HttpClient.newBuilder()
+                                    .version(HttpClient.Version.HTTP_2)
+                                    .followRedirects(HttpClient.Redirect.NORMAL)
+                                    .connectTimeout(Duration.ofSeconds(5))
+                                    .proxy(ProxySelector.of(new InetSocketAddress(st[0], Integer.parseInt(st[1]))))
+                                    .build())){
+                                vrchttp.setURL(URI);
+                                vrchttp.setHTTPRequest(httpRequest);
+                                vrchttp.setHTTPSocket(sock);
+                                vrchttp.setHTTPClient(httpClient);
+                                Thread start = Thread.ofVirtual().start((Runnable) vrchttp);
                                 start.join();
                             } catch (Exception e){
                                 // e.printStackTrace();
