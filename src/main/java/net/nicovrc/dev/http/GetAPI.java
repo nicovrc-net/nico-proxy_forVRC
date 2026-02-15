@@ -5,6 +5,7 @@ import net.nicovrc.dev.Function;
 import net.nicovrc.dev.api.WebAPI;
 import net.nicovrc.dev.api.v1.Test;
 
+import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
@@ -12,10 +13,12 @@ public class GetAPI implements GetInterface {
 
     private final String URI;
     private final String httpRequest;
+    private final HttpClient client;
 
-    public GetAPI(String httpRequest, String uri){
+    public GetAPI(String httpRequest, String uri, HttpClient client){
         this.httpRequest = httpRequest;
         this.URI = uri;
+        this.client = client;
     }
 
     @Override
