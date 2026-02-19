@@ -167,21 +167,17 @@ NicoNico_user_session: ""
             boolean mkdir = file.mkdir();
         }
 
-        // エラー動画
-        file = new File("./error-video");
-        if (!file.exists()){
-            if (file.mkdir()) {
-                URI uri;
-                HttpRequest request;
-                HttpClient client = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .build();
-                try {
-                    uri = new URI("https://r2.7mi.site/vrc/nico/error_404.mp4");
-                    request = HttpRequest.newBuilder()
-                            .uri(uri)
+        try (HttpClient client = HttpClient.newBuilder()
+                .version(HttpClient.Version.HTTP_2)
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .connectTimeout(Duration.ofSeconds(5))
+                .build()){
+            // エラー動画
+            file = new File("./error-video");
+            if (!file.exists()){
+                if (file.mkdir()) {
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(new URI("https://r2.7mi.site/vrc/nico/error_404.mp4"))
                             .headers("User-Agent", Function.UserAgent)
                             .GET()
                             .build();
@@ -189,20 +185,15 @@ NicoNico_user_session: ""
                     HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
                     if (send.statusCode() >= 400) {
                         send = null;
-                        uri = null;
                         request = null;
-                        client.close();
-                        client = null;
                     } else {
                         FileOutputStream stream = new FileOutputStream("./error-video/error_404.mp4");
                         stream.write(send.body());
                         stream.close();
                         stream = null;
                     }
-
-                    uri = new URI("https://r2.7mi.site/vrc/nico/error_000.mp4");
                     request = HttpRequest.newBuilder()
-                            .uri(uri)
+                            .uri(new URI("https://r2.7mi.site/vrc/nico/error_000.mp4"))
                             .headers("User-Agent", Function.UserAgent)
                             .GET()
                             .build();
@@ -210,10 +201,8 @@ NicoNico_user_session: ""
                     send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
                     if (send.statusCode() >= 400) {
                         send = null;
-                        uri = null;
                         request = null;
                         client.close();
-                        client = null;
                     } else {
                         FileOutputStream stream = new FileOutputStream("./error-video/error_000.mp4");
                         stream.write(send.body());
@@ -221,9 +210,8 @@ NicoNico_user_session: ""
                         stream = null;
                     }
 
-                    uri = new URI("https://r2.7mi.site/vrc/nico/error_404_2.mp4");
                     request = HttpRequest.newBuilder()
-                            .uri(uri)
+                            .uri(new URI("https://r2.7mi.site/vrc/nico/error_404_2.mp4"))
                             .headers("User-Agent", Function.UserAgent)
                             .GET()
                             .build();
@@ -231,237 +219,231 @@ NicoNico_user_session: ""
                     send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
                     if (send.statusCode() >= 400) {
                         send = null;
-                        uri = null;
                         request = null;
-                        client.close();
-                        client = null;
                     } else {
                         FileOutputStream stream = new FileOutputStream("./error-video/error_404_2.mp4");
                         stream.write(send.body());
                         stream.close();
                         stream = null;
                     }
-                } catch (Exception e) {
-                    // e.printStackTrace();
-                } finally {
-                    uri = null;
-                    request = null;
-                    client.close();
-                    client = null;
                 }
             }
-        }
 
-        // プロキシチェック
-        try {
-            YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+            // ログ、Webhook書き出し & キャッシュ削除
+            Function.mainTimer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    Thread.ofVirtual().start(()->{
+                        HashMap<String, CacheData> map = Function.getCacheList();
 
-            YamlSequence proxy1 = yamlMapping.yamlSequence("VideoProxy");
-            YamlSequence proxy2 = yamlMapping.yamlSequence("JPProxy");
+                        long time = new Date().getTime();
+                        map.forEach((url, data)->{
 
-            Thread.ofVirtual().start(()->{
-                long count = Function.ProxyList.size();
-                try {
-                    if (proxy1 != null){
-                        List<String> proxyList = new ArrayList<>();
-
-                        for (int i = 0; i < proxy1.size(); i++){
-
-                            String[] s = proxy1.string(i).split(":");
-
-                            try (HttpClient client = HttpClient.newBuilder()
-                                    .version(HttpClient.Version.HTTP_2)
-                                    .followRedirects(HttpClient.Redirect.NORMAL)
-                                    .connectTimeout(Duration.ofSeconds(5))
-                                    .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                                    .build()) {
-
-                                HttpRequest request = HttpRequest.newBuilder()
-                                        .uri(new URI("https://www.nicovideo.jp/watch/sm9"))
-                                        .headers("User-Agent", Function.UserAgent)
-                                        .GET()
-                                        .build();
-
-                                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-                                if (send.statusCode() < 400){
-                                    Matcher matcher = matcher_Json.matcher(send.body());
-                                    if (matcher.find()){
-                                        JsonElement json = Function.gson.fromJson("{"+matcher.group(1).replaceAll("&quot;", "\"")+"}", JsonElement.class);
-
-                                        if (json != null){
-
-                                            if (json.getAsJsonObject().has("data") && json.getAsJsonObject().getAsJsonObject("data").has("response")){
-                                                String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
-                                                String accessRightKey = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").get("accessRightKey").getAsString();
-                                                String trackId = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("client").get("watchTrackId").getAsString();
-
-                                                request = HttpRequest.newBuilder()
-                                                        .uri(new URI("https://nvapi.nicovideo.jp/v1/watch/sm9/access-rights/hls?actionTrackId="+trackId))
-                                                        .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
-                                                        .headers("X-Access-Right-Key", accessRightKey)
-                                                        .headers("X-Frontend-Id", "6")
-                                                        .headers("X-Frontend-Version", "0")
-                                                        .headers("X-Niconico-Language", "ja-jp")
-                                                        .headers("X-Request-With", "nicovideo")
-                                                        .headers("Cookie", "nicosid="+nicosid)
-                                                        .headers("User-Agent", Function.UserAgent)
-                                                        .POST(HttpRequest.BodyPublishers.ofString("{\"outputs\":[[\"video-h264-360p\",\"audio-aac-128kbps\"],[\"video-h264-360p-lowest\",\"audio-aac-128kbps\"]]}"))
-                                                        .build();
-
-                                                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-                                                if (send.statusCode() < 400){
-                                                    proxyList.add(proxy1.string(i));
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } catch (Exception e){
-                                // e.printStackTrace();
+                            if (data.isSet() && time - data.getCacheDate() >= 86400000L) {
+                                Function.deleteCache(url);
                             }
-                        }
 
-                        Function.ProxyList.clear();
-                        Function.ProxyList.addAll(proxyList);
-                    }
-                } catch (Exception e){
-                    //e.printStackTrace();
-                }
-                if (count != Function.ProxyList.size()){
-                    System.out.println("[Info] VideoProxy: "+ Function.ProxyList.size() + "件");
-                }
-            });
+                        });
 
-            Thread.ofVirtual().start(()->{
-                long count = Function.JP_ProxyList.size();
-                try {
-                    if (proxy2 != null){
-                        List<String> proxyList = new ArrayList<>();
-
-                        for (int i = 0; i < proxy2.size(); i++){
-
-                            String[] s = proxy2.string(i).split(":");
-
-                            try (HttpClient client = HttpClient.newBuilder()
-                                    .version(HttpClient.Version.HTTP_2)
-                                    .followRedirects(HttpClient.Redirect.NORMAL)
-                                    .connectTimeout(Duration.ofSeconds(5))
-                                    .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                                    .build()){
-                                HttpRequest request = HttpRequest.newBuilder()
-                                        .uri(new URI("https://www.nicovideo.jp/watch/so38016254"))
-                                        .headers("User-Agent", Function.UserAgent)
-                                        .GET()
-                                        .build();
-
-                                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-                                if (send.statusCode() < 400){
-                                    Matcher matcher = matcher_Json.matcher(send.body());
-                                    if (matcher.find()){
-                                        JsonElement json = Function.gson.fromJson("{"+matcher.group(1).replaceAll("&quot;", "\"")+"}", JsonElement.class);
-
-                                        if (json != null){
-
-                                            if (json.getAsJsonObject().has("data") && json.getAsJsonObject().getAsJsonObject("data").has("response")){
-                                                String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
-                                                String accessRightKey = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").get("accessRightKey").getAsString();
-                                                String trackId = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("client").get("watchTrackId").getAsString();
-
-                                                request = HttpRequest.newBuilder()
-                                                        .uri(new URI("https://nvapi.nicovideo.jp/v1/watch/so38016254/access-rights/hls?actionTrackId="+trackId))
-                                                        .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
-                                                        .headers("X-Access-Right-Key", accessRightKey)
-                                                        .headers("X-Frontend-Id", "6")
-                                                        .headers("X-Frontend-Version", "0")
-                                                        .headers("X-Niconico-Language", "ja-jp")
-                                                        .headers("X-Request-With", "nicovideo")
-                                                        .headers("Cookie", "nicosid="+nicosid)
-                                                        .headers("User-Agent", Function.UserAgent)
-                                                        .POST(HttpRequest.BodyPublishers.ofString("{\"outputs\":[[\"video-h264-720p\",\"audio-aac-192kbps\"]],\"heartbeat\":{\"method\":\"guest\",\"params\":{\"eventType\":\"start\",\"eventOccurredAt\":\"2025-03-05T21:05:38+09:00\",\"watchMilliseconds\":0,\"endCount\":0,\"additionalParameters\":{\"___pc_v\":1,\"os\":\"\",\"os_version\":\"\",\"nicosid\":\"1741103555.1678032013\",\"referer\":\"\",\"query_parameters\":{},\"is_ad_block\":false,\"has_playlist\":false,\"___abw\":null,\"abw_show\":false,\"abw_closed\":false,\"abw_seen_at\":null,\"viewing_source\":\"\",\"viewing_source_detail\":{},\"playback_rate\":\"\",\"use_flip\":false,\"quality\":[],\"auto_quality\":[],\"loop_count\":0,\"suspend_count\":0,\"load_failed\":false,\"error_description\":[],\"end_position_milliseconds\":null,\"performance\":{\"watch_access_start\":1741176338952,\"watch_access_finish\":null,\"video_loading_start\":1741176338959,\"video_loading_finish\":null,\"video_play_start\":null,\"end_context\":{\"ad_playing\":false,\"video_playing\":false,\"is_suspending\":false}}}}}}"))
-                                                        .build();
-
-                                                send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-
-                                                if (send.statusCode() < 400){
-                                                    proxyList.add(proxy2.string(i));
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            } catch (Exception e){
-                                // e.printStackTrace();
-                            }
-                        }
-
-                        Function.JP_ProxyList.clear();
-                        Function.JP_ProxyList.addAll(proxyList);
-                    }
-                } catch (Exception e){
-                    //e.printStackTrace();
-                }
-                if (count != Function.JP_ProxyList.size()){
-                    System.out.println("[Info] JP ProxyList: "+ Function.JP_ProxyList.size() + "件");
-                }
-            });
-
-        } catch (Exception e){
-            // e.printStackTrace();
-        }
-
-        // ログ、Webhook書き出し & キャッシュ削除
-        Function.mainTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                Thread.ofVirtual().start(()->{
-                    HashMap<String, CacheData> map = Function.getCacheList();
-
-                    long time = new Date().getTime();
-                    map.forEach((url, data)->{
-
-                        if (data.isSet() && time - data.getCacheDate() >= 86400000L) {
-                            Function.deleteCache(url);
-                        }
-
+                        map.clear();
+                        map = null;
                     });
 
-                    map.clear();
-                    map = null;
-                });
-                WriteLog();
-                SendWebhook();
-            }
-        }, 0L, 60000L);
+                    WriteLog();
+                    SendWebhook(client);
+                }
+            }, 0L, 60000L);
 
-        // HTTP受付
-        TCPServer tcpServer = new TCPServer();
-        tcpServer.start();
-        try {
-            tcpServer.join();
-        } catch (Exception e){
+
+            // プロキシチェック
+            try {
+                YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
+
+                YamlSequence proxy1 = yamlMapping.yamlSequence("VideoProxy");
+                YamlSequence proxy2 = yamlMapping.yamlSequence("JPProxy");
+
+                Thread.ofVirtual().start(()->{
+                    long count = Function.ProxyList.size();
+                    try {
+                        if (proxy1 != null){
+                            List<String> proxyList = new ArrayList<>();
+
+                            for (int i = 0; i < proxy1.size(); i++){
+
+                                String[] s = proxy1.string(i).split(":");
+
+                                try (HttpClient client2 = HttpClient.newBuilder()
+                                        .version(HttpClient.Version.HTTP_2)
+                                        .followRedirects(HttpClient.Redirect.NORMAL)
+                                        .connectTimeout(Duration.ofSeconds(5))
+                                        .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
+                                        .build()) {
+
+                                    HttpRequest request = HttpRequest.newBuilder()
+                                            .uri(new URI("https://www.nicovideo.jp/watch/sm9"))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .GET()
+                                            .build();
+
+                                    HttpResponse<String> send = client2.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                                    if (send.statusCode() < 400){
+                                        Matcher matcher = matcher_Json.matcher(send.body());
+                                        if (matcher.find()){
+                                            JsonElement json = Function.gson.fromJson("{"+matcher.group(1).replaceAll("&quot;", "\"")+"}", JsonElement.class);
+
+                                            if (json != null){
+
+                                                if (json.getAsJsonObject().has("data") && json.getAsJsonObject().getAsJsonObject("data").has("response")){
+                                                    String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
+                                                    String accessRightKey = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").get("accessRightKey").getAsString();
+                                                    String trackId = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("client").get("watchTrackId").getAsString();
+
+                                                    request = HttpRequest.newBuilder()
+                                                            .uri(new URI("https://nvapi.nicovideo.jp/v1/watch/sm9/access-rights/hls?actionTrackId="+trackId))
+                                                            .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
+                                                            .headers("X-Access-Right-Key", accessRightKey)
+                                                            .headers("X-Frontend-Id", "6")
+                                                            .headers("X-Frontend-Version", "0")
+                                                            .headers("X-Niconico-Language", "ja-jp")
+                                                            .headers("X-Request-With", "nicovideo")
+                                                            .headers("Cookie", "nicosid="+nicosid)
+                                                            .headers("User-Agent", Function.UserAgent)
+                                                            .POST(HttpRequest.BodyPublishers.ofString("{\"outputs\":[[\"video-h264-360p\",\"audio-aac-128kbps\"],[\"video-h264-360p-lowest\",\"audio-aac-128kbps\"]]}"))
+                                                            .build();
+
+                                                    send = client2.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                                                    if (send.statusCode() < 400){
+                                                        proxyList.add(proxy1.string(i));
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } catch (Exception e){
+                                    // e.printStackTrace();
+                                }
+                            }
+
+                            Function.ProxyList.clear();
+                            Function.ProxyList.addAll(proxyList);
+                        }
+                    } catch (Exception e){
+                        //e.printStackTrace();
+                    }
+                    if (count != Function.ProxyList.size()){
+                        System.out.println("[Info] VideoProxy: "+ Function.ProxyList.size() + "件");
+                    }
+                });
+
+                Thread.ofVirtual().start(()->{
+                    long count = Function.JP_ProxyList.size();
+                    try {
+                        if (proxy2 != null){
+                            List<String> proxyList = new ArrayList<>();
+
+                            for (int i = 0; i < proxy2.size(); i++){
+
+                                String[] s = proxy2.string(i).split(":");
+
+                                try (HttpClient client2 = HttpClient.newBuilder()
+                                        .version(HttpClient.Version.HTTP_2)
+                                        .followRedirects(HttpClient.Redirect.NORMAL)
+                                        .connectTimeout(Duration.ofSeconds(5))
+                                        .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
+                                        .build()){
+                                    HttpRequest request = HttpRequest.newBuilder()
+                                            .uri(new URI("https://www.nicovideo.jp/watch/so38016254"))
+                                            .headers("User-Agent", Function.UserAgent)
+                                            .GET()
+                                            .build();
+
+                                    HttpResponse<String> send = client2.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                                    if (send.statusCode() < 400){
+                                        Matcher matcher = matcher_Json.matcher(send.body());
+                                        if (matcher.find()){
+                                            JsonElement json = Function.gson.fromJson("{"+matcher.group(1).replaceAll("&quot;", "\"")+"}", JsonElement.class);
+
+                                            if (json != null){
+
+                                                if (json.getAsJsonObject().has("data") && json.getAsJsonObject().getAsJsonObject("data").has("response")){
+                                                    String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
+                                                    String accessRightKey = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").get("accessRightKey").getAsString();
+                                                    String trackId = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("client").get("watchTrackId").getAsString();
+
+                                                    request = HttpRequest.newBuilder()
+                                                            .uri(new URI("https://nvapi.nicovideo.jp/v1/watch/so38016254/access-rights/hls?actionTrackId="+trackId))
+                                                            .headers("Access-Control-Request-Headers", "content-type,x-access-right-key,x-frontend-id,x-frontend-version,x-niconico-language,x-request-with")
+                                                            .headers("X-Access-Right-Key", accessRightKey)
+                                                            .headers("X-Frontend-Id", "6")
+                                                            .headers("X-Frontend-Version", "0")
+                                                            .headers("X-Niconico-Language", "ja-jp")
+                                                            .headers("X-Request-With", "nicovideo")
+                                                            .headers("Cookie", "nicosid="+nicosid)
+                                                            .headers("User-Agent", Function.UserAgent)
+                                                            .POST(HttpRequest.BodyPublishers.ofString("{\"outputs\":[[\"video-h264-720p\",\"audio-aac-192kbps\"]],\"heartbeat\":{\"method\":\"guest\",\"params\":{\"eventType\":\"start\",\"eventOccurredAt\":\"2025-03-05T21:05:38+09:00\",\"watchMilliseconds\":0,\"endCount\":0,\"additionalParameters\":{\"___pc_v\":1,\"os\":\"\",\"os_version\":\"\",\"nicosid\":\"1741103555.1678032013\",\"referer\":\"\",\"query_parameters\":{},\"is_ad_block\":false,\"has_playlist\":false,\"___abw\":null,\"abw_show\":false,\"abw_closed\":false,\"abw_seen_at\":null,\"viewing_source\":\"\",\"viewing_source_detail\":{},\"playback_rate\":\"\",\"use_flip\":false,\"quality\":[],\"auto_quality\":[],\"loop_count\":0,\"suspend_count\":0,\"load_failed\":false,\"error_description\":[],\"end_position_milliseconds\":null,\"performance\":{\"watch_access_start\":1741176338952,\"watch_access_finish\":null,\"video_loading_start\":1741176338959,\"video_loading_finish\":null,\"video_play_start\":null,\"end_context\":{\"ad_playing\":false,\"video_playing\":false,\"is_suspending\":false}}}}}}"))
+                                                            .build();
+
+                                                    send = client2.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                                                    if (send.statusCode() < 400){
+                                                        proxyList.add(proxy2.string(i));
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } catch (Exception e){
+                                    // e.printStackTrace();
+                                }
+                            }
+
+                            Function.JP_ProxyList.clear();
+                            Function.JP_ProxyList.addAll(proxyList);
+                        }
+                    } catch (Exception e){
+                        //e.printStackTrace();
+                    }
+                    if (count != Function.JP_ProxyList.size()){
+                        System.out.println("[Info] JP ProxyList: "+ Function.JP_ProxyList.size() + "件");
+                    }
+                });
+
+            } catch (Exception e){
+                // e.printStackTrace();
+            }
+
+            // HTTP受付
+            TCPServer tcpServer = new TCPServer();
+            tcpServer.start();
+            try {
+                tcpServer.join();
+            } catch (Exception e){
+                // e.printStackTrace();
+            }
+
+            // 終了処理
+            //proxyCheckTimer.cancel();
+            Function.mainTimer.cancel();
+            Function.tempCacheCheckTimer.cancel();
+            WriteLog();
+            SendWebhook(client);
+            System.out.println("[Info] 終了します...");
+
+            File file2 = new File("./stop_lock.txt");
+            if (file2.exists()){
+                file2.delete();
+            }
+            File file3 = new File("./stop.txt");
+            if (file3.exists()){
+                file3.delete();
+            }
+
+        } catch (Exception e) {
             // e.printStackTrace();
         }
-
-        // 終了処理
-        //proxyCheckTimer.cancel();
-        Function.mainTimer.cancel();
-        Function.tempCacheCheckTimer.cancel();
-        WriteLog();
-        SendWebhook();
-        System.out.println("[Info] 終了します...");
-
-        File file2 = new File("./stop_lock.txt");
-        if (file2.exists()){
-            file2.delete();
-        }
-        File file3 = new File("./stop.txt");
-        if (file3.exists()){
-            file3.delete();
-        }
-
     }
 
     private static void WriteLog(){
@@ -650,7 +632,7 @@ NicoNico_user_session: ""
 
     }
 
-    private static void SendWebhook(){
+    private static void SendWebhook(HttpClient client){
         if (!Function.WebhookData.isEmpty()){
             Thread.ofVirtual().start(()->{
                 int[] count = {0};
