@@ -547,6 +547,7 @@ jobs:
             - TVerのオリンピック配信に対応
             - 一部処理リファクタリング
             - Linux環境にてBrotliがインストールされている場合はそれを使うように
+            - バグ修正
           draft: false
           prerelease: true
 
