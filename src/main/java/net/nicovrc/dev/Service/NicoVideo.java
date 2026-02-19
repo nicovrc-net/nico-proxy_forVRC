@@ -186,6 +186,21 @@ public class NicoVideo implements ServiceAPI {
 
         if (isCas){
             accessUrl = url;
+
+            try  {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(new URI(accessUrl))
+                        .headers("User-Agent", Function.UserAgent)
+                        .GET()
+                        .build();
+
+                HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+
+                accessUrl = send.uri().toURL().toString();
+
+            } catch (Exception e){
+                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
+            }
         }
 
         //System.out.println(accessUrl);
