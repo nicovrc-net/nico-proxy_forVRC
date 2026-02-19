@@ -549,7 +549,7 @@ jobs:
             - Linux環境にてBrotliがインストールされている場合はそれを使うように
             - バグ修正
           draft: false
-          prerelease: true
+          prerelease: false
 
       - name: Upload JarFile
         if: startsWith(github.ref, 'refs/tags/')
