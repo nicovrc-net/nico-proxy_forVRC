@@ -538,9 +538,6 @@ NicoNico_user_session: ""
                         count[0] = count[0] + temp2.size();
                         temp2.clear();
                         temp2 = null;
-
-                        redisServer = null;
-                        redisPass = null;
                     } else {
 
                         File file = new File("./log");
