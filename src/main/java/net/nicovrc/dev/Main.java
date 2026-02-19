@@ -250,7 +250,11 @@ NicoNico_user_session: ""
                     });
 
                     WriteLog();
-                    SendWebhook(client);
+                    try {
+                        SendWebhook(client);
+                    } catch (Exception e){
+                        //e.printStackTrace();
+                    }
                 }
             }, 0L, 60000L);
 
@@ -660,46 +664,49 @@ NicoNico_user_session: ""
                     System.out.println("[Info] Webhook送信開始");
                     final String finalWebhookURL = WebhookURL;
                     temp.forEach((id, data) -> {
+                        try {
+                            int i = !proxyList.isEmpty() ? new SecureRandom().nextInt(0, proxyList.size()) : 0;
+                            String proxy = null;
+                            if (!proxyList.isEmpty()) {
+                                proxy = proxyList.get(i);
+                            }
 
-                        int i = !proxyList.isEmpty() ? new SecureRandom().nextInt(0, proxyList.size()) : 0;
-                        String proxy = null;
-                        if (!proxyList.isEmpty()) {
-                            proxy = proxyList.get(i);
+                            SendWebhookData webhookData = new SendWebhookData();
+                            webhookData.setUsername("nico-proxy_forVRC (Ver " + Function.Version + ")");
+                            webhookData.setAvatar_url("https://r2.7mi.site/vrc/nico/nc296562.png");
+                            webhookData.setContent("利用ログ");
+                            WebhookEmbeds[] embeds = {new WebhookEmbeds()};
+                            embeds[0].setTitle(data.getAPIURI() == null || data.getAPIURI().isEmpty() ? "変換URL利用ログ" : "API利用ログ");
+                            embeds[0].setDescription(Function.sdf.format(data.getDate()));
+                            WebhookFields[] fields = {new WebhookFields(), new WebhookFields(), new WebhookFields()};
+                            fields[0].setName("リクエストURL");
+                            fields[0].setValue(data.getURL() == null || data.getURL().isEmpty() ? data.getAPIURI() : data.getURL());
+                            fields[1].setName("処理結果");
+                            fields[1].setValue(data.getResult() == null ? "(なし)" : data.getResult());
+                            fields[2].setName("HTTP Request");
+                            fields[2].setValue("```\n" + data.getHTTPRequest() + "\n```");
+                            embeds[0].setFields(fields);
+                            webhookData.setEmbeds(embeds);
+
+                            //System.out.println(Function.gson.toJson(webhookData));
+
+                            HttpRequest request = HttpRequest.newBuilder()
+                                    .uri(new URI(finalWebhookURL))
+                                    .headers("User-Agent", Function.UserAgent)
+                                    .headers("Content-Type", "application/json; charset=UTF-8")
+                                    .POST(HttpRequest.BodyPublishers.ofString(Function.gson.toJson(webhookData)))
+                                    .build();
+                            HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+                            send = null;
+                            request = null;
+                            //System.out.println(send.body());
+
+                            count[0]++;
+                            embeds = null;
+                            webhookData = null;
+                        } catch (Exception e){
+                            throw new RuntimeException(e);
                         }
-
-                        SendWebhookData webhookData = new SendWebhookData();
-                        webhookData.setUsername("nico-proxy_forVRC (Ver " + Function.Version + ")");
-                        webhookData.setAvatar_url("https://r2.7mi.site/vrc/nico/nc296562.png");
-                        webhookData.setContent("利用ログ");
-                        WebhookEmbeds[] embeds = {new WebhookEmbeds()};
-                        embeds[0].setTitle(data.getAPIURI() == null || data.getAPIURI().isEmpty() ? "変換URL利用ログ" : "API利用ログ");
-                        embeds[0].setDescription(Function.sdf.format(data.getDate()));
-                        WebhookFields[] fields = {new WebhookFields(), new WebhookFields(), new WebhookFields()};
-                        fields[0].setName("リクエストURL");
-                        fields[0].setValue(data.getURL() == null || data.getURL().isEmpty() ? data.getAPIURI() : data.getURL());
-                        fields[1].setName("処理結果");
-                        fields[1].setValue(data.getResult() == null ? "(なし)" : data.getResult());
-                        fields[2].setName("HTTP Request");
-                        fields[2].setValue("```\n" + data.getHTTPRequest() + "\n```");
-                        embeds[0].setFields(fields);
-                        webhookData.setEmbeds(embeds);
-
-                        //System.out.println(Function.gson.toJson(webhookData));
-
-                        HttpRequest request = HttpRequest.newBuilder()
-                                .uri(new URI(finalWebhookURL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .headers("Content-Type", "application/json; charset=UTF-8")
-                                .POST(HttpRequest.BodyPublishers.ofString(Function.gson.toJson(webhookData)))
-                                .build();
-                        HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                        send = null;
-                        request = null;
-                        //System.out.println(send.body());
-
-                        count[0]++;
-                        embeds = null;
-                        webhookData = null;
                     });
                 } catch (Exception e) {
                     throw new RuntimeException(e);
