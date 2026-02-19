@@ -632,70 +632,59 @@ NicoNico_user_session: ""
 
     }
 
-    private static void SendWebhook(HttpClient client){
+    private static void SendWebhook(HttpClient client) throws Exception{
         if (!Function.WebhookData.isEmpty()){
-            Thread.ofVirtual().start(()->{
+            Thread.ofVirtual().start(()-> {
                 int[] count = {0};
 
                 String WebhookURL = "";
                 try {
                     final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
                     WebhookURL = yamlMapping.string("DiscordWebhookURL");
-                } catch (Exception e){
+                } catch (Exception e) {
                     WebhookURL = "";
                 }
 
-                if (WebhookURL.isEmpty()){
+                if (WebhookURL.isEmpty()) {
                     return;
                 }
 
-                final List<String> proxyList = new ArrayList<>();
-                proxyList.addAll(Function.ProxyList);
-                proxyList.addAll(Function.JP_ProxyList);
+                try {
+                    final List<String> proxyList = new ArrayList<>();
+                    proxyList.addAll(Function.ProxyList);
+                    proxyList.addAll(Function.JP_ProxyList);
 
-                final HashMap<String, WebhookData> temp = new HashMap<>(Function.WebhookData);
-                Function.WebhookData.clear();
+                    final HashMap<String, WebhookData> temp = new HashMap<>(Function.WebhookData);
+                    Function.WebhookData.clear();
 
-                System.out.println("[Info] Webhook送信開始");
-                final String finalWebhookURL = WebhookURL;
-                temp.forEach((id, data) -> {
+                    System.out.println("[Info] Webhook送信開始");
+                    final String finalWebhookURL = WebhookURL;
+                    temp.forEach((id, data) -> {
 
-                    int i = !proxyList.isEmpty() ? new SecureRandom().nextInt(0, proxyList.size()) : 0;
-                    String proxy = null;
-                    if (!proxyList.isEmpty()){
-                        proxy = proxyList.get(i);
-                    }
+                        int i = !proxyList.isEmpty() ? new SecureRandom().nextInt(0, proxyList.size()) : 0;
+                        String proxy = null;
+                        if (!proxyList.isEmpty()) {
+                            proxy = proxyList.get(i);
+                        }
 
-                    SendWebhookData webhookData = new SendWebhookData();
-                    webhookData.setUsername("nico-proxy_forVRC (Ver " + Function.Version + ")");
-                    webhookData.setAvatar_url("https://r2.7mi.site/vrc/nico/nc296562.png");
-                    webhookData.setContent("利用ログ");
-                    WebhookEmbeds[] embeds = {new WebhookEmbeds()};
-                    embeds[0].setTitle(data.getAPIURI() == null || data.getAPIURI().isEmpty() ? "変換URL利用ログ" : "API利用ログ");
-                    embeds[0].setDescription(Function.sdf.format(data.getDate()));
-                    WebhookFields[] fields = {new WebhookFields(), new WebhookFields(), new WebhookFields()};
-                    fields[0].setName("リクエストURL");
-                    fields[0].setValue(data.getURL() == null || data.getURL().isEmpty() ? data.getAPIURI() : data.getURL());
-                    fields[1].setName("処理結果");
-                    fields[1].setValue(data.getResult() == null ? "(なし)" : data.getResult());
-                    fields[2].setName("HTTP Request");
-                    fields[2].setValue("```\n"+data.getHTTPRequest()+"\n```");
-                    embeds[0].setFields(fields);
-                    webhookData.setEmbeds(embeds);
+                        SendWebhookData webhookData = new SendWebhookData();
+                        webhookData.setUsername("nico-proxy_forVRC (Ver " + Function.Version + ")");
+                        webhookData.setAvatar_url("https://r2.7mi.site/vrc/nico/nc296562.png");
+                        webhookData.setContent("利用ログ");
+                        WebhookEmbeds[] embeds = {new WebhookEmbeds()};
+                        embeds[0].setTitle(data.getAPIURI() == null || data.getAPIURI().isEmpty() ? "変換URL利用ログ" : "API利用ログ");
+                        embeds[0].setDescription(Function.sdf.format(data.getDate()));
+                        WebhookFields[] fields = {new WebhookFields(), new WebhookFields(), new WebhookFields()};
+                        fields[0].setName("リクエストURL");
+                        fields[0].setValue(data.getURL() == null || data.getURL().isEmpty() ? data.getAPIURI() : data.getURL());
+                        fields[1].setName("処理結果");
+                        fields[1].setValue(data.getResult() == null ? "(なし)" : data.getResult());
+                        fields[2].setName("HTTP Request");
+                        fields[2].setValue("```\n" + data.getHTTPRequest() + "\n```");
+                        embeds[0].setFields(fields);
+                        webhookData.setEmbeds(embeds);
 
-                    //System.out.println(Function.gson.toJson(webhookData));
-
-                    try (HttpClient client = proxy == null ? HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_2)
-                            .followRedirects(HttpClient.Redirect.NORMAL)
-                            .connectTimeout(Duration.ofSeconds(5))
-                            .build() :
-                            HttpClient.newBuilder()
-                                    .version(HttpClient.Version.HTTP_2)
-                                    .followRedirects(HttpClient.Redirect.NORMAL)
-                                    .connectTimeout(Duration.ofSeconds(5))
-                                    .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
-                                    .build()){
+                        //System.out.println(Function.gson.toJson(webhookData));
 
                         HttpRequest request = HttpRequest.newBuilder()
                                 .uri(new URI(finalWebhookURL))
@@ -709,12 +698,12 @@ NicoNico_user_session: ""
                         //System.out.println(send.body());
 
                         count[0]++;
-                    } catch (Exception e){
-                        // e.printStackTrace();
-                    }
-                    embeds = null;
-                    webhookData = null;
-                });
+                        embeds = null;
+                        webhookData = null;
+                    });
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
                 System.out.println("[Info] Webhook送信完了 ("+count[0]+"件)");
 
             });
