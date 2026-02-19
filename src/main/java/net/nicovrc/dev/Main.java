@@ -134,6 +134,11 @@ NicoNico_user_session: ""
 
         file1 = null;
         // 設定読み込み
+        String redisServer;
+        String redisPass;
+        int redisPort;
+        boolean redisTLS = false;
+
         try {
             final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
             Function.config_httpPort = yamlMapping.integer("Port");
@@ -147,6 +152,11 @@ NicoNico_user_session: ""
             Function.config_twitcast_ClientId = yamlMapping.string("TwitcastingClientID");
             Function.config_twitcast_ClientSecret = yamlMapping.string("TwitcastingClientSecret");
 
+            redisServer = yamlMapping.string("RedisServer");
+            redisPass = yamlMapping.string("RedisPass");
+            redisPort = yamlMapping.integer("RedisPort");
+            redisTLS = yamlMapping.string("RedisSSL").equals("true");
+
         } catch (Exception e){
             // e.printStackTrace();
             Function.config_httpPort = 25252;
@@ -159,6 +169,10 @@ NicoNico_user_session: ""
             Function.config_twitcast_ClientId = null;
             Function.config_twitcast_ClientSecret = null;
 
+            redisServer = "";
+            redisPass = "";
+            redisPort = 6379;
+
         }
 
         // ログフォルダ作成
@@ -167,11 +181,40 @@ NicoNico_user_session: ""
             boolean mkdir = file.mkdir();
         }
 
+
+
+        JedisClientConfig redis_config = null;
+        if (redisTLS) {
+
+            redis_config = redisPass != null && redisPass.isEmpty() ? DefaultJedisClientConfig.builder()
+                    .ssl(true)
+                    .build() : DefaultJedisClientConfig.builder()
+                    .ssl(true)
+                    .password(redisPass)
+                    .build();
+        } else {
+
+            redis_config = redisPass != null && redisPass.isEmpty() ? DefaultJedisClientConfig.builder()
+                    .build() : DefaultJedisClientConfig.builder()
+                    .password(redisPass)
+                    .build();
+
+        }
+
+        final RedisClient jedis;
+        RedisClient temp_jedis = null;
         try (HttpClient client = HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_2)
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(5))
-                .build()){
+                .build()
+        ){
+            jedis = RedisClient.builder()
+                    .hostAndPort(new HostAndPort(redisServer, redisPort))
+                    .clientConfig(redis_config)
+                    .build();
+            temp_jedis = jedis;
+
             // エラー動画
             file = new File("./error-video");
             if (!file.exists()){
@@ -249,7 +292,7 @@ NicoNico_user_session: ""
                         map = null;
                     });
 
-                    WriteLog();
+                    WriteLog(jedis);
                     try {
                         SendWebhook(client);
                     } catch (Exception e){
@@ -432,8 +475,9 @@ NicoNico_user_session: ""
             //proxyCheckTimer.cancel();
             Function.mainTimer.cancel();
             Function.tempCacheCheckTimer.cancel();
-            WriteLog();
+            WriteLog(jedis);
             SendWebhook(client);
+            jedis.close();
             System.out.println("[Info] 終了します...");
 
             File file2 = new File("./stop_lock.txt");
@@ -447,6 +491,10 @@ NicoNico_user_session: ""
 
         } catch (Exception e) {
             // e.printStackTrace();
+        } finally {
+            if (temp_jedis != null){
+                temp_jedis.close();
+            }
         }
     }
 
@@ -460,35 +508,7 @@ NicoNico_user_session: ""
                 try {
                     final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
 
-                    if (yamlMapping.string("LogToRedis").toLowerCase(Locale.ROOT).equals("true")){
-                        String redisServer = yamlMapping.string("RedisServer");
-                        String redisPass = yamlMapping.string("RedisPass");
-                        int redisPort = yamlMapping.integer("RedisPort");
-                        boolean redisTLS = false;
-                        try {
-                            redisTLS = yamlMapping.string("RedisSSL").equals("true");
-                        } catch (Exception e){
-                            //e.printStackTrace();
-                        }
-
-                        JedisClientConfig config = null;
-                        if (redisTLS) {
-
-                            config = redisPass != null && redisPass.isEmpty() ? DefaultJedisClientConfig.builder()
-                                    .ssl(true)
-                                    .build() : DefaultJedisClientConfig.builder()
-                                    .ssl(true)
-                                    .password(redisPass)
-                                    .build();
-                        } else {
-
-                            config = redisPass != null && redisPass.isEmpty() ? DefaultJedisClientConfig.builder()
-                                    .build() : DefaultJedisClientConfig.builder()
-                                    .password(redisPass)
-                                    .build();
-
-                        }
-
+                    if (jedis != null){
                         HashMap<String, LogData> temp = new HashMap<>(Function.GetURLAccessLog);
                         Function.GetURLAccessLog.clear();
 
