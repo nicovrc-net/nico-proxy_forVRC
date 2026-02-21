@@ -61,8 +61,9 @@ public class Iwara implements ServiceAPI {
 
         try {
 
+            // https://apiq.iwara.tv/video/4lbqvFBO4n98ZN
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI("https://api.iwara.tv/video/" + split[4]))
+                    .uri(new URI("https://apiq.iwara.tv/video/" + split[4]))
                     .headers("User-Agent", Function.UserAgent)
                     .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
