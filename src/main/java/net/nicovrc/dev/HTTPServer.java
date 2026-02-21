@@ -110,6 +110,8 @@ public class HTTPServer extends Thread {
                     isRun[0] = false;
                 }
             }
+        } catch (Exception e){
+            e.printStackTrace();
         }
     }
 }
