@@ -545,11 +545,12 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - TVerのオリンピック配信に対応
+            - 復活後のIwaraに対応
             - 一部処理リファクタリング
             - Linux環境にてBrotliがインストールされている場合はそれを使うように
             - バグ修正
           draft: false
-          prerelease: false
+          prerelease: true
 
       - name: Upload JarFile
         if: startsWith(github.ref, 'refs/tags/')
