@@ -49,7 +49,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             }
             file = null;
         } catch (Exception e){
-            // e.printStackTrace();
+            e.printStackTrace();
         }
         this.content = content;
     }

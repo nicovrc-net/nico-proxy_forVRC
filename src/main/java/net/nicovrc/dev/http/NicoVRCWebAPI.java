@@ -101,6 +101,7 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
             try {
                 json = gson.fromJson(result, JsonElement.class);
             } catch (Exception e){
+                e.printStackTrace();
                 json = null;
             }
 

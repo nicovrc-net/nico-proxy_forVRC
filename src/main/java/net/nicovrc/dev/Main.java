@@ -468,7 +468,7 @@ NicoNico_user_session: ""
             try {
                 tcpServer.join();
             } catch (Exception e){
-                // e.printStackTrace();
+                e.printStackTrace();
             }
 
             // 終了処理
@@ -490,7 +490,7 @@ NicoNico_user_session: ""
             }
 
         } catch (Exception e) {
-            // e.printStackTrace();
+            e.printStackTrace();
         } finally {
             if (temp_jedis != null){
                 temp_jedis.close();

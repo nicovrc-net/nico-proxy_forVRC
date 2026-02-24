@@ -112,7 +112,7 @@ public class TCPServer extends Thread {
                             Function.checkTimer.cancel();
                         }
                     } catch (Exception e){
-                        // e.printStackTrace();
+                        e.printStackTrace();
                     }
                 });
             }

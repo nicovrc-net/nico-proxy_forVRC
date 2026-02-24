@@ -95,6 +95,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 stream = null;
             }
         } catch (Exception e){
+            e.printStackTrace();
             errContent000 = Function.zeroByte;
         }
 
@@ -107,6 +108,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 stream = null;
             }
         } catch (Exception e){
+            e.printStackTrace();
             errContent404 = Function.zeroByte;
         }
 
@@ -604,7 +606,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     try {
                         Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, bytes == null ? errContent000 : bytes, isHead);
                     } catch (Exception ex){
-                        // ex.printStackTrace();
+                        ex.printStackTrace();
                     }
 
                     logData.setResultURL(e.getMessage());
@@ -628,7 +630,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                 Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, bytes == null ? errContent000 : bytes, isHead);
             } catch (Exception ex){
-                // ex.printStackTrace();
+                ex.printStackTrace();
             }
             return;
         } catch (Exception e){
@@ -638,7 +640,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 byte[] bytes = Function.compressByte(errContent000, sendContentEncoding);
                 Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, bytes == null ? errContent000 : bytes, isHead);
             } catch (Exception ex){
-                // ex.printStackTrace();
+                ex.printStackTrace();
             }
         }
 
@@ -647,7 +649,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             byte[] bytes = Function.compressByte(errContent404, sendContentEncoding);
             Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, bytes == null ? errContent404 : bytes, isHead);
         } catch (Exception ex){
-            // ex.printStackTrace();
+            ex.printStackTrace();
         }
     }
 
