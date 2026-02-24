@@ -155,6 +155,7 @@ public class NicoVideo implements ServiceAPI {
                 accessUrl = send.uri().toURL().toString();
 
             } catch (Exception e){
+                e.printStackTrace();
                 return gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
 
@@ -180,6 +181,7 @@ public class NicoVideo implements ServiceAPI {
                 accessUrl = send.uri().toURL().toString();
 
             } catch (Exception e){
+                e.printStackTrace();
                 return gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
         }
@@ -199,6 +201,7 @@ public class NicoVideo implements ServiceAPI {
                 accessUrl = send.uri().toURL().toString();
 
             } catch (Exception e){
+                e.printStackTrace();
                 return gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
         }
@@ -625,6 +628,7 @@ public class NicoVideo implements ServiceAPI {
                                     WebSocket webSocket = comp.get();
                                     webSocket = null;
                                 } catch (Exception e) {
+                                    e.printStackTrace();
                                     return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
                                 }
 
