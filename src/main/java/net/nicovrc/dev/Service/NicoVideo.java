@@ -670,7 +670,7 @@ public class NicoVideo implements ServiceAPI {
             matcher_short = null;
             matcher_cas = null;
             matcher_idOnly = null;
-            return "";
+            return gson.toJson(new ErrorMessage("取得に失敗しました。"));
         } catch (Exception e){
             e.printStackTrace();
             return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPアクセスエラー)"));
