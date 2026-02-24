@@ -15,7 +15,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -508,27 +507,27 @@ public class NicoVideo implements ServiceAPI {
                             NicoNicoVideo cacheData = LiveCacheList.get(liveData.getURL());
                             if (cacheData == null){
                                 String WebsocketURL = json.getAsJsonObject().get("site").getAsJsonObject().get("relive").getAsJsonObject().get("webSocketUrl").getAsString();
-                                /*
+
+                                final HttpClient client1;
                                 if (Proxy == null){
-                                    client = HttpClient.newBuilder()
+                                    client1 = HttpClient.newBuilder()
                                             .version(HttpClient.Version.HTTP_2)
                                             .followRedirects(HttpClient.Redirect.NORMAL)
                                             .connectTimeout(Duration.ofSeconds(5))
                                             .build();
                                 } else {
                                     String[] s = Proxy.split(":");
-                                    client = HttpClient.newBuilder()
+                                    client1 = HttpClient.newBuilder()
                                             .version(HttpClient.Version.HTTP_2)
                                             .followRedirects(HttpClient.Redirect.NORMAL)
                                             .connectTimeout(Duration.ofSeconds(5))
                                             .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
                                             .build();
-                                }*/
+                                }
 
                                 final String[] resultData = new String[]{"", "", null};
                                 final Timer niconamaTimer = new Timer();
-                                final HttpClient finalClient = client;
-                                final WebSocket.Builder wsb = client.newWebSocketBuilder();
+                                final WebSocket.Builder wsb = client1.newWebSocketBuilder();
                                 final WebSocket.Listener listener = new WebSocket.Listener() {
                                     @Override
                                     public void onOpen(WebSocket webSocket){
@@ -540,7 +539,7 @@ public class NicoVideo implements ServiceAPI {
                                     @Override
                                     public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
                                         // 切断時
-                                        finalClient.close();
+                                        client1.close();
                                         niconamaTimer.cancel();
                                         LiveCacheList.remove(liveData.getURL());
                                         return null;
@@ -607,14 +606,14 @@ public class NicoVideo implements ServiceAPI {
                                                 } else {
                                                     resultData[0] = "Error";
                                                     niconamaTimer.cancel();
-                                                    finalClient.close();
+                                                    client1.close();
                                                 }
                                             }
 
                                             if (type.equals("disconnect")){
                                                 LiveCacheList.remove(liveData.getURL());
                                                 niconamaTimer.cancel();
-                                                finalClient.close();
+                                                client1.close();
                                             }
                                         }
 
