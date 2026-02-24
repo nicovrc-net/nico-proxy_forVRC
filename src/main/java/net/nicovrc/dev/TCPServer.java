@@ -300,7 +300,7 @@ public class TCPServer extends Thread {
                                 Thread start = Thread.ofVirtual().start((Runnable) vrchttp);
                                 start.join();
                             } catch (Exception e){
-                                // e.printStackTrace();
+                                e.printStackTrace();
                             }
                         } else {
                             byte[] bytes = Function.compressByte(err400, sendContentEncoding);
@@ -332,7 +332,7 @@ public class TCPServer extends Thread {
                 try {
                     thread.join();
                 } catch (Exception e){
-                    // e.printStackTrace();
+                    e.printStackTrace();
                 }
                 thread = null;
                 sock.close();
