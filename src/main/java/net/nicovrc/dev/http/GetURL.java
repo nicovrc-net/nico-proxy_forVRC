@@ -2,6 +2,8 @@ package net.nicovrc.dev.http;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
+import net.nicovrc.dev.Service.Result.NicoNicoVideo;
+import net.nicovrc.dev.api.GetVideoInfo;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.data.LogData;
@@ -524,29 +526,22 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     // タイトル取得
                     if (isGetTitle) {
 
-                        byte[] title_bytes = Function.compressByte(cacheData.getTitle().getBytes(StandardCharsets.UTF_8), sendContentEncoding);
-                        if (errorMessage != null) {
+                        GetVideoInfo info = new GetVideoInfo();
+                        String resultJsonText = info.Run(httpRequest);
 
-                            byte[] error = ("エラー : " + errorMessage).getBytes(StandardCharsets.UTF_8);
-                            byte[] bytes = Function.compressByte(error, sendContentEncoding);
+                        //System.out.println(resultJsonText);
+                        NicoNicoVideo resultJson = Function.gson.fromJson(resultJsonText, NicoNicoVideo.class);
+                        resultJson.setThumbnail(null);
+                        resultJson.setVideoURL(null);
+                        resultJson.setLiveURL(null);
+                        resultJson.setVideoAccessCookie(null);
+                        resultJson.setLiveAccessCookie(null);
 
-                            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, bytes == null ? error : bytes, isHead);
+                        byte[] bytes = Function.compressByte(Function.gson.toJson(resultJson).getBytes(StandardCharsets.UTF_8), sendContentEncoding);
 
-                            Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                            Function.WebhookData.put(logData.getLogID(), webhookData);
-                            System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> エラー : " + errorMessage);
-                            return;
-                        }
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, bytes == null ? Function.zeroByte : bytes, isHead);
 
-                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, title_bytes == null ? cacheData.getTitle().getBytes(StandardCharsets.UTF_8) : title_bytes, isHead);
-
-                        logData.setResultURL(cacheData.getTitle());
-                        webhookData.setResult(cacheData.getTitle());
-                        Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                        Function.WebhookData.put(logData.getLogID(), webhookData);
-                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + cacheData.getTitle());
-
-                        Function.addCache((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
+                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + resultJson.getTitle());
                         return;
 
                     }

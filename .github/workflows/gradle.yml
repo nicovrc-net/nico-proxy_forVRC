@@ -9,10 +9,10 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ "v3" ]
+    branches: [ "v3", "v3-niconico" ]
     tags: ['3.*']
   pull_request:
-    branches: [ "master","v3" ]
+    branches: [ "master","v3", "v3-niconico" ]
 
 jobs:
   build-21:
