@@ -15,6 +15,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -343,8 +344,10 @@ public class NicoVideo implements ServiceAPI {
 
                     // 動画
                     result.setURL(json.getAsJsonObject().get("data").getAsJsonObject().get("metadata").getAsJsonObject().get("jsonLds").getAsJsonArray().get(0).getAsJsonObject().get("@id").getAsString());
+                    result.setContentID(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("id").getAsString());
                     result.setTitle(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("title").getAsString());
                     result.setDescription(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("description").getAsString());
+                    result.setStartTime(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("registeredAt").getAsString());
 
                     JsonArray array = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("tag").getAsJsonObject().get("items").getAsJsonArray();
                     String[] tags = new String[array.size()];
@@ -450,6 +453,7 @@ public class NicoVideo implements ServiceAPI {
                     json = gson.fromJson(jsonText, JsonElement.class);
                     client.close();
 
+
                     List<String> cookieTextList = new ArrayList<>();
                     if (!send.headers().allValues("Set-Cookie").isEmpty()){
                         cookieTextList = send.headers().allValues("Set-Cookie");
@@ -484,8 +488,15 @@ public class NicoVideo implements ServiceAPI {
 
                     if (json.isJsonObject() && json.getAsJsonObject().has("program")){
                         liveData.setURL(json.getAsJsonObject().get("program").getAsJsonObject().get("watchPageUrl").getAsString());
+                        liveData.setContentID(json.getAsJsonObject().get("program").getAsJsonObject().get("nicoliveProgramId").getAsString());
                         liveData.setTitle(json.getAsJsonObject().get("program").getAsJsonObject().get("title").getAsString());
                         liveData.setDescription(json.getAsJsonObject().get("program").getAsJsonObject().get("description").getAsString());
+                        if (json.getAsJsonObject().get("program").getAsJsonObject().has("beginTime")){
+                            Date date = new Date();
+                            date.setTime(json.getAsJsonObject().get("program").getAsJsonObject().get("beginTime").getAsLong() * 1000);
+                            String format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:dd'+09:00'").format(date);
+                            liveData.setStartTime(format);
+                        }
                         JsonArray tags = json.getAsJsonObject().get("program").getAsJsonObject().get("tag").getAsJsonObject().get("list").getAsJsonArray();
 
                         String[] tagList = new String[tags.size()];

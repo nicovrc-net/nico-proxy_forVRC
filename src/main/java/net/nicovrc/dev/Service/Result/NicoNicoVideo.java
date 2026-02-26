@@ -1,9 +1,11 @@
 package net.nicovrc.dev.Service.Result;
 
+import java.util.Date;
 import java.util.HashMap;
 
 public class NicoNicoVideo {
     private String URL;
+    private String ContentID;
     private String Title;
     private String Description;
     private String[] Tags;
@@ -12,6 +14,7 @@ public class NicoNicoVideo {
     private long CommentCount;
     private long MyListCount;
     private long LikeCount;
+    private String startTime;
     private long Duration;
 
     private String VideoURL;
@@ -25,6 +28,14 @@ public class NicoNicoVideo {
 
     public void setURL(String URL) {
         this.URL = URL;
+    }
+
+    public String getContentID() {
+        return ContentID;
+    }
+
+    public void setContentID(String contentID) {
+        ContentID = contentID;
     }
 
     public String getTitle() {
@@ -89,6 +100,14 @@ public class NicoNicoVideo {
 
     public void setLikeCount(long likeCount) {
         LikeCount = likeCount;
+    }
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
     }
 
     public long getDuration() {
