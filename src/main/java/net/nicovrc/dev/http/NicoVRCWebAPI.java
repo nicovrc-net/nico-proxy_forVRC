@@ -14,6 +14,7 @@ import java.util.*;
 public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
     private String HTTPRequest = null;
+    private HttpClient client = null;
     private String URL = null;
     private final HashMap<String, NicoVRCAPI> apiList = new HashMap<>();
     private Socket sock = null;
@@ -80,7 +81,7 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
             NicoVRCAPI vrcapi = apiList.get(s.substring(0, Math.min(s.length(), 30)));
             if (vrcapi != null){
                 try {
-                    result = vrcapi.Run(HTTPRequest);
+                    result = vrcapi.Run(HTTPRequest, client);
                     webhookData.setAPIURI(vrcapi.getURI());
                 } catch (Exception e){
                     throw new RuntimeException(e);
@@ -146,6 +147,6 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
     @Override
     public void setHTTPClient(HttpClient client) {
-
+        this.client = client;
     }
 }

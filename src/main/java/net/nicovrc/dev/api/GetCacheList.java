@@ -2,6 +2,7 @@ package net.nicovrc.dev.api;
 
 import net.nicovrc.dev.Function;
 
+import java.net.http.HttpClient;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -17,7 +18,7 @@ public class GetCacheList implements NicoVRCAPI {
     }
 
     @Override
-    public String Run(String httpRequest) {
+    public String Run(String httpRequest, HttpClient client) {
 
         HashMap<String, String> map = new HashMap<>();
 

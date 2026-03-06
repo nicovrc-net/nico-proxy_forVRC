@@ -24,7 +24,7 @@ public class GetVideoInfo implements NicoVRCAPI {
     }
 
     @Override
-    public String Run(String httpRequest) {
+    public String Run(String httpRequest, HttpClient client) {
         String uri = Function.getURI(httpRequest);
         String inputUrl = "";
         if (!uri.equals(getURI())){
@@ -79,24 +79,8 @@ public class GetVideoInfo implements NicoVRCAPI {
             }
         }
 
-        HttpClient httpClient = null;
+        HttpClient httpClient = client;
         try {
-            if (p == null) {
-                httpClient = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .build();
-            } else {
-                String[] s = p.split(":");
-                httpClient = HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
-                        .build();
-            }
-
             boolean[] isFound = {false};
             String[] get = new String[]{"{\"ErrorMessage\": \"対応していないサイトです。\"}"};
             for (ServiceAPI site : siteList){
@@ -140,9 +124,6 @@ public class GetVideoInfo implements NicoVRCAPI {
 
         } catch (Exception e){
             e.printStackTrace();
-            if (httpClient != null){
-                httpClient.close();
-            }
         }
 
         return "{\"ErrorMessage\": \"対応していないサイトです。\"}";

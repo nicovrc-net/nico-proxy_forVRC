@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.data.CacheData;
 
+import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.regex.Matcher;
@@ -20,7 +21,7 @@ public class AddCache implements NicoVRCAPI {
     }
 
     @Override
-    public String Run(String httpRequest) {
+    public String Run(String httpRequest, HttpClient client) {
 
         try {
             Matcher matcher = matcher_postData.matcher(httpRequest);

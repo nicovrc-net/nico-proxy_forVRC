@@ -4,6 +4,7 @@ import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.ServiceAPI;
 import net.nicovrc.dev.Service.ServiceList;
 
+import java.net.http.HttpClient;
 import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -20,7 +21,7 @@ public class GetSupportList implements NicoVRCAPI {
     }
 
     @Override
-    public String Run(String httpRequest) {
+    public String Run(String httpRequest, HttpClient client) {
 
         HashMap<String, String[]> map = new HashMap<>();
         siteList.forEach((value)->{
