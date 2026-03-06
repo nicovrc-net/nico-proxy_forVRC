@@ -527,7 +527,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     if (isGetTitle) {
 
                         GetVideoInfo info = new GetVideoInfo();
-                        String resultJsonText = info.Run(httpRequest);
+                        String resultJsonText = info.Run(httpRequest, client);
 
                         //System.out.println(resultJsonText);
                         NicoNicoVideo resultJson = Function.gson.fromJson(resultJsonText, NicoNicoVideo.class);
