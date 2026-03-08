@@ -85,6 +85,7 @@ public class TVer implements ServiceAPI {
                 }
 
                 //System.out.println(send.body());
+                //System.out.println(text);
 
                 if (!text.startsWith("{") || !text.endsWith("}")){
                     client.close();
@@ -95,8 +96,14 @@ public class TVer implements ServiceAPI {
                 String projectID = json.getAsJsonObject().get("streaks").getAsJsonObject().get("projectID").getAsString();
                 String videoRefID = json.getAsJsonObject().get("streaks").getAsJsonObject().get("videoRefID").getAsString();
                 String channel = json.getAsJsonObject().get("video").getAsJsonObject().get("channelID").getAsString();
+                //System.out.println(channel);
 
                 //System.out.println(json);
+                if (channel.equals("local")){
+                    if (videoRefID.startsWith("cbc")){
+                        channel = "mcc";
+                    }
+                }
 
                 //return send.body();
 

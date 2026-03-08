@@ -549,6 +549,7 @@ jobs:
             - 一部処理リファクタリング
             - Linux環境にてBrotliがインストールされている場合はそれを使うように
             - バグ修正
+            - TVerの一部動画が見れない問題修正
           draft: false
           prerelease: true
 
