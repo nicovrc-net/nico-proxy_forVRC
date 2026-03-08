@@ -20,13 +20,16 @@ public class GetCacheList implements NicoVRCAPI {
     @Override
     public String Run(String httpRequest, HttpClient client) {
 
-        HashMap<String, String> map = new HashMap<>();
+        final HashMap<String, String> map = new HashMap<>();
 
         Function.getCacheList().forEach((url, data)->{
             map.put(url, format.format(new Date(data.getCacheDate())));
         });
 
-        return Function.gson.toJson(map);
+        String json = Function.gson.toJson(map);
+        map.clear();
+
+        return json;
 
     }
 }

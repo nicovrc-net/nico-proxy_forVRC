@@ -35,50 +35,6 @@ public class GetVideoInfo implements NicoVRCAPI {
             }
         }
 
-        // Proxy
-        String p = null;
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            p = Function.ProxyList.get(i);
-        }
-
-        final String targetUrl = inputUrl.split("\\?")[0];
-        final Matcher matcher_normal = Function.NicoID1.matcher(targetUrl);
-        final Matcher matcher_short = Function.NicoID2.matcher(targetUrl);
-        final Matcher matcher_cas = Function.NicoID3.matcher(targetUrl);
-        final Matcher matcher_idOnly = Function.NicoID4.matcher(targetUrl);
-
-        final boolean isNormal = matcher_normal.find();
-        final boolean isShort = matcher_short.find();
-        final boolean isCas = matcher_cas.find();
-        final boolean isID = matcher_idOnly.find();
-
-        String id = "";
-
-        if (isID){
-            id = matcher_idOnly.group(1);
-        } else if (isNormal){
-            id = matcher_normal.group(3);
-        } else if (isShort) {
-            id = matcher_short.group(2);
-        }
-
-        if (isID || isNormal || isShort){
-            if (id.startsWith("lv") || id.startsWith("so")){
-                if (!Function.JP_ProxyList.isEmpty()){
-                    int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
-                    p = Function.JP_ProxyList.get(i);
-                }
-            }
-        }
-
-        if (isCas){
-            if (!Function.JP_ProxyList.isEmpty()){
-                int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
-                p = Function.JP_ProxyList.get(i);
-            }
-        }
-
         HttpClient httpClient = client;
         try {
             boolean[] isFound = {false};
