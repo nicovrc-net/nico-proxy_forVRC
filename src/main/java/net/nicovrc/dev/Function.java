@@ -234,7 +234,7 @@ public class Function {
         }
 
         if (new File("/usr/bin/brotli").exists()){
-            return "/usr/share/brotli";
+            return "/usr/bin/brotli";
         }
 
         if (new File("./brotli.exe").exists()){
