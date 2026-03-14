@@ -188,10 +188,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 }
 
                 if (cacheData != null){
-                    proxy = cacheData.getProxy() != null ? cacheData.getProxy() : null;
-                    final String[] split = proxy != null ? proxy.split(":") : null;
-                    final int splitLength = split != null ? split.length : 0;
-
                     if (Function.tempCacheList.get(targetUrl) == null){
                         if (currentTimeLong - cacheData.getCacheDate() <= 1800000L){
                             Function.tempCacheList.put(targetUrl, currentTimeLong);
@@ -201,60 +197,42 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             String refererText = cacheData.getRefererText();
                             boolean isFound = true;
 
-                            try (HttpClient client = proxy == null || splitLength != 2 ? HttpClient.newBuilder()
-                                    .version(HttpClient.Version.HTTP_2)
-                                    .followRedirects(HttpClient.Redirect.NORMAL)
-                                    .connectTimeout(Duration.ofSeconds(5))
-                                    .build()
-                                    :
-                                    HttpClient.newBuilder()
-                                            .version(HttpClient.Version.HTTP_2)
-                                            .followRedirects(HttpClient.Redirect.NORMAL)
-                                            .connectTimeout(Duration.ofSeconds(5))
-                                            .proxy(ProxySelector.of(new InetSocketAddress(split[0], Integer.parseInt(split[1]))))
-                                            .build()
-                            ) {
-
-                                HttpRequest request = null;
-                                if (cookieText == null && refererText == null){
-                                    request = HttpRequest.newBuilder()
-                                            .uri(new URI(targetURL))
-                                            .headers("User-Agent", Function.UserAgent)
-                                            .GET()
-                                            .build();
-                                } else if (cookieText != null && refererText == null){
-                                    request = HttpRequest.newBuilder()
-                                            .uri(new URI(targetURL))
-                                            .headers("User-Agent", Function.UserAgent)
-                                            .headers("Cookie", cookieText)
-                                            .GET()
-                                            .build();
-                                } else if (cookieText == null){
-                                    request = HttpRequest.newBuilder()
-                                            .uri(new URI(targetURL))
-                                            .headers("User-Agent", Function.UserAgent)
-                                            .headers("Referer", refererText)
-                                            .GET()
-                                            .build();
-                                } else {
-                                    request = HttpRequest.newBuilder()
-                                            .uri(new URI(targetURL))
-                                            .headers("User-Agent", Function.UserAgent)
-                                            .headers("Cookie", cookieText)
-                                            .headers("Referer", refererText)
-                                            .GET()
-                                            .build();
-                                }
-
-                                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-                                if (send.statusCode() >= 300 || send.statusCode() <= 199){
-                                    isFound = false;
-                                }
-                                send = null;
-
-                            } catch (Exception e){
-                                e.printStackTrace();
+                            HttpRequest request = null;
+                            if (cookieText == null && refererText == null){
+                                request = HttpRequest.newBuilder()
+                                        .uri(new URI(targetURL))
+                                        .headers("User-Agent", Function.UserAgent)
+                                        .GET()
+                                        .build();
+                            } else if (cookieText != null && refererText == null){
+                                request = HttpRequest.newBuilder()
+                                        .uri(new URI(targetURL))
+                                        .headers("User-Agent", Function.UserAgent)
+                                        .headers("Cookie", cookieText)
+                                        .GET()
+                                        .build();
+                            } else if (cookieText == null){
+                                request = HttpRequest.newBuilder()
+                                        .uri(new URI(targetURL))
+                                        .headers("User-Agent", Function.UserAgent)
+                                        .headers("Referer", refererText)
+                                        .GET()
+                                        .build();
+                            } else {
+                                request = HttpRequest.newBuilder()
+                                        .uri(new URI(targetURL))
+                                        .headers("User-Agent", Function.UserAgent)
+                                        .headers("Cookie", cookieText)
+                                        .headers("Referer", refererText)
+                                        .GET()
+                                        .build();
                             }
+
+                            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                            if (send.statusCode() >= 300 || send.statusCode() <= 199){
+                                isFound = false;
+                            }
+                            send = null;
 
                             if (isFound){
                                 Function.tempCacheList.put(targetUrl, currentTimeLong);
