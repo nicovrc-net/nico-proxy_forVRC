@@ -23,7 +23,7 @@ public class GetSupportList implements NicoVRCAPI {
     @Override
     public String Run(String httpRequest, HttpClient client) {
 
-        HashMap<String, String[]> map = new HashMap<>();
+        final HashMap<String, String[]> map = new HashMap<>();
         siteList.forEach((value)->{
             if (!value.getServiceName().equals("ニコニコ")){
                 map.put(value.getServiceName(), value.getCorrespondingURL());
@@ -49,7 +49,10 @@ public class GetSupportList implements NicoVRCAPI {
             }
         });
 
-        return Function.gson.toJson(map);
+        String json = Function.gson.toJson(map);
+        map.clear();
+
+        return json;
 
     }
 }
