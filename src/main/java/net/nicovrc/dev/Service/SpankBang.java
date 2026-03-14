@@ -6,22 +6,13 @@ import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.SpankBangResult;
 
-import javax.net.ssl.SSLContext;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.net.CookieManager;
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
-import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.zip.GZIPInputStream;
 
 public class SpankBang implements ServiceAPI {
 

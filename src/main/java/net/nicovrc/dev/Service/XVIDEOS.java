@@ -6,15 +6,11 @@ import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.XvideoResult;
 
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
-import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

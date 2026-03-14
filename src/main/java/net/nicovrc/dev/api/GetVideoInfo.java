@@ -4,13 +4,8 @@ import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.ServiceAPI;
 import net.nicovrc.dev.Service.ServiceList;
 
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
 import java.net.http.HttpClient;
-import java.security.SecureRandom;
-import java.time.Duration;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GetVideoInfo implements NicoVRCAPI {
