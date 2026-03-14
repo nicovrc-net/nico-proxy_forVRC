@@ -1,7 +1,5 @@
 package net.nicovrc.dev;
 
-import com.amihaiemil.eoyaml.Yaml;
-import com.amihaiemil.eoyaml.YamlMapping;
 import net.nicovrc.dev.http.*;
 
 import java.io.File;
@@ -17,7 +15,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.HashMap;
-import java.util.Timer;
 import java.util.TimerTask;
 import java.util.regex.Matcher;
 
