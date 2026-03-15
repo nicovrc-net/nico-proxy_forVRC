@@ -5,6 +5,8 @@ import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.data.WebhookData;
 import redis.clients.jedis.RedisClient;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
 
 import java.io.*;
 import java.net.Socket;
@@ -366,11 +368,44 @@ public class Function {
     }
 
     public static HashMap<String, CacheData> getCacheList(){
-        return new HashMap<>(CacheList);
+        if (config_CacheToRedis && redisClient != null){
+            HashMap<String, CacheData> temp = new HashMap<>();
+            ScanParams params = new ScanParams();
+            params.count(1000);
+            params.match("nicovrc:cachelist:*");
+            String cur = ScanParams.SCAN_POINTER_START;
+
+            boolean isEnd = false;
+            while (!isEnd) {
+                ScanResult<String> scanResult = redisClient.scan(cur, params);
+                List<String> result = scanResult.getResult();
+
+                //System.out.println(result.size());
+                for (String key : result) {
+                    String jsonText = redisClient.get(key);
+                    String[] split = key.split(":");
+                    temp.put(split[split.length - 1], gson.fromJson(jsonText, CacheData.class));
+                }
+
+                cur = scanResult.getCursor();
+                if (cur.equals("0")) {
+                    isEnd = true;
+                }
+            }
+
+            return temp;
+
+        } else {
+            return new HashMap<>(CacheList);
+        }
     }
 
     public static void deleteCache(String url){
-        CacheList.remove(url);
+        if (config_CacheToRedis && redisClient != null){
+            redisClient.del("nicovrc:cachelist:" + url);
+        } else {
+            CacheList.remove(url);
+        }
     }
 
     public static byte[] decompressByte(byte[] content, String compressType) throws Exception {
