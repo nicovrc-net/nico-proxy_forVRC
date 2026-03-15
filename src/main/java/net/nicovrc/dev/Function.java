@@ -357,7 +357,7 @@ public class Function {
     public static CacheData getCache(String url){
         if (config_CacheToRedis && redisClient != null){
             String s = redisClient.get("nicovrc:cachelist:" + url);
-            if (s.isEmpty()){
+            if (s == null || s.isEmpty()){
                 return null;
             }
 
