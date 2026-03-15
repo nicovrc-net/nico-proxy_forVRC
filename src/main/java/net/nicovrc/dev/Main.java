@@ -152,6 +152,8 @@ NicoNico_user_session: ""
             Function.config_twitcast_ClientId = yamlMapping.string("TwitcastingClientID");
             Function.config_twitcast_ClientSecret = yamlMapping.string("TwitcastingClientSecret");
 
+            Function.config_CacheToRedis = yamlMapping.string("CacheToRedis").equals("true");
+
             redisServer = yamlMapping.string("RedisServer");
             redisPass = yamlMapping.string("RedisPass");
             redisPort = yamlMapping.integer("RedisPort");
@@ -169,6 +171,8 @@ NicoNico_user_session: ""
             Function.config_twitcast_ClientId = null;
             Function.config_twitcast_ClientSecret = null;
 
+            Function.config_CacheToRedis = false;
+
             redisServer = "";
             redisPass = "";
             redisPort = 6379;
@@ -180,8 +184,6 @@ NicoNico_user_session: ""
         if (!Function.config_FolderPass.isEmpty() && !file.exists()){
             boolean mkdir = file.mkdir();
         }
-
-
 
         JedisClientConfig redis_config = null;
         if (redisTLS) {
@@ -202,7 +204,6 @@ NicoNico_user_session: ""
         }
 
         final RedisClient jedis;
-        RedisClient temp_jedis = null;
         try (HttpClient client = HttpClient.newBuilder()
                 .version(HttpClient.Version.HTTP_2)
                 .followRedirects(HttpClient.Redirect.NORMAL)
@@ -213,7 +214,7 @@ NicoNico_user_session: ""
                     .hostAndPort(new HostAndPort(redisServer, redisPort))
                     .clientConfig(redis_config)
                     .build();
-            temp_jedis = jedis;
+            Function.redisClient = jedis;
 
             // エラー動画
             file = new File("./error-video");
@@ -492,8 +493,8 @@ NicoNico_user_session: ""
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
-            if (temp_jedis != null){
-                temp_jedis.close();
+            if (Function.redisClient != null){
+                Function.redisClient.close();
             }
         }
     }
@@ -506,8 +507,6 @@ NicoNico_user_session: ""
 
                 int[] count = {0};
                 try {
-                    final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-
                     if (jedis != null){
                         HashMap<String, LogData> temp = new HashMap<>(Function.GetURLAccessLog);
                         Function.GetURLAccessLog.clear();
