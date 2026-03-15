@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.data.WebhookData;
+import redis.clients.jedis.RedisClient;
 
 import java.io.*;
 import java.net.Socket;
@@ -23,7 +24,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.1.1-beta.1";
+    public static final String Version = "3.2.0-beta.1";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -56,6 +57,9 @@ public class Function {
     public static String config_nicosid = null;
     public static String config_twitcast_ClientId = null;
     public static String config_twitcast_ClientSecret = null;
+    public static boolean config_CacheToRedis = false;
+
+    public static RedisClient redisClient = null;
 
 
     public static final Pattern NicoID1 = Pattern.compile("(http|https)://(live|www)\\.nicovideo\\.jp/watch/(.+)");
@@ -341,11 +345,24 @@ public class Function {
     }
 
     public static void addCache(String url, CacheData data){
-        CacheList.put(url, data);
+        if (config_CacheToRedis && redisClient != null){
+            redisClient.set("nicovrc:cachelist:" + url, gson.toJson(data));
+        } else {
+            CacheList.put(url, data);
+        }
     }
 
     public static CacheData getCache(String url){
-        return CacheList.get(url);
+        if (config_CacheToRedis && redisClient != null){
+            String s = redisClient.get("nicovrc:cachelist:" + url);
+            if (s.isEmpty()){
+                return null;
+            }
+
+            return gson.fromJson(s, CacheData.class);
+        } else {
+            return CacheList.get(url);
+        }
     }
 
     public static HashMap<String, CacheData> getCacheList(){
