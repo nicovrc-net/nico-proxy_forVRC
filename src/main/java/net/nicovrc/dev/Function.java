@@ -348,7 +348,8 @@ public class Function {
 
     public static void addCache(String url, CacheData data){
         if (config_CacheToRedis && redisClient != null){
-            redisClient.set("nicovrc:cachelist:" + url, gson.toJson(data));
+            String str = Base64.getEncoder().encodeToString(url.getBytes(StandardCharsets.UTF_8));
+            redisClient.set("nicovrc:cachelist:" + str, gson.toJson(data));
         } else {
             CacheList.put(url, data);
         }
@@ -356,7 +357,8 @@ public class Function {
 
     public static CacheData getCache(String url){
         if (config_CacheToRedis && redisClient != null){
-            String s = redisClient.get("nicovrc:cachelist:" + url);
+            String str = Base64.getEncoder().encodeToString(url.getBytes(StandardCharsets.UTF_8));
+            String s = redisClient.get("nicovrc:cachelist:" + str);
             if (s == null || s.isEmpty()){
                 return null;
             }
@@ -384,7 +386,8 @@ public class Function {
                 for (String key : result) {
                     String jsonText = redisClient.get(key);
                     String[] split = key.split(":");
-                    temp.put(split[split.length - 1], gson.fromJson(jsonText, CacheData.class));
+                    String s = new String(Base64.getDecoder().decode(split[split.length - 1]), StandardCharsets.UTF_8);
+                    temp.put(s, gson.fromJson(jsonText, CacheData.class));
                 }
 
                 cur = scanResult.getCursor();
