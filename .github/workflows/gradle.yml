@@ -541,7 +541,7 @@ jobs:
           INPUT_VERSION="$(echo "${{ github.ref }}" | sed -E "s,^refs/tags/,,")"
           
           mkdir -p ./deb-package
-          mkdir -p ./deb-package/usr/share/nicovrcServer
+          mkdir -p ./deb-package/usr/share/nicovrc-server
           mkdir -p ./deb-package/usr/bin
           
           mkdir -p ./deb-package/DEBIAN
