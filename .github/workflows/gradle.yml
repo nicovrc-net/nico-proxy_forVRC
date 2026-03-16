@@ -585,6 +585,17 @@ jobs:
           asset_name: NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
           asset_content_type: application/java-archive
 
+      - name: Upload deb package File
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./deb-package.deb
+          asset_name: nicovrc-v3.deb
+          asset_content_type: application/vnd.debian.binary-package
+
       - name: Delete File
         uses: geekyeggo/delete-artifact@v5
         with:
