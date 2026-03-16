@@ -534,6 +534,32 @@ jobs:
         with:
           name: jar
 
+      - name: Create deb Package
+        if: startsWith(github.ref, 'refs/tags/')
+        id: create_deb_package
+        run: |
+          INPUT_VERSION="$(echo "${{ github.ref }}" | sed -E "s,^refs/tags/,,")"
+          
+          mkdir -p ./deb-package
+          mkdir -p ./deb-package/usr/share/nicovrcServer
+          mkdir -p ./deb-package/usr/bin
+          
+          mkdir -p ./deb-package/DEBIAN
+          
+          echo -e "Package: nicovrcServer\nVersion: $INPUT_VERSION-1\nArchitecture: amd64\nMaintainer: Chino Nanami <tino_nanami@7mi.site>\nDescription: nicovrcServer\nDepends: openjdk-21-jdk, brotli " > ./deb-package/DEBIAN/control
+          
+          echo -e "#!/bin/bash\nif [ -x /usr/bin/nicovrc-server ]; then\nelse\n  rm /usr/share/nicovrc-server -fr\n  rm /usr/bin/nicovrc-server" > ./deb-package/DEBIAN/postrm
+          chmod +x ./deb-package/DEBIAN/postrm
+          
+          cp ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar ./deb-package/usr/share/nicovrc-server
+          
+          echo -e "#!/bin/bash\njava -Duser.timezone=Asia/Tokyo -Xms4G -Xmx4G -jar /usr/share/nicovrc-server/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar" > ./deb-package/usr/bin/nicovrc-server
+          chmod +x ./deb-package/usr/bin/nicovrc-server
+          
+          fakeroot dpkg-deb --build $WORK ./deb-package
+
+        shell: bash
+
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         id: create_release
