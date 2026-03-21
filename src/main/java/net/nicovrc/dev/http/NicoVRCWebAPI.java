@@ -24,7 +24,8 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
     private final byte[] errorAPINotFound = "API Not Found".getBytes(StandardCharsets.UTF_8);
 
-    public NicoVRCWebAPI(){
+    @Override
+    public void run() {
         // WebAPIを追加する
         GetVideoInfo getVideoInfo = new GetVideoInfo();
         Test test = new Test();
@@ -39,10 +40,8 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
         apiList.put(getSupportList.getURI().substring(0, Math.min(getSupportList.getURI().length(), 30)), getSupportList);
         apiList.put(getCacheList.getURI().substring(0, Math.min(getCacheList.getURI().length(), 30)), getCacheList);
         apiList.put(addCache.getURI().substring(0, Math.min(addCache.getURI().length(), 30)), addCache);
-    }
 
-    @Override
-    public void run() {
+
         try {
             Date date = new Date();
             final String method = Function.getMethod(HTTPRequest);
