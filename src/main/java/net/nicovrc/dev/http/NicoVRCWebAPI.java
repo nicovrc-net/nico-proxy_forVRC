@@ -118,6 +118,8 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
             byte[] bytes = Function.compressByte(result.getBytes(StandardCharsets.UTF_8), sendContentEncoding);
             Function.sendHTTPRequest(sock, httpVersion, code, "application/json; charset=utf-8", sendContentEncoding, "*", bytes == null ? result.getBytes(StandardCharsets.UTF_8) : bytes, isHead);
             json = null;
+            bytes = null;
+            apiList.clear();
 
         } catch (Exception e){
             e.printStackTrace();
