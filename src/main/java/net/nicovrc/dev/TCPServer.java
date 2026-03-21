@@ -294,8 +294,8 @@ public class TCPServer extends Thread {
                                 vrchttp.setHTTPRequest(httpRequest);
                                 vrchttp.setHTTPSocket(sock);
                                 vrchttp.setHTTPClient(httpClient);
-                                Thread start = Thread.ofVirtual().start((Runnable) vrchttp);
-                                start.join();
+                                //Thread start = Thread.ofVirtual().start((Runnable) vrchttp);
+                                //start.join();
                             } catch (Exception e){
                                 e.printStackTrace();
                             }

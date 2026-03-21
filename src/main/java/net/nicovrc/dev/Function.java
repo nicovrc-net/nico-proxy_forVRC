@@ -371,8 +371,8 @@ public class Function {
 
     public static HashMap<String, CacheData> getCacheList(){
         if (config_CacheToRedis && redisClient != null){
-            HashMap<String, CacheData> temp = new HashMap<>();
-            ScanParams params = new ScanParams();
+            final HashMap<String, CacheData> temp = new HashMap<>();
+            final ScanParams params = new ScanParams();
             params.count(1000);
             params.match("nicovrc:cachelist:*");
             String cur = ScanParams.SCAN_POINTER_START;
@@ -405,7 +405,6 @@ public class Function {
                 scanResult = null;
                 result.clear();
             }
-            params = null;
 
             return temp;
 
