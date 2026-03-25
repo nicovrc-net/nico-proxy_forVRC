@@ -26,7 +26,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.2.0-beta.2";
+    public static final String Version = "3.2.0-beta.3";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -371,29 +371,39 @@ public class Function {
 
     public static HashMap<String, CacheData> getCacheList(){
         if (config_CacheToRedis && redisClient != null){
-            HashMap<String, CacheData> temp = new HashMap<>();
-            ScanParams params = new ScanParams();
+            final HashMap<String, CacheData> temp = new HashMap<>();
+            final ScanParams params = new ScanParams();
             params.count(1000);
             params.match("nicovrc:cachelist:*");
             String cur = ScanParams.SCAN_POINTER_START;
+            ScanResult<String> scanResult = null;
+            List<String> result = null;
+            String jsonText = null;
+            String[] split = null;
+            String str = null;
 
             boolean isEnd = false;
             while (!isEnd) {
-                ScanResult<String> scanResult = redisClient.scan(cur, params);
-                List<String> result = scanResult.getResult();
+                scanResult = redisClient.scan(cur, params);
+                result = scanResult.getResult();
 
                 //System.out.println(result.size());
                 for (String key : result) {
-                    String jsonText = redisClient.get(key);
-                    String[] split = key.split(":");
-                    String s = new String(Base64.getDecoder().decode(split[split.length - 1]), StandardCharsets.UTF_8);
-                    temp.put(s, gson.fromJson(jsonText, CacheData.class));
+                    jsonText = redisClient.get(key);
+                    split = key.split(":");
+                    str = new String(Base64.getDecoder().decode(split[split.length - 1]), StandardCharsets.UTF_8);
+                    temp.put(str, gson.fromJson(jsonText, CacheData.class));
+                    jsonText = null;
+                    split = null;
+                    str = null;
                 }
 
                 cur = scanResult.getCursor();
                 if (cur.equals("0")) {
                     isEnd = true;
                 }
+                scanResult = null;
+                result.clear();
             }
 
             return temp;

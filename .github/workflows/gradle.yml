@@ -534,6 +534,39 @@ jobs:
         with:
           name: jar
 
+      - name: Create PKGBUILD File
+        if: startsWith(github.ref, 'refs/tags/')
+        id: create_pkgbuild
+        run: |         
+          echo -e "kgname=nicovrcServer\npkgver=$(echo "${{ github.ref }}" | sed -E "s,^refs/tags/,,")\npkgrel=1\npkgdesc="nicovrc-server"\narch=('x86_64)\nurl="https://nicovrc.net"\nlicense=('MIT')\ndepends=('jdk21-openjdk' 'brotli')\nsource=( "$pkgname::git+https://github.com/nicovrc-net/nico-proxy_forVRC.git#branch=master")\nsha256sums=('SKIP')\n\nbuild() {\n    cd "$srcdir/$pkgname"\n    chmod +x gradlew\n    ./gradlew shadowJar\n}\n\npackage() {\n    cd "$srcdir/$pkgname"\n    \n    echo -e "#!/bin/bash\njava -Duser.timezone=Asia/Tokyo -Xms4G -Xmx4G -jar /usr/share/$pkgname/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar" > ./temp-start.sh\n\n    install -Dm644 "build/libs/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar" "$pkgdir/usr/share/$pkgname/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar"\n    install -Dm755 "./temp-start.sh" "$pkgdir/usr/bin/$pkgname"\n\n    find "$pkgdir/usr/share/$pkgname" -type f -exec file {} \; | grep ELF | cut -d: -f1 | while read -r elf; do\n        strip --strip-all "$elf" || true\n    done\n\n}" > ./PKGBUILD
+        shell: bash
+
+      - name: Create deb Package
+        if: startsWith(github.ref, 'refs/tags/')
+        id: create_deb_package
+        run: |
+          INPUT_VERSION="$(echo "${{ github.ref }}" | sed -E "s,^refs/tags/,,")"
+          
+          mkdir -p ./deb-package
+          mkdir -p ./deb-package/usr/share/nicovrc-server
+          mkdir -p ./deb-package/usr/bin
+          
+          mkdir -p ./deb-package/DEBIAN
+          
+          echo -e "Package: nicovrcServer\nVersion: $INPUT_VERSION-1\nArchitecture: amd64\nMaintainer: Chino Nanami <tino_nanami@7mi.site>\nDescription: nicovrcServer\nDepends: openjdk-21-jdk, brotli " > ./deb-package/DEBIAN/control
+          
+          echo -e "#!/bin/bash\nif [ -x /usr/bin/nicovrc-server ]; then\nelse\n  rm /usr/share/nicovrc-server -fr\n  rm /usr/bin/nicovrc-server" > ./deb-package/DEBIAN/postrm
+          chmod +x ./deb-package/DEBIAN/postrm
+          
+          cp ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar ./deb-package/usr/share/nicovrc-server
+          
+          echo -e "#!/bin/bash\njava -Duser.timezone=Asia/Tokyo -Xms4G -Xmx4G -jar /usr/share/nicovrc-server/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar" > ./deb-package/usr/bin/nicovrc-server
+          chmod +x ./deb-package/usr/bin/nicovrc-server
+          
+          fakeroot dpkg-deb --build $WORK ./deb-package
+
+        shell: bash
+
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         id: create_release
@@ -558,6 +591,28 @@ jobs:
           asset_path: ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
           asset_name: NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
           asset_content_type: application/java-archive
+
+      - name: Upload deb package File
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./deb-package.deb
+          asset_name: nicovrc-v3.deb
+          asset_content_type: application/vnd.debian.binary-package
+
+      - name: Upload PKGBUILD File
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./PKGBUILD
+          asset_name: PKGBUILD
+          asset_content_type: text/plain
 
       - name: Delete File
         uses: geekyeggo/delete-artifact@v5
