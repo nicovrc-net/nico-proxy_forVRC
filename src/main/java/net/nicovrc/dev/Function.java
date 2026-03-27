@@ -4,8 +4,10 @@ import com.google.gson.Gson;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.data.WebhookData;
+import redis.clients.jedis.CommandArguments;
 import redis.clients.jedis.RedisClient;
 import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.resps.ScanResult;
 
 import java.io.*;
@@ -349,7 +351,7 @@ public class Function {
     public static void addCache(String url, CacheData data){
         if (config_CacheToRedis && redisClient != null){
             String str = Base64.getEncoder().encodeToString(url.getBytes(StandardCharsets.UTF_8));
-            redisClient.set("nicovrc:cachelist:" + str, gson.toJson(data));
+            redisClient.set("nicovrc:cachelist:" + str, gson.toJson(data), new SetParams().ex(86400));
         } else {
             CacheList.put(url, data);
         }

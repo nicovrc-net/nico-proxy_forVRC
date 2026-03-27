@@ -277,21 +277,24 @@ NicoNico_user_session: ""
             Function.mainTimer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    Thread.ofVirtual().start(()->{
-                        HashMap<String, CacheData> map = Function.getCacheList();
 
-                        long time = new Date().getTime();
-                        map.forEach((url, data)->{
+                    if (!Function.config_CacheToRedis){
+                        Thread.ofVirtual().start(()->{
+                            HashMap<String, CacheData> map = Function.getCacheList();
 
-                            if (data.isSet() && time - data.getCacheDate() >= 86400000L) {
-                                Function.deleteCache(url);
-                            }
+                            long time = new Date().getTime();
+                            map.forEach((url, data)->{
 
+                                if (data.isSet() && time - data.getCacheDate() >= 86400000L) {
+                                    Function.deleteCache(url);
+                                }
+
+                            });
+
+                            map.clear();
+                            map = null;
                         });
-
-                        map.clear();
-                        map = null;
-                    });
+                    }
 
                     WriteLog(jedis);
                     try {
