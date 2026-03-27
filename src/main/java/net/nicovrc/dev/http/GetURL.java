@@ -45,6 +45,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern ffmpegUA = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
 
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
+    private final Pattern avpro_ua = Pattern.compile("(NSPlayer|AVPro)");
 
     private byte[] errContent000;
     private byte[] errContent404;
@@ -278,7 +279,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                             if (cacheData.getDummyHLS() != null){
 
-                                if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find()) {
+                                if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
                                     Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, dummy_bytes == null ? cacheData.getDummyHLS() : dummy_bytes, isHead);
                                 } else {
                                     Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
@@ -550,7 +551,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                         if (cacheData.isHLS()){
                             if (cacheData.getDummyHLS() != null){
-                                if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find()) {
+                                if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
                                     Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, dummy_bytes == null ? cacheData.getDummyHLS() : dummy_bytes, isHead);
                                 } else {
                                     Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
