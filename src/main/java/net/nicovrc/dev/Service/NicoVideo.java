@@ -57,12 +57,9 @@ public class NicoVideo implements ServiceAPI {
             "ze",
             "nl",
             "ch",
-            "lv"
+            "lv",
+            "ss"
     };
-    private final Pattern NicoID1 = Pattern.compile("(http|https)://(live|www)\\.nicovideo\\.jp/watch/(.+)");
-    private final Pattern NicoID2 = Pattern.compile("(http|https)://nico\\.ms/(.+)");
-    private final Pattern NicoID3 = Pattern.compile("(http|https)://cas\\.nicovideo\\.jp/user/(.+)");
-    private final Pattern NicoID4 = Pattern.compile("^(sm\\d+|nm\\d+|am\\d+|fz\\d+|ut\\d+|dm\\d+|so\\d+|ax\\d+|ca\\d+|cd\\d+|cw\\d+|fx\\d+|ig\\d+|na\\d+|om\\d+|sd\\d+|sk\\d+|yk\\d+|yo\\d+|za\\d+|zb\\d+|zc\\d+|zd\\d+|ze\\d+|nl\\d+|ch\\d+|\\d+|lv\\d+)");
     private String URL = null;
 
     private final Pattern matcher_Json = Pattern.compile("<meta name=\"server-response\" content=\"\\{(.+)}\" />");
@@ -116,19 +113,21 @@ public class NicoVideo implements ServiceAPI {
         }
 
         String url = URL.split("\\?")[0];
-        Matcher matcher_normal = NicoID1.matcher(url);
-        Matcher matcher_short = NicoID2.matcher(url);
-        Matcher matcher_cas = NicoID3.matcher(url);
-        Matcher matcher_idOnly = NicoID4.matcher(url);
+        Matcher matcher_normal = Function.NicoID1.matcher(url);
+        Matcher matcher_short_video = Function.NicoID_short.matcher(url);
+        Matcher matcher_short = Function.NicoID2.matcher(url);
+        Matcher matcher_cas = Function.NicoID3.matcher(url);
+        Matcher matcher_idOnly = Function.NicoID4.matcher(url);
 
         boolean isNormal = matcher_normal.find();
+        boolean isShortVideo = matcher_short_video.find();
         boolean isShort = matcher_short.find();
         boolean isCas = matcher_cas.find();
         boolean isID = matcher_idOnly.find();
 
         String id = "";
 
-        if (!isNormal && !isShort && !isCas && !isID){
+        if (!isNormal && !isShort && !isCas && !isID && !isShortVideo){
             url = null;
             matcher_normal = null;
             matcher_short = null;
@@ -162,6 +161,11 @@ public class NicoVideo implements ServiceAPI {
         if (isNormal){
             id = matcher_normal.group(3);
             accessUrl = "https://"+matcher_normal.group(2)+".nicovideo.jp/watch/" + id;
+        }
+
+        if (isShortVideo) {
+            id = matcher_short.group(2);
+            accessUrl = "https://www.nicovideo.jp/short/" + id;
         }
 
         if (isShort){
