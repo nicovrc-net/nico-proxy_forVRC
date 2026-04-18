@@ -243,11 +243,13 @@ public class TCPServer extends Thread {
 
                             final String url = URI.split("\\?")[0];
                             final Matcher matcher_normal = Function.NicoID1.matcher(url);
+                            final Matcher matcher_short_video = Function.NicoID_short.matcher(url);
                             final Matcher matcher_short = Function.NicoID2.matcher(url);
                             final Matcher matcher_cas = Function.NicoID3.matcher(url);
                             final Matcher matcher_idOnly = Function.NicoID4.matcher(url);
 
                             final boolean isNormal = matcher_normal.find();
+                            final boolean isShortVideo = matcher_short_video.find();
                             final boolean isShort = matcher_short.find();
                             final boolean isCas = matcher_cas.find();
                             final boolean isID = matcher_idOnly.find();
@@ -258,11 +260,13 @@ public class TCPServer extends Thread {
                                 id = matcher_idOnly.group(1);
                             } else if (isNormal){
                                 id = matcher_normal.group(3);
+                            } else if (isShortVideo){
+                                id = matcher_short_video.group(2);
                             } else if (isShort) {
                                 id = matcher_short.group(2);
                             }
 
-                            if (isID || isNormal || isShort){
+                            if (isID || isNormal || isShort || isShortVideo){
                                 if (id.startsWith("lv") || id.startsWith("so")){
                                     if (!Function.JP_ProxyList.isEmpty()){
                                         int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;

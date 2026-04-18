@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.data.WebhookData;
-import redis.clients.jedis.CommandArguments;
 import redis.clients.jedis.RedisClient;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.SetParams;
@@ -28,7 +27,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.2.0";
+    public static final String Version = "3.2.1";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:149.0) Gecko/20100101 Firefox/149.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -67,9 +66,10 @@ public class Function {
 
 
     public static final Pattern NicoID1 = Pattern.compile("(http|https)://(live|www)\\.nicovideo\\.jp/watch/(.+)");
+    public static final Pattern NicoID_short = Pattern.compile("(http|https)://www\\.nicovideo\\.jp/shorts/(.+)");
     public static final Pattern NicoID2 = Pattern.compile("(http|https)://nico\\.ms/(.+)");
     public static final Pattern NicoID3 = Pattern.compile("(http|https)://cas\\.nicovideo\\.jp/user/(.+)");
-    public static final Pattern NicoID4 = Pattern.compile("^(sm\\d+|nm\\d+|am\\d+|fz\\d+|ut\\d+|dm\\d+|so\\d+|ax\\d+|ca\\d+|cd\\d+|cw\\d+|fx\\d+|ig\\d+|na\\d+|om\\d+|sd\\d+|sk\\d+|yk\\d+|yo\\d+|za\\d+|zb\\d+|zc\\d+|zd\\d+|ze\\d+|nl\\d+|ch\\d+|\\d+|lv\\d+)");
+    public static final Pattern NicoID4 = Pattern.compile("^(sm\\d+|nm\\d+|am\\d+|fz\\d+|ut\\d+|dm\\d+|so\\d+|ax\\d+|ca\\d+|cd\\d+|cw\\d+|fx\\d+|ig\\d+|na\\d+|om\\d+|sd\\d+|sk\\d+|yk\\d+|yo\\d+|za\\d+|zb\\d+|zc\\d+|zd\\d+|ze\\d+|nl\\d+|ch\\d+|\\d+|lv\\d+|ss\\d+)");
 
 
     public static String getHTTPRequest(Socket sock) throws Exception{
