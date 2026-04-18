@@ -164,8 +164,8 @@ public class NicoVideo implements ServiceAPI {
         }
 
         if (isShortVideo) {
-            id = matcher_short.group(2);
-            accessUrl = "https://www.nicovideo.jp/short/" + id;
+            id = matcher_short_video.group(2);
+            accessUrl = "https://www.nicovideo.jp/shorts/" + id;
         }
 
         if (isShort){
