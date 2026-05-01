@@ -86,6 +86,8 @@ NicoNico_nicosid: ""
 NicoNico_user_session: ""
                     """;
 
+        System.out.println("nico-proxy_forVRC Ver "+ Function.Version);
+
         File file1 = new File("./config.yml");
         if (!file1.exists()){
             file1 = null;
@@ -115,7 +117,6 @@ NicoNico_user_session: ""
                     //proxyCheckTimer.cancel();
                     Function.mainTimer.cancel();
                     Function.checkTimer.cancel();
-                    Function.tempCacheCheckTimer.cancel();
                 } catch (Exception e){
                     // e.printStackTrace();
                 }
@@ -127,7 +128,6 @@ NicoNico_user_session: ""
             System.out.println("[Info] brotliの実行ファイルを設置してください。");
             Function.mainTimer.cancel();
             Function.checkTimer.cancel();
-            Function.tempCacheCheckTimer.cancel();
 
             return;
         }
@@ -478,7 +478,6 @@ NicoNico_user_session: ""
             // 終了処理
             //proxyCheckTimer.cancel();
             Function.mainTimer.cancel();
-            Function.tempCacheCheckTimer.cancel();
             WriteLog(jedis);
             SendWebhook(client);
             jedis.close();

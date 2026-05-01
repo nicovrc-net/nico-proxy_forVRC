@@ -70,22 +70,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         GetContentList.put("bilibili.com", new bilibili_com());
         GetContentList.put("Twitter", new Twitter());
 
-        Function.tempCacheCheckTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                HashMap<String, Long> temp = new HashMap<>(Function.tempCacheList);
-
-                temp.forEach((url, time) ->{
-                    if (new Date().getTime() - time >= 150000L){
-                        Function.tempCacheList.remove(url);
-                    }
-                });
-
-                temp.clear();
-                temp = null;
-            }
-        }, 0L, 1000L);
-
         try {
             File file = new File("./error-video/error_000.mp4");
             if (file.exists()){
@@ -188,59 +172,51 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 }
 
                 if (cacheData != null){
-                    if (Function.tempCacheList.get(targetUrl) == null){
-                        if (currentTimeLong - cacheData.getCacheDate() <= 1800000L){
-                            Function.tempCacheList.put(targetUrl, currentTimeLong);
-                        } else {
-                            String targetURL = cacheData.getTargetURL();
-                            String cookieText = cacheData.getCookieText();
-                            String refererText = cacheData.getRefererText();
-                            boolean isFound = true;
+                    String targetURL = cacheData.getTargetURL();
+                    String cookieText = cacheData.getCookieText();
+                    String refererText = cacheData.getRefererText();
+                    boolean isFound = true;
 
-                            HttpRequest request = null;
-                            if (cookieText == null && refererText == null){
-                                request = HttpRequest.newBuilder()
-                                        .uri(new URI(targetURL))
-                                        .headers("User-Agent", Function.UserAgent)
-                                        .GET()
-                                        .build();
-                            } else if (cookieText != null && refererText == null){
-                                request = HttpRequest.newBuilder()
-                                        .uri(new URI(targetURL))
-                                        .headers("User-Agent", Function.UserAgent)
-                                        .headers("Cookie", cookieText)
-                                        .GET()
-                                        .build();
-                            } else if (cookieText == null){
-                                request = HttpRequest.newBuilder()
-                                        .uri(new URI(targetURL))
-                                        .headers("User-Agent", Function.UserAgent)
-                                        .headers("Referer", refererText)
-                                        .GET()
-                                        .build();
-                            } else {
-                                request = HttpRequest.newBuilder()
-                                        .uri(new URI(targetURL))
-                                        .headers("User-Agent", Function.UserAgent)
-                                        .headers("Cookie", cookieText)
-                                        .headers("Referer", refererText)
-                                        .GET()
-                                        .build();
-                            }
+                    HttpRequest request = null;
+                    if (cookieText == null && refererText == null){
+                        request = HttpRequest.newBuilder()
+                                .uri(new URI(targetURL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .GET()
+                                .build();
+                    } else if (cookieText != null && refererText == null){
+                        request = HttpRequest.newBuilder()
+                                .uri(new URI(targetURL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Cookie", cookieText)
+                                .GET()
+                                .build();
+                    } else if (cookieText == null){
+                        request = HttpRequest.newBuilder()
+                                .uri(new URI(targetURL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Referer", refererText)
+                                .GET()
+                                .build();
+                    } else {
+                        request = HttpRequest.newBuilder()
+                                .uri(new URI(targetURL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Cookie", cookieText)
+                                .headers("Referer", refererText)
+                                .GET()
+                                .build();
+                    }
 
-                            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-                            if (send.statusCode() >= 300 || send.statusCode() <= 199){
-                                isFound = false;
-                            }
-                            send = null;
+                    HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    if (send.statusCode() >= 300 || send.statusCode() <= 199){
+                        isFound = false;
+                    }
+                    send = null;
 
-                            if (isFound){
-                                Function.tempCacheList.put(targetUrl, currentTimeLong);
-                            } else {
-                                Function.deleteCache(targetUrl);
-                                cacheData = null;
-                            }
-                        }
+                    if (!isFound){
+                        Function.deleteCache(targetUrl);
+                        cacheData = null;
                     }
                 }
 
