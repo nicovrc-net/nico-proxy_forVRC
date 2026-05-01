@@ -556,7 +556,7 @@ jobs:
           
           echo -e "Package: nicovrcServer\nVersion: $INPUT_VERSION-1\nArchitecture: amd64\nMaintainer: Chino Nanami <tino_nanami@7mi.site>\nDescription: nicovrcServer\nDepends: openjdk-21-jdk, brotli " > ./deb-package/DEBIAN/control
           
-          echo -e "#!/bin/bash\nif [ -x /usr/bin/nicovrc-server ]; then\nelse\n  rm /usr/share/nicovrc-server -fr\n  rm /usr/bin/nicovrc-server" > ./deb-package/DEBIAN/postrm
+          echo -e "#!/bin/bash\nif [ -x /usr/bin/nicovrc-server ]; then\n echo ok\nelse\n  rm /usr/share/nicovrc-server -fr\n  rm /usr/bin/nicovrc-server" > ./deb-package/DEBIAN/postrm
           chmod +x ./deb-package/DEBIAN/postrm
           
           cp ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar ./deb-package/usr/share/nicovrc-server
