@@ -27,9 +27,9 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.2.1";
+    public static final String Version = "3.2.2";
     public static final Gson gson = new Gson();
-    public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:149.0) Gecko/20100101 Firefox/149.0 nicovrc-net/" + Version;
+    public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:150.0) Gecko/20100101 Firefox/150.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static final byte[] zeroByte = new byte[0];
@@ -46,11 +46,9 @@ public class Function {
     private static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, WebhookData> WebhookData = new ConcurrentHashMap<>();
 
-    public static final ConcurrentHashMap<String, Long> tempCacheList = new ConcurrentHashMap<>();
 
     public static final Timer mainTimer = new Timer();
     public static final Timer checkTimer = new Timer();
-    public static final Timer tempCacheCheckTimer = new Timer();
 
     public static final Pattern matcher_contentEncoding = Pattern.compile("([aA])ccept-([eE])ncoding: (.+)");
 
