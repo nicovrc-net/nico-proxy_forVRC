@@ -153,14 +153,13 @@ public class TCPServer extends Thread {
                         Thread.ofVirtual().start(() -> {
                             try {
                                 Thread.sleep(6000L);
+
+                                if (!sock.isClosed()){
+                                    sock.close();
+                                }
                             } catch (Exception e){
                                 //e.printStackTrace();
                             }
-
-                            if (!sock.isClosed()){
-                                sock.close();
-                            }
-
                         });
 
                         //System.out.println(httpRequest);
