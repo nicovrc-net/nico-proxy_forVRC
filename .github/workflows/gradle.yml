@@ -578,8 +578,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - キャッシュをRedisに書き出しできるように
-            - 意味ないので一部のリクエストをHTTP圧縮しないように
+            - 使用メモリ節約のため一部内部キャッシュ廃止
           draft: false
           prerelease: true
 
