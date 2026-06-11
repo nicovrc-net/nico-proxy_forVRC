@@ -578,7 +578,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - 使用メモリ節約のため一部内部キャッシュ廃止
+            - 応答を6秒以内に返せない場合は強制的に接続を閉じるように
           draft: false
           prerelease: true
 

@@ -150,6 +150,18 @@ public class TCPServer extends Thread {
                             return;
                         }
 
+                        Thread.ofVirtual().start(() -> {
+                            try {
+                                Thread.sleep(6000L);
+
+                                if (!sock.isClosed()){
+                                    sock.close();
+                                }
+                            } catch (Exception e){
+                                //e.printStackTrace();
+                            }
+                        });
+
                         //System.out.println(httpRequest);
 
                         String HTTPVersion = Function.getHTTPVersion(httpRequest);
