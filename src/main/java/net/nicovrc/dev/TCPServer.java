@@ -155,6 +155,13 @@ public class TCPServer extends Thread {
                                 Thread.sleep(6000L);
 
                                 if (!sock.isClosed()){
+                                    String request = Function.getHTTPRequest(sock);
+                                    String httpVersion = Function.getHTTPVersion(request);
+                                    String Method = Function.getMethod(request);
+
+                                    if (httpVersion != null){
+                                        Function.sendHTTPRequest(sock, httpVersion, 503, textPlain, null, "".getBytes(StandardCharsets.UTF_8), Method != null && Method.equalsIgnoreCase("head"));
+                                    }
                                     sock.close();
                                 }
                             } catch (Exception e){

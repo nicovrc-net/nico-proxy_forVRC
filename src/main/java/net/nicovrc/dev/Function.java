@@ -146,6 +146,7 @@ public class Function {
             case 403 -> sb_header.append("Forbidden");
             case 404 -> sb_header.append("Not Found");
             case 405 -> sb_header.append("Method Not Allowed");
+            case 503 -> sb_header.append("Service Unavailable");
         }
         sb_header.append("\r\n");
         if (AccessControlAllowOrigin != null){
