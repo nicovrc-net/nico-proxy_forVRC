@@ -580,7 +580,7 @@ jobs:
           body: |
             - 応答を6秒以内に返せない場合は強制的に接続を閉じるように
           draft: false
-          prerelease: true
+          prerelease: false
 
       - name: Upload JarFile
         if: startsWith(github.ref, 'refs/tags/')
