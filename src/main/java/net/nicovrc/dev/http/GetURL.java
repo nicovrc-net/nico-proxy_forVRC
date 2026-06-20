@@ -384,158 +384,127 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     webhookData.setResult(errorMessage);
                 }
 
-                try (HttpClient client = proxy == null || proxy.split(":").length != 2 ? HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_2)
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .connectTimeout(Duration.ofSeconds(5))
-                        .build()
-                        :
-                        HttpClient.newBuilder()
-                                .version(HttpClient.Version.HTTP_2)
-                                .followRedirects(HttpClient.Redirect.NORMAL)
-                                .connectTimeout(Duration.ofSeconds(5))
-                                .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
-                                .build()
-                ) {
+                ContentObject content;
+                //System.out.println("debug : " + ServiceName);
+                GetContent hls = GetContentList.get(ServiceName);
+                if (hls == null && (ServiceName == null || ServiceName.isEmpty())) {
+                    logData.setResultURL(null);
+                    webhookData.setResult("対応してないURL");
+                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
+                    System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "対応してないURL");
 
-                    ContentObject content;
-                    //System.out.println("debug : " + ServiceName);
-                    GetContent hls = GetContentList.get(ServiceName);
-                    if (hls == null && (ServiceName == null || ServiceName.isEmpty())) {
-                        logData.setResultURL(null);
-                        webhookData.setResult("対応してないURL");
-                        Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    byte[] bytes = Function.compressByte(errContent404, sendContentEncoding);
+                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, null, bytes == null ? errContent404 : bytes, isHead, null);
+
+                    return;
+                } else if (hls == null) {
+
+                    Function.sendHTTPRequest(sock, httpVersion, 302, null, null, null, null,false, targetURL);
+
+                    content = new ContentObject();
+                    content.setDummyHLSText(null);
+                    content.setHLSText(null);
+                    cacheData.setRedirect(true);
+                    System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
+
+                } else {
+                    //System.out.println("!");
+                    logData.setResultURL(targetURL);
+                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    if (isHLSDummyPrint) {
+                        webhookData.setResult(targetURL);
                         Function.WebhookData.put(logData.getLogID(), webhookData);
-                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "対応してないURL");
-
-                        byte[] bytes = Function.compressByte(errContent404, sendContentEncoding);
-                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, null, bytes == null ? errContent404 : bytes, isHead, null);
-
-                        return;
-                    } else if (hls == null) {
-
-                        Function.sendHTTPRequest(sock, httpVersion, 302, null, null, null, null,false, targetURL);
-
-                        content = new ContentObject();
-                        content.setDummyHLSText(null);
-                        content.setHLSText(null);
-                        cacheData.setRedirect(true);
                         System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
-
-                    } else {
-                        //System.out.println("!");
-                        logData.setResultURL(targetURL);
-                        Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                        if (isHLSDummyPrint) {
-                            webhookData.setResult(targetURL);
-                            Function.WebhookData.put(logData.getLogID(), webhookData);
-                            System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
-                        }
-
-                        content = hls.run(client, httpRequest, URL, json);
-
-                        cacheData.setHLS(content.getHLSText() != null ? content.getHLSText().getBytes(StandardCharsets.UTF_8) : null);
-                        cacheData.setDummyHLS(content.getDummyHLSText() != null ? content.getDummyHLSText().getBytes(StandardCharsets.UTF_8) : null);
-                        cacheData.setRedirect(false);
-                        cacheData.setCookieText(content.getCookieText());
-                        cacheData.setRefererText(content.getRefererText());
-                        cacheData.setHLSFlag(content.isHLS());
-
                     }
 
-                    cacheData.setProxy(proxy);
-                    cacheData.setTargetURL(targetURL);
-                    cacheData.setTitle(element.getAsJsonObject().has("Title") ? element.getAsJsonObject().get("Title").getAsString() : "(タイトルなし)");
-                    cacheData.setSet(true);
-                    cacheData.setCacheDate(new Date().getTime());
+                    content = hls.run(client, httpRequest, URL, json);
 
-                    // タイトル取得
-                    if (isGetTitle) {
+                    cacheData.setHLS(content.getHLSText() != null ? content.getHLSText().getBytes(StandardCharsets.UTF_8) : null);
+                    cacheData.setDummyHLS(content.getDummyHLSText() != null ? content.getDummyHLSText().getBytes(StandardCharsets.UTF_8) : null);
+                    cacheData.setRedirect(false);
+                    cacheData.setCookieText(content.getCookieText());
+                    cacheData.setRefererText(content.getRefererText());
+                    cacheData.setHLSFlag(content.isHLS());
 
-                        byte[] title_bytes = Function.compressByte(cacheData.getTitle().getBytes(StandardCharsets.UTF_8), sendContentEncoding);
-                        if (errorMessage != null) {
+                }
 
-                            byte[] error = ("エラー : " + errorMessage).getBytes(StandardCharsets.UTF_8);
-                            byte[] bytes = Function.compressByte(error, sendContentEncoding);
+                cacheData.setProxy(proxy);
+                cacheData.setTargetURL(targetURL);
+                cacheData.setTitle(element.getAsJsonObject().has("Title") ? element.getAsJsonObject().get("Title").getAsString() : "(タイトルなし)");
+                cacheData.setSet(true);
+                cacheData.setCacheDate(new Date().getTime());
 
-                            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, null, bytes == null ? error : bytes, isHead, null);
+                // タイトル取得
+                if (isGetTitle) {
 
-                            Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                            Function.WebhookData.put(logData.getLogID(), webhookData);
-                            System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> エラー : " + errorMessage);
-                            return;
-                        }
-
-                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, null, title_bytes == null ? cacheData.getTitle().getBytes(StandardCharsets.UTF_8) : title_bytes, isHead, null);
-
-                        logData.setResultURL(cacheData.getTitle());
-                        webhookData.setResult(cacheData.getTitle());
-                        Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                        Function.WebhookData.put(logData.getLogID(), webhookData);
-                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + cacheData.getTitle());
-
-                        Function.addCache((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
-                        return;
-
-                    }
-
-                    // エラー
+                    byte[] title_bytes = Function.compressByte(cacheData.getTitle().getBytes(StandardCharsets.UTF_8), sendContentEncoding);
                     if (errorMessage != null) {
-                        byte[] content2 = Function.getErrorMessageVideo(client, errorMessage);
-                        byte[] bytes = Function.compressByte(content2, sendContentEncoding);
 
-                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, null, bytes == null ? content2 : bytes, isHead, null);
+                        byte[] error = ("エラー : " + errorMessage).getBytes(StandardCharsets.UTF_8);
+                        byte[] bytes = Function.compressByte(error, sendContentEncoding);
 
-                        logData.setErrorMessage(errorMessage);
-                        webhookData.setResult(errorMessage);
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, null, bytes == null ? error : bytes, isHead, null);
 
                         Function.GetURLAccessLog.put(logData.getLogID(), logData);
                         Function.WebhookData.put(logData.getLogID(), webhookData);
-                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + errorMessage);
+                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> エラー : " + errorMessage);
                         return;
                     }
 
-                    if (!cacheData.isRedirect()){
-                        byte[] dummy_bytes = Function.compressByte(cacheData.getDummyHLS(), sendContentEncoding);
-                        byte[] hls_bytes = Function.compressByte(cacheData.getHLS(), sendContentEncoding);
+                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, null, title_bytes == null ? cacheData.getTitle().getBytes(StandardCharsets.UTF_8) : title_bytes, isHead, null);
 
-                        if (cacheData.isHLS()){
-                            if (cacheData.getDummyHLS() != null){
-                                if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
-                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, null, dummy_bytes == null ? cacheData.getDummyHLS() : dummy_bytes, isHead, null);
-                                } else {
-                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, null, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead, null);
-                                }
+                    logData.setResultURL(cacheData.getTitle());
+                    webhookData.setResult(cacheData.getTitle());
+                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
+                    System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + cacheData.getTitle());
+
+                    Function.addCache((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
+                    return;
+
+                }
+
+                // エラー
+                if (errorMessage != null) {
+                    byte[] content2 = Function.getErrorMessageVideo(client, errorMessage);
+                    byte[] bytes = Function.compressByte(content2, sendContentEncoding);
+
+                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, null, bytes == null ? content2 : bytes, isHead, null);
+
+                    logData.setErrorMessage(errorMessage);
+                    webhookData.setResult(errorMessage);
+
+                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
+                    Function.WebhookData.put(logData.getLogID(), webhookData);
+                    System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + errorMessage);
+                    return;
+                }
+
+                if (!cacheData.isRedirect()){
+                    byte[] dummy_bytes = Function.compressByte(cacheData.getDummyHLS(), sendContentEncoding);
+                    byte[] hls_bytes = Function.compressByte(cacheData.getHLS(), sendContentEncoding);
+
+                    if (cacheData.isHLS()){
+                        if (cacheData.getDummyHLS() != null){
+                            if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
+                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, null, dummy_bytes == null ? cacheData.getDummyHLS() : dummy_bytes, isHead, null);
                             } else {
                                 Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, null, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead, null);
                             }
                         } else {
-                            String redirectUrl = "/https/cookie:[" + cacheData.getCookieText() + "]/referer:[" + cacheData.getRefererText() + "]/" + cacheData.getTargetURL().replaceAll("http(.*)://", "");
-                            Function.sendHTTPRequest(sock, httpVersion, 302, null, null, null, null, false, redirectUrl);
+                            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, null, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead, null);
                         }
-
+                    } else {
+                        String redirectUrl = "/https/cookie:[" + cacheData.getCookieText() + "]/referer:[" + cacheData.getRefererText() + "]/" + cacheData.getTargetURL().replaceAll("http(.*)://", "");
+                        Function.sendHTTPRequest(sock, httpVersion, 302, null, null, null, null, false, redirectUrl);
                     }
 
-                    Function.addCache((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
-
-                    return;
-
-                } catch (Exception e){
-                    e.printStackTrace();
-                    byte[] bytes = Function.compressByte(errContent000, sendContentEncoding);
-                    try {
-                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, null, bytes == null ? errContent000 : bytes, isHead, null);
-                    } catch (Exception ex){
-                        ex.printStackTrace();
-                    }
-
-                    logData.setResultURL(e.getMessage());
-                    webhookData.setResult(e.getMessage());
-                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                    Function.WebhookData.put(logData.getLogID(), webhookData);
-
-                    return;
                 }
+
+                Function.addCache((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
+
+                return;
 
             }
 
