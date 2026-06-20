@@ -159,11 +159,13 @@ public class Function {
         sb_header.append("\r\n");
 
         //System.out.println(sb_header);
-        out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
-        if (!isHEAD){
-            out.write(body);
+        if (sock.isConnected()){
+            out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
+            if (!isHEAD){
+                out.write(body);
+            }
+            out.flush();
         }
-        out.flush();
 
         out = null;
         sb_header.setLength(0);
