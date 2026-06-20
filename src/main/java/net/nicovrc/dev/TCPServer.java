@@ -160,7 +160,7 @@ public class TCPServer extends Thread {
                                     String Method = Function.getMethod(request);
 
                                     if (httpVersion != null){
-                                        Function.sendHTTPRequest(sock, httpVersion, 503, textPlain, null, null, "".getBytes(StandardCharsets.UTF_8), Method != null && Method.equalsIgnoreCase("head"));
+                                        Function.sendHTTPRequest(sock, httpVersion, 503, textPlain, null, null, "".getBytes(StandardCharsets.UTF_8), Method != null && Method.equalsIgnoreCase("head"), null);
                                     }
                                     sock.close();
                                 }
@@ -184,7 +184,7 @@ public class TCPServer extends Thread {
                         if (Method == null) {
 
                             byte[] bytes = Function.compressByte(err405, sendContentEncoding);
-                            Function.sendHTTPRequest(sock, HTTPVersion, 405, textPlain, sendContentEncoding, null, bytes == null ? err405 : bytes, false);
+                            Function.sendHTTPRequest(sock, HTTPVersion, 405, textPlain, sendContentEncoding, null, bytes == null ? err405 : bytes, false, null);
 
                             in.close();
                             out.close();
@@ -201,7 +201,7 @@ public class TCPServer extends Thread {
                         final boolean isHead = Method.equals("HEAD");
                         if (HTTPVersion == null) {
                             byte[] bytes = Function.compressByte(err400, sendContentEncoding);
-                            Function.sendHTTPRequest(sock, null, 400, textPlain, sendContentEncoding, null, bytes == null ? err400 : bytes, isHead);
+                            Function.sendHTTPRequest(sock, null, 400, textPlain, sendContentEncoding, null, bytes == null ? err400 : bytes, isHead, null);
 
                             in.close();
                             out.close();
@@ -324,7 +324,7 @@ public class TCPServer extends Thread {
                             }
                         } else {
                             byte[] bytes = Function.compressByte(err400, sendContentEncoding);
-                            Function.sendHTTPRequest(sock, null, 400, textPlain, sendContentEncoding, null, bytes == null ? err400 : bytes, isHead);
+                            Function.sendHTTPRequest(sock, null, 400, textPlain, sendContentEncoding, null, bytes == null ? err400 : bytes, isHead, null);
 
                             in.close();
                             out.close();

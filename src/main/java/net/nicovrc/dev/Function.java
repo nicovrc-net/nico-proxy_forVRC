@@ -129,7 +129,7 @@ public class Function {
         return httpRequest;
     }
 
-    public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, boolean isHEAD) throws Exception {
+    public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, boolean isHEAD, String redirectUrl) throws Exception {
         OutputStream out = sock.getOutputStream();
         StringBuilder sb_header = new StringBuilder();
 
@@ -145,24 +145,33 @@ public class Function {
             case 503 -> sb_header.append("Service Unavailable");
         }
         sb_header.append("\r\n");
-        if (AccessControlAllowOrigin != null){
-            sb_header.append("Access-Control-Allow-Origin: ").append(AccessControlAllowOrigin).append("\r\n");
+
+        if (code != 302){
+            if (AccessControlAllowOrigin != null){
+                sb_header.append("Access-Control-Allow-Origin: ").append(AccessControlAllowOrigin).append("\r\n");
+            }
+            sb_header.append("Content-Length: ").append(body.length).append("\r\n");
+            if (contentEncoding != null && !contentEncoding.isEmpty()) {
+                sb_header.append("Content-Encoding: ").append(contentEncoding).append("\r\n");
+            }
+            sb_header.append("Content-Type: ").append(contentType).append("\r\n");
         }
-        sb_header.append("Content-Length: ").append(body.length).append("\r\n");
-        if (contentEncoding != null && !contentEncoding.isEmpty()) {
-            sb_header.append("Content-Encoding: ").append(contentEncoding).append("\r\n");
-        }
-        sb_header.append("Content-Type: ").append(contentType).append("\r\n");
 
         sb_header.append("Date: ").append(new Date()).append("\r\n");
+
+        if (code == 302 && redirectUrl != null){
+            sb_header.append("Location: ").append(redirectUrl).append("\r\n");
+        }
 
         sb_header.append("\r\n");
 
         //System.out.println(sb_header);
         if (sock.isConnected()){
-            out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
-            if (!isHEAD){
-                out.write(body);
+            if (code != 302){
+                out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
+                if (!isHEAD){
+                    out.write(body);
+                }
             }
             out.flush();
         }

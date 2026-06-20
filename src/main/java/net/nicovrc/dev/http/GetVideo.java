@@ -104,7 +104,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
             if (URL == null) {
                 //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
-                Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8", null, null,"Video Not Found".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8", null, null,"Video Not Found".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"), null);
                 method = null;
                 httpVersion = null;
 
@@ -287,16 +287,13 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     s = null;
                 }
                 //System.out.println("b");
-                Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, null, null, body, method != null && method.equals("HEAD"));
+                Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, null, null, body, method != null && method.equals("HEAD"), null);
                 body = null;
             } else {
 
                 int length = Integer.parseInt(send.headers().firstValue("content-length").isPresent() ? send.headers().firstValue("content-length").get() : "0");
                 int max = length / 10;
                 byte[][] temp = new byte[max][10];
-
-                OutputStream out = sock.getOutputStream();
-                StringBuilder sb_header = new StringBuilder();
 
                 for (int i = 0; i < 10; i++) {
                     int mi = max * i;
@@ -325,21 +322,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 //contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
                 //System.out.println("o : "+contentEncoding);
                 byte[] bytes = concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]);
-                sb_header.append("HTTP/").append(httpVersion == null ? "1.1" : httpVersion).append(" 200 OK\r\n");
-                sb_header.append("Content-Length: ").append(bytes.length).append("\r\n");
-                sb_header.append("Content-Type: ").append(contentType).append("\r\n");
-
-                sb_header.append("Date: ").append(new Date()).append("\r\n");
-
-                sb_header.append("\r\n");
-                out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
-
-                out.write(bytes);
-                out.flush();
-                out = null;
+                Function.sendHTTPRequest(sock, httpVersion, 200, contentType, null, null, bytes, method != null && method.equals("HEAD"), null);
                 bytes = null;
-                sb_header.setLength(0);
-                sb_header = null;
 
             }
             method = null;
