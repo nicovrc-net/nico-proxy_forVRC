@@ -97,7 +97,7 @@ public class bandcamp implements ServiceAPI {
             result1.setTitle(audio[1]);
             result1.setAudioURL(audio[0]);
 
-            client.close();
+            //client.close();
             return gson.toJson(result1);
 
         } catch (Exception e){

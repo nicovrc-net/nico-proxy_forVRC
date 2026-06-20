@@ -79,11 +79,11 @@ public class OPENREC implements ServiceAPI {
                     result.setVideoURL(json.getAsJsonObject().get("media").getAsJsonObject().get("url").getAsString());
                 }
             } else {
-                client.close();
+                //client.close();
                 return Function.gson.toJson(new ErrorMessage("存在しない 配信 または 動画 です"));
             }
 
-            client.close();
+            //client.close();
             return Function.gson.toJson(result);
         } catch (Exception e){
             return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));

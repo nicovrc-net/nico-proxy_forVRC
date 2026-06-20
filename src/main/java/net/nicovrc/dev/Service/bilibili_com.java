@@ -88,7 +88,7 @@ public class bilibili_com implements ServiceAPI {
             }
 
             if (send.statusCode() >= 400){
-                client.close();
+                //client.close();
                 request = null;
                 uri = null;
                 client = null;
@@ -216,7 +216,7 @@ public class bilibili_com implements ServiceAPI {
 
             }
 
-            client.close();
+            //client.close();
             return Function.gson.toJson(result);
         } catch (Exception e){
             e.printStackTrace();

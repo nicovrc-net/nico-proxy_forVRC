@@ -287,7 +287,7 @@ public class NicoVideo implements ServiceAPI {
             if (send.statusCode() >= 400){
                 uri = null;
                 request = null;
-                client.close();
+                //client.close();
                 client = null;
 
                 //System.out.println(jsonText);
@@ -437,7 +437,7 @@ public class NicoVideo implements ServiceAPI {
                         //System.out.println("TEST");
                         uri = null;
                         request = null;
-                        client.close();
+                        //client.close();
                         client = null;
                         /*
                         System.out.println("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")");
@@ -452,7 +452,7 @@ public class NicoVideo implements ServiceAPI {
                     }
                     //System.out.println(body);
                     json = gson.fromJson(jsonText, JsonElement.class);
-                    client.close();
+                    //client.close();
 
                     List<String> cookieTextList = new ArrayList<>();
                     if (!send.headers().allValues("Set-Cookie").isEmpty()){

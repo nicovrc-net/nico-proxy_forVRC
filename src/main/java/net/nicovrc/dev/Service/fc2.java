@@ -122,7 +122,7 @@ public class fc2 implements ServiceAPI {
                 }
 
                 if (send.statusCode() != 200){
-                    client.close();
+                    //client.close();
                     return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
@@ -174,13 +174,13 @@ public class fc2 implements ServiceAPI {
 
                 result.setVideoURL("https://video.fc2.com" + uri);
 
-                client.close();
+                //client.close();
                 return Function.gson.toJson(result);
             } else {
 
                 fc2Result cache = LiveCacheList.get(url);
                 if (cache != null){
-                    client.close();
+                    //client.close();
                     return Function.gson.toJson(cache);
                 }
 
@@ -397,7 +397,7 @@ public class fc2 implements ServiceAPI {
                         webSocket = null;
                     } catch (Exception e) {
                         client2.close();
-                        client.close();
+                        //client.close();
                         return Function.gson.toJson(new ErrorMessage("取得に失敗しました。("+e.getMessage()+")"));
                     }
 
@@ -418,11 +418,11 @@ public class fc2 implements ServiceAPI {
                     //System.out.println("aaaa");
                     LiveCacheList.put(result.getURL(), result);
 
-                    client.close();
+                    //client.close();
                     return Function.gson.toJson(result);
 
                 } else {
-                    client.close();
+                    //client.close();
                     return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
