@@ -104,7 +104,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
             if (URL == null) {
                 //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
-                Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8", null,"Video Not Found".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
+                Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8", null, null,"Video Not Found".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"));
                 method = null;
                 httpVersion = null;
 
@@ -287,7 +287,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     s = null;
                 }
                 //System.out.println("b");
-                Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, null, body, method != null && method.equals("HEAD"));
+                Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, null, null, body, method != null && method.equals("HEAD"));
                 body = null;
             } else {
 

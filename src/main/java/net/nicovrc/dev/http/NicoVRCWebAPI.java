@@ -69,7 +69,7 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
             if (apiList.isEmpty()){
                 // 何もAPI実装されてなければ意味ないので
                 byte[] bytes = Function.compressByte(errorAPINotFound, sendContentEncoding);
-                Function.sendHTTPRequest(sock, httpVersion, 404, contentType_text, sendContentEncoding, bytes == null ? errorAPINotFound : bytes, isHead);
+                Function.sendHTTPRequest(sock, httpVersion, 404, contentType_text, sendContentEncoding, null, bytes == null ? errorAPINotFound : bytes, isHead);
                 return;
             }
 
@@ -94,7 +94,7 @@ public class NicoVRCWebAPI implements Runnable, NicoVRCHTTP {
 
             if (result == null){
                 byte[] bytes = Function.compressByte(errorAPINotFound, sendContentEncoding);
-                Function.sendHTTPRequest(sock, httpVersion, 404, contentType_text, sendContentEncoding, bytes == null ? errorAPINotFound : bytes, isHead);
+                Function.sendHTTPRequest(sock, httpVersion, 404, contentType_text, sendContentEncoding, null, bytes == null ? errorAPINotFound : bytes, isHead);
                 return;
             }
 

@@ -27,7 +27,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.2.4";
+    public static final String Version = "3.3.0";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -127,10 +127,6 @@ public class Function {
         //System.out.println("debug 3");
         //System.gc();
         return httpRequest;
-    }
-
-    public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, byte[] body, boolean isHEAD) throws Exception{
-        sendHTTPRequest(sock, httpVersion, code, contentType, contentEncoding, null, body, isHEAD);
     }
 
     public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, boolean isHEAD) throws Exception {

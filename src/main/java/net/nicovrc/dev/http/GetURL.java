@@ -228,7 +228,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                         byte[] bytes = Function.compressByte(cacheData.getTitle().getBytes(StandardCharsets.UTF_8), sendContentEncoding);
 
-                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, bytes == null ? cacheData.getTitle().getBytes(StandardCharsets.UTF_8) : bytes, isHead);
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, null, bytes == null ? cacheData.getTitle().getBytes(StandardCharsets.UTF_8) : bytes, isHead);
                     } else {
                         if (isHLSDummyPrint){
                             Thread.ofVirtual().start(() -> System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + fCacheData.getTargetURL()));
@@ -256,12 +256,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             if (cacheData.getDummyHLS() != null){
 
                                 if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
-                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, dummy_bytes == null ? cacheData.getDummyHLS() : dummy_bytes, isHead);
+                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, null, dummy_bytes == null ? cacheData.getDummyHLS() : dummy_bytes, isHead);
                                 } else {
-                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
+                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, null, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
                                 }
                             } else {
-                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
+                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, null, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
                             }
                         } else {
                             OutputStream out = sock.getOutputStream();
@@ -427,7 +427,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "対応してないURL");
 
                         byte[] bytes = Function.compressByte(errContent404, sendContentEncoding);
-                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, bytes == null ? errContent404 : bytes, isHead);
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, null, bytes == null ? errContent404 : bytes, isHead);
 
                         return;
                     } else if (hls == null) {
@@ -484,7 +484,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             byte[] error = ("エラー : " + errorMessage).getBytes(StandardCharsets.UTF_8);
                             byte[] bytes = Function.compressByte(error, sendContentEncoding);
 
-                            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, bytes == null ? error : bytes, isHead);
+                            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, null, bytes == null ? error : bytes, isHead);
 
                             Function.GetURLAccessLog.put(logData.getLogID(), logData);
                             Function.WebhookData.put(logData.getLogID(), webhookData);
@@ -492,7 +492,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             return;
                         }
 
-                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, title_bytes == null ? cacheData.getTitle().getBytes(StandardCharsets.UTF_8) : title_bytes, isHead);
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_text, sendContentEncoding, null, title_bytes == null ? cacheData.getTitle().getBytes(StandardCharsets.UTF_8) : title_bytes, isHead);
 
                         logData.setResultURL(cacheData.getTitle());
                         webhookData.setResult(cacheData.getTitle());
@@ -510,7 +510,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         byte[] content2 = Function.getErrorMessageVideo(client, errorMessage);
                         byte[] bytes = Function.compressByte(content2, sendContentEncoding);
 
-                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, bytes == null ? content2 : bytes, isHead);
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, null, bytes == null ? content2 : bytes, isHead);
 
                         logData.setErrorMessage(errorMessage);
                         webhookData.setResult(errorMessage);
@@ -528,12 +528,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         if (cacheData.isHLS()){
                             if (cacheData.getDummyHLS() != null){
                                 if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
-                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, dummy_bytes == null ? cacheData.getDummyHLS() : dummy_bytes, isHead);
+                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, null, dummy_bytes == null ? cacheData.getDummyHLS() : dummy_bytes, isHead);
                                 } else {
-                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
+                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, null, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
                                 }
                             } else {
-                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
+                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, sendContentEncoding, null, hls_bytes == null ? cacheData.getHLS() : hls_bytes, isHead);
                             }
                         } else {
                             OutputStream out = sock.getOutputStream();
@@ -558,7 +558,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     e.printStackTrace();
                     byte[] bytes = Function.compressByte(errContent000, sendContentEncoding);
                     try {
-                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, bytes == null ? errContent000 : bytes, isHead);
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, null, bytes == null ? errContent000 : bytes, isHead);
                     } catch (Exception ex){
                         ex.printStackTrace();
                     }
@@ -582,7 +582,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "内部エラー");
                 byte[] bytes = Function.compressByte(errContent000, sendContentEncoding);
 
-                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, bytes == null ? errContent000 : bytes, isHead);
+                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, null, bytes == null ? errContent000 : bytes, isHead);
             } catch (Exception ex){
                 ex.printStackTrace();
             }
@@ -592,7 +592,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             try {
                 byte[] bytes = Function.compressByte(errContent000, sendContentEncoding);
-                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, bytes == null ? errContent000 : bytes, isHead);
+                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, null, bytes == null ? errContent000 : bytes, isHead);
             } catch (Exception ex){
                 ex.printStackTrace();
             }
@@ -601,7 +601,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         // ここには来ないと思うけど
         try {
             byte[] bytes = Function.compressByte(errContent404, sendContentEncoding);
-            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, bytes == null ? errContent404 : bytes, isHead);
+            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, sendContentEncoding, null, bytes == null ? errContent404 : bytes, isHead);
         } catch (Exception ex){
             ex.printStackTrace();
         }
