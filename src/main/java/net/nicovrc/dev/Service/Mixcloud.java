@@ -103,7 +103,7 @@ public class Mixcloud implements ServiceAPI {
 
             result.setAudioURL(result1.toString());
             result1.setLength(0);
-            client.close();
+            //client.close();
 
             return gson.toJson(result);
 

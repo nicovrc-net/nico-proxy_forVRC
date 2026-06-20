@@ -57,7 +57,7 @@ public class TVer implements ServiceAPI {
         final boolean olympic = matcher5.find();
 
         if (!video1 && !live1 && !live2 && !live3 && !olympic){
-            client.close();
+            //client.close();
             return Function.gson.toJson(new ErrorMessage("対応してないURLです。"));
         }
 
@@ -88,7 +88,7 @@ public class TVer implements ServiceAPI {
                 //System.out.println(text);
 
                 if (!text.startsWith("{") || !text.endsWith("}")){
-                    client.close();
+                    //client.close();
                     return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
@@ -206,10 +206,10 @@ public class TVer implements ServiceAPI {
 
                     result.setVideoURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
                     //return send.body();
-                    client.close();
+                    //client.close();
                     return Function.gson.toJson(result);
                 } else {
-                    client.close();
+                    //client.close();
                     return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
             }
@@ -247,7 +247,7 @@ public class TVer implements ServiceAPI {
                 //System.out.println(send.body());
                 JsonElement json = Function.gson.fromJson(text, JsonElement.class);
                 if (!json.getAsJsonObject().has("result")){
-                    client.close();
+                    //client.close();
                     return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
@@ -323,7 +323,7 @@ public class TVer implements ServiceAPI {
                 }
 
                 if (!text.startsWith("{") || !text.endsWith("}")){
-                    client.close();
+                    //client.close();
                     return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                 }
 
@@ -366,7 +366,7 @@ public class TVer implements ServiceAPI {
 
                 result.setLiveURL(hlsURL + "&"+json.getAsJsonArray().get(0).getAsJsonObject().get("query").getAsString());
 
-                client.close();
+                //client.close();
                 return Function.gson.toJson(result);
             }
 
@@ -571,10 +571,10 @@ public class TVer implements ServiceAPI {
 
                         result.setVideoURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
                         //return text;
-                        client.close();
+                        //client.close();
                         return Function.gson.toJson(result);
                     } else {
-                        client.close();
+                        //client.close();
                         return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                     }
                 }
@@ -584,7 +584,7 @@ public class TVer implements ServiceAPI {
                 json = Function.gson.fromJson(text, JsonElement.class);
                 result.setLiveURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
 
-                client.close();
+                //client.close();
                 return Function.gson.toJson(result);
             }
 
@@ -640,7 +640,7 @@ public class TVer implements ServiceAPI {
                 json = Function.gson.fromJson(text, JsonElement.class);
                 result.setLiveURL(json.getAsJsonObject().get("sources").getAsJsonArray().get(0).getAsJsonObject().get("src").getAsString());
 
-                client.close();
+                //client.close();
                 return Function.gson.toJson(result);
             }
 
@@ -714,13 +714,13 @@ public class TVer implements ServiceAPI {
                 JsonArray sources = json.getAsJsonObject().get("sources").getAsJsonArray();
                 tverResult.setVideoURL(sources.get(0).getAsJsonObject().get("src").getAsString());
 
-                client.close();
+                //client.close();
                 return Function.gson.toJson(tverResult);
             }
 
         } catch (Exception e){
             e.printStackTrace();
-            client.close();
+            //client.close();
             return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
 

@@ -246,7 +246,7 @@ NicoNico_user_session: ""
                     if (send.statusCode() >= 400) {
                         send = null;
                         request = null;
-                        client.close();
+                        //client.close();
                     } else {
                         FileOutputStream stream = new FileOutputStream("./error-video/error_000.mp4");
                         stream.write(send.body());

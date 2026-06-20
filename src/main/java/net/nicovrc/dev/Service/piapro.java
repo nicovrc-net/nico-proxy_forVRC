@@ -73,14 +73,14 @@ public class piapro implements ServiceAPI {
             if (matcher1.find()){
                 url = matcher1.group(1);
             } else {
-                client.close();
+                //client.close();
                 return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
             if (matcher2.find()){
                 Title = matcher2.group(1);
             }
 
-            client.close();
+            //client.close();
 
             piaproResult result = new piaproResult();
             result.setTitle(Title);
@@ -89,7 +89,7 @@ public class piapro implements ServiceAPI {
             return Function.gson.toJson(result);
 
         } catch (Exception e){
-            client.close();
+            //client.close();
             e.printStackTrace();
             return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }

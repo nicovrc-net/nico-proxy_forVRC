@@ -79,12 +79,12 @@ public class Sonicbowl implements ServiceAPI {
                 result.setAudioURL(matcher3.group(1));
             }
 
-            client.close();
+            //client.close();
             return Function.gson.toJson(result);
 
         } catch (Exception e){
             e.printStackTrace();
-            client.close();
+            //client.close();
             return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
 
