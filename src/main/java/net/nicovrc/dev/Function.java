@@ -167,8 +167,8 @@ public class Function {
 
         //System.out.println(sb_header);
         if (sock.isConnected()){
+            out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
             if (code != 302){
-                out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
                 if (!isHEAD){
                     out.write(body);
                 }
