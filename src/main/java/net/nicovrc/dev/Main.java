@@ -188,10 +188,12 @@ NicoNico_user_session: ""
         JedisClientConfig redis_config = null;
         if (redisTLS) {
 
+            SslOptions options = SslOptions.defaults();
+
             redis_config = redisPass != null && redisPass.isEmpty() ? DefaultJedisClientConfig.builder()
-                    .ssl(true)
+                    .sslOptions(options)
                     .build() : DefaultJedisClientConfig.builder()
-                    .ssl(true)
+                    .sslOptions(options)
                     .password(redisPass)
                     .build();
         } else {
@@ -620,7 +622,7 @@ NicoNico_user_session: ""
             Thread.ofVirtual().start(()-> {
                 int[] count = {0};
 
-                String WebhookURL = "";
+                String WebhookURL;
                 try {
                     final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
                     WebhookURL = yamlMapping.string("DiscordWebhookURL");
@@ -633,10 +635,6 @@ NicoNico_user_session: ""
                 }
 
                 try {
-                    final List<String> proxyList = new ArrayList<>();
-                    proxyList.addAll(Function.ProxyList);
-                    proxyList.addAll(Function.JP_ProxyList);
-
                     final HashMap<String, WebhookData> temp = new HashMap<>(Function.WebhookData);
                     Function.WebhookData.clear();
 
@@ -644,12 +642,6 @@ NicoNico_user_session: ""
                     final String finalWebhookURL = WebhookURL;
                     temp.forEach((id, data) -> {
                         try {
-                            int i = !proxyList.isEmpty() ? new SecureRandom().nextInt(0, proxyList.size()) : 0;
-                            String proxy = null;
-                            if (!proxyList.isEmpty()) {
-                                proxy = proxyList.get(i);
-                            }
-
                             SendWebhookData webhookData = new SendWebhookData();
                             webhookData.setUsername("nico-proxy_forVRC (Ver " + Function.Version + ")");
                             webhookData.setAvatar_url("https://r2.7mi.site/vrc/nico/nc296562.png");
