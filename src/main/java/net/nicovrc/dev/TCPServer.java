@@ -288,25 +288,11 @@ public class TCPServer extends Thread {
                                 }
                             }
 
-                            try (HttpClient httpc = (p == null ? HttpClient.newBuilder()
-                                    .version(HttpClient.Version.HTTP_2)
-                                    .followRedirects(HttpClient.Redirect.NORMAL)
-                                    .connectTimeout(Duration.ofSeconds(5))
-                                    .build() : HttpClient.newBuilder()
-                                    .version(HttpClient.Version.HTTP_2)
-                                    .followRedirects(HttpClient.Redirect.NORMAL)
-                                    .connectTimeout(Duration.ofSeconds(5))
-                                    .proxy(ProxySelector.of(new InetSocketAddress(st[0], Integer.parseInt(st[1]))))
-                                    .build())){
-                                vrchttp.setURL(URI);
-                                vrchttp.setHTTPRequest(httpRequest);
-                                vrchttp.setHTTPSocket(sock);
-                                vrchttp.setHTTPClient(client);
-                                Thread start = Thread.ofVirtual().start((Runnable) vrchttp);
-                                //start.join();
-                            } catch (Exception e){
-                                e.printStackTrace();
-                            }
+                            vrchttp.setURL(URI);
+                            vrchttp.setHTTPRequest(httpRequest);
+                            vrchttp.setHTTPSocket(sock);
+                            vrchttp.setHTTPClient(client);
+                            Thread start = Thread.ofVirtual().start((Runnable) vrchttp);
                         } else {
                             Function.sendHTTPRequest(sock, null, 400, textPlain, null, null, err400, isHead, null);
 
