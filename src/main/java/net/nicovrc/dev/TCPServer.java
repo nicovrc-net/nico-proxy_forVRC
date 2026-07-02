@@ -292,7 +292,7 @@ public class TCPServer extends Thread {
                             vrchttp.setHTTPRequest(httpRequest);
                             vrchttp.setHTTPSocket(sock);
                             vrchttp.setHTTPClient(client);
-                            Thread start = Thread.ofVirtual().start((Runnable) vrchttp);
+                            ((Runnable) vrchttp).run();
                         } else {
                             Function.sendHTTPRequest(sock, null, 400, textPlain, null, null, err400, isHead, null);
 
