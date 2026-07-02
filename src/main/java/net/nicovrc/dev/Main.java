@@ -154,6 +154,8 @@ NicoNico_user_session: ""
 
             Function.config_CacheToRedis = yamlMapping.string("CacheToRedis").equals("true");
 
+            Function.DiscordWebhookURL = yamlMapping.string("DiscordWebhookURL");
+
             redisServer = yamlMapping.string("RedisServer");
             redisPass = yamlMapping.string("RedisPass");
             redisPort = yamlMapping.integer("RedisPort");
@@ -172,6 +174,8 @@ NicoNico_user_session: ""
             Function.config_twitcast_ClientSecret = null;
 
             Function.config_CacheToRedis = false;
+
+            Function.DiscordWebhookURL = null;
 
             redisServer = "";
             redisPass = "";
@@ -557,16 +561,20 @@ NicoNico_user_session: ""
                             try {
                                 File file2 = new File("./log/" + id + ".txt");
                                 if (!file2.exists()){
+                                    file2.createNewFile();
                                     PrintWriter writer = new PrintWriter(file2);
                                     writer.print(Function.gson.toJson(value));
                                     writer.close();
                                     writer = null;
                                 } else if (file2.length() == 0){
                                     file2.delete();
+                                    file2.createNewFile();
                                     PrintWriter writer = new PrintWriter(file2);
                                     writer.print(Function.gson.toJson(value));
                                     writer.close();
                                     writer = null;
+                                } else {
+                                    Function.GetURLAccessLog.put(id, value);
                                 }
                             } catch (Exception e) {
                                 e.printStackTrace();
@@ -622,15 +630,9 @@ NicoNico_user_session: ""
             Thread.ofVirtual().start(()-> {
                 int[] count = {0};
 
-                String WebhookURL;
-                try {
-                    final YamlMapping yamlMapping = Yaml.createYamlInput(new File("./config.yml")).readYamlMapping();
-                    WebhookURL = yamlMapping.string("DiscordWebhookURL");
-                } catch (Exception e) {
-                    WebhookURL = "";
-                }
 
-                if (WebhookURL.isEmpty()) {
+
+                if (Function.DiscordWebhookURL == null || Function.DiscordWebhookURL.isEmpty()) {
                     return;
                 }
 
@@ -639,7 +641,7 @@ NicoNico_user_session: ""
                     Function.WebhookData.clear();
 
                     System.out.println("[Info] Webhook送信開始");
-                    final String finalWebhookURL = WebhookURL;
+                    final String finalWebhookURL = Function.DiscordWebhookURL;
                     temp.forEach((id, data) -> {
                         try {
                             SendWebhookData webhookData = new SendWebhookData();

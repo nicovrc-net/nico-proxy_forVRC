@@ -59,6 +59,7 @@ public class Function {
     public static String config_twitcast_ClientId = null;
     public static String config_twitcast_ClientSecret = null;
     public static boolean config_CacheToRedis = false;
+    public static String DiscordWebhookURL = null;
 
     public static RedisClient redisClient = null;
 
