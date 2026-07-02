@@ -561,18 +561,22 @@ NicoNico_user_session: ""
                             try {
                                 File file2 = new File("./log/" + id + ".txt");
                                 if (!file2.exists()){
-                                    file2.createNewFile();
-                                    PrintWriter writer = new PrintWriter(file2);
-                                    writer.print(Function.gson.toJson(value));
-                                    writer.close();
-                                    writer = null;
+                                    try (FileWriter file1 = new FileWriter(file2);
+                                         PrintWriter pw = new PrintWriter(new BufferedWriter(file1))){
+
+                                        pw.print(Function.gson.toJson(value));
+                                    } catch (Exception e){
+                                        //e.printStackTrace();
+                                    }
                                 } else if (file2.length() == 0){
                                     file2.delete();
-                                    file2.createNewFile();
-                                    PrintWriter writer = new PrintWriter(file2);
-                                    writer.print(Function.gson.toJson(value));
-                                    writer.close();
-                                    writer = null;
+                                    try (FileWriter file1 = new FileWriter(file2);
+                                         PrintWriter pw = new PrintWriter(new BufferedWriter(file1))){
+
+                                        pw.print(Function.gson.toJson(value));
+                                    } catch (Exception e){
+                                        //e.printStackTrace();
+                                    }
                                 } else {
                                     Function.GetURLAccessLog.put(id, value);
                                 }
