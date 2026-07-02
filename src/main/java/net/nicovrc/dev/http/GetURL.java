@@ -12,13 +12,11 @@ import net.nicovrc.dev.http.getContent.*;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.OutputStream;
 import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -101,7 +99,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     @Override
     public void run() {
         if (client == null){
-            if (sock != null){
+            if (sock != null && !sock.isClosed()){
                 try {
                     sock.close();
                 } catch (Exception e){
@@ -502,7 +500,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 }
 
                 Function.addCache((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
-                if (sock != null){
+                if (sock != null && !sock.isClosed()){
                     try {
                         sock.close();
                     } catch (Exception e){
@@ -521,7 +519,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 Function.WebhookData.put(logData.getLogID(), webhookData);
                 System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "内部エラー");
                 Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, errContent000, isHead, null);
-                if (sock != null){
+                if (sock != null && !sock.isClosed()){
                     try {
                         sock.close();
                     } catch (Exception e){
@@ -537,7 +535,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             try {
                 Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, errContent000, isHead, null);
-                if (sock != null){
+                if (sock != null && !sock.isClosed()){
                     try {
                         sock.close();
                     } catch (Exception ex){
@@ -552,7 +550,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         // ここには来ないと思うけど
         try {
             Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, errContent404, isHead, null);
-            if (sock != null){
+            if (sock != null && !sock.isClosed()){
                 try {
                     sock.close();
                 } catch (Exception ex){
