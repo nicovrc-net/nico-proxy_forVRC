@@ -135,13 +135,6 @@ public class TCPServer extends Thread {
                 final Socket sock = svSock.accept();
                 Thread thread = Thread.ofVirtual().start(() -> {
                     try {
-                        if (!sock.isConnected()){
-                            return;
-                        }
-
-                        if (sock.isClosed()){
-                            return;
-                        }
 
                         String httpRequest = Function.getHTTPRequest(sock);
                         //System.out.println(httpRequest);
