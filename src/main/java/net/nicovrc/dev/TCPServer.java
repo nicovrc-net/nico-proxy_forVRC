@@ -1,5 +1,8 @@
 package net.nicovrc.dev;
 
+import net.nicovrc.dev.Service.Vimeo;
+import net.nicovrc.dev.api.GetSupportList;
+import net.nicovrc.dev.api.Test;
 import net.nicovrc.dev.http.*;
 
 import java.io.File;
@@ -92,7 +95,7 @@ public class TCPServer extends Thread {
                     file.delete();
                     file2.delete();
                 });
-
+/*
                 Thread.ofVirtual().start(()->{
                     try {
                         if (!temp[0]){
@@ -104,8 +107,7 @@ public class TCPServer extends Thread {
                         try {
                             Socket socket = new Socket("127.0.0.1", HTTPPort);
                             OutputStream stream = socket.getOutputStream();
-                            stream.write(Function.zeroByte);
-                            stream.close();
+                            stream.write(("server-check_"+Function.Version).getBytes(StandardCharsets.UTF_8));
                             socket.close();
                         } catch (Exception e){
                             file.createNewFile();
@@ -114,7 +116,7 @@ public class TCPServer extends Thread {
                     } catch (Exception e){
                         e.printStackTrace();
                     }
-                });
+                });*/
             }
         }, 1000L, 1000L);
     }
@@ -136,204 +138,110 @@ public class TCPServer extends Thread {
         while (temp[0]) {
             try {
                 final Socket sock = svSock.accept();
-                Thread thread = Thread.ofVirtual().start(() -> {
+                Thread.ofVirtual().start(() -> {
                     try {
-                        if (!sock.isConnected()){
-                            sock.close();
+                        System.out.println("A");
+
+                        if (!sock.isConnected()) {
                             return;
                         }
 
-                        if (sock.isClosed()){
-                            sock.close();
+                        if (sock.isClosed()) {
                             return;
                         }
+                        System.out.println("B");
 
-                        String httpRequest = Function.getHTTPRequest(sock);
+                        final String httpRequest = Function.getHTTPRequest(sock);
                         //System.out.println(httpRequest);
+                        System.out.println("C");
+
                         if (httpRequest == null) {
-                            sock.close();
                             return;
                         }
-/*
-                        Thread.ofVirtual().start(() -> {
-                            try {
-                                Thread.sleep(6000L);
+                        System.out.println("D");
 
-                                if (!sock.isClosed()){
-                                    String request = Function.getHTTPRequest(sock);
-                                    String httpVersion = Function.getHTTPVersion(request);
-                                    String Method = Function.getMethod(request);
 
-                                    if (httpVersion != null){
-                                        Function.sendHTTPRequest(sock, httpVersion, 503, textPlain, null, null, "Server Maintenance".getBytes(StandardCharsets.UTF_8), Method != null && Method.equalsIgnoreCase("head"), null);
-                                    }
-                                    sock.close();
-                                }
-                            } catch (Exception e){
-                                //e.printStackTrace();
-                            }
-                        });*/
+                        final String httpVersion = Function.getHTTPVersion(httpRequest);
+                        final String httpMethod = Function.getMethod(httpRequest);
 
-                        //System.out.println(httpRequest);
+                        final boolean isGET = httpMethod != null && httpMethod.equals("GET");
+                        final boolean isPOST = httpMethod != null && httpMethod.equals("POST");
+                        final boolean isHead = httpMethod != null && httpMethod.equals("HEAD");
 
-                        String HTTPVersion = Function.getHTTPVersion(httpRequest);
-                        String Method = Function.getMethod(httpRequest);
+                        System.out.println("AAAA");
 
-                        if (Method == null) {
-
-                            byte[] bytes = err405;
-                            Function.sendHTTPRequest(sock, HTTPVersion, 405, textPlain, null, null, err405, false, null);
+                        if (!isGET && !isPOST && !isHead) {
+                            //System.out.println("[Debug] HTTPRequest送信");
+                            Function.sendHTTPRequest(sock, httpVersion, 405, textPlain, null, "*", Function.contentMethodNotAllowed, false, null);
                             sock.close();
 
-                            HTTPVersion = null;
-                            httpRequest = null;
                             return;
                         }
 
-                        final boolean isHead = Method.equals("HEAD");
-                        if (HTTPVersion == null) {
-                            Function.sendHTTPRequest(sock, null, 400, textPlain, null, null, err400, isHead, null);
+                        final String URI = Function.getURI(httpRequest);
+
+                        if (URI == null) {
+                            //System.out.println("[Debug] HTTPRequest送信");
+                            Function.sendHTTPRequest(sock, httpVersion, 502, textPlain, null, "*", Function.contentBadGateway, isHead, null);
                             sock.close();
 
-                            httpRequest = null;
-                            Method = null;
                             return;
                         }
 
-                        String URI = Function.getURI(httpRequest);
-                        //System.out.println("[Debug] " + URI);
+                        final boolean ApiMatchFlag = URI.startsWith("/api/");
+                        final boolean UrlMatchFlag = URI.startsWith("/?url=") || URI.matches(".*url=.*");
+                        final boolean VideoMatchFlag = URI.startsWith("/https");
 
-                        // それぞれの処理へ飛ぶ
-                        String[] split = URI.split("\\?");
+                        System.out.println("AAAB : " + URI);
 
-                        String s = "";
-                        //System.out.println("debug0 : " + split.length);
-                        if (split.length == 1){
-                            s = "/" + split[0].split("/")[1] + "/";
-                            //System.out.println("debug1 : "+s);
-                        }
-                        if (split.length >= 2){
-                            s = split[0];
-                            //System.out.println("debug2 : "+s);
-                            if (split[0].startsWith("/api")) {
-                                s = "/" + split[0].split("/")[1] + "/";
-                            } else if (split[0].startsWith("/dummy")){
-                                s = "/dummy.m3u8";
-                            } else if (split[1].startsWith("url") || URI.matches(".*&url=.*")){
-                                s = s + "?url=";
-                            } else if (split[1].startsWith("dummy")){
-                                s = s + "?dummy=";
-                            } else if (split[1].startsWith("vi")){
-                                s = s + "?vi=";
-                            } else if (split[0].startsWith("/proxy")){
-                                s = s + "?";
-                            } else if (split[0].startsWith("http") || split[0].startsWith("/http")){
-                                s = "/https/";
+                        if (ApiMatchFlag){
+                            System.out.println("AAAC");
+                            Test test = new Test();
+                            GetSupportList support = new GetSupportList();
+                            if (URI.startsWith(test.getURI())){
+                                Function.sendHTTPRequest(sock, httpVersion, 200, "application/json; charset=utf-8", null, "*", test.Run(httpRequest, client).getBytes(StandardCharsets.UTF_8), isHead, null);
                             }
-                        }
-
-                        //System.out.println(s);
-                        NicoVRCHTTP vrchttp = httpService.get(s.substring(0, Math.min(s.length(), 15)));
-                        if (vrchttp != null){
-                            // Proxy
-                            String p = null;
-                            String[] st = null;
-                            if (!Function.ProxyList.isEmpty()){
-                                int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-                                p = Function.ProxyList.get(i);
-                                st = p.split(":");
+                            if (URI.startsWith(support.getURI())){
+                                Function.sendHTTPRequest(sock, httpVersion, 200, "application/json; charset=utf-8", null, "*", support.Run(httpRequest, client).getBytes(StandardCharsets.UTF_8), isHead, null);
                             }
-
-
-                            final String url = URI.split("\\?")[0];
-                            final Matcher matcher_normal = Function.NicoID1.matcher(url);
-                            final Matcher matcher_short_video = Function.NicoID_short.matcher(url);
-                            final Matcher matcher_short = Function.NicoID2.matcher(url);
-                            final Matcher matcher_cas = Function.NicoID3.matcher(url);
-                            final Matcher matcher_idOnly = Function.NicoID4.matcher(url);
-
-                            final boolean isNormal = matcher_normal.find();
-                            final boolean isShortVideo = matcher_short_video.find();
-                            final boolean isShort = matcher_short.find();
-                            final boolean isCas = matcher_cas.find();
-                            final boolean isID = matcher_idOnly.find();
-
-                            String id = "";
-
-                            if (isID){
-                                id = matcher_idOnly.group(1);
-                            } else if (isNormal){
-                                id = matcher_normal.group(3);
-                            } else if (isShortVideo){
-                                id = matcher_short_video.group(2);
-                            } else if (isShort) {
-                                id = matcher_short.group(2);
-                            }
-
-                            if (isID || isNormal || isShort || isShortVideo){
-                                if (id.startsWith("lv") || id.startsWith("so")){
-                                    if (!Function.JP_ProxyList.isEmpty()){
-                                        int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
-                                        p = Function.JP_ProxyList.get(i);
-                                        st = p.split(":");
-                                    }
-                                }
-                            }
-
-                            if (isCas){
-                                if (!Function.JP_ProxyList.isEmpty()){
-                                    int i = Function.JP_ProxyList.size() > 1 ? new SecureRandom().nextInt(0, Function.JP_ProxyList.size()) : 0;
-                                    p = Function.JP_ProxyList.get(i);
-                                    st = p.split(":");
-                                }
-                            }
-
-                            vrchttp.setURL(URI);
-                            vrchttp.setHTTPRequest(httpRequest);
-                            vrchttp.setHTTPSocket(sock);
-                            vrchttp.setHTTPClient(client);
-                            ((Runnable) vrchttp).run();
-                        } else {
-                            Function.sendHTTPRequest(sock, null, 400, textPlain, null, null, err400, isHead, null);
-
                             sock.close();
-
-                            URI = null;
-                            httpRequest = null;
                             return;
                         }
 
-                        //sock.close();
-                        URI = null;
-                        httpRequest = null;
+                        if (VideoMatchFlag){
+                            System.out.println("AAAC-3");
+                            GetVideo getVideo = new GetVideo();
+                            getVideo.setHTTPRequest(httpRequest);
+                            getVideo.setURL(URI);
+                            getVideo.setHTTPSocket(sock);
+                            getVideo.run();
+                            sock.close();
+                            return;
+                        }
+
+                        if (UrlMatchFlag){
+                            System.out.println("AAAC-2");
+                            GetURL getURL = new GetURL();
+                            getURL.setHTTPClient(client);
+                            getURL.setHTTPRequest(httpRequest);
+                            getURL.setURL(URI);
+                            getURL.setHTTPSocket(sock);
+                            getURL.run();
+                            sock.close();
+                            return;
+                        }
+
+                        Function.sendHTTPRequest(sock, httpVersion, 404, textPlain, null, "*", Function.contentNotFound, isHead, null);
+                        sock.close();
+
+
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        throw new RuntimeException(e);
                     }
                 });
-                try {
-                    final Thread finalThread = thread;
-                    Thread.ofVirtual().start(()->{
-                        try {
-                            Thread.sleep(60000L);
-                            while (sock.isConnected()){
-                                Thread.sleep(1000L);
-                            }
-                            if (finalThread.isAlive()){
-                                finalThread.interrupt();
-                            }
-                        } catch (Exception e){
-                            // e.printStackTrace();
-                        }
-                    });
-                    //thread.join();
-                } catch (Exception e){
-                    e.printStackTrace();
-                }
-                //thread = null;
-                //sock.close();
             } catch (Exception e) {
-                e.printStackTrace();
-                temp[0] = false;
+                Function.checkTimer.cancel();
+                break;
             }
         }
         try {

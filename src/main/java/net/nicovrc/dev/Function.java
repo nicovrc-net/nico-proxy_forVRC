@@ -27,7 +27,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.3.0";
+    public static final String Version = "3.3.1-beta";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -46,6 +46,13 @@ public class Function {
     private static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, WebhookData> WebhookData = new ConcurrentHashMap<>();
 
+    public static final byte[] contentBadGateway = "Bad Gateway".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] contentNotFound = "Not Found".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] contentNotFound2 = "URL Not Found".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] contentMethodNotAllowed = "Method Not Allowed".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] contentNotImage = "Not Image".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] contentFileNotFound = "File Not Found".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] contentFileNotSupport = "File Not Support".getBytes(StandardCharsets.UTF_8);
 
     public static final Timer mainTimer = new Timer();
     public static final Timer checkTimer = new Timer();
