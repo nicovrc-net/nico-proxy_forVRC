@@ -1,6 +1,7 @@
 package net.nicovrc.dev;
 
 import com.google.gson.Gson;
+import net.nicovrc.dev.api.NicoVRCAPI;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.data.WebhookData;
@@ -36,6 +37,8 @@ public class Function {
 
     public static final List<String> ProxyList = new ArrayList<>();
     public static final List<String> JP_ProxyList = new ArrayList<>();
+
+    public static final List<NicoVRCAPI> APIList = new ArrayList<>();
 
     private static final Pattern HTTPVersion = Pattern.compile("HTTP/(\\d+\\.\\d+)");
     private static final Pattern HTTP = Pattern.compile("(CONNECT|DELETE|GET|HEAD|OPTIONS|PATCH|POST|PUT|TRACE) (.+) HTTP/(\\d\\.\\d)");

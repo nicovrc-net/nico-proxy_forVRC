@@ -2,6 +2,7 @@ package net.nicovrc.dev;
 
 import net.nicovrc.dev.Service.Vimeo;
 import net.nicovrc.dev.api.GetSupportList;
+import net.nicovrc.dev.api.NicoVRCAPI;
 import net.nicovrc.dev.api.Test;
 import net.nicovrc.dev.http.*;
 
@@ -26,33 +27,12 @@ public class TCPServer extends Thread {
     private final int HTTPPort;
     private final boolean[] temp = {true};
 
-
-    private final HashMap<String, NicoVRCHTTP> httpService = new HashMap<>();
     private final HttpClient client;
 
     private final String textPlain = "text/plain; charset=utf-8";
-    private final byte[] err400 = "Bad Request".getBytes(StandardCharsets.UTF_8);
-    private final byte[] err405 = "Not Support Method".getBytes(StandardCharsets.UTF_8);
 
     public TCPServer(HttpClient client){
-        final GetURL getURL = new GetURL();
-        final GetURL_dummy getURLDummy = new GetURL_dummy();
-        final GetURL_dummy2 getURLDummy2 = new GetURL_dummy2();
-        final GetURL_old1 getURLOld1 = new GetURL_old1();
-        final GetURL_old2 getURLOld2 = new GetURL_old2();
-        final GetVideo getVideo = new GetVideo();
-        final NicoVRCWebAPI nicoVRCWebAPI = new NicoVRCWebAPI();
-
         this.client = client;
-
-        httpService.put(getURL.getStartURI().substring(0, Math.min(getURL.getStartURI().length(), 15)), getURL);
-        httpService.put(getURLDummy.getStartURI().substring(0, Math.min(getURLDummy.getStartURI().length(), 15)), getURLDummy);
-        httpService.put(getURLDummy2.getStartURI().substring(0, Math.min(getURLDummy2.getStartURI().length(), 15)), getURLDummy2);
-        httpService.put(getURLOld1.getStartURI().substring(0, Math.min(getURLOld1.getStartURI().length(), 15)), getURLOld1);
-        httpService.put(getURLOld2.getStartURI().substring(0, Math.min(getURLOld2.getStartURI().length(), 15)), getURLOld2);
-        httpService.put(getVideo.getStartURI().substring(0, Math.min(getVideo.getStartURI().length(), 15)), getVideo);
-        httpService.put(nicoVRCWebAPI.getStartURI().substring(0, Math.min(nicoVRCWebAPI.getStartURI().length(), 15)), nicoVRCWebAPI);
-
         this.HTTPPort = Function.config_httpPort;
 
         // 停止監視 & 死活監視
@@ -196,13 +176,12 @@ public class TCPServer extends Thread {
 
                         if (ApiMatchFlag){
                             //System.out.println("AAAC");
-                            Test test = new Test();
-                            GetSupportList support = new GetSupportList();
-                            if (URI.startsWith(test.getURI())){
-                                Function.sendHTTPRequest(sock, httpVersion, 200, "application/json; charset=utf-8", null, "*", test.Run(httpRequest, client).getBytes(StandardCharsets.UTF_8), isHead, null);
-                            }
-                            if (URI.startsWith(support.getURI())){
-                                Function.sendHTTPRequest(sock, httpVersion, 200, "application/json; charset=utf-8", null, "*", support.Run(httpRequest, client).getBytes(StandardCharsets.UTF_8), isHead, null);
+
+                            for (NicoVRCAPI api : Function.APIList) {
+                                if (URI.startsWith(api.getURI())){
+                                    Function.sendHTTPRequest(sock, httpVersion, 200, "application/json; charset=utf-8", null, "*", api.Run(httpRequest, client).getBytes(StandardCharsets.UTF_8), isHead, null);
+                                    break;
+                                }
                             }
                             sock.close();
                             return;

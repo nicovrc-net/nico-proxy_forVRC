@@ -4,6 +4,7 @@ import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlSequence;
 import com.google.gson.JsonElement;
+import net.nicovrc.dev.api.*;
 import net.nicovrc.dev.data.*;
 import redis.clients.jedis.*;
 
@@ -131,6 +132,14 @@ NicoNico_user_session: ""
 
             return;
         }
+
+        // API設定
+        Function.APIList.add(new AddCache());
+        Function.APIList.add(new GetCacheList());
+        Function.APIList.add(new GetSupportList());
+        Function.APIList.add(new GetVersion());
+        Function.APIList.add(new GetVideoInfo());
+        Function.APIList.add(new Test());
 
         file1 = null;
         // 設定読み込み
