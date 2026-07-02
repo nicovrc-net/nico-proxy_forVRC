@@ -245,12 +245,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             if (cacheData.getDummyHLS() != null){
 
                                 if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
-                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, null, null, dummy_bytes == null ? hls_bytes : dummy_bytes, isHead, null);
+                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, null, null, dummy_bytes, isHead, null);
                                 } else {
-                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, null, null, hls_bytes == null ? dummy_bytes : hls_bytes, isHead, null);
+                                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, null, null, hls_bytes, isHead, null);
                                 }
                             } else {
-                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, null, null, hls_bytes == null ? dummy_bytes : hls_bytes, isHead, null);
+                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, null, null, hls_bytes, isHead, null);
                             }
                         } else {
 
@@ -487,12 +487,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     if (cacheData.isHLS()){
                         if (cacheData.getDummyHLS() != null){
                             if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
-                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, null, null, dummy_bytes == null ? hls_bytes : dummy_bytes, isHead, null);
+                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, null, null, dummy_bytes, isHead, null);
                             } else {
-                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, null, null, hls_bytes == null ? dummy_bytes : hls_bytes, isHead, null);
+                                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, null, null, hls_bytes, isHead, null);
                             }
                         } else {
-                            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, null, null, hls_bytes == null ? dummy_bytes : hls_bytes, isHead, null);
+                            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_hls, null, null, hls_bytes, isHead, null);
                         }
                     } else {
                         String redirectUrl = "/https/cookie:[" + cacheData.getCookieText() + "]/referer:[" + cacheData.getRefererText() + "]/" + cacheData.getTargetURL().replaceAll("http(.*)://", "");
