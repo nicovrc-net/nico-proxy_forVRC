@@ -140,7 +140,7 @@ public class TCPServer extends Thread {
                 final Socket sock = svSock.accept();
                 Thread.ofVirtual().start(() -> {
                     try {
-                        System.out.println("A");
+                        //System.out.println("A");
 
                         if (!sock.isConnected()) {
                             return;
@@ -149,16 +149,16 @@ public class TCPServer extends Thread {
                         if (sock.isClosed()) {
                             return;
                         }
-                        System.out.println("B");
+                        //System.out.println("B");
 
                         final String httpRequest = Function.getHTTPRequest(sock);
                         //System.out.println(httpRequest);
-                        System.out.println("C");
+                        //System.out.println("C");
 
                         if (httpRequest == null) {
                             return;
                         }
-                        System.out.println("D");
+                        //System.out.println("D");
 
 
                         final String httpVersion = Function.getHTTPVersion(httpRequest);
@@ -168,7 +168,7 @@ public class TCPServer extends Thread {
                         final boolean isPOST = httpMethod != null && httpMethod.equals("POST");
                         final boolean isHead = httpMethod != null && httpMethod.equals("HEAD");
 
-                        System.out.println("AAAA");
+                        //System.out.println("AAAA");
 
                         if (!isGET && !isPOST && !isHead) {
                             //System.out.println("[Debug] HTTPRequest送信");
@@ -192,10 +192,10 @@ public class TCPServer extends Thread {
                         final boolean UrlMatchFlag = URI.startsWith("/?url=") || URI.matches(".*url=.*");
                         final boolean VideoMatchFlag = URI.startsWith("/https");
 
-                        System.out.println("AAAB : " + URI);
+                        //System.out.println("AAAB : " + URI);
 
                         if (ApiMatchFlag){
-                            System.out.println("AAAC");
+                            //System.out.println("AAAC");
                             Test test = new Test();
                             GetSupportList support = new GetSupportList();
                             if (URI.startsWith(test.getURI())){
@@ -209,7 +209,7 @@ public class TCPServer extends Thread {
                         }
 
                         if (VideoMatchFlag){
-                            System.out.println("AAAC-3");
+                            //System.out.println("AAAC-3");
                             GetVideo getVideo = new GetVideo();
                             getVideo.setHTTPClient(client);
                             getVideo.setHTTPRequest(httpRequest);
@@ -221,7 +221,7 @@ public class TCPServer extends Thread {
                         }
 
                         if (UrlMatchFlag){
-                            System.out.println("AAAC-2");
+                            //System.out.println("AAAC-2");
                             GetURL getURL = new GetURL();
                             getURL.setHTTPClient(client);
                             getURL.setHTTPRequest(httpRequest);
