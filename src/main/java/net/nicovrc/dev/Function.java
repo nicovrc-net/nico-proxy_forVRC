@@ -186,7 +186,7 @@ public class Function {
         String httpHeader = createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, false, -1, -1, -1);
 
         //System.out.println(sb_header);
-        if (sock.isConnected() && !sock.isClosed()){
+        if (!sock.isClosed()){
             out.write(httpHeader.getBytes(StandardCharsets.UTF_8));
             if (code != 302){
                 if (!isHEAD){
