@@ -135,18 +135,18 @@ public class TCPServer extends Thread {
                 final Socket sock = svSock.accept();
                 Thread thread = Thread.ofVirtual().start(() -> {
                     try {
-                        InputStream in = sock.getInputStream();
-                        OutputStream out = sock.getOutputStream();
+                        if (!sock.isConnected()){
+                            return;
+                        }
+
+                        if (sock.isClosed()){
+                            return;
+                        }
 
                         String httpRequest = Function.getHTTPRequest(sock);
                         //System.out.println(httpRequest);
                         if (httpRequest == null) {
-                            in.close();
-                            out.close();
                             sock.close();
-
-                            in = null;
-                            out = null;
                             return;
                         }
 
@@ -185,14 +185,8 @@ public class TCPServer extends Thread {
 
                             byte[] bytes = Function.compressByte(err405, sendContentEncoding);
                             Function.sendHTTPRequest(sock, HTTPVersion, 405, textPlain, sendContentEncoding, null, bytes == null ? err405 : bytes, false, null);
-
-                            in.close();
-                            out.close();
                             sock.close();
 
-
-                            in = null;
-                            out = null;
                             HTTPVersion = null;
                             httpRequest = null;
                             return;
@@ -202,14 +196,8 @@ public class TCPServer extends Thread {
                         if (HTTPVersion == null) {
                             byte[] bytes = Function.compressByte(err400, sendContentEncoding);
                             Function.sendHTTPRequest(sock, null, 400, textPlain, sendContentEncoding, null, bytes == null ? err400 : bytes, isHead, null);
-
-                            in.close();
-                            out.close();
                             sock.close();
 
-
-                            in = null;
-                            out = null;
                             httpRequest = null;
                             Method = null;
                             return;
@@ -326,23 +314,14 @@ public class TCPServer extends Thread {
                             byte[] bytes = Function.compressByte(err400, sendContentEncoding);
                             Function.sendHTTPRequest(sock, null, 400, textPlain, sendContentEncoding, null, bytes == null ? err400 : bytes, isHead, null);
 
-                            in.close();
-                            out.close();
                             sock.close();
 
-
-                            in = null;
-                            out = null;
                             URI = null;
                             httpRequest = null;
                             return;
                         }
 
-                        in.close();
-                        out.close();
                         sock.close();
-                        in = null;
-                        out = null;
                         URI = null;
                         httpRequest = null;
                     } catch (Exception e) {
@@ -350,6 +329,17 @@ public class TCPServer extends Thread {
                     }
                 });
                 try {
+                    final Thread finalThread = thread;
+                    Thread.ofVirtual().start(()->{
+                        try {
+                            Thread.sleep(10000L);
+                            if (finalThread.isAlive()){
+                                finalThread.interrupt();
+                            }
+                        } catch (Exception e){
+                            // e.printStackTrace();
+                        }
+                    });
                     thread.join();
                 } catch (Exception e){
                     e.printStackTrace();

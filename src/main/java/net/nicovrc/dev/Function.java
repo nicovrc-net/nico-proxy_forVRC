@@ -166,7 +166,7 @@ public class Function {
         sb_header.append("\r\n");
 
         //System.out.println(sb_header);
-        if (sock.isConnected()){
+        if (sock.isConnected() && !sock.isClosed()){
             out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
             if (code != 302){
                 if (!isHEAD){

@@ -9,7 +9,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -36,6 +35,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final String http = "https://";
 
     private final byte[] content;
+    private final byte[] video_not_found_text = "Video Not Found".getBytes(StandardCharsets.UTF_8);
 
     public GetVideo(){
         byte[] content = Function.zeroByte;
@@ -104,7 +104,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
             if (URL == null) {
                 //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
-                Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8", null, null,"Video Not Found".getBytes(StandardCharsets.UTF_8), method != null && method.equals("HEAD"), null);
+                Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8", null, null, video_not_found_text, method != null && method.equals("HEAD"), null);
                 method = null;
                 httpVersion = null;
 

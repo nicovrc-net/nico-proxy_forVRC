@@ -617,7 +617,7 @@ NicoNico_user_session: ""
 
     }
 
-    private static void SendWebhook(HttpClient client) throws Exception{
+    private static void SendWebhook(HttpClient client) throws Exception {
         if (!Function.WebhookData.isEmpty()){
             Thread.ofVirtual().start(()-> {
                 int[] count = {0};
