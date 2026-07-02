@@ -288,7 +288,7 @@ public class TCPServer extends Thread {
                                 }
                             }
 
-                            try (HttpClient httpClient = (p == null ? HttpClient.newBuilder()
+                            try (HttpClient httpc = (p == null ? HttpClient.newBuilder()
                                     .version(HttpClient.Version.HTTP_2)
                                     .followRedirects(HttpClient.Redirect.NORMAL)
                                     .connectTimeout(Duration.ofSeconds(5))
@@ -301,7 +301,7 @@ public class TCPServer extends Thread {
                                 vrchttp.setURL(URI);
                                 vrchttp.setHTTPRequest(httpRequest);
                                 vrchttp.setHTTPSocket(sock);
-                                vrchttp.setHTTPClient(httpClient);
+                                vrchttp.setHTTPClient(httpc);
                                 Thread start = Thread.ofVirtual().start((Runnable) vrchttp);
                                 //start.join();
                             } catch (Exception e){
