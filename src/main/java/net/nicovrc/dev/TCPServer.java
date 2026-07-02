@@ -211,6 +211,7 @@ public class TCPServer extends Thread {
                         if (VideoMatchFlag){
                             System.out.println("AAAC-3");
                             GetVideo getVideo = new GetVideo();
+                            getVideo.setHTTPClient(client);
                             getVideo.setHTTPRequest(httpRequest);
                             getVideo.setURL(URI);
                             getVideo.setHTTPSocket(sock);
