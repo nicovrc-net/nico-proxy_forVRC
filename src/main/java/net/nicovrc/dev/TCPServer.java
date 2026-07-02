@@ -347,7 +347,7 @@ public class TCPServer extends Thread {
                 } catch (Exception e){
                     e.printStackTrace();
                 }
-                thread = null;
+                //thread = null;
                 //sock.close();
             } catch (Exception e) {
                 e.printStackTrace();
