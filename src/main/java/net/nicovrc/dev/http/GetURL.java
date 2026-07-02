@@ -45,7 +45,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern ffmpegUA = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
 
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
-    private final Pattern avpro_ua = Pattern.compile("(NSPlayer|AVPro)");
+    private final Pattern avpro_ua = Pattern.compile("(NSPlayer|AVPro|AppleCoreMedia)");
 
     private byte[] errContent000;
     private byte[] errContent404;
@@ -383,8 +383,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     Function.WebhookData.put(logData.getLogID(), webhookData);
                     System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "対応してないURL");
 
-                    byte[] bytes = errContent404;
-                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, bytes != null ? errContent404 : new byte[0], isHead, null);
+                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, errContent404, isHead, null);
 
                     return;
                 } else if (hls == null) {
