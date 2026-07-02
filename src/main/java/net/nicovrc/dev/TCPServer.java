@@ -332,7 +332,10 @@ public class TCPServer extends Thread {
                     final Thread finalThread = thread;
                     Thread.ofVirtual().start(()->{
                         try {
-                            Thread.sleep(10000L);
+                            Thread.sleep(60000L);
+                            while (sock.isConnected()){
+                                Thread.sleep(1000L);
+                            }
                             if (finalThread.isAlive()){
                                 finalThread.interrupt();
                             }
@@ -340,12 +343,12 @@ public class TCPServer extends Thread {
                             // e.printStackTrace();
                         }
                     });
-                    thread.join();
+                    //thread.join();
                 } catch (Exception e){
                     e.printStackTrace();
                 }
                 thread = null;
-                sock.close();
+                //sock.close();
             } catch (Exception e) {
                 e.printStackTrace();
                 temp[0] = false;

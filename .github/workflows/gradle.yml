@@ -578,6 +578,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
+            - HTTP分割ダウンロードに対応
             - 内部リファクタリング
             - バグ修正
           draft: false

@@ -130,14 +130,14 @@ public class Function {
         return httpRequest;
     }
 
-    public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, boolean isHEAD, String redirectUrl) throws Exception {
-        OutputStream out = sock.getOutputStream();
+    private static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl,boolean isRange, long rangeStart, long rangeEnd, long rangeSize){
         StringBuilder sb_header = new StringBuilder();
 
         sb_header.append("HTTP/").append(httpVersion == null ? "1.1" : httpVersion);
         sb_header.append(" ").append(code).append(" ");
         switch (code) {
             case 200 -> sb_header.append("OK");
+            case 206 -> sb_header.append("Partial Content");
             case 302 -> sb_header.append("Found");
             case 400 -> sb_header.append("Bad Request");
             case 403 -> sb_header.append("Forbidden");
@@ -151,11 +151,18 @@ public class Function {
             if (AccessControlAllowOrigin != null){
                 sb_header.append("Access-Control-Allow-Origin: ").append(AccessControlAllowOrigin).append("\r\n");
             }
+            if (isRange){
+                sb_header.append("Accept-Ranges: bytes\r\n");
+            }
             sb_header.append("Content-Length: ").append(body.length).append("\r\n");
             if (contentEncoding != null && !contentEncoding.isEmpty()) {
                 sb_header.append("Content-Encoding: ").append(contentEncoding).append("\r\n");
             }
             sb_header.append("Content-Type: ").append(contentType).append("\r\n");
+
+            if (isRange){
+                sb_header.append("Content-Ranges: ").append(rangeStart).append("-").append(rangeEnd).append("/").append(rangeSize).append("\r\n");
+            }
         }
 
         sb_header.append("Date: ").append(new Date()).append("\r\n");
@@ -165,10 +172,22 @@ public class Function {
         }
 
         sb_header.append("\r\n");
+        String httpRequest = sb_header.toString();
+        sb_header.setLength(0);
+        sb_header = null;
+
+        //System.out.println(httpRequest);
+        return httpRequest;
+
+    }
+
+    public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, boolean isHEAD, String redirectUrl) throws Exception {
+        OutputStream out = sock.getOutputStream();
+        String httpHeader = createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, false, -1, -1, -1);
 
         //System.out.println(sb_header);
         if (sock.isConnected() && !sock.isClosed()){
-            out.write(sb_header.toString().getBytes(StandardCharsets.UTF_8));
+            out.write(httpHeader.getBytes(StandardCharsets.UTF_8));
             if (code != 302){
                 if (!isHEAD){
                     out.write(body);
@@ -178,8 +197,26 @@ public class Function {
         }
 
         out = null;
-        sb_header.setLength(0);
-        sb_header = null;
+
+    }
+
+    public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, boolean isHEAD, long rangeStart, long rangeEnd, long rangeSize) throws Exception {
+        OutputStream out = sock.getOutputStream();
+        //System.out.println("!");
+        String httpHeader = createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, null, true, rangeStart, rangeEnd, rangeSize);
+
+        System.out.println(httpHeader);
+        if (sock.isConnected() && !sock.isClosed()){
+            out.write(httpHeader.getBytes(StandardCharsets.UTF_8));
+            if (code != 302){
+                if (!isHEAD){
+                    out.write(body);
+                }
+            }
+            out.flush();
+        }
+
+        out = null;
 
     }
 

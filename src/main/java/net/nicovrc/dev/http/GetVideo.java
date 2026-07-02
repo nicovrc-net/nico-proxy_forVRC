@@ -32,6 +32,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_tiktok = Pattern.compile("tiktok\\.com");
     private final Pattern matcher_bilicom = Pattern.compile("bilibili\\.com");
 
+    private final Pattern matcher_bili_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
+    private final Pattern matcher_bili_range2 = Pattern.compile("[r|R]ange: bytes=(\\d+)-");
+
     private final String http = "https://";
 
     private final byte[] content;
@@ -71,8 +74,6 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
             String method = Function.getMethod(httpRequest);
             String httpVersion = Function.getHTTPVersion(httpRequest);
-
-            httpRequest = null;
 
             Matcher matcher = matcher_cookie.matcher(URL);
             Matcher matcher2 = matcher_referer.matcher(URL);
@@ -143,8 +144,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         .headers("Origin", "https://live.fc2.com")
                         .headers("Referer", "https://live.fc2.com/")
                         .GET()
-                        .build()
-                ;
+                        .build();
             } else {
 
                 if (isBiliCom){
@@ -291,46 +291,83 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 body = null;
             } else {
 
-                int length = Integer.parseInt(send.headers().firstValue("content-length").isPresent() ? send.headers().firstValue("content-length").get() : "0");
-                int max = length / 10;
-                byte[][] temp = new byte[max][10];
+                Matcher mat1 = matcher_bili_range1.matcher(httpRequest);
+                Matcher mat2 = matcher_bili_range2.matcher(httpRequest);
 
-                for (int i = 0; i < 10; i++) {
-                    int mi = max * i;
-                    int mx = max * (i + 1);
-                    //System.out.println(mi + " - " +Math.min(mx - 1, length - 1));
+                //System.out.println(httpRequest);
+                //System.out.println(mat1.find());
+                //System.out.println(mat2.find());
+
+                if (mat1.find()){
                     request = HttpRequest.newBuilder()
                             .uri(new URI(URL))
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Referer", Referer)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                            .headers("Accept-Encoding", "gzip, br")
                             // Range bytes=0-1227
-                            .headers("Range", "bytes=" + mi + "-" + Math.min(mx - 1, length - 1))
+                            .headers("Range", "bytes=" + mat1.group(2) + "-" + mat1.group(3))
                             .build();
                     send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
-                    //System.out.println(send.statusCode());
-                    //out.write(send.body());
-                    temp[i] = send.body();
-                    if (send.statusCode() >= 300){
-                        break;
+                    long rangeSize = -1;
+                    if (send.headers().firstValue("content-range").isPresent()){
+                        String s = send.headers().firstValue("content-range").get();
+                        try {
+                            rangeSize = Long.parseLong(s.split("/")[1]);
+                        } catch (Exception e) {
+                            //e.printStackTrace();
+                        }
                     }
 
-                }
-                //contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
-                //System.out.println("o : "+contentEncoding);
-                byte[] bytes = concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]);
-                Function.sendHTTPRequest(sock, httpVersion, 200, contentType, null, null, bytes, method != null && method.equals("HEAD"), null);
-                bytes = null;
+                    Function.sendHTTPRequest(sock, httpVersion, 206, contentType, null, null, send.body(), method != null && method.equals("HEAD"), Long.parseLong(mat1.group(3)), Long.parseLong(mat1.group(2)), rangeSize);
 
+                } else {
+                    int length = Integer.parseInt(send.headers().firstValue("content-length").isPresent() ? send.headers().firstValue("content-length").get() : "0");
+                    int max = length / 10;
+                    byte[][] temp = new byte[max][10];
+
+                    for (int i = 0; i < 5; i++) {
+                        int mi = max * i;
+                        int mx = max * (i + 1);
+                        //System.out.println(mi + " - " +Math.min(mx - 1, length - 1));
+                        request = HttpRequest.newBuilder()
+                                .uri(new URI(URL))
+                                .headers("User-Agent", Function.UserAgent)
+                                .headers("Referer", Referer)
+                                .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                // Range bytes=0-1227
+                                .headers("Range", "bytes=" + mi + "-" + Math.min(mx - 1, length - 1))
+                                .build();
+                        send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+                        //System.out.println(send.statusCode());
+                        //out.write(send.body());
+                        temp[i] = send.body();
+                        if (send.statusCode() >= 300){
+                            break;
+                        }
+
+                    }
+                    //contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    //System.out.println("o : "+contentEncoding);
+                    byte[] bytes = concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]);
+                    if (mat2.find()){
+                        Function.sendHTTPRequest(sock, httpVersion, 206, contentType, null, null, bytes, method != null && method.equals("HEAD"), 0, bytes.length - 1, bytes.length);
+                    } else {
+                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType, null, null, bytes, method != null && method.equals("HEAD"), null);
+                    }
+
+                    bytes = null;
+                }
             }
             method = null;
             httpVersion = null;
             send = null;
             request = null;
             contentType = null;
+            httpRequest = null;
 
             matcher_fc2url = null;
             matcher_twit = null;
