@@ -468,7 +468,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 }
 
                 if (!cacheData.isRedirect()){
-                    byte[] dummy_bytes = cacheData.getDummyHLS();
+                    byte[] dummy_bytes = ("https://nicovrc.net/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
                     byte[] hls_bytes = cacheData.getHLS();
 
                     if (cacheData.isHLS()){

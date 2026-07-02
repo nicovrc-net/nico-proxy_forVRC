@@ -62,8 +62,8 @@ public class NicoVideo implements GetContent {
                     tempHLS = "#EXTM3U\n" +
                             "#EXT-X-VERSION:6\n" +
                             "#EXT-X-INDEPENDENT-SEGMENTS\n" +
-                            //"#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
-                            //"#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"audio\"\n" +
+                            "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
+                            "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"audio\"\n" +
                             "dummy";
 
                 }
