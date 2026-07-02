@@ -55,16 +55,24 @@ public class Iwara implements ServiceAPI {
         if (split.length < 5){
             return gson.toJson(new ErrorMessage("対応していないURLです。"));
         }
-
+/*
         try {
 
             // https://apiq.iwara.tv/video/4lbqvFBO4n98ZN
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(new URI("https://apiq.iwara.tv/video/" + split[4]))
-                    .headers("User-Agent", Function.UserAgent)
-                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .uri(new URI("https://api.iwara.tv/video/" + split[4]))
+                    .headers("Accept", "application/json")
                     .headers("Accept-Encoding", "gzip, br")
+                    .headers("Accept-Language", "ja,en;q=0.9,en-US;q=0.8")
+                    .headers("Connection", "keep-alive")
+                    .headers("Content-Type", "application/json")
+                    .headers("Host", "api.iwara.tv")
+                    .headers("Origin", "https://www.iwara.tv")
+                    .headers("Priority", "u=4")
+                    .headers("Referer", "https://www.iwara.tv/")
+                    .headers("Sec-Fetch-Dest", "empty")
+                    .headers("Sec-Fetch-Mode", "cors")
+                    .headers("Sec-Fetch-Site", "same-site")
                     .GET()
                     .build();
 
@@ -77,15 +85,10 @@ public class Iwara implements ServiceAPI {
             } else {
                 jsonText = new String(send.body(), StandardCharsets.UTF_8);
             }
-            JsonElement json = new Gson().fromJson(jsonText, JsonElement.class);
-/*
-    private String Title;
-    private String Description;
-    private Long LikeCount;
-    private Long ViewCount;
 
-    private String VideoURL;
- */
+            System.out.println(jsonText);
+            JsonElement json = new Gson().fromJson(jsonText, JsonElement.class);
+
             IwaraResult result = new IwaraResult();
             result.setTitle(json.getAsJsonObject().get("title").getAsString());
             result.setDescription(json.getAsJsonObject().get("body").getAsString());
@@ -98,7 +101,7 @@ public class Iwara implements ServiceAPI {
             request = HttpRequest.newBuilder()
                     .uri(new URI(baseUrl + "&download="+URLEncoder.encode("Iwara - "+result.getTitle()+" ["+json.getAsJsonObject().get("id").getAsString()+"].mp4", StandardCharsets.UTF_8)))
                     .headers("User-Agent", Function.UserAgent)
-                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*\/*;q=0.8")
                     .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
                     .headers("Accept-Encoding", "gzip, br")
                     // いつかこのX-Versionを取れるようにする
@@ -123,6 +126,8 @@ public class Iwara implements ServiceAPI {
             e.printStackTrace();
             return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
         }
+         */
+        return gson.toJson(new ErrorMessage("取得に失敗しました。 (HTTPエラー)"));
     }
 
     @Override
