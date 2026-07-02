@@ -189,7 +189,7 @@ public class TCPServer extends Thread {
                         }
 
                         final boolean ApiMatchFlag = URI.startsWith("/api/");
-                        final boolean UrlMatchFlag = URI.startsWith("/?url=") || URI.matches(".*url=.*");
+                        final boolean UrlMatchFlag = URI.startsWith("/?url=") || URI.matches(".*url=.*") || URI.startsWith("/proxy") || URI.matches(".*vi=.*");
                         final boolean VideoMatchFlag = URI.startsWith("/https");
 
                         //System.out.println("AAAB : " + URI);
