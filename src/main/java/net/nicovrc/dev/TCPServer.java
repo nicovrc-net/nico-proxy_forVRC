@@ -178,18 +178,11 @@ public class TCPServer extends Thread {
 
                         String HTTPVersion = Function.getHTTPVersion(httpRequest);
                         String Method = Function.getMethod(httpRequest);
-                        String b_contentEncoding = Function.getContentEncoding(httpRequest);
-                        String sendContentEncoding = "";
-                        if (b_contentEncoding != null && b_contentEncoding.matches(".*br.*")){
-                            sendContentEncoding = "br";
-                        } else if (b_contentEncoding != null && b_contentEncoding.matches(".*gzip.*")){
-                            sendContentEncoding = "gzip";
-                        }
 
                         if (Method == null) {
 
-                            byte[] bytes = Function.compressByte(err405, sendContentEncoding);
-                            Function.sendHTTPRequest(sock, HTTPVersion, 405, textPlain, sendContentEncoding, null, bytes == null ? err405 : bytes, false, null);
+                            byte[] bytes = err405;
+                            Function.sendHTTPRequest(sock, HTTPVersion, 405, textPlain, null, null, err405, false, null);
                             sock.close();
 
                             HTTPVersion = null;
@@ -199,8 +192,7 @@ public class TCPServer extends Thread {
 
                         final boolean isHead = Method.equals("HEAD");
                         if (HTTPVersion == null) {
-                            byte[] bytes = Function.compressByte(err400, sendContentEncoding);
-                            Function.sendHTTPRequest(sock, null, 400, textPlain, sendContentEncoding, null, bytes == null ? err400 : bytes, isHead, null);
+                            Function.sendHTTPRequest(sock, null, 400, textPlain, null, null, err400, isHead, null);
                             sock.close();
 
                             httpRequest = null;
@@ -311,13 +303,12 @@ public class TCPServer extends Thread {
                                 vrchttp.setHTTPSocket(sock);
                                 vrchttp.setHTTPClient(httpClient);
                                 Thread start = Thread.ofVirtual().start((Runnable) vrchttp);
-                                start.join();
+                                //start.join();
                             } catch (Exception e){
                                 e.printStackTrace();
                             }
                         } else {
-                            byte[] bytes = Function.compressByte(err400, sendContentEncoding);
-                            Function.sendHTTPRequest(sock, null, 400, textPlain, sendContentEncoding, null, bytes == null ? err400 : bytes, isHead, null);
+                            Function.sendHTTPRequest(sock, null, 400, textPlain, null, null, err400, isHead, null);
 
                             sock.close();
 
