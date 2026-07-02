@@ -473,7 +473,7 @@ NicoNico_user_session: ""
             }
 
             // HTTP受付
-            TCPServer tcpServer = new TCPServer();
+            TCPServer tcpServer = new TCPServer(client);
             tcpServer.start();
             try {
                 tcpServer.join();

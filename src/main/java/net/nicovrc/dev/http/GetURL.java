@@ -101,6 +101,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     @Override
     public void run() {
         if (client == null){
+            if (sock != null){
+                try {
+                    sock.close();
+                } catch (Exception e){
+                    //e.printStackTrace();
+                }
+            }
             return;
         }
 
@@ -232,7 +239,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         }
 
                         if (cacheData.isHLS()){
-                            byte[] dummy_bytes = cacheData.getDummyHLS();
+                            byte[] dummy_bytes = ("#EXTM3U\n/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
                             byte[] hls_bytes = cacheData.getHLS();
 
                             if (cacheData.getDummyHLS() != null){
@@ -278,7 +285,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             Function.WebhookData.put(logData.getLogID(), webhookData);
                         }
                     });
-
+                    if (sock != null){
+                        try {
+                            sock.close();
+                        } catch (Exception e){
+                            //e.printStackTrace();
+                        }
+                    }
                     return;
                 }
             }
@@ -468,7 +481,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 }
 
                 if (!cacheData.isRedirect()){
-                    byte[] dummy_bytes = cacheData.getDummyHLS();
+                    byte[] dummy_bytes = ("#EXTM3U\n/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
                     byte[] hls_bytes = cacheData.getHLS();
 
                     if (cacheData.isHLS()){
@@ -489,7 +502,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 }
 
                 Function.addCache((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
-
+                if (sock != null){
+                    try {
+                        sock.close();
+                    } catch (Exception e){
+                        //e.printStackTrace();
+                    }
+                }
                 return;
 
             }
@@ -502,6 +521,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 Function.WebhookData.put(logData.getLogID(), webhookData);
                 System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "内部エラー");
                 Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, errContent000, isHead, null);
+                if (sock != null){
+                    try {
+                        sock.close();
+                    } catch (Exception e){
+                        //e.printStackTrace();
+                    }
+                }
             } catch (Exception ex){
                 ex.printStackTrace();
             }
@@ -511,6 +537,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             try {
                 Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, errContent000, isHead, null);
+                if (sock != null){
+                    try {
+                        sock.close();
+                    } catch (Exception ex){
+                        //ex.printStackTrace();
+                    }
+                }
             } catch (Exception ex){
                 ex.printStackTrace();
             }
@@ -519,6 +552,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         // ここには来ないと思うけど
         try {
             Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, errContent404, isHead, null);
+            if (sock != null){
+                try {
+                    sock.close();
+                } catch (Exception ex){
+                    //e.printStackTrace();
+                }
+            }
         } catch (Exception ex){
             ex.printStackTrace();
         }

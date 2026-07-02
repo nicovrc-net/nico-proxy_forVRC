@@ -25,12 +25,13 @@ public class TCPServer extends Thread {
 
 
     private final HashMap<String, NicoVRCHTTP> httpService = new HashMap<>();
+    private final HttpClient client;
 
     private final String textPlain = "text/plain; charset=utf-8";
     private final byte[] err400 = "Bad Request".getBytes(StandardCharsets.UTF_8);
     private final byte[] err405 = "Not Support Method".getBytes(StandardCharsets.UTF_8);
 
-    public TCPServer(){
+    public TCPServer(HttpClient client){
         final GetURL getURL = new GetURL();
         final GetURL_dummy getURLDummy = new GetURL_dummy();
         final GetURL_dummy2 getURLDummy2 = new GetURL_dummy2();
@@ -38,6 +39,8 @@ public class TCPServer extends Thread {
         final GetURL_old2 getURLOld2 = new GetURL_old2();
         final GetVideo getVideo = new GetVideo();
         final NicoVRCWebAPI nicoVRCWebAPI = new NicoVRCWebAPI();
+
+        this.client = client;
 
         httpService.put(getURL.getStartURI().substring(0, Math.min(getURL.getStartURI().length(), 15)), getURL);
         httpService.put(getURLDummy.getStartURI().substring(0, Math.min(getURLDummy.getStartURI().length(), 15)), getURLDummy);
@@ -323,7 +326,7 @@ public class TCPServer extends Thread {
                             return;
                         }
 
-                        sock.close();
+                        //sock.close();
                         URI = null;
                         httpRequest = null;
                     } catch (Exception e) {

@@ -108,7 +108,13 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8", null, null, video_not_found_text, method != null && method.equals("HEAD"), null);
                 method = null;
                 httpVersion = null;
-
+                if (sock != null){
+                    try {
+                        sock.close();
+                    } catch (Exception e){
+                        //e.printStackTrace();
+                    }
+                }
                 return;
             }
 
@@ -289,6 +295,13 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 //System.out.println("b");
                 Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, null, null, body, method != null && method.equals("HEAD"), null);
                 body = null;
+                if (sock != null){
+                    try {
+                        sock.close();
+                    } catch (Exception e){
+                        //e.printStackTrace();
+                    }
+                }
             } else {
 
                 Matcher mat1 = matcher_bili_range1.matcher(httpRequest);
@@ -321,7 +334,13 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     }
 
                     Function.sendHTTPRequest(sock, httpVersion, 206, contentType, null, null, send.body(), method != null && method.equals("HEAD"), Long.parseLong(mat1.group(3)), Long.parseLong(mat1.group(2)), rangeSize);
-
+                    if (sock != null){
+                        try {
+                            sock.close();
+                        } catch (Exception e){
+                            //e.printStackTrace();
+                        }
+                    }
                 } else {
                     int length = Integer.parseInt(send.headers().firstValue("content-length").isPresent() ? send.headers().firstValue("content-length").get() : "0");
                     int max = length / 10;
@@ -358,7 +377,13 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     } else {
                         Function.sendHTTPRequest(sock, httpVersion, 200, contentType, null, null, bytes, method != null && method.equals("HEAD"), null);
                     }
-
+                    if (sock != null){
+                        try {
+                            sock.close();
+                        } catch (Exception e){
+                            //e.printStackTrace();
+                        }
+                    }
                     bytes = null;
                 }
             }
