@@ -579,6 +579,7 @@ jobs:
           release_name: v${{ github.ref }}
           body: |
             - 内部リファクタリング
+            - バグ修正
           draft: false
           prerelease: false
 
