@@ -37,25 +37,6 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
     private final String http = "https://";
 
-    private final byte[] content;
-
-    public GetVideo(){
-        byte[] content = Function.zeroByte;
-        try {
-            File file = new File("./error-video/error_000.mp4");
-            if (file.exists()){
-                FileInputStream stream = new FileInputStream(file);
-                content = stream.readAllBytes();
-                stream.close();
-                stream = null;
-            }
-            file = null;
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        this.content = content;
-    }
-
     @Override
     public void run() {
 

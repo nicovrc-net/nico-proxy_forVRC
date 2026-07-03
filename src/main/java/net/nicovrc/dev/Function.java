@@ -28,7 +28,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.4.0";
+    public static final String Version = "3.4.1";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -57,11 +57,12 @@ public class Function {
     public static final byte[] content_NotFound = "Not Found".getBytes(StandardCharsets.UTF_8);
     public static final byte[] content_MethodNotAllowed = "Method Not Allowed".getBytes(StandardCharsets.UTF_8);
     public static final byte[] content_VideoNotFound = "Video Not Found".getBytes(StandardCharsets.UTF_8);
+    public static byte[] content_errorVideo_others = null;
+    public static byte[] content_errorVideo_site = null;
+    public static byte[] content_errorVideo_endLive = null;
 
     public static final Timer mainTimer = new Timer();
     public static final Timer checkTimer = new Timer();
-
-    public static final Pattern matcher_contentEncoding = Pattern.compile("([aA])ccept-([eE])ncoding: (.+)");
 
     public static int config_httpPort = 25252;
     public static String config_FolderPass = "";

@@ -16,7 +16,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 import java.util.regex.Matcher;
@@ -248,6 +247,7 @@ NicoNico_user_session: ""
                     } else {
                         FileOutputStream stream = new FileOutputStream("./error-video/error_404.mp4");
                         stream.write(send.body());
+                        Function.content_errorVideo_site = send.body();
                         stream.close();
                         stream = null;
                     }
@@ -265,6 +265,7 @@ NicoNico_user_session: ""
                     } else {
                         FileOutputStream stream = new FileOutputStream("./error-video/error_000.mp4");
                         stream.write(send.body());
+                        Function.content_errorVideo_others = send.body();
                         stream.close();
                         stream = null;
                     }
@@ -282,10 +283,32 @@ NicoNico_user_session: ""
                     } else {
                         FileOutputStream stream = new FileOutputStream("./error-video/error_404_2.mp4");
                         stream.write(send.body());
+                        Function.content_errorVideo_site = send.body();
                         stream.close();
                         stream = null;
                     }
                 }
+            }
+            file = new File("./error-video/error_000.mp4");
+            if (file.exists()){
+                FileInputStream stream = new FileInputStream(file);
+                Function.content_errorVideo_others = stream.readAllBytes();
+                stream.close();
+                stream = null;
+            }
+            file = new File("./error-video/error_404.mp4");
+            if (file.exists()){
+                FileInputStream stream = new FileInputStream(file);
+                Function.content_errorVideo_site = stream.readAllBytes();
+                stream.close();
+                stream = null;
+            }
+            file = new File("./error-video/error_404_2.mp4");
+            if (file.exists()){
+                FileInputStream stream = new FileInputStream(file);
+                Function.content_errorVideo_endLive = stream.readAllBytes();
+                stream.close();
+                stream = null;
             }
 
             // ログ、Webhook書き出し & キャッシュ削除

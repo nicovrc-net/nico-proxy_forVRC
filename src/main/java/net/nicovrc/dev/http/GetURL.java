@@ -43,9 +43,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
     private final Pattern avpro_ua = Pattern.compile("(NSPlayer|AVPro|AppleCoreMedia)");
 
-    private byte[] errContent000;
-    private byte[] errContent404;
-
     public GetURL(){
 
         GetContentList.put("ニコニコ", new NicoVideo());
@@ -65,33 +62,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         GetContentList.put("Pornhub", new Pornhub());
         GetContentList.put("bilibili.com", new bilibili_com());
         GetContentList.put("Twitter", new Twitter());
-
-        try {
-            File file = new File("./error-video/error_000.mp4");
-            if (file.exists()){
-                FileInputStream stream = new FileInputStream(file);
-                errContent000 = stream.readAllBytes();
-                stream.close();
-                stream = null;
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-            errContent000 = Function.zeroByte;
-        }
-
-        try {
-            File file = new File("./error-video/error_404.mp4");
-            if (file.exists()){
-                FileInputStream stream = new FileInputStream(file);
-                errContent404 = stream.readAllBytes();
-                stream.close();
-                stream = null;
-            }
-        } catch (Exception e){
-            e.printStackTrace();
-            errContent404 = Function.zeroByte;
-        }
-
     }
 
     @Override
@@ -392,7 +362,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     Function.WebhookData.put(logData.getLogID(), webhookData);
                     System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "対応してないURL");
 
-                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, errContent404, isHead, null);
+                    Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, Function.content_errorVideo_site, isHead, null);
 
                     return;
                 } else if (hls == null) {
@@ -516,7 +486,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 Function.GetURLAccessLog.put(logData.getLogID(), logData);
                 Function.WebhookData.put(logData.getLogID(), webhookData);
                 System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "内部エラー");
-                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, errContent000, isHead, null);
+                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, Function.content_errorVideo_others, isHead, null);
                 if (sock != null && !sock.isClosed()){
                     try {
                         sock.close();
@@ -532,7 +502,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             e.printStackTrace();
 
             try {
-                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, errContent000, isHead, null);
+                Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, Function.content_errorVideo_others, isHead, null);
                 if (sock != null && !sock.isClosed()){
                     try {
                         sock.close();
@@ -547,7 +517,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
         // ここには来ないと思うけど
         try {
-            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, errContent404, isHead, null);
+            Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, Function.content_errorVideo_site, isHead, null);
             if (sock != null && !sock.isClosed()){
                 try {
                     sock.close();
