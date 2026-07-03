@@ -1,6 +1,5 @@
 package net.nicovrc.dev.http;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.Function;
@@ -29,7 +28,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private HttpClient client = null;
     private final HashMap<String, GetContent> GetContentList = new HashMap<>();
 
-    private final Gson gson = Function.gson;
     private final List<ServiceAPI> list = ServiceList.getServiceList();
 
     private final Pattern NotRemoveQuestionMarkURL = Pattern.compile("(youtu\\.be|www\\.youtube\\.com|(.+)\\.pornhub\\.com)");
@@ -372,7 +370,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             cacheData = new CacheData();
             if (json != null){
-                JsonElement element = gson.fromJson(json, JsonElement.class);
+                JsonElement element = Function.gson.fromJson(json, JsonElement.class);
 
                 String errorMessage = element.getAsJsonObject().has("ErrorMessage") ? element.getAsJsonObject().get("ErrorMessage").getAsString() : null;
                 String targetURL = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : (element.getAsJsonObject().has("LiveURL") ? element.getAsJsonObject().get("LiveURL").getAsString() : (element.getAsJsonObject().has("AudioURL") ? element.getAsJsonObject().get("AudioURL").getAsString() : null));

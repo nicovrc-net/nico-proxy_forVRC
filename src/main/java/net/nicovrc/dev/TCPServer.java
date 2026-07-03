@@ -1,26 +1,18 @@
 package net.nicovrc.dev;
 
-import net.nicovrc.dev.Service.Vimeo;
-import net.nicovrc.dev.api.GetSupportList;
 import net.nicovrc.dev.api.NicoVRCAPI;
-import net.nicovrc.dev.api.Test;
 import net.nicovrc.dev.http.*;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.http.HttpClient;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
-import java.time.Duration;
-import java.util.HashMap;
 import java.util.TimerTask;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class TCPServer extends Thread {
 
@@ -29,7 +21,11 @@ public class TCPServer extends Thread {
 
     private final HttpClient client;
 
-    private final String textPlain = "text/plain; charset=utf-8";
+    private final GetURL getURL = new GetURL();
+    private final GetVideo getVideo = new GetVideo();
+
+    private static Pattern matcher_uri = Pattern.compile("(url=|vi=)");
+
 
     public TCPServer(HttpClient client){
         this.client = client;
@@ -152,7 +148,7 @@ public class TCPServer extends Thread {
 
                         if (!isGET && !isPOST && !isHead) {
                             //System.out.println("[Debug] HTTPRequest送信");
-                            Function.sendHTTPRequest(sock, httpVersion, 405, textPlain, null, "*", Function.contentMethodNotAllowed, false, null);
+                            Function.sendHTTPRequest(sock, httpVersion, 405, Function.contentType_textPlain, null, "*", Function.content_MethodNotAllowed, false, null);
                             sock.close();
 
                             return;
@@ -162,14 +158,15 @@ public class TCPServer extends Thread {
 
                         if (URI == null) {
                             //System.out.println("[Debug] HTTPRequest送信");
-                            Function.sendHTTPRequest(sock, httpVersion, 502, textPlain, null, "*", Function.contentBadGateway, isHead, null);
+                            Function.sendHTTPRequest(sock, httpVersion, 502, Function.contentType_textPlain, null, "*", Function.content_BadGateway, isHead, null);
                             sock.close();
 
                             return;
                         }
 
+                        final Matcher matcher = matcher_uri.matcher(URI);
                         final boolean ApiMatchFlag = URI.startsWith("/api/");
-                        final boolean UrlMatchFlag = URI.startsWith("/?url=") || URI.matches(".*url=.*") || URI.startsWith("/proxy") || URI.matches(".*vi=.*");
+                        final boolean UrlMatchFlag = URI.startsWith("/?url=") || URI.startsWith("/proxy") || matcher.find();
                         final boolean VideoMatchFlag = URI.startsWith("/https");
 
                         //System.out.println("AAAB : " + URI);
@@ -179,17 +176,18 @@ public class TCPServer extends Thread {
 
                             for (NicoVRCAPI api : Function.APIList) {
                                 if (URI.startsWith(api.getURI())){
-                                    Function.sendHTTPRequest(sock, httpVersion, 200, "application/json; charset=utf-8", null, "*", api.Run(httpRequest, client).getBytes(StandardCharsets.UTF_8), isHead, null);
+                                    Function.sendHTTPRequest(sock, httpVersion, 200, Function.contentType_json, null, "*", api.Run(httpRequest, client).getBytes(StandardCharsets.UTF_8), isHead, null);
                                     break;
                                 }
                             }
+
+                            Function.sendHTTPRequest(sock, httpVersion, 404, Function.contentType_textPlain, null, null, Function.content_errorAPINotFound, isHead, null);
                             sock.close();
                             return;
                         }
 
                         if (VideoMatchFlag){
                             //System.out.println("AAAC-3");
-                            GetVideo getVideo = new GetVideo();
                             getVideo.setHTTPClient(client);
                             getVideo.setHTTPRequest(httpRequest);
                             getVideo.setURL(URI);
@@ -201,7 +199,6 @@ public class TCPServer extends Thread {
 
                         if (UrlMatchFlag){
                             //System.out.println("AAAC-2");
-                            GetURL getURL = new GetURL();
                             getURL.setHTTPClient(client);
                             getURL.setHTTPRequest(httpRequest);
                             getURL.setURL(URI);
@@ -211,7 +208,7 @@ public class TCPServer extends Thread {
                             return;
                         }
 
-                        Function.sendHTTPRequest(sock, httpVersion, 404, textPlain, null, "*", Function.contentNotFound, isHead, null);
+                        Function.sendHTTPRequest(sock, httpVersion, 404, Function.contentType_textPlain, null, "*", Function.content_NotFound, isHead, null);
                         sock.close();
 
 

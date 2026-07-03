@@ -49,13 +49,14 @@ public class Function {
     private static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, WebhookData> WebhookData = new ConcurrentHashMap<>();
 
-    public static final byte[] contentBadGateway = "Bad Gateway".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] contentNotFound = "Not Found".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] contentNotFound2 = "URL Not Found".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] contentMethodNotAllowed = "Method Not Allowed".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] contentNotImage = "Not Image".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] contentFileNotFound = "File Not Found".getBytes(StandardCharsets.UTF_8);
-    public static final byte[] contentFileNotSupport = "File Not Support".getBytes(StandardCharsets.UTF_8);
+    public static final String contentType_textPlain = "text/plain; charset=utf-8";
+    public static final String contentType_json = "application/json; charset=utf-8";
+
+    public static final byte[] content_errorAPINotFound = "API Not Found".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] content_BadGateway = "Bad Gateway".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] content_NotFound = "Not Found".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] content_MethodNotAllowed = "Method Not Allowed".getBytes(StandardCharsets.UTF_8);
+    public static final byte[] content_VideoNotFound = "Video Not Found".getBytes(StandardCharsets.UTF_8);
 
     public static final Timer mainTimer = new Timer();
     public static final Timer checkTimer = new Timer();
@@ -584,15 +585,6 @@ public class Function {
             return compressBaos.toByteArray();
         } else if (compressType.isEmpty()) {
             return content;
-        }
-
-        return null;
-    }
-
-    public static String getContentEncoding(String httpRequest){
-        Matcher matcher = Function.matcher_contentEncoding.matcher(httpRequest);
-        if (matcher.find()){
-            return matcher.group(3);
         }
 
         return null;
