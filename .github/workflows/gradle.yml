@@ -23,10 +23,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6.0.2
       - name: Set up JDK 21
-        uses: actions/setup-java@v5.2.0
+        uses: actions/setup-java@v5.4.0
         with:
           java-version: '21'
-          distribution: 'temurin'
+          distribution: 'oracle'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6.1.0
@@ -43,18 +43,18 @@ jobs:
           name: jar
           path: ./build/libs/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
 
-  build-25:
+  build-26:
     runs-on: ubuntu-24.04
     permissions:
       contents: write
 
     steps:
       - uses: actions/checkout@v6.0.2
-      - name: Set up JDK 25
-        uses: actions/setup-java@v5.2.0
+      - name: Set up JDK 26
+        uses: actions/setup-java@v5.4.0
         with:
-          java-version: '25'
-          distribution: 'temurin'
+          java-version: '26'
+          distribution: 'oracle'
 
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v6.1.0
