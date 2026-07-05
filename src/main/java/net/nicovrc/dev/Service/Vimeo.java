@@ -15,7 +15,6 @@ import java.util.regex.Pattern;
 
 public class Vimeo implements ServiceAPI {
 
-    private String proxy = null;
     private String url = null;
     private HttpClient client = null;
 
@@ -28,16 +27,27 @@ public class Vimeo implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json, HttpClient client) {
-        JsonElement element = Function.gson.fromJson(json, JsonElement.class);
-        if (element.isJsonObject() && element.getAsJsonObject().has("URL")){
-            url = element.getAsJsonObject().get("URL").getAsString();
-        }
+    public void setHttpClient(HttpClient client) {
         this.client = client;
     }
 
     @Override
-    public String Get() {
+    public void setURL(String URL) {
+        this.url = URL;
+    }
+
+    @Override
+    public void setToken(String[] token) {
+
+    }
+
+    @Override
+    public void setProxy(String proxy) {
+
+    }
+
+    @Override
+    public String get() {
 
         if (url == null || url.isEmpty()){
             return Function.gson.toJson(new ErrorMessage("URLが入力されていません。"));
@@ -149,10 +159,5 @@ public class Vimeo implements ServiceAPI {
     @Override
     public String getServiceName() {
         return "Vimeo";
-    }
-
-    @Override
-    public String getUseProxy() {
-        return proxy;
     }
 }

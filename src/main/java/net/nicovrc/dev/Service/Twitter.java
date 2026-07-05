@@ -17,7 +17,6 @@ import java.security.SecureRandom;
 public class Twitter implements ServiceAPI {
 
     private String url = null;
-    private String Proxy = null;
     private HttpClient client = null;
 
     private final Gson gson = Function.gson;
@@ -28,27 +27,30 @@ public class Twitter implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json, HttpClient client) {
-        JsonElement jsonElement = gson.fromJson(json, JsonElement.class);
-
-        if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("URL")){
-            this.url = jsonElement.getAsJsonObject().get("URL").getAsString();
-        }
-
+    public void setHttpClient(HttpClient client) {
         this.client = client;
     }
 
     @Override
-    public String Get() {
+    public void setURL(String URL) {
+        this.url = URL;
+    }
+
+    @Override
+    public void setToken(String[] token) {
+
+    }
+
+    @Override
+    public void setProxy(String proxy) {
+
+    }
+
+    @Override
+    public String get() {
 
         if (url == null || url.isEmpty()){
             return gson.toJson(new ErrorMessage("URLがありません"));
-        }
-
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            Proxy = Function.ProxyList.get(i);
         }
 
         String[] split = url.split("/");
@@ -182,8 +184,4 @@ public class Twitter implements ServiceAPI {
         return "Twitter";
     }
 
-    @Override
-    public String getUseProxy() {
-        return Proxy;
-    }
 }

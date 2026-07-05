@@ -19,7 +19,6 @@ import java.util.regex.Pattern;
 public class bandcamp implements ServiceAPI {
 
     private String url = null;
-    private String proxy = null;
     private HttpClient client = null;
 
     private final Gson gson = Function.gson;
@@ -32,18 +31,27 @@ public class bandcamp implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json, HttpClient client) {
-        JsonElement jsonElement = gson.fromJson(json, JsonElement.class);
-
-        if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("URL")){
-            this.url = jsonElement.getAsJsonObject().get("URL").getAsString();
-        }
-
+    public void setHttpClient(HttpClient client) {
         this.client = client;
     }
 
     @Override
-    public String Get() {
+    public void setURL(String URL) {
+        this.url = URL;
+    }
+
+    @Override
+    public void setToken(String[] token) {
+
+    }
+
+    @Override
+    public void setProxy(String proxy) {
+
+    }
+
+    @Override
+    public String get() {
 
         if (url  == null || url.isEmpty()){
             return gson.toJson(new ErrorMessage("URLがありません"));
@@ -111,8 +119,4 @@ public class bandcamp implements ServiceAPI {
         return "bandcamp";
     }
 
-    @Override
-    public String getUseProxy() {
-        return proxy;
-    }
 }

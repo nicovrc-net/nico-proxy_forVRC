@@ -14,7 +14,6 @@ import java.nio.charset.StandardCharsets;
 public class OPENREC implements ServiceAPI {
 
     private String url = null;
-    private String Proxy = null;
     private HttpClient client = null;
 
     @Override
@@ -23,16 +22,27 @@ public class OPENREC implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json, HttpClient client) {
-        JsonElement element = Function.gson.fromJson(json, JsonElement.class);
-        if (element.isJsonObject() && element.getAsJsonObject().has("URL")){
-            url = element.getAsJsonObject().get("URL").getAsString();
-        }
+    public void setHttpClient(HttpClient client) {
         this.client = client;
     }
 
     @Override
-    public String Get() {
+    public void setURL(String URL) {
+        this.url = URL;
+    }
+
+    @Override
+    public void setToken(String[] token) {
+
+    }
+
+    @Override
+    public void setProxy(String proxy) {
+
+    }
+
+    @Override
+    public String get() {
         try {
             String[] split = url.split("/");
             String id = split[split.length - 1];
@@ -95,8 +105,4 @@ public class OPENREC implements ServiceAPI {
         return "OPENREC";
     }
 
-    @Override
-    public String getUseProxy() {
-        return Proxy;
-    }
 }

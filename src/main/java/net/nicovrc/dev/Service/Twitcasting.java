@@ -20,7 +20,6 @@ public class Twitcasting implements ServiceAPI {
     private String url = null;
     private String ClientID = null;
     private String ClientSecret = null;
-    private String Proxy = null;
     private HttpClient client = null;
 
     private final Gson gson = Function.gson;
@@ -33,27 +32,28 @@ public class Twitcasting implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json, HttpClient client) {
-
-        JsonElement element = gson.fromJson(json, JsonElement.class);
-
-        //System.out.println(element);
-
-        if (element.isJsonObject() && element.getAsJsonObject().has("URL")){
-            this.url = element.getAsJsonObject().get("URL").getAsString();
-        }
-        if (element.isJsonObject() && element.getAsJsonObject().has("ClientID")){
-            this.ClientID = element.getAsJsonObject().get("ClientID").getAsString();
-        }
-        if (element.isJsonObject() && element.getAsJsonObject().has("ClientSecret")){
-            this.ClientSecret = element.getAsJsonObject().get("ClientSecret").getAsString();
-        }
+    public void setHttpClient(HttpClient client) {
         this.client = client;
+    }
+
+    @Override
+    public void setURL(String URL) {
+        this.url = URL;
+    }
+
+    @Override
+    public void setToken(String[] token) {
+        this.ClientID = token[0];
+        this.ClientSecret = token[1];
+    }
+
+    @Override
+    public void setProxy(String proxy) {
 
     }
 
     @Override
-    public String Get() {
+    public String get() {
         if (url == null || url.isEmpty()){
             return gson.toJson(new ErrorMessage("URLがありません"));
         }
@@ -168,8 +168,4 @@ public class Twitcasting implements ServiceAPI {
         return "ツイキャス";
     }
 
-    @Override
-    public String getUseProxy() {
-        return Proxy;
-    }
 }

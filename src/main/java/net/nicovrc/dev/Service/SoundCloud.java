@@ -17,7 +17,6 @@ import java.util.regex.Pattern;
 public class SoundCloud implements ServiceAPI {
 
     private String url = null;
-    private String proxy = null;
     private HttpClient client = null;
 
     private final Pattern clientId = Pattern.compile("client_id:\"(.+)\",env:\"production\"");
@@ -30,18 +29,27 @@ public class SoundCloud implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json, HttpClient client) {
-
-        JsonElement element = Function.gson.fromJson(json, JsonElement.class);
-        if (element.isJsonObject() && element.getAsJsonObject().has("URL")){
-            url = element.getAsJsonObject().get("URL").getAsString();
-        }
+    public void setHttpClient(HttpClient client) {
         this.client = client;
+    }
+
+    @Override
+    public void setURL(String URL) {
+        this.url = URL;
+    }
+
+    @Override
+    public void setToken(String[] token) {
 
     }
 
     @Override
-    public String Get() {
+    public void setProxy(String proxy) {
+
+    }
+
+    @Override
+    public String get() {
         if (url == null || url.isEmpty()){
             return Function.gson.toJson(new ErrorMessage("URLが入力されていません。"));
         }
@@ -265,10 +273,5 @@ public class SoundCloud implements ServiceAPI {
     @Override
     public String getServiceName() {
         return "SoundCloud";
-    }
-
-    @Override
-    public String getUseProxy() {
-        return proxy;
     }
 }

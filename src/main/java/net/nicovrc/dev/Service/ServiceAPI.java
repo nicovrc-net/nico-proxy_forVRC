@@ -4,9 +4,11 @@ import java.net.http.HttpClient;
 
 public interface ServiceAPI {
 
-    String[] getCorrespondingURL();
-    void Set(String json, HttpClient client);
-    String Get();
+    void setHttpClient(HttpClient client);
+    void setURL(String URL);
+    void setToken(String[] token);
+    void setProxy(String proxy);
+    String get();
     String getServiceName();
-    String getUseProxy();
+    String[] getCorrespondingURL();
 }

@@ -1,6 +1,5 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 
 import java.net.URI;
@@ -12,7 +11,6 @@ import java.nio.charset.StandardCharsets;
 public class Youtube implements ServiceAPI {
 
     private String url = null;
-    private String Proxy = null;
     private HttpClient client = null;
 
     @Override
@@ -21,16 +19,27 @@ public class Youtube implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json, HttpClient client) {
-        JsonElement element = Function.gson.fromJson(json, JsonElement.class);
-        if (element.isJsonObject() && element.getAsJsonObject().has("URL")){
-            url = element.getAsJsonObject().get("URL").getAsString();
-        }
+    public void setHttpClient(HttpClient client) {
         this.client = client;
     }
 
     @Override
-    public String Get() {
+    public void setURL(String URL) {
+        this.url = URL;
+    }
+
+    @Override
+    public void setToken(String[] token) {
+
+    }
+
+    @Override
+    public void setProxy(String proxy) {
+
+    }
+
+    @Override
+    public String get() {
         try {
             URI uri = new URI("https://yt.8uro.net/r?v="+url+"&o=nicovrc");
             HttpRequest request = HttpRequest.newBuilder()
@@ -56,8 +65,4 @@ public class Youtube implements ServiceAPI {
         return "Youtube";
     }
 
-    @Override
-    public String getUseProxy() {
-        return Proxy;
-    }
 }

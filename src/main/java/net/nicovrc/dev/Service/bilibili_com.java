@@ -18,7 +18,6 @@ import java.util.regex.Pattern;
 public class bilibili_com implements ServiceAPI {
 
     private String url = null;
-    private String Proxy = null;
     private HttpClient client = null;
 
     private final Pattern Support_URL1 = Pattern.compile("https://www\\.bilibili\\.com/video/(.+)/");
@@ -32,26 +31,29 @@ public class bilibili_com implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json, HttpClient client) {
-        JsonElement json_object = Function.gson.fromJson(json, JsonElement.class);
-
-        if (json_object.isJsonObject() && json_object.getAsJsonObject().has("URL")){
-            this.url = json_object.getAsJsonObject().get("URL").getAsString();
-        }
-
+    public void setHttpClient(HttpClient client) {
         this.client = client;
     }
 
     @Override
-    public String Get() {
+    public void setURL(String URL) {
+        this.url = URL;
+    }
+
+    @Override
+    public void setToken(String[] token) {
+
+    }
+
+    @Override
+    public void setProxy(String proxy) {
+
+    }
+
+    @Override
+    public String get() {
         if (url == null || url.isEmpty()){
             return Function.gson.toJson(new ErrorMessage("URLがありません"));
-        }
-
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            Proxy = Function.ProxyList.get(i);
         }
 
         Matcher matcher1 = Support_URL1.matcher(url);
@@ -230,8 +232,4 @@ public class bilibili_com implements ServiceAPI {
         return "bilibili.com";
     }
 
-    @Override
-    public String getUseProxy() {
-        return Proxy;
-    }
 }

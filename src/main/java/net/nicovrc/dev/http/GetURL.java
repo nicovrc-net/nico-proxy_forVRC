@@ -9,8 +9,6 @@ import net.nicovrc.dev.Service.ServiceList;
 import net.nicovrc.dev.data.WebhookData;
 import net.nicovrc.dev.http.getContent.*;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -293,30 +291,21 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     //System.out.println("aaa");
                     //System.out.println(URL.startsWith("https://twitcasting.tv"));
                     ServiceName = api.getServiceName();
+                    api.setHttpClient(client);
+                    api.setURL(NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.replaceAll("&dummy=true", "") : URL.split("\\?")[0].replaceAll("&dummy=true", ""));
+                    api.setProxy(null);
+
                     if (ServiceName.equals("ニコニコ")) {
 
                         if (Function.config_user_session != null && Function.config_nicosid != null) {
-                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"user_session\":\"" + Function.config_user_session + "\", \"nicosid\": \"" + Function.config_nicosid + "\"}", client);
-                        } else {
-                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}", client);
+                            api.setToken(new String[]{Function.config_user_session, Function.config_nicosid});
                         }
 
                     } else if (URL.startsWith("https://twitcasting.tv")) {
-                        if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
-                            api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\":\"" + Function.config_twitcast_ClientSecret + "\"}", client);
-                        } else {
-                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\", \"ClientID\":\"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\":\"" + Function.config_twitcast_ClientSecret + "\"}", client);
-                        }
-                    } else {
-                        if (NotRemoveQuestionMarkURL.matcher(URL).find()) {
-                            api.Set("{\"URL\":\"" + URL.replaceAll("&dummy=true", "") + "\"}", client);
-                        } else {
-                            api.Set("{\"URL\":\"" + URL.split("\\?")[0].replaceAll("&dummy=true", "") + "\"}", client);
-                        }
+                        api.setToken(new String[]{Function.config_twitcast_ClientId, Function.config_twitcast_ClientSecret});
                     }
-                    json = api.Get();
+                    json = api.get();
                     //ServiceName = api.getServiceName();
-                    proxy = api.getUseProxy();
                 } else {
                     json = "{}";
                 }

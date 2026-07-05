@@ -19,7 +19,6 @@ import java.util.regex.Pattern;
 public class TVer implements ServiceAPI {
 
     private String url = null;
-    private String proxy = null;
     private HttpClient client = null;
 
     private final Pattern Support_URLVideo1 = Pattern.compile("https://tver\\.jp/episodes/(.+)");
@@ -34,16 +33,27 @@ public class TVer implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json, HttpClient client) {
-        JsonElement element = Function.gson.fromJson(json, JsonElement.class);
-        if (element.isJsonObject() && element.getAsJsonObject().has("URL")){
-            url = element.getAsJsonObject().get("URL").getAsString();
-        }
+    public void setHttpClient(HttpClient client) {
         this.client = client;
     }
 
     @Override
-    public String Get() {
+    public void setURL(String URL) {
+        this.url = URL;
+    }
+
+    @Override
+    public void setToken(String[] token) {
+
+    }
+
+    @Override
+    public void setProxy(String proxy) {
+
+    }
+
+    @Override
+    public String get() {
         Matcher matcher1 = Support_URLVideo1.matcher(url);
         Matcher matcher2 = Support_URLLive1.matcher(url);
         Matcher matcher3 = Support_URLLive2.matcher(url);
@@ -732,8 +742,4 @@ public class TVer implements ServiceAPI {
         return "TVer";
     }
 
-    @Override
-    public String getUseProxy() {
-        return proxy;
-    }
 }

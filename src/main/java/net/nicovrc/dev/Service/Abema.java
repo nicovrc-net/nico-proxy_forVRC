@@ -21,7 +21,6 @@ import java.util.regex.Pattern;
 public class Abema implements ServiceAPI {
 
     private String url = null;
-    private String Proxy = null;
     private HttpClient client = null;
 
     private final Gson gson = Function.gson;
@@ -35,49 +34,45 @@ public class Abema implements ServiceAPI {
         return new String[]{"abema.tv", "abema.app", "abema.go.link"};
     }
 
+
     @Override
-    public void Set(String json, HttpClient client) {
-        JsonElement jsonElement = gson.fromJson(json, JsonElement.class);
-
-        if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("URL")){
-            this.url = jsonElement.getAsJsonObject().get("URL").getAsString();
-        }
-
+    public void setHttpClient(HttpClient client) {
         this.client = client;
     }
 
     @Override
-    public String Get() {
+    public void setURL(String URL) {
+        this.url = URL;
+    }
+
+    @Override
+    public void setToken(String[] token) {
+
+    }
+
+    @Override
+    public void setProxy(String proxy) {
+
+    }
+
+    @Override
+    public String get() {
 
         if (url == null || url.isEmpty()){
             return gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         if (url.startsWith("https://abema.app") || url.startsWith("https://abema.go.link")){
-            try (HttpClient client = Proxy == null ? HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_2)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .connectTimeout(Duration.ofSeconds(5))
-                    .build()
-                    :
-                    HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_2)
-                            .followRedirects(HttpClient.Redirect.NORMAL)
-                            .connectTimeout(Duration.ofSeconds(5))
-                            .proxy(ProxySelector.of(new InetSocketAddress(Proxy.split(":")[0], Integer.parseInt(Proxy.split(":")[1]))))
-                            .build()
-            ) {
+            try  {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(new URI(url))
                         .headers("User-Agent", Function.UserAgent)
-                        .headers("Accept-Encoding", "gzip, br")
                         .GET()
                         .build();
 
                 HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
                 url = send.uri().toURL().toString();
-
             } catch (Exception e){
                 return gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
@@ -95,12 +90,6 @@ public class Abema implements ServiceAPI {
         if (!video && !archive && !live){
             //System.out.println(url);
             return gson.toJson(new ErrorMessage("対応していないURLです"));
-        }
-
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            Proxy = Function.ProxyList.get(i);
         }
 
         try {
@@ -284,8 +273,4 @@ public class Abema implements ServiceAPI {
         return "Abema";
     }
 
-    @Override
-    public String getUseProxy() {
-        return Proxy;
-    }
 }

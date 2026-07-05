@@ -38,26 +38,29 @@ public class fc2 implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json, HttpClient client) {
-        JsonElement json_object = Function.gson.fromJson(json, JsonElement.class);
-
-        if (json_object.isJsonObject() && json_object.getAsJsonObject().has("URL")){
-            this.url = json_object.getAsJsonObject().get("URL").getAsString();
-        }
-
+    public void setHttpClient(HttpClient client) {
         this.client = client;
     }
 
     @Override
-    public String Get() {
+    public void setURL(String URL) {
+        this.url = URL;
+    }
+
+    @Override
+    public void setToken(String[] token) {
+
+    }
+
+    @Override
+    public void setProxy(String proxy) {
+        this.proxy = proxy;
+    }
+
+    @Override
+    public String get() {
         if (url == null || url.isEmpty()){
             return Function.gson.toJson(new ErrorMessage("URLがありません"));
-        }
-
-        // Proxy
-        if (!Function.ProxyList.isEmpty()){
-            int i = new SecureRandom().nextInt(0, Function.ProxyList.size());
-            proxy = Function.ProxyList.get(i);
         }
 
         try {
@@ -439,8 +442,4 @@ public class fc2 implements ServiceAPI {
         return "fc2";
     }
 
-    @Override
-    public String getUseProxy() {
-        return proxy;
-    }
 }

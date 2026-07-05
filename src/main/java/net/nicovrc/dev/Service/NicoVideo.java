@@ -82,32 +82,28 @@ public class NicoVideo implements ServiceAPI {
     }
 
     @Override
-    public void Set(String json, HttpClient client) {
-        JsonElement jsonElement = gson.fromJson(json, JsonElement.class);
-
-        if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("URL")){
-            this.URL = jsonElement.getAsJsonObject().get("URL").getAsString();
-        }
-
-        if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("user_session")){
-            this.user_session = jsonElement.getAsJsonObject().get("user_session").getAsString();
-        }
-        /*
-        if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("user_session_secure")){
-            this.user_session_secure = jsonElement.getAsJsonObject().get("user_session_secure").getAsString();
-        }*/
-        if (jsonElement.isJsonObject() && jsonElement.getAsJsonObject().has("nicosid")){
-            this.nicosid = jsonElement.getAsJsonObject().get("nicosid").getAsString();
-        }
-
+    public void setHttpClient(HttpClient client) {
         this.client = client;
-
-        //System.out.println(user_session + " / " + user_session_secure);
-
     }
 
     @Override
-    public String Get() {
+    public void setURL(String URL) {
+        this.URL = URL;
+    }
+
+    @Override
+    public void setToken(String[] token) {
+        this.user_session = token[0];
+        this.nicosid = token[1];
+    }
+
+    @Override
+    public void setProxy(String proxy) {
+        this.Proxy = proxy;
+    }
+
+    @Override
+    public String get() {
         if (URL == null || URL.isEmpty()){
             return gson.toJson(new ErrorMessage("URLがありません"));
         }
@@ -689,8 +685,4 @@ public class NicoVideo implements ServiceAPI {
         return "ニコニコ";
     }
 
-    @Override
-    public String getUseProxy() {
-        return Proxy;
-    }
 }
