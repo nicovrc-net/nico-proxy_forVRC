@@ -13,10 +13,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.WebSocket;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.time.Duration;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
@@ -309,7 +306,7 @@ public class fc2 implements ServiceAPI {
                                     .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))
                                     .build();
                     final String[] resultData = new String[]{"", "", null};
-                    final Timer fc2LiveTimer = new Timer();
+                    final boolean[] isLoopFlag = {true};
                     final StringBuilder sb = new StringBuilder();
                     final WebSocket.Builder wsb = client2.newWebSocketBuilder();
                     final WebSocket.Listener listener = new WebSocket.Listener(){
@@ -323,7 +320,7 @@ public class fc2 implements ServiceAPI {
                         @Override
                         public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
                             // 切断時
-                            fc2LiveTimer.cancel();
+                            isLoopFlag[0] = false;
                             client2.close();
                             resultData[0] = "Error";
                             LiveCacheList.remove(result.getURL());
@@ -350,14 +347,23 @@ public class fc2 implements ServiceAPI {
                                     webSocket.sendText("{\"name\":\"get_hls_information\",\"arguments\":{},\"id\":1}", true);
 
                                     final long[] count = {2};
-                                    fc2LiveTimer.scheduleAtFixedRate(new TimerTask() {
-                                        @Override
-                                        public void run() {
-                                            //System.out.println("----> {\"name\":\"heartbeat\",\"arguments\":{},\"id\":"+count[0]+"}");
-                                            webSocket.sendText("{\"name\":\"heartbeat\",\"arguments\":{},\"id\":"+count[0]+"}", true);
-                                            count[0]++;
+                                    Thread.ofVirtual().start(()->{
+                                        try {
+                                            Thread.sleep(30000L);
+
+                                            while (isLoopFlag[0]){
+                                                webSocket.sendText("{\"name\":\"heartbeat\",\"arguments\":{},\"id\":"+count[0]+"}", true);
+                                                count[0]++;
+
+                                                if (!isLoopFlag[0]){
+                                                    break;
+                                                }
+                                                Thread.sleep(30000L);
+                                            }
+                                        } catch (Exception e){
+                                            isLoopFlag[0] = false;
                                         }
-                                    }, 30000L, 30000L);
+                                    });
 
                                     return null;
                                 }
@@ -365,7 +371,7 @@ public class fc2 implements ServiceAPI {
                                 if (json1.getAsJsonObject().get("name").getAsString().equals("control_disconnection")){
                                     resultData[0] = "Error";
                                     client2.close();
-                                    fc2LiveTimer.cancel();
+                                    isLoopFlag[0] = false;
 
                                     return null;
                                 }

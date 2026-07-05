@@ -526,7 +526,7 @@ public class NicoVideo implements ServiceAPI {
                                 }
 
                                 final String[] resultData = new String[]{"", "", null};
-                                final Timer niconamaTimer = new Timer();
+                                final boolean[] isLoopFlag = {true};
                                 final WebSocket.Builder wsb = client1.newWebSocketBuilder();
                                 final WebSocket.Listener listener = new WebSocket.Listener() {
                                     @Override
@@ -540,7 +540,7 @@ public class NicoVideo implements ServiceAPI {
                                     public CompletionStage<?> onClose(WebSocket webSocket, int statusCode, String reason) {
                                         // 切断時
                                         client1.close();
-                                        niconamaTimer.cancel();
+                                        isLoopFlag[0] = false;
                                         LiveCacheList.remove(liveData.getURL());
                                         return null;
                                     }
@@ -574,14 +574,23 @@ public class NicoVideo implements ServiceAPI {
                                             if (type.equals("seat")){
 
                                                 webSocket.sendText("{\"type\":\"keepSeat\"}", true);
-                                                niconamaTimer.scheduleAtFixedRate(new TimerTask() {
-                                                    @Override
-                                                    public void run() {
-                                                        //System.out.println("---> {\"type\":\"keepSeat\"}");
-                                                        webSocket.sendText("{\"type\":\"keepSeat\"}", true);
-                                                    }
-                                                }, 30000L, 30000L);
+                                                Thread.ofVirtual().start(()->{
+                                                    try {
+                                                        Thread.sleep(30000L);
 
+                                                        while (isLoopFlag[0]){
+                                                            webSocket.sendText("{\"type\":\"keepSeat\"}", true);
+
+                                                            if (!isLoopFlag[0]){
+                                                                break;
+                                                            }
+                                                            Thread.sleep(30000L);
+                                                        }
+                                                    } catch (Exception e) {
+                                                        e.printStackTrace();
+                                                        isLoopFlag[0] = false;
+                                                    }
+                                                });
                                             }
 
                                             if (type.equals("messageServer")){
@@ -605,14 +614,14 @@ public class NicoVideo implements ServiceAPI {
                                                     resultData[0] = json1.getAsJsonObject().get("data").getAsJsonObject().get("uri").getAsString();
                                                 } else {
                                                     resultData[0] = "Error";
-                                                    niconamaTimer.cancel();
+                                                    isLoopFlag[0] = false;
                                                     client1.close();
                                                 }
                                             }
 
                                             if (type.equals("disconnect")){
                                                 LiveCacheList.remove(liveData.getURL());
-                                                niconamaTimer.cancel();
+                                                isLoopFlag[0] = false;
                                                 client1.close();
                                             }
                                         }
