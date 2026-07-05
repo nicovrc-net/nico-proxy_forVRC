@@ -417,4 +417,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     public void setHTTPClient(HttpClient client) {
         this.client = client;
     }
+
+    @Override
+    public void setProxy(String proxy) {
+
+    }
 }

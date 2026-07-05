@@ -24,6 +24,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private String URL = null;
     private String httpRequest = null;
     private HttpClient client = null;
+    private String proxy = null;
     private final HashMap<String, GetContent> GetContentList = new HashMap<>();
 
     private final List<ServiceAPI> list = ServiceList.getServiceList();
@@ -112,7 +113,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             String json = null;
             String ServiceName = null;
-            String proxy = null;
 
             final boolean isCache = cacheData != null;
             final boolean isHLSDummyPrint = !dummy_url.matcher(URL).find();// || ffmpegUA.matcher(httpRequest).find();
@@ -542,5 +542,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     @Override
     public void setHTTPClient(HttpClient client) {
         this.client = client;
+    }
+
+    @Override
+    public void setProxy(String proxy) {
+        this.proxy = proxy;
     }
 }

@@ -11,5 +11,6 @@ public interface NicoVRCHTTP {
     void setURL(String URL);
     void setHTTPSocket(Socket sock);
     void setHTTPClient(HttpClient client);
+    void setProxy(String proxy);
 
 }
