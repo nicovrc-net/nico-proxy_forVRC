@@ -49,20 +49,18 @@ public class GetVideoInfo implements NicoVRCAPI {
                             continue;
                         }
 
-
+                        site.setHttpClient(client);
+                        site.setURL(inputUrl);
+                        site.setProxy(null);
                         if (url.startsWith("twitcasting.tv")) {
                             //System.out.println("a");
-                            site.Set("{\"URL\": \"" + inputUrl + "\", \"ClientID\": \"" + Function.config_twitcast_ClientId + "\", \"ClientSecret\": \"" + Function.config_twitcast_ClientSecret + "\"}", httpClient);
+                            site.setToken(new String[]{Function.config_twitcast_ClientId, Function.config_twitcast_ClientSecret});
                         } else if (site.getServiceName().equals("ニコニコ")){
                             if (Function.config_user_session != null && Function.config_nicosid != null){
-                                site.Set("{\"URL\":\""+inputUrl+"\", \"user_session\":\""+Function.config_user_session+"\", \"nicosid\":\""+Function.config_nicosid+"\"}", httpClient);
-                            } else {
-                                site.Set("{\"URL\":\""+inputUrl+"\"}", httpClient);
+                                site.setToken(new String[]{Function.config_user_session, Function.config_nicosid});
                             }
-                        } else {
-                            site.Set("{\"URL\": \""+inputUrl+"\"}", httpClient);
                         }
-                        get[0] = site.Get();
+                        get[0] = site.get();
                         isFound[0] = true;
                     }
                 }
