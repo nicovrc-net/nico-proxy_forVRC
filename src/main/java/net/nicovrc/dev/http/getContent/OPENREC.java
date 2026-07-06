@@ -1,7 +1,7 @@
 package net.nicovrc.dev.http.getContent;
 
 import net.nicovrc.dev.Function;
-import net.nicovrc.dev.Service.Result.OPENREC_Result;
+import net.nicovrc.dev.Service.Result.mellow_fan_Result;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -17,7 +17,7 @@ public class OPENREC implements GetContent {
 
         String hlsText = null;
         String refererText = null;
-        OPENREC_Result result = Function.gson.fromJson(json, OPENREC_Result.class);
+        mellow_fan_Result result = Function.gson.fromJson(json, mellow_fan_Result.class);
 
         String url = result.isLive() ? result.getLiveURL() : result.getVideoURL();
         URI uri = new URI(url);

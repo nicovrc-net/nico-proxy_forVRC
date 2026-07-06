@@ -1,6 +1,6 @@
 package net.nicovrc.dev.Service.Result;
 
-public class OPENREC_Result {
+public class mellow_fan_Result {
 
     private String URL;
     private String Title;

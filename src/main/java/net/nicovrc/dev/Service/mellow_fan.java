@@ -3,7 +3,7 @@ package net.nicovrc.dev.Service;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
-import net.nicovrc.dev.Service.Result.OPENREC_Result;
+import net.nicovrc.dev.Service.Result.mellow_fan_Result;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -11,14 +11,14 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 
-public class OPENREC implements ServiceAPI {
+public class mellow_fan implements ServiceAPI {
 
     private String url = null;
     private HttpClient client = null;
 
     @Override
     public String[] getCorrespondingURL() {
-        return new String[]{"www.openrec.tv"};
+        return new String[]{"www.mellow-fan.com"};
     }
 
     @Override
@@ -47,7 +47,7 @@ public class OPENREC implements ServiceAPI {
             String[] split = url.split("/");
             String id = split[split.length - 1];
 
-            URI uri = new URI("https://public.openrec.tv/external/api/v5/movies/"+id);
+            URI uri = new URI("https://public.mellow-fan.com/external/api/v5/movies/"+id);
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(uri)
                     .headers("User-Agent", Function.UserAgent)
@@ -68,12 +68,12 @@ public class OPENREC implements ServiceAPI {
             }
             JsonElement json = Function.gson.fromJson(jsonText, JsonElement.class);
             jsonText = null;
-            OPENREC_Result result = new OPENREC_Result();
+            mellow_fan_Result result = new mellow_fan_Result();
             if (json.getAsJsonObject().has("id")){
                 if (json.getAsJsonObject().get("is_live").getAsBoolean()){
-                    result.setURL("https://www.openrec.tv/live/"+id);
+                    result.setURL("https://www.mellow-fan.com/live/"+id);
                 } else {
-                    result.setURL("https://www.openrec.tv/movie/"+id);
+                    result.setURL("https://www.mellow-fan.com/movie/"+id);
                 }
                 result.setTitle(json.getAsJsonObject().get("title").getAsString());
                 result.setIntroduction(json.getAsJsonObject().get("introduction").getAsString());
@@ -102,7 +102,7 @@ public class OPENREC implements ServiceAPI {
 
     @Override
     public String getServiceName() {
-        return "OPENREC";
+        return "mellow-fan";
     }
 
 }
