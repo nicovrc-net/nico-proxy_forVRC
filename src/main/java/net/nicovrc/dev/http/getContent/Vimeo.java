@@ -1,6 +1,5 @@
 package net.nicovrc.dev.http.getContent;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 
@@ -12,14 +11,12 @@ import java.nio.charset.StandardCharsets;
 
 public class Vimeo implements GetContent {
 
-    private final Gson gson = Function.gson;
-
     @Override
     public ContentObject run(HttpClient client, String httpRequest, String URL, String json) throws Exception {
 
         String dummy_hlsText = null;
         String hlsText = null;
-        JsonElement element = gson.fromJson(json, JsonElement.class);
+        JsonElement element = Function.gson.fromJson(json, JsonElement.class);
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(new URI(element.getAsJsonObject().get("VideoURL").getAsString()))

@@ -1,6 +1,5 @@
 package net.nicovrc.dev.http.getContent;
 
-import com.google.gson.Gson;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.OPENREC_Result;
 
@@ -13,14 +12,12 @@ import java.util.Locale;
 
 public class OPENREC implements GetContent {
 
-    private final Gson gson = Function.gson;
-
     @Override
     public ContentObject run(HttpClient client, String httpRequest, String URL, String json) throws Exception {
 
         String hlsText = null;
         String refererText = null;
-        OPENREC_Result result = gson.fromJson(json, OPENREC_Result.class);
+        OPENREC_Result result = Function.gson.fromJson(json, OPENREC_Result.class);
 
         String url = result.isLive() ? result.getLiveURL() : result.getVideoURL();
         URI uri = new URI(url);

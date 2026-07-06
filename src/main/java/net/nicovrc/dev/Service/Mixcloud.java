@@ -1,6 +1,5 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
@@ -11,7 +10,6 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,7 +17,6 @@ import java.util.regex.Pattern;
 public class Mixcloud implements ServiceAPI {
 
     private String url = null;
-    private final Gson gson = Function.gson;
     private HttpClient client = null;
 
     private final Pattern matcher_URL = Pattern.compile("https://www\\.mixcloud\\.com/(.+)/(.+)/");
@@ -53,12 +50,12 @@ public class Mixcloud implements ServiceAPI {
     public String get() {
 
         if (url  == null || url.isEmpty()){
-            return gson.toJson(new ErrorMessage("URLがありません"));
+            return Function.gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         Matcher matcher = matcher_URL.matcher(url);
         if (!matcher.find()){
-            return gson.toJson(new ErrorMessage("対応してないURLです。"));
+            return Function.gson.toJson(new ErrorMessage("対応してないURLです。"));
         }
 
         try {
@@ -81,10 +78,10 @@ public class Mixcloud implements ServiceAPI {
             } else {
                 jsonText = new String(send.body(), StandardCharsets.UTF_8);
             }
-            JsonElement json = gson.fromJson(jsonText, JsonElement.class);
+            JsonElement json = Function.gson.fromJson(jsonText, JsonElement.class);
 
             if (json.getAsJsonObject().get("data").getAsJsonObject().get("cloudcast").isJsonNull()){
-                return gson.toJson(new ErrorMessage("対応してないURLです。"));
+                return Function.gson.toJson(new ErrorMessage("対応してないURLです。"));
             }
 
             MixcloudResult result = new MixcloudResult();
@@ -107,11 +104,11 @@ public class Mixcloud implements ServiceAPI {
             result1.setLength(0);
             //client.close();
 
-            return gson.toJson(result);
+            return Function.gson.toJson(result);
 
         } catch (Exception e){
             e.printStackTrace();
-            return gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
     }
 

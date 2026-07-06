@@ -1,6 +1,5 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
@@ -21,8 +20,6 @@ public class Twitcasting implements ServiceAPI {
     private String ClientID = null;
     private String ClientSecret = null;
     private HttpClient client = null;
-
-    private final Gson gson = Function.gson;
 
     private final Pattern matcher_videoUrl = Pattern.compile("playsinline\n {16}src=\"(.+)\"");
 
@@ -55,11 +52,11 @@ public class Twitcasting implements ServiceAPI {
     @Override
     public String get() {
         if (url == null || url.isEmpty()){
-            return gson.toJson(new ErrorMessage("URLがありません"));
+            return Function.gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         if (ClientID == null || ClientID.isEmpty() || ClientSecret == null || ClientSecret.isEmpty()){
-            return gson.toJson(new ErrorMessage("ツイキャス APIキーがありません"));
+            return Function.gson.toJson(new ErrorMessage("ツイキャス APIキーがありません"));
         }
 
         String base64 = new String(Base64.getEncoder().encode((ClientID+":"+ClientSecret).getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
@@ -99,7 +96,7 @@ public class Twitcasting implements ServiceAPI {
             //System.out.println(send.statusCode());
             //System.out.println(send.body());
 
-            JsonElement json = gson.fromJson(send.body(), JsonElement.class);
+            JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
 
             if (json.isJsonObject() && json.getAsJsonObject().has("movie")){
                 Twitcas result = new Twitcas();
@@ -152,14 +149,14 @@ public class Twitcasting implements ServiceAPI {
                     result.setLiveURL(json.getAsJsonObject().get("movie").getAsJsonObject().get("hls_url").getAsString());
                 }
 
-                return gson.toJson(result);
+                return Function.gson.toJson(result);
             } else {
-                return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+json.getAsJsonObject().get("error").getAsJsonObject().get("message").getAsString()+")"));
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。 ("+json.getAsJsonObject().get("error").getAsJsonObject().get("message").getAsString()+")"));
             }
 
         } catch (Exception e){
             e.printStackTrace();
-            return gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
     }
 

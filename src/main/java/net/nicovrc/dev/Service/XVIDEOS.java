@@ -1,6 +1,5 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.Gson;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.XvideoResult;
@@ -18,7 +17,6 @@ public class XVIDEOS implements ServiceAPI {
     private String url = null;
     private HttpClient client = null;
 
-    private final Gson gson = Function.gson;
 
     private final Pattern matcher_duration = Pattern.compile("<meta property=\"og:duration\" content=\"(\\d+)\" />");
     private final Pattern matcher_hlsURL = Pattern.compile("html5player\\.setVideoHLS\\('(.+)'\\)");
@@ -110,7 +108,7 @@ public class XVIDEOS implements ServiceAPI {
                 return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
 
-            return gson.toJson(result);
+            return Function.gson.toJson(result);
 
         } catch (Exception e){
             e.printStackTrace();

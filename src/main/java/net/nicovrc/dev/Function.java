@@ -452,7 +452,7 @@ public class Function {
                     jsonText = redisClient.get(key);
                     split = key.split(":");
                     str = new String(Base64.getDecoder().decode(split[split.length - 1]), StandardCharsets.UTF_8);
-                    temp.put(str, gson.fromJson(jsonText, CacheData.class));
+                    temp.put(str, Function.gson.fromJson(jsonText, CacheData.class));
                     jsonText = null;
                     split = null;
                     str = null;

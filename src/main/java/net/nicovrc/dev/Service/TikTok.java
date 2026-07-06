@@ -1,6 +1,5 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
@@ -20,8 +19,6 @@ public class TikTok implements ServiceAPI {
 
     private String url = null;
     private HttpClient client = null;
-
-    private final Gson gson = Function.gson;
 
     private final Pattern matcher_DataJson = Pattern.compile("<script id=\"__UNIVERSAL_DATA_FOR_REHYDRATION__\" type=\"application/json\">\\{(.+)\\}</script>");
 
@@ -123,7 +120,7 @@ public class TikTok implements ServiceAPI {
                 }
                 result.setVideoAccessCookie(sb.substring(0, sb.length() - 2));
                 //return json.toString();
-                return gson.toJson(result);
+                return Function.gson.toJson(result);
             } else {
                 return Function.gson.toJson(new ErrorMessage("存在しない動画です。"));
             }

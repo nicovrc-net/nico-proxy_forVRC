@@ -1,6 +1,5 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
@@ -19,7 +18,6 @@ public class Youjizz implements ServiceAPI {
     private String url = null;
     private HttpClient client = null;
 
-    private final Gson gson = Function.gson;
     private final Pattern matcher_Json = Pattern.compile("var dataEncodings = \\[(.+)\\];");
     private final Pattern matcher_hls = Pattern.compile("_hls");
     private final Pattern matcher_title = Pattern.compile("<title>(.+)</title>");
@@ -78,9 +76,9 @@ public class Youjizz implements ServiceAPI {
 
             Matcher matcher = matcher_Json.matcher(text);
             if (!matcher.find()){
-                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
-            JsonElement json = new Gson().fromJson("["+matcher.group(1)+"]", JsonElement.class);
+            JsonElement json = Function.gson.fromJson("["+matcher.group(1)+"]", JsonElement.class);
 
             int quality = -1;
             int quality2 = -1;
@@ -112,11 +110,11 @@ public class Youjizz implements ServiceAPI {
                 result.setVideoURL(url2);
             }
 
-            return gson.toJson(result);
+            return Function.gson.toJson(result);
         } catch (Exception e) {
             e.printStackTrace();
 
-            return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
+            return Function.gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
         }
     }
 

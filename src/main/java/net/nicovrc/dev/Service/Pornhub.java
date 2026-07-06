@@ -1,6 +1,5 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
@@ -19,7 +18,6 @@ public class Pornhub implements ServiceAPI {
     private String url = null;
     private HttpClient client = null;
 
-    private final Gson gson = Function.gson;
     private final Pattern Support_URL = Pattern.compile("https://(.+)\\.pornhub\\.com/view_video\\.php\\?viewkey=(.+)");
     private final Pattern matcher_json = Pattern.compile("var flashvars_(\\d+) = \\{(.*)\\}\\;");
 
@@ -51,12 +49,12 @@ public class Pornhub implements ServiceAPI {
     @Override
     public String get() {
         if (url  == null || url.isEmpty()){
-            return gson.toJson(new ErrorMessage("URLが入力されていません。"));
+            return Function.gson.toJson(new ErrorMessage("URLが入力されていません。"));
         }
         Matcher matcher = Support_URL.matcher(url);
 
         if (!matcher.find()){
-            return gson.toJson(new ErrorMessage("対応していないURLです。"));
+            return Function.gson.toJson(new ErrorMessage("対応していないURLです。"));
         }
 
         String id = matcher.group(2);
@@ -83,10 +81,10 @@ public class Pornhub implements ServiceAPI {
             }
             Matcher matcher1 = matcher_json.matcher(text);
             if (!matcher1.find()){
-                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
             String s = "{" + matcher1.group(2) + "}";
-            JsonElement json = gson.fromJson(s, JsonElement.class);
+            JsonElement json = Function.gson.fromJson(s, JsonElement.class);
 
             PornhubResult result = new PornhubResult();
 
@@ -114,11 +112,11 @@ public class Pornhub implements ServiceAPI {
 
             result.setVideoURL(hlsURL);
 
-            return gson.toJson(result);
+            return Function.gson.toJson(result);
 
         } catch (Exception e){
             e.printStackTrace();
-            return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
+            return Function.gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
         }
     }
 

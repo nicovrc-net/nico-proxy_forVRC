@@ -1,6 +1,5 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
@@ -18,8 +17,6 @@ public class Twitter implements ServiceAPI {
 
     private String url = null;
     private HttpClient client = null;
-
-    private final Gson gson = Function.gson;
 
     @Override
     public String[] getCorrespondingURL() {
@@ -50,7 +47,7 @@ public class Twitter implements ServiceAPI {
     public String get() {
 
         if (url == null || url.isEmpty()){
-            return gson.toJson(new ErrorMessage("URLがありません"));
+            return Function.gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         String[] split = url.split("/");
@@ -93,7 +90,7 @@ public class Twitter implements ServiceAPI {
             }
 
             String token = "";
-            JsonElement json = gson.fromJson(text, JsonElement.class);
+            JsonElement json = Function.gson.fromJson(text, JsonElement.class);
             if (json.isJsonObject() && json.getAsJsonObject().has("guest_token")) {
                 token = json.getAsJsonObject().get("guest_token").getAsString();
             }
@@ -120,7 +117,7 @@ public class Twitter implements ServiceAPI {
                 text = new String(send.body(), StandardCharsets.UTF_8);
             }
 
-            json = gson.fromJson(text, JsonElement.class);
+            json = Function.gson.fromJson(text, JsonElement.class);
             TwitterResult result = new TwitterResult();
 
             //System.out.println(json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().has("legacy"));
@@ -156,23 +153,23 @@ public class Twitter implements ServiceAPI {
                 }
                 result.setVideoURL(videoURL);
 
-                return gson.toJson(result);
+                return Function.gson.toJson(result);
 
             } else if (json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().has("result") && json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().get("result").getAsJsonObject().has("reason")){
                 String reason = json.getAsJsonObject().get("data").getAsJsonObject().get("tweetResult").getAsJsonObject().get("result").getAsJsonObject().get("reason").getAsString();
                 if (reason.equals("NsfwLoggedOut")){
-                    return gson.toJson(new ErrorMessage("取得に失敗しました。 (理由 : NSFW)"));
+                    return Function.gson.toJson(new ErrorMessage("取得に失敗しました。 (理由 : NSFW)"));
                 } else {
-                    return gson.toJson(new ErrorMessage("取得に失敗しました。 (理由 : "+reason+")"));
+                    return Function.gson.toJson(new ErrorMessage("取得に失敗しました。 (理由 : "+reason+")"));
                 }
             } else {
                 //System.out.println(json);
-                return gson.toJson(new ErrorMessage("ツイートがありません"));
+                return Function.gson.toJson(new ErrorMessage("ツイートがありません"));
             }
 
         } catch (Exception e){
             e.printStackTrace();
-            return gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
 
         //return "";
