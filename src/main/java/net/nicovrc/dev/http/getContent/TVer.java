@@ -1,7 +1,6 @@
 package net.nicovrc.dev.http.getContent;
 
-import com.google.Function.gson.Function.gson;
-import com.google.Function.gson.JsonElement;
+import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 
 import java.net.URI;
@@ -11,8 +10,6 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 
 public class TVer implements GetContent {
-
-    private final Function.gson Function.gson = Function.gson;
 
     @Override
     public ContentObject run(HttpClient client, String httpRequest, String URL, String json) throws Exception {

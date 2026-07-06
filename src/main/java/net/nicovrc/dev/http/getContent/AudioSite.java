@@ -1,7 +1,6 @@
 package net.nicovrc.dev.http.getContent;
 
-import com.google.Function.gson.Function.gson;
-import com.google.Function.gson.JsonElement;
+import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 
 import java.net.URI;
@@ -14,7 +13,6 @@ import java.util.regex.Pattern;
 
 public class AudioSite implements GetContent {
 
-    private final Function.gson Function.gson = Function.gson;
     private final Pattern matcher_sonicbowl = Pattern.compile("sonicbowl\\.cloud");
 
 
