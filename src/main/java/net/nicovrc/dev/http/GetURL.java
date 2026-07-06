@@ -1,6 +1,6 @@
 package net.nicovrc.dev.http;
 
-import com.google.gson.JsonElement;
+import com.google.Function.gson.JsonElement;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.data.LogData;

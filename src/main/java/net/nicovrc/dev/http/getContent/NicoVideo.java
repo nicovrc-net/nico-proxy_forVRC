@@ -1,6 +1,6 @@
 package net.nicovrc.dev.http.getContent;
 
-import com.google.gson.Gson;
+import com.google.Function.gson.Function.gson;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.NicoNicoVideo;
 
@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
 
 public class NicoVideo implements GetContent {
 
-    private final Gson gson = Function.gson;
+    private final Function.gson Function.gson = Function.gson;
 
     private final Pattern hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
     private final Pattern hls_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
@@ -32,7 +32,7 @@ public class NicoVideo implements GetContent {
         String hlsText = null;
         String cookieText = null;
 
-        NicoNicoVideo result = gson.fromJson(json, NicoNicoVideo.class);
+        NicoNicoVideo result = Function.gson.fromJson(json, NicoNicoVideo.class);
         if (result != null) {
             if (result.getVideoURL() != null) {
                 // ニコ動

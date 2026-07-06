@@ -1,6 +1,5 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
@@ -21,7 +20,6 @@ public class bandcamp implements ServiceAPI {
     private String url = null;
     private HttpClient client = null;
 
-    private final Gson gson = Function.gson;
 
     private final Pattern matcher_json = Pattern.compile("data-tralbum=\"\\{(.+)}\" data-payment=");
 
@@ -54,7 +52,7 @@ public class bandcamp implements ServiceAPI {
     public String get() {
 
         if (url  == null || url.isEmpty()){
-            return gson.toJson(new ErrorMessage("URLがありません"));
+            return Function.gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         try {
@@ -82,13 +80,13 @@ public class bandcamp implements ServiceAPI {
 
             Matcher matcher = matcher_json.matcher(result);
             if (!matcher.find()){
-                return gson.toJson(new ErrorMessage("対応してないURLです。"));
+                return Function.gson.toJson(new ErrorMessage("対応してないURLです。"));
             }
 
             String s = "{" + matcher.group(1).replaceAll("&quot;", "\"") + "}";
             //System.out.println(s);
 
-            JsonElement json = new Gson().fromJson(s, JsonElement.class);
+            JsonElement json = Function.gson.fromJson(s, JsonElement.class);
             //System.out.println(json);
 
             JsonArray trackinfo = json.getAsJsonObject().get("trackinfo").getAsJsonArray();
@@ -106,11 +104,11 @@ public class bandcamp implements ServiceAPI {
             result1.setAudioURL(audio[0]);
 
             //client.close();
-            return gson.toJson(result1);
+            return Function.gson.toJson(result1);
 
         } catch (Exception e){
             e.printStackTrace();
-            return gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
+            return Function.gson.toJson(new ErrorMessage("内部エラーです。 ("+e.getMessage()+")"));
         }
     }
 

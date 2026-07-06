@@ -1,6 +1,5 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
@@ -19,7 +18,6 @@ public class SpankBang implements ServiceAPI {
     private String url = null;
     private HttpClient client = null;
 
-    private final Gson gson = Function.gson;
     private final Pattern matcher_json = Pattern.compile("var stream_data = \\{(.+)};");
     private final Pattern matcher_Title = Pattern.compile("<h1 class=\"main_content_title\" title=\"(.+)\">(.+)</h1>");
 
@@ -80,9 +78,9 @@ public class SpankBang implements ServiceAPI {
             Matcher matcher = matcher_json.matcher(text);
             if (!matcher.find()){
                 //System.out.println(s);
-                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
-            JsonElement json = gson.fromJson("{" + matcher.group(1) + "}", JsonElement.class);
+            JsonElement json = Function.gson.fromJson("{" + matcher.group(1) + "}", JsonElement.class);
 
             SpankBangResult result = new SpankBangResult();
             Matcher matcher1 = matcher_Title.matcher(text);
@@ -135,7 +133,7 @@ public class SpankBang implements ServiceAPI {
         } catch (Exception e){
             e.printStackTrace();
 
-            return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
+            return Function.gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
         }
     }
 

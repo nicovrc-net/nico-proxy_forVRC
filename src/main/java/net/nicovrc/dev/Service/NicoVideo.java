@@ -1,6 +1,5 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
@@ -24,7 +23,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class NicoVideo implements ServiceAPI {
-    private final Gson gson = Function.gson;
     private HttpClient client = null;
     private final String[] SupportURL = {
             "www.nicovideo.jp",
@@ -105,7 +103,7 @@ public class NicoVideo implements ServiceAPI {
     @Override
     public String get() {
         if (URL == null || URL.isEmpty()){
-            return gson.toJson(new ErrorMessage("URLがありません"));
+            return Function.gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         String url = URL.split("\\?")[0];
@@ -129,7 +127,7 @@ public class NicoVideo implements ServiceAPI {
             matcher_short = null;
             matcher_cas = null;
             matcher_idOnly = null;
-            return gson.toJson(new ErrorMessage("URLが間違っているか対応してないURLです。"));
+            return Function.gson.toJson(new ErrorMessage("URLが間違っているか対応してないURLです。"));
         }
 
         String accessUrl = "";
@@ -150,7 +148,7 @@ public class NicoVideo implements ServiceAPI {
 
             } catch (Exception e){
                 e.printStackTrace();
-                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
 
         }
@@ -181,7 +179,7 @@ public class NicoVideo implements ServiceAPI {
 
             } catch (Exception e){
                 e.printStackTrace();
-                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
         }
 
@@ -201,7 +199,7 @@ public class NicoVideo implements ServiceAPI {
 
             } catch (Exception e){
                 e.printStackTrace();
-                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
         }
 
@@ -291,16 +289,16 @@ public class NicoVideo implements ServiceAPI {
                 Matcher matcher = matcher_videoError1.matcher(jsonText);
                 if (matcher.find()){
                     matcher = null;
-                    return gson.toJson(new ErrorMessage("この動画は存在しないか、削除された可能性があります。"));
+                    return Function.gson.toJson(new ErrorMessage("この動画は存在しないか、削除された可能性があります。"));
                 }
                 matcher = matcher_videoError2.matcher(jsonText);
                 if (matcher.find()){
                     String str = matcher.group(1);
                     matcher = null;
-                    return gson.toJson(new ErrorMessage("この動画は"+str+"の申立により、著作権侵害として削除されました。"));
+                    return Function.gson.toJson(new ErrorMessage("この動画は"+str+"の申立により、著作権侵害として削除されました。"));
                 }
                 matcher = null;
-                return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
             }
 
             String body = jsonText;
@@ -308,12 +306,12 @@ public class NicoVideo implements ServiceAPI {
             Matcher matcher = matcher_Json.matcher(body);
             JsonElement json = null;
             if (matcher.find()){
-                json = gson.fromJson("{" + matcher.group(1).replaceAll("&quot;", "\"") + "}", JsonElement.class);
+                json = Function.gson.fromJson("{" + matcher.group(1).replaceAll("&quot;", "\"") + "}", JsonElement.class);
             } else {
                 matcher = matcher_JsonNico.matcher(body);
                 if (matcher.find()){
                     //System.out.println(matcher.group(1).replaceAll("&quot;", "\""));
-                    json = gson.fromJson(matcher.group(1).replaceAll("&quot;", "\""), JsonElement.class);
+                    json = Function.gson.fromJson(matcher.group(1).replaceAll("&quot;", "\""), JsonElement.class);
                 }
             }
             matcher = null;
@@ -444,10 +442,10 @@ public class NicoVideo implements ServiceAPI {
                             }
                         });
                         System.out.println(send.body());*/
-                        return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
+                        return Function.gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
                     }
                     //System.out.println(body);
-                    json = gson.fromJson(jsonText, JsonElement.class);
+                    json = Function.gson.fromJson(jsonText, JsonElement.class);
                     //client.close();
 
                     List<String> cookieTextList = new ArrayList<>();
@@ -474,10 +472,10 @@ public class NicoVideo implements ServiceAPI {
                         result.setVideoAccessCookie(cookie);
                     } else {
                         //System.out.println("動画取得に失敗しました。");
-                        return gson.toJson(new ErrorMessage("動画取得に失敗しました。"));
+                        return Function.gson.toJson(new ErrorMessage("動画取得に失敗しました。"));
                     }
 
-                    return gson.toJson(result);
+                    return Function.gson.toJson(result);
                 } else {
                     // ニコ生
                     NicoNicoVideo liveData = new NicoNicoVideo();
@@ -550,7 +548,7 @@ public class NicoVideo implements ServiceAPI {
                                         String message = data.toString();
                                         //System.out.println(message);
 
-                                        JsonElement json1 = gson.fromJson(message, JsonElement.class);
+                                        JsonElement json1 = Function.gson.fromJson(message, JsonElement.class);
                                         //System.out.println("<--- "+json1);
 
                                         if (json1 != null && json1.isJsonObject() && json1.getAsJsonObject().has("type")){
@@ -637,7 +635,7 @@ public class NicoVideo implements ServiceAPI {
                                     webSocket = null;
                                 } catch (Exception e) {
                                     e.printStackTrace();
-                                    return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
+                                    return Function.gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
                                 }
 
                                 while (resultData[1] == null || resultData[1].isEmpty()){
@@ -664,16 +662,16 @@ public class NicoVideo implements ServiceAPI {
                                 liveData.setLiveAccessCookie(cacheData.getLiveAccessCookie());
                             }
 
-                            return gson.toJson(liveData);
+                            return Function.gson.toJson(liveData);
 
                         } else {
-                            return gson.toJson(new ErrorMessage("取得に失敗しました。 (Websocket)"));
+                            return Function.gson.toJson(new ErrorMessage("取得に失敗しました。 (Websocket)"));
                         }
 
                     } else {
-                        return gson.toJson(new ErrorMessage("取得に失敗しました。"));
+                        return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
                     }
-                    //return gson.toJson(json);
+                    //return Function.gson.toJson(json);
                 }
             }
 
@@ -682,10 +680,10 @@ public class NicoVideo implements ServiceAPI {
             matcher_short = null;
             matcher_cas = null;
             matcher_idOnly = null;
-            return gson.toJson(new ErrorMessage("取得に失敗しました。"));
+            return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
         } catch (Exception e){
             e.printStackTrace();
-            return gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPアクセスエラー)"));
+            return Function.gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPアクセスエラー)"));
         }
     }
 

@@ -1,7 +1,7 @@
 package net.nicovrc.dev.http.getContent;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
+import com.google.Function.gson.Function.gson;
+import com.google.Function.gson.JsonElement;
 import net.nicovrc.dev.Function;
 
 import java.net.URI;
@@ -12,7 +12,7 @@ import java.nio.charset.StandardCharsets;
 
 public class TVer implements GetContent {
 
-    private final Gson gson = Function.gson;
+    private final Function.gson Function.gson = Function.gson;
 
     @Override
     public ContentObject run(HttpClient client, String httpRequest, String URL, String json) throws Exception {
@@ -20,7 +20,7 @@ public class TVer implements GetContent {
         final String method = Function.getMethod(httpRequest);
         String dummy_hlsText = null;
         String hlsText = null;
-        JsonElement element = gson.fromJson(json, JsonElement.class);
+        JsonElement element = Function.gson.fromJson(json, JsonElement.class);
 
         String url = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : element.getAsJsonObject().get("LiveURL").getAsString();
         HttpRequest request = HttpRequest.newBuilder()

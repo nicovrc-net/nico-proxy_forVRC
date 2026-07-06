@@ -1,6 +1,5 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
@@ -12,14 +11,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
 
 public class Iwara implements ServiceAPI {
 
     private String url = null;
     private HttpClient client = null;
-
-    private final Gson gson = Function.gson;
 
     @Override
     public String[] getCorrespondingURL() {
@@ -49,13 +45,13 @@ public class Iwara implements ServiceAPI {
     @Override
     public String get() {
         if (url  == null || url.isEmpty()){
-            return gson.toJson(new ErrorMessage("URLがありません"));
+            return Function.gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         String[] split = url.split("/");
 
         if (split.length < 5){
-            return gson.toJson(new ErrorMessage("対応していないURLです。"));
+            return Function.gson.toJson(new ErrorMessage("対応していないURLです。"));
         }
 
         try {
@@ -83,7 +79,7 @@ public class Iwara implements ServiceAPI {
             }
 
             System.out.println(jsonText);
-            JsonElement json = new Gson().fromJson(jsonText, JsonElement.class);
+            JsonElement json = Function.gson.fromJson(jsonText, JsonElement.class);
 
             IwaraResult result = new IwaraResult();
             result.setTitle(json.getAsJsonObject().get("title").getAsString());
@@ -113,17 +109,17 @@ public class Iwara implements ServiceAPI {
             } else {
                 jsonText = new String(send.body(), StandardCharsets.UTF_8);
             }
-            json = new Gson().fromJson(jsonText, JsonElement.class);
+            json = Function.gson.fromJson(jsonText, JsonElement.class);
 
             result.setVideoURL("https:"+json.getAsJsonArray().get(0).getAsJsonObject().get("src").getAsJsonObject().get("view").getAsString());
 
-            return gson.toJson(result);
+            return Function.gson.toJson(result);
         } catch (Exception e) {
             e.printStackTrace();
-            return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
+            return Function.gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
         }
 
-        //return gson.toJson(new ErrorMessage("取得に失敗しました。 (HTTPエラー)"));
+        //return Function.gson.toJson(new ErrorMessage("取得に失敗しました。 (HTTPエラー)"));
     }
 
     @Override

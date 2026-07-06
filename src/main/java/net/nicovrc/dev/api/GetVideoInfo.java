@@ -29,8 +29,6 @@ public class GetVideoInfo implements NicoVRCAPI {
                 inputUrl = uri.split("\\?url=")[1];
             }
         }
-
-        HttpClient httpClient = client;
         try {
             boolean[] isFound = {false};
             String[] get = new String[]{"{\"ErrorMessage\": \"対応していないサイトです。\"}"};

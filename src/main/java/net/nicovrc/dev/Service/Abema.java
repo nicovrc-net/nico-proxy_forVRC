@@ -1,20 +1,15 @@
 package net.nicovrc.dev.Service;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.AbemaResult;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
 
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
-import java.time.Duration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,8 +17,6 @@ public class Abema implements ServiceAPI {
 
     private String url = null;
     private HttpClient client = null;
-
-    private final Gson gson = Function.gson;
 
     private final Pattern SupportURL_Video1 = Pattern.compile("https://abema\\.tv/video/episode/(.+)");
     private final Pattern SupportURL_Video2 = Pattern.compile("https://abema\\.tv/channels/(.+)/slots/(.+)");
@@ -59,7 +52,7 @@ public class Abema implements ServiceAPI {
     public String get() {
 
         if (url == null || url.isEmpty()){
-            return gson.toJson(new ErrorMessage("URLがありません"));
+            return Function.gson.toJson(new ErrorMessage("URLがありません"));
         }
 
         if (url.startsWith("https://abema.app") || url.startsWith("https://abema.go.link")){
@@ -74,7 +67,7 @@ public class Abema implements ServiceAPI {
 
                 url = send.uri().toURL().toString();
             } catch (Exception e){
-                return gson.toJson(new ErrorMessage("取得に失敗しました。"));
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。"));
             }
         }
 
@@ -89,7 +82,7 @@ public class Abema implements ServiceAPI {
 
         if (!video && !archive && !live){
             //System.out.println(url);
-            return gson.toJson(new ErrorMessage("対応していないURLです"));
+            return Function.gson.toJson(new ErrorMessage("対応していないURLです"));
         }
 
         try {
@@ -118,13 +111,13 @@ public class Abema implements ServiceAPI {
 
                 JsonElement json;
                 try {
-                    json = gson.fromJson(jsonText, JsonElement.class);
+                    json = Function.gson.fromJson(jsonText, JsonElement.class);
                 } catch (Exception e){
-                    return gson.toJson(new ErrorMessage("対応していないURLです"));
+                    return Function.gson.toJson(new ErrorMessage("対応していないURLです"));
                 }
 
                 if (!json.getAsJsonObject().has("playback")){
-                    return gson.toJson(new ErrorMessage("対応していない動画です"));
+                    return Function.gson.toJson(new ErrorMessage("対応していない動画です"));
                 }
 
                 /*
@@ -166,7 +159,7 @@ public class Abema implements ServiceAPI {
                     result.setVideoURL(json.getAsJsonObject().getAsJsonObject("playback").get("hlsPreview").getAsString());
                 }
 
-                return gson.toJson(result);
+                return Function.gson.toJson(result);
 
             }
 
@@ -192,13 +185,13 @@ public class Abema implements ServiceAPI {
 
                 JsonElement json;
                 try {
-                    json = gson.fromJson(jsonText, JsonElement.class);
+                    json = Function.gson.fromJson(jsonText, JsonElement.class);
                 } catch (Exception e){
-                    return gson.toJson(new ErrorMessage("対応していないURLです"));
+                    return Function.gson.toJson(new ErrorMessage("対応していないURLです"));
                 }
 
                 if (!json.getAsJsonObject().has("slot")){
-                    return gson.toJson(new ErrorMessage("対応していない配信アーカイブです"));
+                    return Function.gson.toJson(new ErrorMessage("対応していない配信アーカイブです"));
                 }
 
                 AbemaResult result = new AbemaResult();
@@ -213,7 +206,7 @@ public class Abema implements ServiceAPI {
                 if (json.getAsJsonObject().get("slot").getAsJsonObject().has("playback") && json.getAsJsonObject().get("slot").getAsJsonObject().get("playback").getAsJsonObject().has("hlsPreview")){
                     result.setVideoURL(json.getAsJsonObject().get("slot").getAsJsonObject().get("playback").getAsJsonObject().get("hlsPreview").getAsString());
                 }
-                return gson.toJson(result);
+                return Function.gson.toJson(result);
             }
 
             if (live){
@@ -236,9 +229,9 @@ public class Abema implements ServiceAPI {
 
                 JsonElement json;
                 try {
-                    json = gson.fromJson(jsonText, JsonElement.class);
+                    json = Function.gson.fromJson(jsonText, JsonElement.class);
                 } catch (Exception e){
-                    return gson.toJson(new ErrorMessage("対応していないURLです"));
+                    return Function.gson.toJson(new ErrorMessage("対応していないURLです"));
                 }
 
                 if (json.getAsJsonObject().has("channels")){
@@ -251,20 +244,20 @@ public class Abema implements ServiceAPI {
                             result.setURL("https://abema.tv/now-on-air/"+id);
                             result.setTitle(element.getAsJsonObject().get("name").getAsString());
                             result.setLiveURL(element.getAsJsonObject().get("playback").getAsJsonObject().get("hlsPreview").getAsString());
-                            return gson.toJson(result);
+                            return Function.gson.toJson(result);
                         }
                     }
 
                 }
 
-                return gson.toJson(new ErrorMessage("取得に失敗しました。 (存在しないチャンネル)"));
+                return Function.gson.toJson(new ErrorMessage("取得に失敗しました。 (存在しないチャンネル)"));
             }
 
             return "{}";
 
         } catch (Exception e){
             e.printStackTrace();
-            return gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
+            return Function.gson.toJson(new ErrorMessage("取得に失敗しました。 ("+e.getMessage()+")"));
         }
     }
 
