@@ -3,7 +3,7 @@ package net.nicovrc.dev;
 import com.amihaiemil.eoyaml.Yaml;
 import com.amihaiemil.eoyaml.YamlMapping;
 import com.amihaiemil.eoyaml.YamlSequence;
-import com.google.Function.gson.JsonElement;
+import com.google.gson.JsonElement;
 import net.nicovrc.dev.api.*;
 import net.nicovrc.dev.data.*;
 import redis.clients.jedis.*;
