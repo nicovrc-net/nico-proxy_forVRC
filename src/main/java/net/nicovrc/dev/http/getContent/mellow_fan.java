@@ -10,7 +10,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 
-public class OPENREC implements GetContent {
+public class mellow_fan implements GetContent {
 
     @Override
     public ContentObject run(HttpClient client, String httpRequest, String URL, String json) throws Exception {

@@ -48,7 +48,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         GetContentList.put("ツイキャス", new Twitcast());
         GetContentList.put("Abema", new Abema());
         GetContentList.put("TikTok", new TikTok());
-        GetContentList.put("OPENREC", new OPENREC());
+        GetContentList.put("mellow-fan", new mellow_fan());
         GetContentList.put("TVer", new TVer());
         GetContentList.put("piapro", new AudioSite());
         GetContentList.put("SoundCloud", new AudioSite());
