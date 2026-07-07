@@ -185,9 +185,7 @@ public class TCPServer extends Thread {
                             Function.sendHTTPRequest(sock, httpVersion, 404, Function.contentType_textPlain, null, null, Function.content_errorAPINotFound, isHead, null);
                             //sock.close();
                             return;
-                        }
-
-                        if (VideoMatchFlag){
+                        } else if (VideoMatchFlag){
                             //System.out.println("AAAC-3");
                             getVideo.setHTTPClient(client);
                             getVideo.setHTTPRequest(httpRequest);
@@ -196,9 +194,7 @@ public class TCPServer extends Thread {
                             getVideo.run();
                             sock.close();
                             return;
-                        }
-
-                        if (UrlMatchFlag){
+                        } else if (UrlMatchFlag){
                             //System.out.println("AAAC-2");
                             getURL.setHTTPClient(client);
                             getURL.setHTTPRequest(httpRequest);
