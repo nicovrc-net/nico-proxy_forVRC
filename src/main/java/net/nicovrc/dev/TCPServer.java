@@ -158,7 +158,7 @@ public class TCPServer extends Thread {
                         final String URI = Function.getURI(httpRequest);
 
                         if (URI == null) {
-                            //System.out.println("[Debug] HTTPRequest送信");
+                            System.out.println("[Debug] HTTPRequest送信");
                             Function.sendHTTPRequest(sock, httpVersion, 502, Function.contentType_textPlain, null, "*", Function.content_BadGateway, isHead, null);
                             sock.close();
 
