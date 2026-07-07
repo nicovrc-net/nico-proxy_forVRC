@@ -90,7 +90,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 httpVersion = null;
                 if (sock != null){
                     try {
-                        sock.close();
+                        //sock.close();
                     } catch (Exception e){
                         //e.printStackTrace();
                     }
@@ -277,7 +277,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 body = null;
                 if (sock != null){
                     try {
-                        sock.close();
+                        //sock.close();
                     } catch (Exception e){
                         //e.printStackTrace();
                     }
@@ -316,7 +316,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     Function.sendHTTPRequest(sock, httpVersion, 206, contentType, null, null, send.body(), method != null && method.equals("HEAD"), Long.parseLong(mat1.group(3)), Long.parseLong(mat1.group(2)), rangeSize);
                     if (sock != null){
                         try {
-                            sock.close();
+                            //sock.close();
                         } catch (Exception e){
                             //e.printStackTrace();
                         }
@@ -359,7 +359,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     }
                     if (sock != null){
                         try {
-                            sock.close();
+                            //sock.close();
                         } catch (Exception e){
                             //e.printStackTrace();
                         }

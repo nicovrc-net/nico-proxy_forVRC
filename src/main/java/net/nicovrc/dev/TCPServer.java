@@ -193,7 +193,7 @@ public class TCPServer extends Thread {
                             getVideo.setURL(URI);
                             getVideo.setHTTPSocket(sock);
                             getVideo.run();
-                            sock.close();
+                            //sock.close();
                             return;
                         }
 
@@ -204,7 +204,7 @@ public class TCPServer extends Thread {
                             getURL.setURL(URI);
                             getURL.setHTTPSocket(sock);
                             getURL.run();
-                            sock.close();
+                            //sock.close();
                             return;
                         }
 
