@@ -149,7 +149,7 @@ public class TCPServer extends Thread {
                         if (!isGET && !isPOST && !isHead) {
                             //System.out.println("[Debug] HTTPRequest送信");
                             Function.sendHTTPRequest(sock, httpVersion, 405, Function.contentType_textPlain, null, "*", Function.content_MethodNotAllowed, false, null);
-                            sock.close();
+                            //sock.close();
 
                             return;
                         }
@@ -159,7 +159,7 @@ public class TCPServer extends Thread {
                         if (URI == null) {
                             //System.out.println("[Debug] HTTPRequest送信");
                             Function.sendHTTPRequest(sock, httpVersion, 502, Function.contentType_textPlain, null, "*", Function.content_BadGateway, isHead, null);
-                            sock.close();
+                            //sock.close();
 
                             return;
                         }
@@ -182,7 +182,7 @@ public class TCPServer extends Thread {
                             }
 
                             Function.sendHTTPRequest(sock, httpVersion, 404, Function.contentType_textPlain, null, null, Function.content_errorAPINotFound, isHead, null);
-                            sock.close();
+                            //sock.close();
                             return;
                         }
 
@@ -209,7 +209,7 @@ public class TCPServer extends Thread {
                         }
 
                         Function.sendHTTPRequest(sock, httpVersion, 404, Function.contentType_textPlain, null, "*", Function.content_NotFound, isHead, null);
-                        sock.close();
+                        //sock.close();
 
 
                     } catch (Exception e) {

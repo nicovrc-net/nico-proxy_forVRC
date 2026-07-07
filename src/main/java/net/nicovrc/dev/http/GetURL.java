@@ -68,7 +68,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         if (client == null){
             if (sock != null && !sock.isClosed()){
                 try {
-                    sock.close();
+                    //sock.close();
                 } catch (Exception e){
                     //e.printStackTrace();
                 }
@@ -251,7 +251,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     });
                     if (sock != null){
                         try {
-                            sock.close();
+                            //sock.close();
                         } catch (Exception e){
                             //e.printStackTrace();
                         }
@@ -459,7 +459,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 Function.addCache((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
                 if (sock != null && !sock.isClosed()){
                     try {
-                        sock.close();
+                        //sock.close();
                     } catch (Exception e){
                         //e.printStackTrace();
                     }
@@ -478,7 +478,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, Function.content_errorVideo_others, isHead, null);
                 if (sock != null && !sock.isClosed()){
                     try {
-                        sock.close();
+                        //sock.close();
                     } catch (Exception e){
                         //e.printStackTrace();
                     }
@@ -494,7 +494,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, Function.content_errorVideo_others, isHead, null);
                 if (sock != null && !sock.isClosed()){
                     try {
-                        sock.close();
+                        //sock.close();
                     } catch (Exception ex){
                         //ex.printStackTrace();
                     }
@@ -509,7 +509,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             Function.sendHTTPRequest(sock, httpVersion, 200, contentType_video_mp4, null, null, Function.content_errorVideo_site, isHead, null);
             if (sock != null && !sock.isClosed()){
                 try {
-                    sock.close();
+                    //sock.close();
                 } catch (Exception ex){
                     //e.printStackTrace();
                 }
