@@ -48,7 +48,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             //System.out.println("/https/");
             //System.out.println(URL);
 
-            System.out.println(httpRequest);
+            //System.out.println(httpRequest);
 
             URL = URLDecoder.decode(URL, StandardCharsets.UTF_8);
 
