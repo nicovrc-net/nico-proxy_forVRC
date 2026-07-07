@@ -24,7 +24,7 @@ public class TCPServer extends Thread {
     private final GetURL getURL = new GetURL();
     private final GetVideo getVideo = new GetVideo();
 
-    private static Pattern matcher_uri = Pattern.compile("(url=|vi=|dummy)");
+    private static Pattern matcher_uri = Pattern.compile("(url=|vi=|dummy=|dummy\\.m3u8)");
 
 
     public TCPServer(HttpClient client){
