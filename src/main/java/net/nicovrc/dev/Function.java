@@ -195,9 +195,11 @@ public class Function {
 
     public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, boolean isHEAD, String redirectUrl) throws Exception {
         OutputStream out = sock.getOutputStream();
+        InputStream in = sock.getInputStream();
         String httpHeader = createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, false, -1, -1, -1);
 
         //System.out.println(sb_header);
+        System.out.println(1);
         if (!sock.isClosed()){
             out.write(httpHeader.getBytes(StandardCharsets.UTF_8));
             if (code != 302){
@@ -207,8 +209,14 @@ public class Function {
             }
             out.flush();
         }
+        System.out.println(2);
+        out.close();
+        in.close();
+        sock.close();
+        System.out.println(3);
 
         out = null;
+        in = null;
 
     }
 
