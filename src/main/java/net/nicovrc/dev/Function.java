@@ -226,11 +226,13 @@ public class Function {
                 }
             }
             out.flush();
+            out.close();
+            sock.close();
         }
 
         out = null;
 
-        sock.close();
+
 
     }
 
