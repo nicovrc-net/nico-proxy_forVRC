@@ -214,6 +214,7 @@ public class Function {
 
     public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, boolean isHEAD, long rangeStart, long rangeEnd, long rangeSize) throws Exception {
         OutputStream out = sock.getOutputStream();
+        InputStream in = sock.getInputStream();
         //System.out.println("!");
         String httpHeader = createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, null, true, rangeStart, rangeEnd, rangeSize);
 
@@ -226,14 +227,13 @@ public class Function {
                 }
             }
             out.flush();
-            out.close();
-            sock.close();
         }
 
+        out.close();
+        in.close();
+        sock.close();
         out = null;
-
-
-
+        in = null;
     }
 
     public static String getHTTPVersion(String HTTPRequest){
