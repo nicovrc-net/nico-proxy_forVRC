@@ -219,6 +219,7 @@ public class Function {
         String httpHeader = createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, null, true, rangeStart, rangeEnd, rangeSize);
 
         //System.out.println(httpHeader);
+        System.out.println(1);
         if (sock.isConnected() && !sock.isClosed()){
             out.write(httpHeader.getBytes(StandardCharsets.UTF_8));
             if (code != 302){
@@ -228,10 +229,12 @@ public class Function {
             }
             //out.flush();
         }
+        System.out.println(2);
 
         out.close();
         in.close();
         sock.close();
+        System.out.println(3);
         out = null;
         in = null;
     }
