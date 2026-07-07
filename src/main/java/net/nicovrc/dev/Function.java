@@ -199,7 +199,7 @@ public class Function {
         String httpHeader = createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, false, -1, -1, -1);
 
         //System.out.println(sb_header);
-        System.out.println(1);
+        //System.out.println(1);
         if (!sock.isClosed()){
             out.write(httpHeader.getBytes(StandardCharsets.UTF_8));
             if (code != 302){
@@ -209,11 +209,11 @@ public class Function {
             }
             out.flush();
         }
-        System.out.println(2);
+        //System.out.println(2);
         out.close();
         in.close();
         sock.close();
-        System.out.println(3);
+        //System.out.println(3);
 
         out = null;
         in = null;
@@ -227,7 +227,7 @@ public class Function {
         String httpHeader = createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, null, true, rangeStart, rangeEnd, rangeSize);
 
         //System.out.println(httpHeader);
-        System.out.println(1);
+        //System.out.println(1);
         if (sock.isConnected() && !sock.isClosed()){
             out.write(httpHeader.getBytes(StandardCharsets.UTF_8));
             if (code != 302){
@@ -235,14 +235,14 @@ public class Function {
                     out.write(body);
                 }
             }
-            //out.flush();
+            out.flush();
         }
-        System.out.println(2);
+        //System.out.println(2);
 
         out.close();
         in.close();
         sock.close();
-        System.out.println(3);
+        //System.out.println(3);
         out = null;
         in = null;
     }
@@ -280,7 +280,7 @@ public class Function {
             matcher = null;
         }
 
-        System.out.println("URI : "+uri);
+        //System.out.println("URI : "+uri);
 
         return uri;
     }
