@@ -24,7 +24,7 @@ public class TCPServer extends Thread {
     private final GetURL getURL = new GetURL();
     private final GetVideo getVideo = new GetVideo();
 
-    private static Pattern matcher_uri = Pattern.compile("(url=|vi=|dummy=|dummy\\.m3u8)");
+    private final static Pattern matcher_uri = Pattern.compile("(url=|vi=|dummy=|dummy\\.m3u8|/proxy)");
 
 
     public TCPServer(HttpClient client){
@@ -167,7 +167,7 @@ public class TCPServer extends Thread {
 
                         final Matcher matcher = matcher_uri.matcher(URI);
                         final boolean ApiMatchFlag = URI.startsWith("/api/");
-                        final boolean UrlMatchFlag = URI.startsWith("/?url=") || URI.startsWith("/proxy") || matcher.find();
+                        final boolean UrlMatchFlag = matcher.find();
                         final boolean VideoMatchFlag = URI.startsWith("/https");
 
                         //System.out.println("AAAB : " + URI);
