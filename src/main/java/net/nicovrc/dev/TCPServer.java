@@ -132,7 +132,7 @@ public class TCPServer extends Thread {
                         //System.out.println("C");
 
                         if (httpRequest == null) {
-                            sock.close();
+                            //sock.close();
                             return;
                         }
                         //System.out.println("D");
@@ -150,7 +150,7 @@ public class TCPServer extends Thread {
                         if (!isGET && !isPOST && !isHead) {
                             //System.out.println("[Debug] HTTPRequest送信");
                             Function.sendHTTPRequest(sock, httpVersion, 405, Function.contentType_textPlain, null, "*", Function.content_MethodNotAllowed, false, null);
-                            sock.close();
+                            //sock.close();
 
                             return;
                         }
@@ -160,7 +160,7 @@ public class TCPServer extends Thread {
                         if (URI == null) {
                             System.out.println("[Debug] HTTPRequest送信");
                             Function.sendHTTPRequest(sock, httpVersion, 502, Function.contentType_textPlain, null, "*", Function.content_BadGateway, isHead, null);
-                            sock.close();
+                            //sock.close();
 
                             return;
                         }
@@ -192,7 +192,7 @@ public class TCPServer extends Thread {
                             getVideo.setURL(URI);
                             getVideo.setHTTPSocket(sock);
                             getVideo.run();
-                            sock.close();
+                            //sock.close();
                             return;
                         } else if (UrlMatchFlag){
                             //System.out.println("AAAC-2");
@@ -201,12 +201,12 @@ public class TCPServer extends Thread {
                             getURL.setURL(URI);
                             getURL.setHTTPSocket(sock);
                             getURL.run();
-                            sock.close();
+                            //sock.close();
                             return;
                         }
 
                         Function.sendHTTPRequest(sock, httpVersion, 404, Function.contentType_textPlain, null, "*", Function.content_NotFound, isHead, null);
-                        sock.close();
+                        //sock.close();
 
 
                     } catch (Exception e) {
