@@ -578,9 +578,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - 内部リファクタリング
-            - TVer、Soundcloud見れない問題を修正
-            - OPENREC → mellow-fan変更に伴う修正
+            - バグ修正
           draft: false
           prerelease: false
 
