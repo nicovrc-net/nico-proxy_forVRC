@@ -226,7 +226,7 @@ public class Function {
                     out.write(body);
                 }
             }
-            out.flush();
+            //out.flush();
         }
 
         out.close();
