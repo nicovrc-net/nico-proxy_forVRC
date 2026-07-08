@@ -179,12 +179,14 @@ public class TCPServer extends Thread {
                             }
 
                             if (VideoMatchFlag) {
+                                getVideo.setHTTPRequest(httpRequest);
                                 getVideo.setURL(URI);
                                 getVideo.setHTTPSocket(ch);
                                 return;
                             }
 
                             if (UrlMatchFlag) {
+                                getURL.setHTTPRequest(httpRequest);
                                 getURL.setURL(URI);
                                 getURL.setHTTPSocket(ch);
                                 return;
