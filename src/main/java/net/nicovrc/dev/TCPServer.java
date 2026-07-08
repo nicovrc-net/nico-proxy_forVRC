@@ -4,6 +4,7 @@ import net.nicovrc.dev.api.NicoVRCAPI;
 import net.nicovrc.dev.http.*;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -54,7 +55,7 @@ public class TCPServer extends Thread {
                             System.out.println("[Info] 終了処理を開始します。");
                             Socket socket = new Socket("127.0.0.1", Function.config_httpPort);
                             OutputStream stream = socket.getOutputStream();
-                            stream.write(Function.zeroByte);
+                            stream.write("stop-packet".getBytes(StandardCharsets.UTF_8));
                             stream.close();
                             socket.close();
                             Function.checkTimer.cancel();
@@ -117,8 +118,19 @@ public class TCPServer extends Thread {
                             //System.out.println(new String(b.array(), StandardCharsets.UTF_8));
                             final String httpRequest = Function.getHTTPRequest(b);
 
+                            //System.out.println(httpRequest);
+
                             if (httpRequest.isEmpty()) {
                                 close(ch);
+                                return;
+                            }
+
+                            if (httpRequest.equals("stop-packet")) {
+                                try {
+                                    server.close();
+                                } catch (IOException e) {
+                                    throw new RuntimeException(e);
+                                }
                                 return;
                             }
 

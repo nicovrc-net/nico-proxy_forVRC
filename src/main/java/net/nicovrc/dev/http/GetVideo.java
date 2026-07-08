@@ -58,7 +58,6 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
             URL = URLDecoder.decode(URL, StandardCharsets.UTF_8);
 
-            String method = Function.getMethod(httpRequest);
             String httpVersion = Function.getHTTPVersion(httpRequest);
 
             Matcher matcher = matcher_cookie.matcher(URL);
@@ -95,7 +94,6 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, null, httpBody, null, false, -1, -1, -1);
 
                 Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
-                method = null;
                 httpVersion = null;
 
                 return;
@@ -354,7 +352,6 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     }
                 }
             }
-            method = null;
             httpVersion = null;
             send = null;
             request = null;

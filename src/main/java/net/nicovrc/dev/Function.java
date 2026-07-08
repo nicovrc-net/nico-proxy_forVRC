@@ -257,12 +257,10 @@ public class Function {
         String uri = null;
         Matcher matcher = HTTP.matcher(HTTPRequest);
 
-        if (!matcher.find()){
-            matcher = null;
-        } else {
+        if (matcher.find()) {
             uri = matcher.group(2);
-            matcher = null;
         }
+        matcher = null;
 
         //System.out.println("URI : "+uri);
 
