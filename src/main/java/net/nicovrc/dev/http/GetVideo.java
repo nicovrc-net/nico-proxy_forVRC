@@ -7,8 +7,8 @@ import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
 import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -17,7 +17,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
     private String httpRequest = null;
     private String URL = null;
-    private Socket sock = null;
+    private AsynchronousSocketChannel ch = null;
     private HttpClient client = null;
 
     private final Pattern matcher_cookie = Pattern.compile("cookie:\\[(.*)\\]");
@@ -39,8 +39,14 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
     @Override
     public void run() {
+        String httpHeader = null;
+        byte[] httpBody = null;
 
         if (client == null){
+            return;
+        }
+
+        if (ch == null){
             return;
         }
 
@@ -85,16 +91,13 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
             if (URL == null) {
                 //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
-                Function.sendHTTPRequest(sock, httpVersion, 404, "text/plain; charset=utf-8", null, null, Function.content_VideoNotFound, method != null && method.equals("HEAD"), null);
+                httpBody = Function.content_VideoNotFound;
+                httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, null, httpBody, null, false, -1, -1, -1);
+
+                Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                 method = null;
                 httpVersion = null;
-                if (sock != null){
-                    try {
-                        //sock.close();
-                    } catch (Exception e){
-                        //e.printStackTrace();
-                    }
-                }
+
                 return;
             }
 
@@ -191,11 +194,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
             if (!isBiliCom) {
                 //System.out.println("a");
-                byte[] body = send.body();
+                httpBody = send.body();
 
                 if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
                     //body = Function.decompressByte(send.body(), contentEncoding);
-                    String s = new String(body, StandardCharsets.UTF_8);
+                    String s = new String(httpBody, StandardCharsets.UTF_8);
                     //System.out.println(s);
                     if (matcher_twit.find()) {
                         s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");
@@ -268,20 +271,15 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
                     }
 
-                    body = s.getBytes(StandardCharsets.UTF_8);
+                    httpBody = s.getBytes(StandardCharsets.UTF_8);
 
                     s = null;
                 }
                 //System.out.println("b");
-                Function.sendHTTPRequest(sock, httpVersion, send.statusCode(), contentType, null, null, body, method != null && method.equals("HEAD"), null);
-                body = null;
-                if (sock != null){
-                    try {
-                        //sock.close();
-                    } catch (Exception e){
-                        //e.printStackTrace();
-                    }
-                }
+                httpHeader = Function.createHTTPHeader(httpVersion, send.statusCode(), contentType, null, null, httpBody, null, false, -1, -1, -1);
+
+                Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+
             } else {
 
                 Matcher mat1 = matcher_bili_range1.matcher(httpRequest);
@@ -313,14 +311,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
                     }
 
-                    Function.sendHTTPRequest(sock, httpVersion, 206, contentType, null, null, send.body(), method != null && method.equals("HEAD"), Long.parseLong(mat1.group(3)), Long.parseLong(mat1.group(2)), rangeSize);
-                    if (sock != null){
-                        try {
-                            //sock.close();
-                        } catch (Exception e){
-                            //e.printStackTrace();
-                        }
-                    }
+                    httpBody = send.body();
+                    httpHeader = Function.createHTTPHeader(httpVersion, 206, contentType, null, null, httpBody, null, true, Long.parseLong(mat1.group(3)), Long.parseLong(mat1.group(2)), rangeSize);
+                    Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                 } else {
                     int length = Integer.parseInt(send.headers().firstValue("content-length").isPresent() ? send.headers().firstValue("content-length").get() : "0");
                     int max = length / 10;
@@ -351,20 +344,14 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     }
                     //contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
                     //System.out.println("o : "+contentEncoding);
-                    byte[] bytes = concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]);
+                    httpBody = Function.concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]);
                     if (mat2.find()){
-                        Function.sendHTTPRequest(sock, httpVersion, 206, contentType, null, null, bytes, method != null && method.equals("HEAD"), 0, bytes.length - 1, bytes.length);
+                        httpHeader = Function.createHTTPHeader(httpVersion, 206, contentType, null, null, httpBody, null, true, 0, httpBody.length - 1, httpBody.length);
+                        Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                     } else {
-                        Function.sendHTTPRequest(sock, httpVersion, 200, contentType, null, null, bytes, method != null && method.equals("HEAD"), null);
+                        httpHeader = Function.createHTTPHeader(httpVersion, 200, contentType, null, null, httpBody, null, false, -1, -1, -1);
+                        Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                     }
-                    if (sock != null){
-                        try {
-                            //sock.close();
-                        } catch (Exception e){
-                            //e.printStackTrace();
-                        }
-                    }
-                    bytes = null;
                 }
             }
             method = null;
@@ -379,6 +366,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             matcher_abematv = null;
             matcher_vimeourl = null;
             matcher_bilibilicom = null;
+
+            httpHeader = null;
+            httpBody = null;
 
         } catch (Exception e){
              e.printStackTrace();
@@ -401,16 +391,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     }
 
     @Override
-    public void setHTTPSocket(Socket sock) {
-        this.sock = sock;
-    }
-
-    private static byte[] concatByteArrays(byte[]... arrays) {
-        return Arrays.stream(arrays)
-                .collect(ByteArrayOutputStream::new,
-                        ByteArrayOutputStream::writeBytes,
-                        (left, right) -> left.writeBytes(right.toByteArray()))
-                .toByteArray();
+    public void setHTTPSocket(AsynchronousSocketChannel ch) {
+        this.ch = ch;
     }
 
     @Override

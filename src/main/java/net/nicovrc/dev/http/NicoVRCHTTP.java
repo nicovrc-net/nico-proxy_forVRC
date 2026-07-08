@@ -2,6 +2,7 @@ package net.nicovrc.dev.http;
 
 import java.net.Socket;
 import java.net.http.HttpClient;
+import java.nio.channels.AsynchronousSocketChannel;
 
 public interface NicoVRCHTTP {
 
@@ -9,7 +10,7 @@ public interface NicoVRCHTTP {
 
     void setHTTPRequest(String httpRequest);
     void setURL(String URL);
-    void setHTTPSocket(Socket sock);
+    void setHTTPSocket(AsynchronousSocketChannel sock);
     void setHTTPClient(HttpClient client);
     void setProxy(String proxy);
 

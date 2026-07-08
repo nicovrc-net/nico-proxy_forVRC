@@ -17,6 +17,9 @@ import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousSocketChannel;
+import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
@@ -28,7 +31,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.4.2";
+    public static final String Version = "3.5.0-beta.1";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -51,6 +54,8 @@ public class Function {
 
     public static final String contentType_textPlain = "text/plain; charset=utf-8";
     public static final String contentType_json = "application/json; charset=utf-8";
+    public static final String contentType_video_mp4 = "video/mp4";
+    public static final String contentType_hls = "application/vnd.apple.mpegurl";
 
     public static final byte[] content_errorAPINotFound = "API Not Found".getBytes(StandardCharsets.UTF_8);
     public static final byte[] content_BadGateway = "Bad Gateway".getBytes(StandardCharsets.UTF_8);
@@ -83,66 +88,11 @@ public class Function {
     public static final Pattern NicoID4 = Pattern.compile("^(sm\\d+|nm\\d+|am\\d+|fz\\d+|ut\\d+|dm\\d+|so\\d+|ax\\d+|ca\\d+|cd\\d+|cw\\d+|fx\\d+|ig\\d+|na\\d+|om\\d+|sd\\d+|sk\\d+|yk\\d+|yo\\d+|za\\d+|zb\\d+|zc\\d+|zd\\d+|ze\\d+|nl\\d+|ch\\d+|\\d+|lv\\d+|ss\\d+)");
 
 
-    public static String getHTTPRequest(Socket sock) throws Exception{
-        //System.out.println("debug 1");
-        InputStream in = sock.getInputStream();
-        StringBuilder sb = new StringBuilder();
-        int readMaxsize = 2048;
-        byte[] data = new byte[readMaxsize];
-        int readSize = in.read(data);
-
-        if (readSize <= 0) {
-            data = null;
-            sb = null;
-            in = null;
-            return null;
-        }
-        //System.out.println("debug 2");
-        data = Arrays.copyOf(data, readSize);
-        String temp = new String(data, StandardCharsets.UTF_8);
-        sb.append(temp);
-        temp = null;
-
-        if (readSize == readMaxsize){
-            data = new byte[readMaxsize];
-            readSize = in.read(data);
-            boolean isLoop = true;
-            while (readSize >= 0){
-                //System.out.println(readSize);
-                data = Arrays.copyOf(data, readSize);
-                temp = new String(data, StandardCharsets.UTF_8);
-                sb.append(temp);
-
-                data = null;
-                temp = null;
-
-                if (readSize < readMaxsize){
-                    isLoop = false;
-                }
-
-                if (!isLoop){
-                    break;
-                }
-
-                data = new byte[readMaxsize];
-                readSize = in.read(data);
-                if (readSize < readMaxsize){
-                    isLoop = false;
-                }
-            }
-        }
-
-        data = null;
-        String httpRequest = sb.toString();
-        sb.setLength(0);
-        sb = null;
-        in = null;
-        //System.out.println("debug 3");
-        //System.gc();
-        return httpRequest;
+    public static String getHTTPRequest(ByteBuffer buffer) {
+        return new String(buffer.array(), StandardCharsets.UTF_8);
     }
 
-    private static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl,boolean isRange, long rangeStart, long rangeEnd, long rangeSize){
+    public static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl,boolean isRange, long rangeStart, long rangeEnd, long rangeSize){
         StringBuilder sb_header = new StringBuilder();
 
         sb_header.append("HTTP/").append(httpVersion == null ? "1.1" : httpVersion);
@@ -193,6 +143,39 @@ public class Function {
 
     }
 
+    public static byte[] createSendHTTPData(String header, byte[] body){
+        if (body == null){
+            return header.getBytes(StandardCharsets.UTF_8);
+        }
+        return concatByteArrays(header.getBytes(StandardCharsets.UTF_8), body);
+    }
+
+    public static void sendHTTPData(AsynchronousSocketChannel ch, byte[] data){
+        ByteBuffer write = ByteBuffer.allocate(data.length);
+        write.put(data);
+        write.flip();
+
+        ch.write(write, write, new CompletionHandler<>() {
+            public void completed(Integer m, ByteBuffer bb) {
+                bb.clear();
+                try {
+                    ch.close();
+                } catch (IOException ex) {
+                    // ex.printStackTrace();
+                }
+            }
+
+            public void failed(Throwable e, ByteBuffer bb) {
+                try {
+                    ch.close();
+                } catch (IOException ex) {
+                    // ex.printStackTrace();
+                }
+            }
+        });
+    }
+
+    @Deprecated
     public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, boolean isHEAD, String redirectUrl) throws Exception {
         OutputStream out = sock.getOutputStream();
         InputStream in = sock.getInputStream();
@@ -220,6 +203,7 @@ public class Function {
 
     }
 
+    @Deprecated
     public static void sendHTTPRequest(Socket sock, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, boolean isHEAD, long rangeStart, long rangeEnd, long rangeSize) throws Exception {
         OutputStream out = sock.getOutputStream();
         InputStream in = sock.getInputStream();
@@ -606,5 +590,13 @@ public class Function {
         }
 
         return null;
+    }
+
+    public static byte[] concatByteArrays(byte[]... arrays) {
+        return Arrays.stream(arrays)
+                .collect(ByteArrayOutputStream::new,
+                        ByteArrayOutputStream::writeBytes,
+                        (left, right) -> left.writeBytes(right.toByteArray()))
+                .toByteArray();
     }
 }
