@@ -1,6 +1,8 @@
 package net.nicovrc.dev.http;
 
 import com.google.gson.JsonElement;
+import net.nicovrc.dev.Service.Result.NicoNicoVideo;
+import net.nicovrc.dev.api.GetVideoInfo;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.data.LogData;
@@ -182,7 +184,19 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     if (isGetTitle){
                         Thread.ofVirtual().start(()-> System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + fCacheData.getTitle()));
 
-                        httpBody = cacheData.getTitle().getBytes(StandardCharsets.UTF_8);
+
+                        GetVideoInfo info = new GetVideoInfo();
+                        String resultJsonText = info.Run(httpRequest, client);
+
+                        //System.out.println(resultJsonText);
+                        NicoNicoVideo resultJson = Function.gson.fromJson(resultJsonText, NicoNicoVideo.class);
+                        resultJson.setThumbnail(null);
+                        resultJson.setVideoURL(null);
+                        resultJson.setLiveURL(null);
+                        resultJson.setVideoAccessCookie(null);
+                        resultJson.setLiveAccessCookie(null);
+
+                        httpBody = Function.gson.toJson(resultJson).getBytes(StandardCharsets.UTF_8);
                         httpHeader = Function.createHTTPHeader(httpVersion, 200, Function.contentType_textPlain, null, null, httpBody, null, false, -1, -1, -1);
                         Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
 
@@ -385,8 +399,18 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                 // タイトル取得
                 if (isGetTitle) {
+                    GetVideoInfo info = new GetVideoInfo();
+                    String resultJsonText = info.Run(httpRequest, client);
 
-                    httpBody = cacheData.getTitle().getBytes(StandardCharsets.UTF_8);
+                    //System.out.println(resultJsonText);
+                    NicoNicoVideo resultJson = Function.gson.fromJson(resultJsonText, NicoNicoVideo.class);
+                    resultJson.setThumbnail(null);
+                    resultJson.setVideoURL(null);
+                    resultJson.setLiveURL(null);
+                    resultJson.setVideoAccessCookie(null);
+                    resultJson.setLiveAccessCookie(null);
+
+                    httpBody = Function.gson.toJson(resultJson).getBytes(StandardCharsets.UTF_8);
                     if (errorMessage != null) {
 
                         httpBody = ("エラー : " + errorMessage).getBytes(StandardCharsets.UTF_8);
