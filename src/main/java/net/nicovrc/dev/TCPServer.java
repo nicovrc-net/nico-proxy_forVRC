@@ -84,7 +84,7 @@ public class TCPServer extends Thread {
                     }
 
                     file.delete();
-                    file2.delete();
+                    //file2.delete();
                 });
 /*
                 Thread.ofVirtual().start(()->{
@@ -122,6 +122,17 @@ public class TCPServer extends Thread {
             server.accept(null, new CompletionHandler<AsynchronousSocketChannel, Void>() {
                 public void completed(AsynchronousSocketChannel ch, Void att) {
                     server.accept(null, this);
+
+                    if (new File("./stop_lock.txt").exists()){
+                        try {
+                            server.close();
+                            new File("./stop_lock.txt").delete();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return;
+                    }
+
                     ByteBuffer buf = ByteBuffer.allocate(2048);
                     ch.read(buf, buf, new CompletionHandler<>() {
                         public void completed(Integer n, ByteBuffer b) {
@@ -137,18 +148,6 @@ public class TCPServer extends Thread {
 
                             if (httpRequest.isEmpty()) {
                                 close(ch);
-                                return;
-                            }
-
-                            if (httpRequest.equalsIgnoreCase("stop-"+stopCode)) {
-                                System.out.println("stop-"+stopCode);
-                                close(ch);
-                                try {
-                                    server.close();
-                                    System.out.println(stopCode);
-                                } catch (Exception e) {
-                                    //e.printStackTrace();
-                                }
                                 return;
                             }
 
