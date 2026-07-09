@@ -202,7 +202,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");
                         s = s.replaceAll("\"/tc\\.vod\\.v2", "\"/https/referer:[" + Referer + "]/" + request.uri().getHost() + "/tc.vod.v2");
 
-                        StringBuilder sb = new StringBuilder();
+                        StringBuffer sb = new StringBuffer();
                         for (String str : s.split("\n")) {
                             if (!str.startsWith("/mpegts") && !str.startsWith("/tc.vod.v2")) {
                                 sb.append(str).append("\n");
@@ -221,7 +221,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         //System.out.println("!!!!");
                         s = s.replaceAll(http, "/https/cookie:[]/");
 
-                        StringBuilder sb = new StringBuilder();
+                        StringBuffer sb = new StringBuffer();
                         for (String str : s.split("\n")) {
                             if (str.startsWith("/tsad")){
                                 sb.append("/https/referer:[]/").append(request.uri().getHost()).append(str).append("\n");
@@ -241,7 +241,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         sb = null;
                     } else if (matcher_vimeourl.find()) {
 
-                        StringBuilder sb = new StringBuilder();
+                        StringBuffer sb = new StringBuffer();
                         String[] split = URL.split("/");
                         for (int i = 0; i < split.length - 6; i++) {
                             sb.append(split[i]).append("/");
