@@ -8,7 +8,7 @@ import net.nicovrc.dev.api.*;
 import net.nicovrc.dev.data.*;
 import redis.clients.jedis.*;
 
-import java.io.*;
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -88,20 +88,8 @@ NicoNico_user_session: ""
 
         System.out.println("nico-proxy_forVRC Ver "+ Function.Version);
 
-        File file1 = new File("./config.yml");
-        if (!file1.exists()){
-            file1 = null;
-            try {
-                FileWriter file = new FileWriter("./config.yml");
-                PrintWriter pw = new PrintWriter(new BufferedWriter(file));
-                pw.print(config);
-                pw.close();
-                file.close();
-                pw = null;
-                file = null;
-            } catch (Exception e){
-                //e.printStackTrace();
-            }
+        if (!Function.isFoundFile("./config.yml")){
+            Function.writeFile("./config.yml", config, StandardCharsets.UTF_8);
 
             boolean isError = true;
             for (String arg : args) {
@@ -140,7 +128,6 @@ NicoNico_user_session: ""
         Function.APIList.add(new GetVideoInfo());
         Function.APIList.add(new Test());
 
-        file1 = null;
         // 設定読み込み
         String redisServer;
         String redisPass;
@@ -192,10 +179,7 @@ NicoNico_user_session: ""
         }
 
         // ログフォルダ作成
-        File file = new File(Function.config_FolderPass);
-        if (!Function.config_FolderPass.isEmpty() && !file.exists()){
-            boolean mkdir = file.mkdir();
-        }
+        Function.createFolder(Function.config_FolderPass);
 
         JedisClientConfig redis_config = null;
         if (redisTLS) {
@@ -231,9 +215,8 @@ NicoNico_user_session: ""
             Function.redisClient = jedis;
 
             // エラー動画
-            file = new File("./error-video");
-            if (!file.exists()){
-                if (file.mkdir()) {
+            if (!Function.isFoundFolder("./error-video")){
+                if (Function.createFolder("./error-video")) {
                     HttpRequest request = HttpRequest.newBuilder()
                             .uri(new URI("https://r2.7mi.site/vrc/nico/error_404.mp4"))
                             .headers("User-Agent", Function.UserAgent)
@@ -245,11 +228,7 @@ NicoNico_user_session: ""
                         send = null;
                         request = null;
                     } else {
-                        FileOutputStream stream = new FileOutputStream("./error-video/error_404.mp4");
-                        stream.write(send.body());
-                        Function.content_errorVideo_site = send.body();
-                        stream.close();
-                        stream = null;
+                        Function.writeFile("./error-video/error_404.mp4", send.body());
                     }
                     request = HttpRequest.newBuilder()
                             .uri(new URI("https://r2.7mi.site/vrc/nico/error_000.mp4"))
@@ -263,11 +242,7 @@ NicoNico_user_session: ""
                         request = null;
                         //client.close();
                     } else {
-                        FileOutputStream stream = new FileOutputStream("./error-video/error_000.mp4");
-                        stream.write(send.body());
-                        Function.content_errorVideo_others = send.body();
-                        stream.close();
-                        stream = null;
+                        Function.writeFile("./error-video/error_000.mp4", send.body());
                     }
 
                     request = HttpRequest.newBuilder()
@@ -281,36 +256,20 @@ NicoNico_user_session: ""
                         send = null;
                         request = null;
                     } else {
-                        FileOutputStream stream = new FileOutputStream("./error-video/error_404_2.mp4");
-                        stream.write(send.body());
-                        Function.content_errorVideo_site = send.body();
-                        stream.close();
-                        stream = null;
+                        Function.writeFile("./error-video/error_404_2.mp4", send.body());
                     }
                 }
             }
-            file = new File("./error-video/error_000.mp4");
-            if (file.exists()){
-                FileInputStream stream = new FileInputStream(file);
-                Function.content_errorVideo_others = stream.readAllBytes();
-                stream.close();
-                stream = null;
-            }
-            file = new File("./error-video/error_404.mp4");
-            if (file.exists()){
-                FileInputStream stream = new FileInputStream(file);
-                Function.content_errorVideo_site = stream.readAllBytes();
-                stream.close();
-                stream = null;
-            }
-            file = new File("./error-video/error_404_2.mp4");
-            if (file.exists()){
-                FileInputStream stream = new FileInputStream(file);
-                Function.content_errorVideo_endLive = stream.readAllBytes();
-                stream.close();
-                stream = null;
-            }
 
+            if (Function.isFoundFile("./error-video/error_000.mp4")){
+                Function.content_errorVideo_others = Function.getFileByBinary("./error-video/error_000.mp4");
+            }
+            if (Function.isFoundFile("./error-video/error_404.mp4")){
+                Function.content_errorVideo_others = Function.getFileByBinary("./error-video/error_000.mp4");
+            }
+            if (Function.isFoundFile("./error-video/error_404_2.mp4")){
+                Function.content_errorVideo_others = Function.getFileByBinary("./error-video/error_404_2.mp4");
+            }
             // ログ、Webhook書き出し & キャッシュ削除
             Function.mainTimer.scheduleAtFixedRate(new TimerTask() {
                 @Override
@@ -521,13 +480,11 @@ NicoNico_user_session: ""
             jedis.close();
             System.out.println("[Info] 終了します...");
 
-            File file2 = new File("./stop_lock.txt");
-            if (file2.exists()){
-                file2.delete();
+            if (Function.isFoundFile("./stop_lock.txt")){
+                Function.deleteFile("./stop_lock.txt");
             }
-            File file3 = new File("./stop.txt");
-            if (file3.exists()){
-                file3.delete();
+            if (Function.isFoundFile("./stop.txt")){
+                Function.deleteFile("./stop.txt");
             }
 
         } catch (Exception e) {
@@ -579,36 +536,20 @@ NicoNico_user_session: ""
                         temp2 = null;
                     } else {
 
-                        File file = new File("./log");
-
-                        if (!file.exists()){
-                            file.mkdir();
+                        if (!Function.isFoundFolder("./log")){
+                            Function.createFolder("./log");
                         }
-                        file = null;
 
                         HashMap<String, LogData> temp = new HashMap<>(Function.GetURLAccessLog);
                         Function.GetURLAccessLog.clear();
 
                         temp.forEach((id, value)->{
                             try {
-                                File file2 = new File("./log/" + id + ".txt");
-                                if (!file2.exists()){
-                                    try (FileWriter file1 = new FileWriter(file2);
-                                         PrintWriter pw = new PrintWriter(new BufferedWriter(file1))){
-
-                                        pw.print(Function.gson.toJson(value));
-                                    } catch (Exception e){
-                                        //e.printStackTrace();
-                                    }
-                                } else if (file2.length() == 0){
-                                    file2.delete();
-                                    try (FileWriter file1 = new FileWriter(file2);
-                                         PrintWriter pw = new PrintWriter(new BufferedWriter(file1))){
-
-                                        pw.print(Function.gson.toJson(value));
-                                    } catch (Exception e){
-                                        //e.printStackTrace();
-                                    }
+                                if (!Function.isFoundFile("./log/"+id+".txt")){
+                                    Function.writeFile("./log/" + id + ".txt", Function.gson.toJson(value), StandardCharsets.UTF_8);
+                                } else if (Function.getFileByText("./log"+id+".txt", StandardCharsets.UTF_8).isEmpty()){
+                                    Function.deleteFile("./log"+id+".txt");
+                                    Function.writeFile("./log/" + id + ".txt", Function.gson.toJson(value), StandardCharsets.UTF_8);
                                 } else {
                                     Function.GetURLAccessLog.put(id, value);
                                 }
@@ -626,18 +567,11 @@ NicoNico_user_session: ""
 
                         temp2.forEach((id, value)->{
                             try {
-                                File file2 = new File("./log/api_log_" + id + ".txt");
-                                if (!file2.exists()){
-                                    PrintWriter writer = new PrintWriter(file2);
-                                    writer.print(value);
-                                    writer.close();
-                                    writer = null;
-                                } else if (file2.length() == 0){
-                                    file2.delete();
-                                    PrintWriter writer = new PrintWriter(file2);
-                                    writer.print(value);
-                                    writer.close();
-                                    writer = null;
+                                if (!Function.isFoundFile("./log/api_log_" + id + ".txt")){
+                                    Function.writeFile("./log/api_log_" + id + ".txt", value, StandardCharsets.UTF_8);
+                                } else if (Function.getFileByText("./log/api_log_"+id+".txt", StandardCharsets.UTF_8).isEmpty()){
+                                    Function.deleteFile("./log/api_log_"+id+".txt");
+                                    Function.writeFile("./log/api_log_"+id+".txt", value, StandardCharsets.UTF_8);
                                 }
                             } catch (Exception e) {
                                 //e.printStackTrace();

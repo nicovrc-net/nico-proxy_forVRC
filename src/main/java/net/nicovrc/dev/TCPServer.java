@@ -3,16 +3,18 @@ package net.nicovrc.dev;
 import net.nicovrc.dev.api.NicoVRCAPI;
 import net.nicovrc.dev.http.*;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.http.HttpClient;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Base64;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,9 +26,21 @@ public class TCPServer extends Thread {
     private final GetVideo getVideo = new GetVideo();
 
     private final static Pattern matcher_uri = Pattern.compile("(url=|vi=|dummy=|dummy\\.m3u8|/proxy)");
+    private MessageDigest sha3_256;
+    private final String stopCode;
 
 
     public TCPServer(HttpClient client){
+        String str = null;
+        try {
+            this.sha3_256 = MessageDigest.getInstance("SHA3-256");
+            byte[] digest = sha3_256.digest(Base64.getEncoder().encode(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)));
+            str = String.format("%040x", new BigInteger(1, digest));
+        } catch (Exception e){
+            str = null;
+        }
+        stopCode = str;
+
         this.client = client;
         getURL.setHTTPClient(client);
         getURL.setProxy(null);
@@ -38,24 +52,21 @@ public class TCPServer extends Thread {
             @Override
             public void run() {
 
-                final File file = new File("./stop.txt");
-                final File file2 = new File("./stop_lock.txt");
-
                 Thread.ofVirtual().start(()->{
-                    if (!file.exists()){
+                    if (!Function.isFoundFile("./stop.txt")) {
                         return;
                     }
 
-                    if (file2.exists()){
+                    if (Function.isFoundFile("./stop_lock.txt")) {
                         return;
                     }
 
                     try {
-                        if (file2.createNewFile()){
+                        if (Function.writeFile("./stop_lock.txt", Function.zeroByte)){
                             System.out.println("[Info] 終了処理を開始します。");
                             Socket socket = new Socket("127.0.0.1", Function.config_httpPort);
                             OutputStream stream = socket.getOutputStream();
-                            stream.write("stop-packet".getBytes(StandardCharsets.UTF_8));
+                            stream.write(("stop-"+stopCode).getBytes(StandardCharsets.UTF_8));
                             stream.close();
                             socket.close();
                             Function.checkTimer.cancel();
@@ -68,31 +79,9 @@ public class TCPServer extends Thread {
                         System.out.println("[Info] 終了処理を完了しました。");
                     }
 
-                    file.delete();
-                    file2.delete();
+                    Function.deleteFile("./stop.txt");
+                    //file2.delete();
                 });
-/*
-                Thread.ofVirtual().start(()->{
-                    try {
-                        if (!temp[0]){
-                            file.createNewFile();
-                            Function.checkTimer.cancel();
-                            return;
-                        }
-
-                        try {
-                            Socket socket = new Socket("127.0.0.1", HTTPPort);
-                            OutputStream stream = socket.getOutputStream();
-                            stream.write(("server-check_"+Function.Version).getBytes(StandardCharsets.UTF_8));
-                            socket.close();
-                        } catch (Exception e){
-                            file.createNewFile();
-                            Function.checkTimer.cancel();
-                        }
-                    } catch (Exception e){
-                        e.printStackTrace();
-                    }
-                });*/
             }
         }, 1000L, 1000L);
     }
@@ -107,6 +96,7 @@ public class TCPServer extends Thread {
             server.accept(null, new CompletionHandler<AsynchronousSocketChannel, Void>() {
                 public void completed(AsynchronousSocketChannel ch, Void att) {
                     server.accept(null, this);
+
                     ByteBuffer buf = ByteBuffer.allocate(2048);
                     ch.read(buf, buf, new CompletionHandler<>() {
                         public void completed(Integer n, ByteBuffer b) {
@@ -125,15 +115,6 @@ public class TCPServer extends Thread {
                                 return;
                             }
 
-                            if (httpRequest.equals("stop-packet")) {
-                                try {
-                                    server.close();
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                                return;
-                            }
-
                             final String httpVersion = Function.getHTTPVersion(httpRequest);
                             final String httpMethod = Function.getMethod(httpRequest);
 
@@ -147,7 +128,7 @@ public class TCPServer extends Thread {
                             if (!isGET && !isPOST && !isHead) {
                                 //System.out.println("[Debug] HTTPRequest送信");
                                 httpBody = Function.content_MethodNotAllowed;
-                                httpHeader = Function.createHTTPHeader(httpVersion, 405, Function.contentType_textPlain, null, "*", httpBody, null, false, -1, -1, -1);
+                                httpHeader = Function.createHTTPHeader(httpVersion, 405, Function.contentType_textPlain, null, "*", httpBody, null);
                                 Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                                 return;
                             }
@@ -156,7 +137,7 @@ public class TCPServer extends Thread {
                             if (URI == null) {
                                 //System.out.println("[Debug] HTTPRequest送信");
                                 httpBody = Function.content_BadGateway;
-                                httpHeader = Function.createHTTPHeader(httpVersion, 502, Function.contentType_textPlain, null, "*", httpBody, null, false, -1, -1, -1);
+                                httpHeader = Function.createHTTPHeader(httpVersion, 502, Function.contentType_textPlain, null, "*", httpBody, null);
 
                                 Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                                 return;
@@ -175,7 +156,7 @@ public class TCPServer extends Thread {
                                         } catch (Exception e) {
                                             throw new RuntimeException(e);
                                         }
-                                        httpHeader = Function.createHTTPHeader(httpVersion, 200, Function.contentType_json, null, "*", httpBody, null, false, -1, -1, -1);
+                                        httpHeader = Function.createHTTPHeader(httpVersion, 200, Function.contentType_json, null, "*", httpBody, null);
                                         Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                                         break;
                                     }
@@ -183,7 +164,7 @@ public class TCPServer extends Thread {
 
                                 if (httpHeader == null) {
                                     httpBody = Function.content_errorAPINotFound;
-                                    httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", httpBody, null, false, -1, -1, -1);
+                                    httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", httpBody, null);
                                     Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                                 }
 
@@ -209,7 +190,7 @@ public class TCPServer extends Thread {
                             }
 
                             httpBody = Function.content_NotFound;
-                            httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", httpBody, null, false, -1, -1, -1);
+                            httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", httpBody, null);
 
                             Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                         }
@@ -231,7 +212,19 @@ public class TCPServer extends Thread {
                     }
                 }
             });
-            Thread.currentThread().join();
+
+            while (true) {
+                if (Function.isFoundFile("./stop_lock.txt")){
+                    Function.deleteFile("./stop_lock.txt");
+                    break;
+                }
+                try {
+                    Thread.sleep(100L);
+                } catch (Exception ignored) {
+                    //ignored.printStackTrace();
+                }
+            }
+            //Thread.currentThread().join();
         } catch (Exception e) {
             e.printStackTrace();
         }
