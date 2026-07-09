@@ -4,15 +4,18 @@ import net.nicovrc.dev.api.NicoVRCAPI;
 import net.nicovrc.dev.http.*;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStream;
+import java.math.BigInteger;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.http.HttpClient;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.util.Base64;
 import java.util.TimerTask;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -24,9 +27,21 @@ public class TCPServer extends Thread {
     private final GetVideo getVideo = new GetVideo();
 
     private final static Pattern matcher_uri = Pattern.compile("(url=|vi=|dummy=|dummy\\.m3u8|/proxy)");
+    private MessageDigest sha3_256;
+    private final String stopCode;
 
 
     public TCPServer(HttpClient client){
+        String str = null;
+        try {
+            this.sha3_256 = MessageDigest.getInstance("SHA3-256");
+            byte[] digest = sha3_256.digest(Base64.getEncoder().encode(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)));
+            str = String.format("%040x", new BigInteger(1, digest));
+        } catch (Exception e){
+            str = null;
+        }
+        stopCode = str;
+
         this.client = client;
         getURL.setHTTPClient(client);
         getURL.setProxy(null);
@@ -55,7 +70,7 @@ public class TCPServer extends Thread {
                             System.out.println("[Info] 終了処理を開始します。");
                             Socket socket = new Socket("127.0.0.1", Function.config_httpPort);
                             OutputStream stream = socket.getOutputStream();
-                            stream.write("stop-packet".getBytes(StandardCharsets.UTF_8));
+                            stream.write(("stop-"+stopCode).getBytes(StandardCharsets.UTF_8));
                             stream.close();
                             socket.close();
                             Function.checkTimer.cancel();
@@ -118,18 +133,17 @@ public class TCPServer extends Thread {
                             //System.out.println(new String(b.array(), StandardCharsets.UTF_8));
                             final String httpRequest = Function.getHTTPRequest(b);
 
-                            //System.out.println(httpRequest);
-
                             if (httpRequest.isEmpty()) {
                                 close(ch);
                                 return;
                             }
 
-                            if (httpRequest.equals("stop-packet")) {
+                            if (httpRequest.equals("stop-"+stopCode)) {
+                                close(ch);
                                 try {
                                     server.close();
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
+                                } catch (Exception e) {
+                                    //e.printStackTrace();
                                 }
                                 return;
                             }
