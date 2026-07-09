@@ -244,6 +244,11 @@ public class TCPServer extends Thread {
                     new File("./stop_lock.txt").delete();
                     break;
                 }
+                try {
+                    Thread.sleep(100L);
+                } catch (Exception ignored) {
+                    //ignored.printStackTrace();
+                }
             }
             //Thread.currentThread().join();
         } catch (Exception e) {
