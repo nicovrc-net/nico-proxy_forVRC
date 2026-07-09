@@ -141,6 +141,7 @@ public class TCPServer extends Thread {
                             }
 
                             if (httpRequest.equals("stop-"+stopCode)) {
+                                System.out.println("stop-"+stopCode);
                                 close(ch);
                                 try {
                                     server.close();
