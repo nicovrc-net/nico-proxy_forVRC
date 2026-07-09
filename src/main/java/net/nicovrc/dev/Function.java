@@ -48,7 +48,8 @@ public class Function {
 
     private static final Pattern HTTPVersion = Pattern.compile("HTTP/(\\d+\\.\\d+)");
     private static final Pattern HTTP = Pattern.compile("(.+) (.+) HTTP/(\\d\\.\\d)");
-    private static final Pattern HTTPURI = Pattern.compile("(.+) HTTP/(\\d\\.\\d)");
+    private static final Pattern HTTPURI1 = Pattern.compile("(.+) HTTP/(\\d\\.\\d)");
+    private static final Pattern HTTPURI2 = Pattern.compile("(.+) HTTP/");
 
     public static final ConcurrentHashMap<String, String> APIAccessLog = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, LogData> GetURLAccessLog = new ConcurrentHashMap<>();
@@ -280,15 +281,19 @@ public class Function {
     public static String getURI(String HTTPRequest){
         String uri = null;
         Matcher matcher1 = HTTP.matcher(HTTPRequest);
-        Matcher matcher2 = HTTPURI.matcher(HTTPRequest);
+        Matcher matcher2 = HTTPURI1.matcher(HTTPRequest);
+        Matcher matcher3 = HTTPURI2.matcher(HTTPRequest);
 
         if (matcher1.find()) {
             uri = matcher1.group(2);
         } else if (matcher2.find()) {
             uri = matcher2.group(1);
+        } else if (matcher3.find()) {
+            uri = matcher3.group(1);
         }
         matcher1 = null;
         matcher2 = null;
+        matcher3 = null;
 
         //System.out.println("URI : "+uri);
 
