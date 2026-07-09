@@ -74,7 +74,7 @@ public class TCPServer extends Thread {
                             stream.close();
                             socket.close();
                             Function.checkTimer.cancel();
-                            System.out.println("[Info] 終了処理を完了しました。");
+                            //System.out.println("[Info] 終了処理を完了しました。");
                         }
                     } catch (Exception e){
                         // e.printStackTrace();
@@ -132,6 +132,8 @@ public class TCPServer extends Thread {
                             b.flip();
                             //System.out.println(new String(b.array(), StandardCharsets.UTF_8));
                             final String httpRequest = Function.getHTTPRequest(b);
+
+                            System.out.println(httpRequest);
 
                             if (httpRequest.isEmpty()) {
                                 close(ch);
