@@ -173,17 +173,8 @@ public class NicoVideo implements GetContent {
                 dummy_hlsText = sb.toString();
 
             } else {
-                File file = new File("./error-video/error_404_2.mp4");
-                byte[] content = null;
-                if (file.exists()) {
-                    FileInputStream stream = new FileInputStream(file);
-                    content = stream.readAllBytes();
-                    stream.close();
-                    stream = null;
-                }
-                //System.out.println(content.length);
-                file = null;
-                content = null;
+                dummy_hlsText = "";
+                hlsText = "";
             }
         }
 

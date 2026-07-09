@@ -11,7 +11,6 @@ import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.resps.ScanResult;
 
 import java.io.*;
-import java.net.Socket;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -20,7 +19,11 @@ import java.net.http.HttpResponse;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -88,6 +91,76 @@ public class Function {
     public static final Pattern NicoID3 = Pattern.compile("(http|https)://cas\\.nicovideo\\.jp/user/(.+)");
     public static final Pattern NicoID4 = Pattern.compile("^(sm\\d+|nm\\d+|am\\d+|fz\\d+|ut\\d+|dm\\d+|so\\d+|ax\\d+|ca\\d+|cd\\d+|cw\\d+|fx\\d+|ig\\d+|na\\d+|om\\d+|sd\\d+|sk\\d+|yk\\d+|yo\\d+|za\\d+|zb\\d+|zc\\d+|zd\\d+|ze\\d+|nl\\d+|ch\\d+|\\d+|lv\\d+|ss\\d+)");
 
+    public static boolean isFoundFile(String filePass) {
+        Path path = Paths.get(filePass);
+        return Files.exists(path);
+    }
+
+    public static boolean isFoundFolder(String folderPass) {
+        Path path = Paths.get(folderPass);
+        return Files.exists(path);
+    }
+
+    public static boolean createFolder(String filePass) {
+        if (!isFoundFile(filePass)) {
+            try {
+                Files.createDirectory(Path.of(filePass));
+                return true;
+            } catch (IOException e) {
+                return false;
+            }
+        }
+        return false;
+    }
+
+    public static String getFileByText(String filePass, Charset charset) {
+
+        if (charset == null) {
+            charset = StandardCharsets.UTF_8;
+        }
+
+        byte[] binary = getFileByBinary(filePass);
+        if (binary == null) {
+            return null;
+        }
+
+        return new String(binary, charset);
+    }
+
+    public static byte[] getFileByBinary(String filePass){
+        final Path path = Path.of(filePass);
+        try {
+            return Files.readAllBytes(path);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    public static boolean writeFile(String filePass, String content, Charset charset) {
+        return writeFile(filePass, content.getBytes(charset));
+    }
+
+    public static boolean writeFile(String filePass, byte[] content) {
+        Path path = Paths.get(filePass);
+
+        try (OutputStream out = new BufferedOutputStream(Files.newOutputStream(path))) {
+            out.write(content);
+            out.flush();
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    public static boolean deleteFile(String filePass) {
+        Path path = Paths.get(filePass);
+        try {
+            Files.delete(path);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
 
     public static String getHTTPRequest(ByteBuffer buffer) {
         return new String(buffer.array(), StandardCharsets.UTF_8);
@@ -223,17 +296,17 @@ public class Function {
     public static String getFFmpegPath(){
 
         final String ffmpegPass;
-        if (new File("./ffmpeg").exists()){
+        if (isFoundFile("./ffmpeg")){
             ffmpegPass = "./ffmpeg";
-        } else if (new File("./ffmpeg.exe").exists()){
+        } else if (isFoundFile("./ffmpeg.exe")){
             ffmpegPass = "./ffmpeg.exe";
-        } else if (new File("/bin/ffmpeg").exists()){
+        } else if (isFoundFile("/bin/ffmpeg")){
             ffmpegPass = "/bin/ffmpeg";
-        } else if (new File("/usr/bin/ffmpeg").exists()){
+        } else if (isFoundFile("/usr/bin/ffmpeg")){
             ffmpegPass = "/usr/bin/ffmpeg";
-        } else if (new File("/usr/local/bin/ffmpeg").exists()){
+        } else if (isFoundFile("/usr/local/bin/ffmpeg")){
             ffmpegPass = "/usr/local/bin/ffmpeg";
-        } else if (new File("C:\\Windows\\System32\\ffmpeg.exe").exists()){
+        } else if (isFoundFile("C:\\Windows\\System32\\ffmpeg.exe")){
             ffmpegPass = "C:\\Windows\\System32\\ffmpeg.exe";
         } else {
             ffmpegPass = "";
@@ -245,19 +318,19 @@ public class Function {
 
     public static String getBrotliPath(){
 
-        if (new File("/usr/share/brotli").exists()){
+        if (isFoundFile("/usr/share/brotli")){
             return "/usr/share/brotli";
         }
 
-        if (new File("/usr/bin/brotli").exists()){
+        if (isFoundFile("/usr/bin/brotli")){
             return "/usr/bin/brotli";
         }
 
-        if (new File("./brotli.exe").exists()){
+        if (isFoundFile("./brotli.exe")){
             return "./brotli.exe";
         }
 
-        if (new File("./brotli").exists()){
+        if (isFoundFile("./brotli")){
             return "./brotli";
         }
 
@@ -275,12 +348,8 @@ public class Function {
             String str = new String(Base64.getEncoder().encode(sha3_256_result), StandardCharsets.UTF_8);
             String videoId = str.replaceAll("\\\\", "").replaceAll("\\+", "").replaceAll("/", "").substring(0, 20);
 
-            File file = new File("./error-video/" + videoId + ".mp4");
-            if (file.exists()) {
-                FileInputStream stream = new FileInputStream(file);
-                content = stream.readAllBytes();
-                stream.close();
-                stream = null;
+            if (isFoundFile("./error-video/" + videoId + ".mp4")) {
+                content = getFileByBinary("./error-video/" + videoId + ".mp4");
             } else {
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(new URI("https://nicovrc.net/v3-video/error.php?msg=" + URLEncoder.encode(message, StandardCharsets.UTF_8)))
@@ -288,17 +357,11 @@ public class Function {
                         .GET()
                         .build();
                 HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-
-                FileOutputStream stream = new FileOutputStream("./error-video/" + videoId + ".png");
-                stream.write(send.body());
-                stream.close();
-                stream = null;
-                send = null;
-
+                writeFile("./error-video/" + videoId + ".png", send.body());
 
                 Runtime runtime = Runtime.getRuntime();
                 String ffmpegPass = Function.getFFmpegPath();
-                if (!new File("./error-video/out.mp3").exists()) {
+                if (!isFoundFile("./error-video/out.mp3")) {
                     final Process exec0 = runtime.exec(new String[]{ffmpegPass, "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono", "-t", "5", "-aq", "1", "-c:a", "libmp3lame", "./error-video/out.mp3"});
                     Thread.ofVirtual().start(() -> {
                         try {
@@ -329,33 +392,17 @@ public class Function {
                 });
                 exec1.waitFor();
                 //System.out.println(ffmpegPass);
-                file = new File("./error-video/" + videoId + ".jpg");
-                file.delete();
+                deleteFile("./error-video/" + videoId + ".png");
 
-                file = new File("./error-video/" + videoId + ".mp4");
-                if (file.exists()) {
-                    FileInputStream stream1 = new FileInputStream(file);
-                    content = stream1.readAllBytes();
-                    stream1.close();
-                    stream1 = null;
+                if (isFoundFile("./error-video/" + videoId + ".mp4")) {
+                    content = getFileByBinary("./error-video/" + videoId + ".mp4");
                 }
             }
 
             return content;
         } catch (Exception e) {
-            try {
-                // e.printStackTrace();
-                File file = new File("./error-video/error_000.mp4");
-                FileInputStream stream = new FileInputStream(file);
-                content = stream.readAllBytes();
-                stream.close();
-                stream = null;
-            } catch (Exception ex) {
-                //ex.printStackTrace();
-            }
+            return content_errorVideo_others;
         }
-
-        return content;
     }
 
     public static void addCache(String url, CacheData data){
@@ -457,9 +504,10 @@ public class Function {
             Runtime runtime = Runtime.getRuntime();
             if (!brotliPath.isEmpty()){
 
-                FileOutputStream outputStream = new FileOutputStream(o_file);
-                outputStream.write(content);
-                outputStream.close();
+                if (isFoundFile(o_file)){
+                    deleteFile(o_file);
+                }
+                writeFile(o_file, body);
 
                 //final Process exec0 = runtime.exec(new String[]{brotliPath, "-9", "-o", "text.br2", "text.txt"});
                 final Process exec0 = runtime.exec(new String[]{brotliPath, "-o" , d_file, "-d" , o_file});
@@ -476,12 +524,12 @@ public class Function {
                 });
                 exec0.waitFor();
 
-                FileInputStream inputStream = new FileInputStream(d_file);
-                body = inputStream.readAllBytes();
-                inputStream.close();
+                if (isFoundFile(d_file)){
+                    body = getFileByBinary(d_file);
+                }
 
-                new File(d_file).delete();
-                new File(o_file).delete();
+                deleteFile(o_file);
+                deleteFile(d_file);
 
                 //System.out.println(body.length);
 
@@ -502,9 +550,10 @@ public class Function {
             Runtime runtime = Runtime.getRuntime();
             if (!brotliPath.isEmpty()) {
 
-                FileOutputStream outputStream = new FileOutputStream(o_file);
-                outputStream.write(content);
-                outputStream.close();
+                if (isFoundFile(o_file)){
+                    deleteFile(o_file);
+                }
+                writeFile(o_file, content);
 
                 final Process exec0 = runtime.exec(new String[]{brotliPath, "-9", "-o", d_file, o_file});
                 Thread.ofVirtual().start(() -> {
@@ -520,14 +569,13 @@ public class Function {
                 });
                 exec0.waitFor();
 
-                FileInputStream inputStream = new FileInputStream(d_file);
-                byte[] body = inputStream.readAllBytes();
-                inputStream.close();
+                if (isFoundFile(d_file)){
+                    deleteFile(d_file);
+                    deleteFile(o_file);
+                    return getFileByBinary(d_file);
+                }
 
-                new File(d_file).delete();
-                new File(o_file).delete();
-
-                return body;
+                return null;
             }
         } else if (compressType.equals("gzip")){
             ByteArrayOutputStream compressBaos = new ByteArrayOutputStream();

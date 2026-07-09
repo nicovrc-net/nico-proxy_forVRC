@@ -3,7 +3,6 @@ package net.nicovrc.dev;
 import net.nicovrc.dev.api.NicoVRCAPI;
 import net.nicovrc.dev.http.*;
 
-import java.io.File;
 import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
@@ -53,20 +52,17 @@ public class TCPServer extends Thread {
             @Override
             public void run() {
 
-                final File file = new File("./stop.txt");
-                final File file2 = new File("./stop_lock.txt");
-
                 Thread.ofVirtual().start(()->{
-                    if (!file.exists()){
+                    if (!Function.isFoundFile("./stop.txt")) {
                         return;
                     }
 
-                    if (file2.exists()){
+                    if (Function.isFoundFile("./stop_lock.txt")) {
                         return;
                     }
 
                     try {
-                        if (file2.createNewFile()){
+                        if (Function.writeFile("./stop_lock.txt", Function.zeroByte)){
                             System.out.println("[Info] 終了処理を開始します。");
                             Socket socket = new Socket("127.0.0.1", Function.config_httpPort);
                             OutputStream stream = socket.getOutputStream();
@@ -83,31 +79,9 @@ public class TCPServer extends Thread {
                         System.out.println("[Info] 終了処理を完了しました。");
                     }
 
-                    file.delete();
+                    Function.deleteFile("./stop.txt");
                     //file2.delete();
                 });
-/*
-                Thread.ofVirtual().start(()->{
-                    try {
-                        if (!temp[0]){
-                            file.createNewFile();
-                            Function.checkTimer.cancel();
-                            return;
-                        }
-
-                        try {
-                            Socket socket = new Socket("127.0.0.1", HTTPPort);
-                            OutputStream stream = socket.getOutputStream();
-                            stream.write(("server-check_"+Function.Version).getBytes(StandardCharsets.UTF_8));
-                            socket.close();
-                        } catch (Exception e){
-                            file.createNewFile();
-                            Function.checkTimer.cancel();
-                        }
-                    } catch (Exception e){
-                        e.printStackTrace();
-                    }
-                });*/
             }
         }, 1000L, 1000L);
     }
@@ -240,8 +214,8 @@ public class TCPServer extends Thread {
             });
 
             while (true) {
-                if (new File("./stop_lock.txt").exists()){
-                    new File("./stop_lock.txt").delete();
+                if (Function.isFoundFile("./stop_lock.txt")){
+                    Function.deleteFile("./stop_lock.txt");
                     break;
                 }
                 try {
