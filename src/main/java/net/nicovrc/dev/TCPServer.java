@@ -123,16 +123,6 @@ public class TCPServer extends Thread {
                 public void completed(AsynchronousSocketChannel ch, Void att) {
                     server.accept(null, this);
 
-                    if (new File("./stop_lock.txt").exists()){
-                        try {
-                            server.close();
-                            new File("./stop_lock.txt").delete();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return;
-                    }
-
                     ByteBuffer buf = ByteBuffer.allocate(2048);
                     ch.read(buf, buf, new CompletionHandler<>() {
                         public void completed(Integer n, ByteBuffer b) {
@@ -248,7 +238,14 @@ public class TCPServer extends Thread {
                     }
                 }
             });
-            Thread.currentThread().join();
+
+            while (true) {
+                if (new File("./stop_lock.txt").exists()){
+                    new File("./stop_lock.txt").delete();
+                    break;
+                }
+            }
+            //Thread.currentThread().join();
         } catch (Exception e) {
             e.printStackTrace();
         }
