@@ -2,7 +2,6 @@ package net.nicovrc.dev.http;
 
 import net.nicovrc.dev.Function;
 
-import java.io.*;
 import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;

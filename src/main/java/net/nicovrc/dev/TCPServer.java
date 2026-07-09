@@ -3,10 +3,8 @@ package net.nicovrc.dev;
 import net.nicovrc.dev.api.NicoVRCAPI;
 import net.nicovrc.dev.http.*;
 
-import java.io.OutputStream;
 import java.math.BigInteger;
 import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.net.http.HttpClient;
 import java.nio.ByteBuffer;
 import java.nio.channels.*;
@@ -64,11 +62,21 @@ public class TCPServer extends Thread {
                     try {
                         if (Function.writeFile("./stop_lock.txt", Function.zeroByte)){
                             System.out.println("[Info] 終了処理を開始します。");
-                            Socket socket = new Socket("127.0.0.1", Function.config_httpPort);
-                            OutputStream stream = socket.getOutputStream();
-                            stream.write(("stop-"+stopCode).getBytes(StandardCharsets.UTF_8));
-                            stream.close();
-                            socket.close();
+                            AsynchronousSocketChannel client = AsynchronousSocketChannel.open();
+                            client.connect(new InetSocketAddress("127.0.0.1",Function.config_httpPort), null, new CompletionHandler<Void,Void>(){
+                                public void completed(Void v, Void a){
+                                    ByteBuffer b = ByteBuffer.wrap(("stop-"+stopCode).getBytes(StandardCharsets.UTF_8));
+                                    client.write(b, null, new CompletionHandler<Integer,Void>(){
+                                        public void completed(Integer r, Void a){
+
+                                        }
+                                        public void failed(Throwable e, Void a){
+                                            //e.printStackTrace();
+                                        }
+                                    });
+                                }
+                                public void failed(Throwable e, Void a){ e.printStackTrace(); }
+                            });
                             Function.checkTimer.cancel();
                             System.out.println("[Info] 終了処理を完了しました。");
                         }
