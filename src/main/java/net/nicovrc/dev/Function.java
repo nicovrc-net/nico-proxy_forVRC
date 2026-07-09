@@ -171,7 +171,9 @@ public class Function {
     }
 
     public static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl,boolean isRange, long rangeStart, long rangeEnd, long rangeSize){
-        StringBuilder sb_header = new StringBuilder();
+        StringBuffer sb_header = new StringBuffer();
+
+        //System.out.println(code);
 
         sb_header.append("HTTP/").append(httpVersion == null ? "1.1" : httpVersion);
         sb_header.append(" ").append(code).append(" ");
