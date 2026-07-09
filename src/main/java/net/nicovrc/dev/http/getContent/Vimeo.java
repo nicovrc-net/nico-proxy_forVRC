@@ -32,7 +32,7 @@ public class Vimeo implements GetContent {
 
         String[] split = element.getAsJsonObject().get("VideoURL").getAsString().split("/");
 
-        StringBuilder sb = new StringBuilder();
+        StringBuffer sb = new StringBuffer();
         for (int i = 0; i < split.length - 4; i++){
             sb.append(split[i]).append("/");
         }

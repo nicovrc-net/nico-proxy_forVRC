@@ -34,7 +34,7 @@ public class XVIDEOS implements GetContent {
         if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")) {
             hlsText = new String(body, StandardCharsets.UTF_8);
 
-            StringBuilder sb = new StringBuilder();
+            StringBuffer sb = new StringBuffer();
 
             for (String str : hlsText.split("\n")){
                 if (str.startsWith("#")){

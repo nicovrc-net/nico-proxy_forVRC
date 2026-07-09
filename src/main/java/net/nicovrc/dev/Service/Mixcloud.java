@@ -91,7 +91,7 @@ public class Mixcloud implements ServiceAPI {
             result.setPlayCount(json.getAsJsonObject().get("data").getAsJsonObject().get("cloudcast").getAsJsonObject().get("plays").getAsLong());
             result.setRepostCount(json.getAsJsonObject().get("data").getAsJsonObject().get("cloudcast").getAsJsonObject().get("reposts").getAsJsonObject().get("totalCount").getAsLong());
 
-            StringBuilder result1 = new StringBuilder();
+            StringBuffer result1 = new StringBuffer();
             final String key = "IFYOUWANTTHEARTISTSTOGETPAIDDONOTDOWNLOADFROMMIXCLOUD";
             byte[] ciphertext = Base64.getDecoder().decode(json.getAsJsonObject().get("data").getAsJsonObject().get("cloudcast").getAsJsonObject().get("streamInfo").getAsJsonObject().get("hlsUrl").getAsString());
             int keyLength = key.length();

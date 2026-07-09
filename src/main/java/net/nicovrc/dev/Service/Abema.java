@@ -132,7 +132,7 @@ public class Abema implements ServiceAPI {
 
                 AbemaResult result = new AbemaResult();
                 result.setURL(url);
-                StringBuilder sb = new StringBuilder();
+                StringBuffer sb = new StringBuffer();
                 if (json.getAsJsonObject().has("series") && json.getAsJsonObject().get("series").getAsJsonObject().has("title")){
                     sb.append(json.getAsJsonObject().get("series").getAsJsonObject().get("title").getAsString());
                 }

@@ -207,9 +207,9 @@ public class NicoVideo implements ServiceAPI {
 
         NicoNicoVideo result = new NicoNicoVideo();
 
-        StringBuilder cookieText = new StringBuilder();
+        StringBuffer cookieText = new StringBuffer();
         if (user_session != null && nicosid != null){
-            cookieText = new StringBuilder("user_session=" + user_session + "; nicosid="+nicosid);
+            cookieText = new StringBuffer("user_session=" + user_session + "; nicosid="+nicosid);
         }
 
         try {
@@ -365,7 +365,7 @@ public class NicoVideo implements ServiceAPI {
                     String accessRightKey = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").get("accessRightKey").getAsString();
                     String trackId = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("client").get("watchTrackId").getAsString();
 
-                    StringBuilder videoJson = new StringBuilder();
+                    StringBuffer videoJson = new StringBuffer();
                     //System.out.println(json);
 
                     String audioJson1 = null;
@@ -600,7 +600,7 @@ public class NicoVideo implements ServiceAPI {
 
                                             if (type.equals("stream")){
                                                 if (json1.getAsJsonObject().get("data").getAsJsonObject().has("uri")){
-                                                    StringBuilder sb = new StringBuilder();
+                                                    StringBuffer sb = new StringBuffer();
                                                     if (json1.getAsJsonObject().get("data").getAsJsonObject().has("cookies") && !json1.getAsJsonObject().get("data").getAsJsonObject().get("cookies").getAsJsonArray().isEmpty()){
                                                         for (JsonElement jsonElement : json1.getAsJsonObject().get("data").getAsJsonObject().get("cookies").getAsJsonArray()) {
                                                             sb.append(jsonElement.getAsJsonObject().get("name").getAsString()).append("=").append(jsonElement.getAsJsonObject().get("value").getAsString()).append("; ");

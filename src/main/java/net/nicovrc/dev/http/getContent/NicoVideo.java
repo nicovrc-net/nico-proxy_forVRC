@@ -34,7 +34,7 @@ public class NicoVideo implements GetContent {
         if (result != null) {
             if (result.getVideoURL() != null) {
                 // ニコ動
-                final StringBuilder sb = new StringBuilder();
+                final StringBuffer sb = new StringBuffer();
                 result.getVideoAccessCookie().forEach((name, data) -> {
                     sb.append(name).append("=").append(data).append(";");
                 });
@@ -121,7 +121,7 @@ public class NicoVideo implements GetContent {
             } else if (result.getLiveURL() != null) {
                 // ニコ生
                 String liveURL = result.getLiveURL();
-                final StringBuilder sb = new StringBuilder();
+                final StringBuffer sb = new StringBuffer();
                 result.getLiveAccessCookie().forEach((name, value) -> {
                     sb.append(name).append("=").append(value).append("; ");
                 });

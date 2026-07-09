@@ -34,7 +34,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.5.0-beta.2";
+    public static final String Version = "3.5.0-beta.3";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -48,7 +48,8 @@ public class Function {
 
     private static final Pattern HTTPVersion = Pattern.compile("HTTP/(\\d+\\.\\d+)");
     private static final Pattern HTTP = Pattern.compile("(.+) (.+) HTTP/(\\d\\.\\d)");
-    private static final Pattern HTTPURI = Pattern.compile("(.+) HTTP/(\\d\\.\\d)");
+    private static final Pattern HTTPURI1 = Pattern.compile("(.+) HTTP/(\\d\\.\\d)");
+    private static final Pattern HTTPURI2 = Pattern.compile("(.+) HTTP/");
 
     public static final ConcurrentHashMap<String, String> APIAccessLog = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, LogData> GetURLAccessLog = new ConcurrentHashMap<>();
@@ -171,7 +172,9 @@ public class Function {
     }
 
     public static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl,boolean isRange, long rangeStart, long rangeEnd, long rangeSize){
-        StringBuilder sb_header = new StringBuilder();
+        StringBuffer sb_header = new StringBuffer();
+
+        //System.out.println(code);
 
         sb_header.append("HTTP/").append(httpVersion == null ? "1.1" : httpVersion);
         sb_header.append(" ").append(code).append(" ");
@@ -278,15 +281,19 @@ public class Function {
     public static String getURI(String HTTPRequest){
         String uri = null;
         Matcher matcher1 = HTTP.matcher(HTTPRequest);
-        Matcher matcher2 = HTTPURI.matcher(HTTPRequest);
+        Matcher matcher2 = HTTPURI1.matcher(HTTPRequest);
+        Matcher matcher3 = HTTPURI2.matcher(HTTPRequest);
 
         if (matcher1.find()) {
             uri = matcher1.group(2);
         } else if (matcher2.find()) {
             uri = matcher2.group(1);
+        } else if (matcher3.find()) {
+            uri = matcher3.group(1);
         }
         matcher1 = null;
         matcher2 = null;
+        matcher3 = null;
 
         //System.out.println("URI : "+uri);
 

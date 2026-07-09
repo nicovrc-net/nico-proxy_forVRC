@@ -307,7 +307,7 @@ public class fc2 implements ServiceAPI {
                                     .build();
                     final String[] resultData = new String[]{"", "", null};
                     final boolean[] isLoopFlag = {true};
-                    final StringBuilder sb = new StringBuilder();
+                    final StringBuffer sb = new StringBuffer();
                     final WebSocket.Builder wsb = client2.newWebSocketBuilder();
                     final WebSocket.Listener listener = new WebSocket.Listener(){
                         @Override

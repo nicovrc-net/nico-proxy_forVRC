@@ -40,7 +40,7 @@ public class mellow_fan implements GetContent {
         //System.out.println(contentType.toLowerCase(Locale.ROOT));
         if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl")) {
             //System.out.println("!!!");
-            StringBuilder sb = new StringBuilder();
+            StringBuffer sb = new StringBuffer();
             hlsText = new String(send.body(), StandardCharsets.UTF_8);
             String[] split = url.split("/");
             boolean isEnd = false;
