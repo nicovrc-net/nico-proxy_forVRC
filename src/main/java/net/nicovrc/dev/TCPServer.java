@@ -154,7 +154,7 @@ public class TCPServer extends Thread {
                             if (!isGET && !isPOST && !isHead) {
                                 //System.out.println("[Debug] HTTPRequest送信");
                                 httpBody = Function.content_MethodNotAllowed;
-                                httpHeader = Function.createHTTPHeader(httpVersion, 405, Function.contentType_textPlain, null, "*", httpBody, null, false, -1, -1, -1);
+                                httpHeader = Function.createHTTPHeader(httpVersion, 405, Function.contentType_textPlain, null, "*", httpBody, null);
                                 Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                                 return;
                             }
@@ -163,7 +163,7 @@ public class TCPServer extends Thread {
                             if (URI == null) {
                                 //System.out.println("[Debug] HTTPRequest送信");
                                 httpBody = Function.content_BadGateway;
-                                httpHeader = Function.createHTTPHeader(httpVersion, 502, Function.contentType_textPlain, null, "*", httpBody, null, false, -1, -1, -1);
+                                httpHeader = Function.createHTTPHeader(httpVersion, 502, Function.contentType_textPlain, null, "*", httpBody, null);
 
                                 Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                                 return;
@@ -182,7 +182,7 @@ public class TCPServer extends Thread {
                                         } catch (Exception e) {
                                             throw new RuntimeException(e);
                                         }
-                                        httpHeader = Function.createHTTPHeader(httpVersion, 200, Function.contentType_json, null, "*", httpBody, null, false, -1, -1, -1);
+                                        httpHeader = Function.createHTTPHeader(httpVersion, 200, Function.contentType_json, null, "*", httpBody, null);
                                         Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                                         break;
                                     }
@@ -190,7 +190,7 @@ public class TCPServer extends Thread {
 
                                 if (httpHeader == null) {
                                     httpBody = Function.content_errorAPINotFound;
-                                    httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", httpBody, null, false, -1, -1, -1);
+                                    httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", httpBody, null);
                                     Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                                 }
 
@@ -216,7 +216,7 @@ public class TCPServer extends Thread {
                             }
 
                             httpBody = Function.content_NotFound;
-                            httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", httpBody, null, false, -1, -1, -1);
+                            httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", httpBody, null);
 
                             Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                         }

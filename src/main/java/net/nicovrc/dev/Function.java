@@ -93,6 +93,10 @@ public class Function {
         return new String(buffer.array(), StandardCharsets.UTF_8);
     }
 
+    public static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl) {
+        return createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, false, -1, -1, -1);
+    }
+
     public static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl,boolean isRange, long rangeStart, long rangeEnd, long rangeSize){
         StringBuilder sb_header = new StringBuilder();
 
@@ -175,7 +179,6 @@ public class Function {
             }
         });
     }
-
 
     public static String getHTTPVersion(String HTTPRequest){
         Matcher matcher = HTTPVersion.matcher(HTTPRequest);
