@@ -144,6 +144,7 @@ public class TCPServer extends Thread {
                                 close(ch);
                                 try {
                                     server.close();
+                                    System.out.println(stopCode);
                                 } catch (Exception e) {
                                     //e.printStackTrace();
                                 }
