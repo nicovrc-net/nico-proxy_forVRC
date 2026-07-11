@@ -136,7 +136,7 @@ public class TCPServer extends Thread {
                                         }
                                         Function.sendHttpData(ch, httpVersion, 200, Function.contentType_json, null, "*", httpBody, null);
                                         System.out.println("[API (" + Function.sdf.format(new Date()) + ")] " + URI + " ---> OK");
-                                        close(ch);
+                                        Function.APIAccessLog.put(UUID.randomUUID().toString(), httpRequest);
                                         break;
                                     }
                                 }
@@ -144,6 +144,7 @@ public class TCPServer extends Thread {
                                 if (httpBody == null) {
                                     Function.sendHttpData(ch, httpVersion, 404, Function.contentType_textPlain, null, "*", Function.content_errorAPINotFound, null);
                                     System.out.println("[API (" + Function.sdf.format(new Date()) + ")] " + URI + " ---> Error");
+                                    Function.APIAccessLog.put(UUID.randomUUID().toString(), httpRequest);
                                 }
 
                                 close(ch);
