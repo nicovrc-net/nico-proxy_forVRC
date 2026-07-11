@@ -105,7 +105,7 @@ public class TCPServer extends Thread {
                 public void completed(AsynchronousSocketChannel ch, Void att) {
                     server.accept(null, this);
 
-                    ByteBuffer buf = ByteBuffer.allocate(1024768);
+                    ByteBuffer buf = ByteBuffer.allocate(4096);
                     ch.read(buf, buf, new CompletionHandler<>() {
                         public void completed(Integer n, ByteBuffer b) {
                             if (n == -1) {
@@ -201,6 +201,7 @@ public class TCPServer extends Thread {
                             httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", httpBody, null);
 
                             Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                            close(ch);
                         }
 
                         public void failed(Throwable e, ByteBuffer b) {
