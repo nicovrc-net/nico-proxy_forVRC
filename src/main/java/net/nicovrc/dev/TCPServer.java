@@ -24,20 +24,10 @@ public class TCPServer extends Thread {
     private final GetVideo getVideo = new GetVideo();
 
     private final static Pattern matcher_uri = Pattern.compile("(url=|vi=|dummy=|dummy\\.m3u8|/proxy)");
-    private MessageDigest sha3_256;
-    private final String stopCode;
 
 
     public TCPServer(HttpClient client){
-        String str = null;
-        try {
-            this.sha3_256 = MessageDigest.getInstance("SHA3-256");
-            byte[] digest = sha3_256.digest(Base64.getEncoder().encode(UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8)));
-            str = String.format("%040x", new BigInteger(1, digest));
-        } catch (Exception e){
-            str = null;
-        }
-        stopCode = str;
+
 
         this.client = client;
         getURL.setHTTPClient(client);
@@ -62,21 +52,6 @@ public class TCPServer extends Thread {
                     try {
                         if (Function.writeFile("./stop_lock.txt", Function.zeroByte)){
                             System.out.println("[Info] 終了処理を開始します。");
-                            AsynchronousSocketChannel client = AsynchronousSocketChannel.open();
-                            client.connect(new InetSocketAddress("127.0.0.1",Function.config_httpPort), null, new CompletionHandler<Void,Void>(){
-                                public void completed(Void v, Void a){
-                                    ByteBuffer b = ByteBuffer.wrap(("stop-"+stopCode).getBytes(StandardCharsets.UTF_8));
-                                    client.write(b, null, new CompletionHandler<Integer,Void>(){
-                                        public void completed(Integer r, Void a){
-
-                                        }
-                                        public void failed(Throwable e, Void a){
-                                            //e.printStackTrace();
-                                        }
-                                    });
-                                }
-                                public void failed(Throwable e, Void a){ e.printStackTrace(); }
-                            });
                             Function.checkTimer.cancel();
                             System.out.println("[Info] 終了処理を完了しました。");
                         }
@@ -130,24 +105,16 @@ public class TCPServer extends Thread {
                             final boolean isPOST = httpMethod != null && httpMethod.equals("POST");
                             final boolean isHead = httpMethod != null && httpMethod.equals("HEAD");
 
-                            String httpHeader = null;
-                            byte[] httpBody = null;
-
                             if (!isGET && !isPOST && !isHead) {
                                 //System.out.println("[Debug] HTTPRequest送信");
-                                httpBody = Function.content_MethodNotAllowed;
-                                httpHeader = Function.createHTTPHeader(httpVersion, 405, Function.contentType_textPlain, null, "*", httpBody, null);
-                                Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                                Function.sendHttpData(ch, httpVersion, 405, Function.contentType_textPlain, null, "*", Function.content_MethodNotAllowed, null);
                                 return;
                             }
 
                             final String URI = Function.getURI(httpRequest);
                             if (URI == null) {
                                 //System.out.println("[Debug] HTTPRequest送信");
-                                httpBody = Function.content_BadGateway;
-                                httpHeader = Function.createHTTPHeader(httpVersion, 502, Function.contentType_textPlain, null, "*", httpBody, null);
-
-                                Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                                Function.sendHttpData(ch, httpVersion, 502, Function.contentType_textPlain, null, "*", Function.content_BadGateway, null);
                                 return;
                             }
 
@@ -157,6 +124,7 @@ public class TCPServer extends Thread {
                             final boolean VideoMatchFlag = URI.startsWith("/https");
 
                             if (ApiMatchFlag) {
+                                byte[] httpBody = null;
                                 for (NicoVRCAPI api : Function.APIList) {
                                     if (URI.startsWith(api.getURI())) {
                                         try {
@@ -164,17 +132,14 @@ public class TCPServer extends Thread {
                                         } catch (Exception e) {
                                             throw new RuntimeException(e);
                                         }
-                                        httpHeader = Function.createHTTPHeader(httpVersion, 200, Function.contentType_json, null, "*", httpBody, null);
-                                        Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                                        Function.sendHttpData(ch, httpVersion, 200, Function.contentType_json, null, "*", httpBody, null);
                                         close(ch);
                                         break;
                                     }
                                 }
 
-                                if (httpHeader == null) {
-                                    httpBody = Function.content_errorAPINotFound;
-                                    httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", httpBody, null);
-                                    Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                                if (httpBody == null) {
+                                    Function.sendHttpData(ch, httpVersion, 404, Function.contentType_textPlain, null, "*", Function.content_errorAPINotFound, null);
                                 }
 
                                 close(ch);
@@ -201,10 +166,7 @@ public class TCPServer extends Thread {
                                 return;
                             }
 
-                            httpBody = Function.content_NotFound;
-                            httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", httpBody, null);
-
-                            Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                            Function.sendHttpData(ch, httpVersion, 404, Function.contentType_textPlain, null, "*", Function.content_NotFound, null);
                             close(ch);
                         }
 

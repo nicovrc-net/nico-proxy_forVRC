@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
-import net.nicovrc.dev.Service.Result.NicoNicoVideo;
+import net.nicovrc.dev.Service.Result.NicoVideoResult;
 
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
@@ -66,7 +66,7 @@ public class NicoVideo implements ServiceAPI {
     private final Pattern matcher_videoError1 = Pattern.compile("(この動画は存在しないか、削除された可能性があります。|お探しのページは、すでに削除されたか存在しない可能性があります|errorCode&quot;:&quot;NOT_FOUND&)");
     private final Pattern matcher_videoError2 = Pattern.compile("この動画は(.+)の申立により、著作権侵害として削除されました。");
 
-    private final ConcurrentHashMap<String, NicoNicoVideo> LiveCacheList = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, NicoVideoResult> LiveCacheList = new ConcurrentHashMap<>();
 
     private String Proxy = null;
 
@@ -205,7 +205,7 @@ public class NicoVideo implements ServiceAPI {
 
         //System.out.println(accessUrl);
 
-        NicoNicoVideo result = new NicoNicoVideo();
+        NicoVideoResult result = new NicoVideoResult();
 
         StringBuffer cookieText = new StringBuffer();
         if (user_session != null && nicosid != null){
@@ -478,7 +478,7 @@ public class NicoVideo implements ServiceAPI {
                     return Function.gson.toJson(result);
                 } else {
                     // ニコ生
-                    NicoNicoVideo liveData = new NicoNicoVideo();
+                    NicoVideoResult liveData = new NicoVideoResult();
 
                     if (json.isJsonObject() && json.getAsJsonObject().has("program")){
                         liveData.setURL(json.getAsJsonObject().get("program").getAsJsonObject().get("watchPageUrl").getAsString());
@@ -502,7 +502,7 @@ public class NicoVideo implements ServiceAPI {
 
                         if (json.getAsJsonObject().get("site").getAsJsonObject().get("relive").getAsJsonObject().has("webSocketUrl")){
 
-                            NicoNicoVideo cacheData = LiveCacheList.get(liveData.getURL());
+                            NicoVideoResult cacheData = LiveCacheList.get(liveData.getURL());
                             if (cacheData == null){
                                 String WebsocketURL = json.getAsJsonObject().get("site").getAsJsonObject().get("relive").getAsJsonObject().get("webSocketUrl").getAsString();
 

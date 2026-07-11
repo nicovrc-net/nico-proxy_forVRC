@@ -1,10 +1,8 @@
 package net.nicovrc.dev.http.getContent;
 
 import net.nicovrc.dev.Function;
-import net.nicovrc.dev.Service.Result.NicoNicoVideo;
+import net.nicovrc.dev.Service.Result.NicoVideoResult;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -30,7 +28,7 @@ public class NicoVideo implements GetContent {
         String hlsText = null;
         String cookieText = null;
 
-        NicoNicoVideo result = Function.gson.fromJson(json, NicoNicoVideo.class);
+        NicoVideoResult result = Function.gson.fromJson(json, NicoVideoResult.class);
         if (result != null) {
             if (result.getVideoURL() != null) {
                 // ニコ動

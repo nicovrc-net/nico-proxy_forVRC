@@ -168,11 +168,12 @@ public class Function {
     }
 
     public static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl) {
-        return createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, false, -1, -1, -1);
+        return createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, -1, -1, -1);
     }
 
-    public static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl,boolean isRange, long rangeStart, long rangeEnd, long rangeSize){
+    public static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl, long rangeStart, long rangeEnd, long rangeSize){
         StringBuffer sb_header = new StringBuffer();
+        boolean isRange = rangeSize >= 0;
 
         //System.out.println(code);
 
@@ -224,14 +225,24 @@ public class Function {
 
     }
 
-    public static byte[] createSendHTTPData(String header, byte[] body){
+    public static byte[] createSendHttpData(String header, byte[] body){
         if (body == null){
             return header.getBytes(StandardCharsets.UTF_8);
         }
         return concatByteArrays(header.getBytes(StandardCharsets.UTF_8), body);
     }
 
-    public static void sendHTTPData(AsynchronousSocketChannel ch, byte[] data){
+    public static byte[] createSendHttpData(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] httpBody, String redirectUrl){
+        String httpHeader = createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, httpBody, redirectUrl, -1, -1, -1);
+        return createSendHttpData(httpHeader, httpBody);
+    }
+
+    public static byte[] createSendHttpData(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] httpBody, String redirectUrl, long rangeStart, long rangeEnd, long rangeSize){
+        String httpHeader = createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, httpBody, redirectUrl, rangeStart, rangeEnd, rangeSize);
+        return createSendHttpData(httpHeader, httpBody);
+    }
+
+    public static void sendHttpData(AsynchronousSocketChannel ch, byte[] data){
         ByteBuffer write = ByteBuffer.allocate(data.length);
         write.put(data);
         write.flip();
@@ -254,6 +265,38 @@ public class Function {
                 }
             }
         });
+    }
+
+    public static void sendHttpData(AsynchronousSocketChannel ch, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl, long rangeStart, long rangeEnd, long rangeSize){
+
+        final byte[] data = createSendHttpData(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, rangeStart, rangeEnd, rangeSize);
+
+        ByteBuffer write = ByteBuffer.allocate(data.length);
+        write.put(data);
+        write.flip();
+
+        ch.write(write, write, new CompletionHandler<>() {
+            public void completed(Integer m, ByteBuffer bb) {
+                bb.clear();
+                try {
+                    ch.close();
+                } catch (IOException ex) {
+                    // ex.printStackTrace();
+                }
+            }
+
+            public void failed(Throwable e, ByteBuffer bb) {
+                try {
+                    ch.close();
+                } catch (IOException ex) {
+                    // ex.printStackTrace();
+                }
+            }
+        });
+    }
+
+    public static void sendHttpData(AsynchronousSocketChannel ch, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl){
+        sendHttpData(ch, httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, -1, -1, -1);
     }
 
     public static String getHTTPVersion(String HTTPRequest){

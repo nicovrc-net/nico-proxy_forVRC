@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
-import net.nicovrc.dev.Service.Result.bilibili;
+import net.nicovrc.dev.Service.Result.bilibiliResult;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -122,7 +122,7 @@ public class bilibili_com implements ServiceAPI {
 
             JsonElement json = Function.gson.fromJson(jsonText, JsonElement.class);
 
-            bilibili result = new bilibili();
+            bilibiliResult result = new bilibiliResult();
             long cid = -1;
             if (json.isJsonObject() && json.getAsJsonObject().has("data")){
                 result.setURL("https://www.bilibili.com/video/"+json.getAsJsonObject().get("data").getAsJsonObject().get("bvid").getAsString()+"/");

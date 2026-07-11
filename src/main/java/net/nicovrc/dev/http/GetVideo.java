@@ -38,9 +38,6 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
     @Override
     public void run() {
-        String httpHeader = null;
-        byte[] httpBody = null;
-
         if (client == null){
             return;
         }
@@ -89,10 +86,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
             if (URL == null) {
                 //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
-                httpBody = Function.content_VideoNotFound;
-                httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, null, httpBody, null);
 
-                Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                Function.sendHttpData(ch, httpVersion, 404, Function.contentType_textPlain, null, null, Function.content_VideoNotFound, null);
                 httpVersion = null;
 
                 return;
@@ -190,12 +185,12 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             String contentType = send.headers().firstValue("Content-Type").isPresent() ? send.headers().firstValue("Content-Type").get() : send.headers().firstValue("content-type").isPresent() ? send.headers().firstValue("content-type").get() : "";
 
             if (!isBiliCom) {
+                byte[] send_data = send.body();
                 //System.out.println("a");
-                httpBody = send.body();
 
                 if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
                     //body = Function.decompressByte(send.body(), contentEncoding);
-                    String s = new String(httpBody, StandardCharsets.UTF_8);
+                    String s = new String(send_data, StandardCharsets.UTF_8);
                     //System.out.println(s);
                     if (matcher_twit.find()) {
                         s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");
@@ -268,14 +263,12 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
                     }
 
-                    httpBody = s.getBytes(StandardCharsets.UTF_8);
+                    send_data = s.getBytes(StandardCharsets.UTF_8);
 
                     s = null;
                 }
                 //System.out.println("b");
-                httpHeader = Function.createHTTPHeader(httpVersion, send.statusCode(), contentType, null, null, httpBody, null);
-
-                Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                Function.sendHttpData(ch, httpVersion, send.statusCode(), contentType, null, null, send_data, null);
 
             } else {
 
@@ -308,9 +301,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
                     }
 
-                    httpBody = send.body();
-                    httpHeader = Function.createHTTPHeader(httpVersion, 206, contentType, null, null, httpBody, null, true, Long.parseLong(mat1.group(3)), Long.parseLong(mat1.group(2)), rangeSize);
-                    Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                    Function.sendHttpData(ch, httpVersion, 206, contentType, null, null, send.body(), null, Long.parseLong(mat1.group(3)), Long.parseLong(mat1.group(2)), rangeSize);
                 } else {
                     int length = Integer.parseInt(send.headers().firstValue("content-length").isPresent() ? send.headers().firstValue("content-length").get() : "0");
                     int max = length / 10;
@@ -341,13 +332,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     }
                     //contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
                     //System.out.println("o : "+contentEncoding);
-                    httpBody = Function.concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]);
+                    byte[] data = Function.concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]);
                     if (mat2.find()){
-                        httpHeader = Function.createHTTPHeader(httpVersion, 206, contentType, null, null, httpBody, null, true, 0, httpBody.length - 1, httpBody.length);
-                        Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                        Function.sendHttpData(ch, httpVersion, 206, contentType, null, null, data, null, 0, data.length - 1, data.length);
                     } else {
-                        httpHeader = Function.createHTTPHeader(httpVersion, 200, contentType, null, null, httpBody, null, false, -1, -1, -1);
-                        Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                        Function.sendHttpData(ch, httpVersion, 200, contentType, null, null, data, null);
                     }
                 }
             }
@@ -362,9 +351,6 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             matcher_abematv = null;
             matcher_vimeourl = null;
             matcher_bilibilicom = null;
-
-            httpHeader = null;
-            httpBody = null;
 
         } catch (Exception e){
              e.printStackTrace();

@@ -1,6 +1,6 @@
 package net.nicovrc.dev.Service.Result;
 
-public class Twitcas {
+public class TwitcasResult {
     private String URL;
     private String Title;
     private String SubTitle;
