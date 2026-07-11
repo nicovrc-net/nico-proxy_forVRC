@@ -3,6 +3,7 @@ package net.nicovrc.dev;
 import com.google.gson.Gson;
 import net.nicovrc.dev.api.NicoVRCAPI;
 import net.nicovrc.dev.data.CacheData;
+import net.nicovrc.dev.data.HttpHeader;
 import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.data.WebhookData;
 import redis.clients.jedis.RedisClient;
@@ -167,64 +168,19 @@ public class Function {
         return new String(buffer.array(), StandardCharsets.UTF_8);
     }
 
-    public static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl) {
-        return createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, -1, -1, -1);
+    @Deprecated
+    public String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl){
+        HttpHeader httpHeader = new HttpHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, -1, -1, -1);
+        return httpHeader.toString();
     }
 
-    public static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl, long rangeStart, long rangeEnd, long rangeSize){
-        StringBuffer sb_header = new StringBuffer();
-        boolean isRange = rangeSize >= 0;
-
-        //System.out.println(code);
-
-        sb_header.append("HTTP/").append(httpVersion == null ? "1.1" : httpVersion);
-        sb_header.append(" ").append(code).append(" ");
-        switch (code) {
-            case 200 -> sb_header.append("OK");
-            case 206 -> sb_header.append("Partial Content");
-            case 302 -> sb_header.append("Found");
-            case 400 -> sb_header.append("Bad Request");
-            case 403 -> sb_header.append("Forbidden");
-            case 404 -> sb_header.append("Not Found");
-            case 405 -> sb_header.append("Method Not Allowed");
-            case 503 -> sb_header.append("Service Unavailable");
-        }
-        sb_header.append("\r\n");
-
-        if (code != 302){
-            if (AccessControlAllowOrigin != null){
-                sb_header.append("Access-Control-Allow-Origin: ").append(AccessControlAllowOrigin).append("\r\n");
-            }
-            if (isRange){
-                sb_header.append("Accept-Ranges: bytes\r\n");
-            }
-            sb_header.append("Content-Length: ").append(body.length).append("\r\n");
-            if (contentEncoding != null && !contentEncoding.isEmpty()) {
-                sb_header.append("Content-Encoding: ").append(contentEncoding).append("\r\n");
-            }
-            sb_header.append("Content-Type: ").append(contentType).append("\r\n");
-
-            if (isRange){
-                sb_header.append("Content-Ranges: ").append(rangeStart).append("-").append(rangeEnd).append("/").append(rangeSize).append("\r\n");
-            }
-        }
-
-        sb_header.append("Date: ").append(new Date()).append("\r\n");
-
-        if (code == 302 && redirectUrl != null){
-            sb_header.append("Location: ").append(redirectUrl).append("\r\n");
-        }
-
-        sb_header.append("\r\n");
-        String httpRequest = sb_header.toString();
-        sb_header.setLength(0);
-        sb_header = null;
-
-        //System.out.println(httpRequest);
-        return httpRequest;
-
+    @Deprecated
+    public String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl, long rangeStart, long rangeEnd, long rangeSize){
+        HttpHeader httpHeader = new HttpHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, rangeStart, rangeEnd, rangeSize);
+        return httpHeader.toString();
     }
 
+    @Deprecated
     public static byte[] createSendHttpData(String header, byte[] body){
         if (body == null){
             return header.getBytes(StandardCharsets.UTF_8);
@@ -232,13 +188,20 @@ public class Function {
         return concatByteArrays(header.getBytes(StandardCharsets.UTF_8), body);
     }
 
+    public static byte[] createSendHttpData(HttpHeader header, byte[] body){
+        if (body == null){
+            return header.toString().getBytes(StandardCharsets.UTF_8);
+        }
+        return concatByteArrays(header.toString().getBytes(StandardCharsets.UTF_8), body);
+    }
+
     public static byte[] createSendHttpData(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] httpBody, String redirectUrl){
-        String httpHeader = createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, httpBody, redirectUrl, -1, -1, -1);
+        HttpHeader httpHeader = new HttpHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, httpBody, redirectUrl, -1, -1, -1);
         return createSendHttpData(httpHeader, httpBody);
     }
 
     public static byte[] createSendHttpData(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] httpBody, String redirectUrl, long rangeStart, long rangeEnd, long rangeSize){
-        String httpHeader = createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, httpBody, redirectUrl, rangeStart, rangeEnd, rangeSize);
+        HttpHeader httpHeader = new HttpHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, httpBody, redirectUrl, rangeStart, rangeEnd, rangeSize);
         return createSendHttpData(httpHeader, httpBody);
     }
 
@@ -268,31 +231,8 @@ public class Function {
     }
 
     public static void sendHttpData(AsynchronousSocketChannel ch, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl, long rangeStart, long rangeEnd, long rangeSize){
-
         final byte[] data = createSendHttpData(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, rangeStart, rangeEnd, rangeSize);
-
-        ByteBuffer write = ByteBuffer.allocate(data.length);
-        write.put(data);
-        write.flip();
-
-        ch.write(write, write, new CompletionHandler<>() {
-            public void completed(Integer m, ByteBuffer bb) {
-                bb.clear();
-                try {
-                    ch.close();
-                } catch (IOException ex) {
-                    // ex.printStackTrace();
-                }
-            }
-
-            public void failed(Throwable e, ByteBuffer bb) {
-                try {
-                    ch.close();
-                } catch (IOException ex) {
-                    // ex.printStackTrace();
-                }
-            }
-        });
+        sendHttpData(ch, data);
     }
 
     public static void sendHttpData(AsynchronousSocketChannel ch, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl){
