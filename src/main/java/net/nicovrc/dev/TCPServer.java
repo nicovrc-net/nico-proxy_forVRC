@@ -115,6 +115,7 @@ public class TCPServer extends Thread {
                             if (URI == null) {
                                 //System.out.println("[Debug] HTTPRequest送信");
                                 Function.sendHttpData(ch, httpVersion, 502, Function.contentType_textPlain, null, "*", Function.content_BadGateway, null);
+                                System.out.println(httpVersion);
                                 return;
                             }
 
