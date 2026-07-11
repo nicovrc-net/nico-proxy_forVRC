@@ -1,6 +1,7 @@
 package net.nicovrc.dev;
 
 import net.nicovrc.dev.api.NicoVRCAPI;
+import net.nicovrc.dev.data.HttpHeader;
 import net.nicovrc.dev.http.*;
 
 import java.math.BigInteger;
@@ -108,14 +109,14 @@ public class TCPServer extends Thread {
 
                             if (!isGET && !isPOST && !isHead) {
                                 //System.out.println("[Debug] HTTPRequest送信");
-                                Function.sendHttpData(ch, httpVersion, 405, Function.contentType_textPlain, null, "*", Function.content_MethodNotAllowed, null);
+                                Function.sendHttpData(ch, new HttpHeader(httpVersion, 405, Function.contentType_textPlain, null, "*", Function.content_MethodNotAllowed, null));
                                 return;
                             }
 
                             final String URI = Function.getURI(httpRequest);
                             if (URI == null) {
                                 //System.out.println("[Debug] HTTPRequest送信");
-                                Function.sendHttpData(ch, httpVersion, 502, Function.contentType_textPlain, null, "*", Function.content_BadGateway, null);
+                                Function.sendHttpData(ch, new HttpHeader(httpVersion, 502, Function.contentType_textPlain, null, "*", Function.content_BadGateway, null));
                                 System.out.println(httpRequest);
                                 return;
                             }
@@ -134,7 +135,7 @@ public class TCPServer extends Thread {
                                         } catch (Exception e) {
                                             throw new RuntimeException(e);
                                         }
-                                        Function.sendHttpData(ch, httpVersion, 200, Function.contentType_json, null, "*", httpBody, null);
+                                        Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_json, null, "*", httpBody, null));
                                         System.out.println("[API (" + Function.sdf.format(new Date()) + ")] " + URI + " ---> OK");
                                         Function.APIAccessLog.put(UUID.randomUUID().toString(), httpRequest);
                                         break;
@@ -142,7 +143,7 @@ public class TCPServer extends Thread {
                                 }
 
                                 if (httpBody == null) {
-                                    Function.sendHttpData(ch, httpVersion, 404, Function.contentType_textPlain, null, "*", Function.content_errorAPINotFound, null);
+                                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", Function.content_errorAPINotFound, null));
                                     System.out.println("[API (" + Function.sdf.format(new Date()) + ")] " + URI + " ---> Error");
                                     Function.APIAccessLog.put(UUID.randomUUID().toString(), httpRequest);
                                 }
@@ -171,7 +172,7 @@ public class TCPServer extends Thread {
                                 return;
                             }
 
-                            Function.sendHttpData(ch, httpVersion, 404, Function.contentType_textPlain, null, "*", Function.content_NotFound, null);
+                            Function.sendHttpData(ch, new HttpHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", Function.content_NotFound, null));
                             close(ch);
                         }
 
