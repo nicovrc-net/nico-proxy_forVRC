@@ -166,6 +166,7 @@ public class TCPServer extends Thread {
                                         }
                                         httpHeader = Function.createHTTPHeader(httpVersion, 200, Function.contentType_json, null, "*", httpBody, null);
                                         Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                                        close(ch);
                                         break;
                                     }
                                 }
@@ -176,6 +177,7 @@ public class TCPServer extends Thread {
                                     Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
                                 }
 
+                                close(ch);
                                 return;
                             }
 
@@ -185,6 +187,7 @@ public class TCPServer extends Thread {
                                 getVideo.setHTTPSocket(ch);
 
                                 getVideo.run();
+                                close(ch);
                                 return;
                             }
 
@@ -194,6 +197,7 @@ public class TCPServer extends Thread {
                                 getURL.setHTTPSocket(ch);
 
                                 getURL.run();
+                                close(ch);
                                 return;
                             }
 
