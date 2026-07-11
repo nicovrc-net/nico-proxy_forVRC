@@ -129,56 +129,28 @@ public class HttpHeader {
         return httpVersion;
     }
 
-    public void setHttpVersion(String httpVersion) {
-        this.httpVersion = httpVersion;
-    }
-
     public int getCode() {
         return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
     }
 
     public String getContentType() {
         return contentType;
     }
 
-    public void setContentType(String contentType) {
-        this.contentType = contentType;
-    }
-
     public String getContentEncoding() {
         return contentEncoding;
-    }
-
-    public void setContentEncoding(String contentEncoding) {
-        this.contentEncoding = contentEncoding;
     }
 
     public String getAccessControlAllowOrigin() {
         return AccessControlAllowOrigin;
     }
 
-    public void setAccessControlAllowOrigin(String accessControlAllowOrigin) {
-        AccessControlAllowOrigin = accessControlAllowOrigin;
-    }
-
     public byte[] getHttpBody() {
         return httpBody;
     }
 
-    public void setHttpBody(byte[] httpBody) {
-        this.httpBody = httpBody;
-    }
-
     public String getRedirectUrl() {
         return redirectUrl;
-    }
-
-    public void setRedirectUrl(String redirectUrl) {
-        this.redirectUrl = redirectUrl;
     }
 
     public boolean isRange(){
@@ -189,24 +161,12 @@ public class HttpHeader {
         return rangeStart;
     }
 
-    public void setRangeStart(long rangeStart) {
-        this.rangeStart = rangeStart;
-    }
-
     public long getRangeEnd() {
         return rangeEnd;
     }
 
-    public void setRangeEnd(long rangeEnd) {
-        this.rangeEnd = rangeEnd;
-    }
-
     public long getRangeSize() {
         return rangeSize;
-    }
-
-    public void setRangeSize(long rangeSize) {
-        this.rangeSize = rangeSize;
     }
 
     @Override
