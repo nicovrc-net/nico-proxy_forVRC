@@ -204,18 +204,6 @@ public class Function {
         sendHttpData(ch, createSendHttpData(header, header.getHttpBody()));
     }
 
-    @Deprecated
-    public static void sendHttpData(AsynchronousSocketChannel ch, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl, long rangeStart, long rangeEnd, long rangeSize){
-        HttpHeader httpHeader = new HttpHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, rangeStart, rangeEnd, rangeSize);
-        sendHttpData(ch, httpHeader);
-    }
-
-    @Deprecated
-    public static void sendHttpData(AsynchronousSocketChannel ch, String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl){
-        HttpHeader httpHeader = new HttpHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, -1, -1, -1);
-        sendHttpData(ch, httpHeader);
-    }
-
     public static String getHTTPVersion(String HTTPRequest){
         Matcher matcher = HTTPVersion.matcher(HTTPRequest);
 

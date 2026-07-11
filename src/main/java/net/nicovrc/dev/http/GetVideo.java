@@ -1,6 +1,7 @@
 package net.nicovrc.dev.http;
 
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.data.HttpHeader;
 
 import java.net.*;
 import java.net.http.HttpClient;
@@ -87,7 +88,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             if (URL == null) {
                 //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
 
-                Function.sendHttpData(ch, httpVersion, 404, Function.contentType_textPlain, null, null, Function.content_VideoNotFound, null);
+                Function.sendHttpData(ch, new HttpHeader(httpVersion, 404, Function.contentType_textPlain, null, null, Function.content_VideoNotFound, null));
                 httpVersion = null;
 
                 return;
@@ -268,7 +269,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     s = null;
                 }
                 //System.out.println("b");
-                Function.sendHttpData(ch, httpVersion, send.statusCode(), contentType, null, null, send_data, null);
+                Function.sendHttpData(ch, new HttpHeader(httpVersion, send.statusCode(), contentType, null, null, send_data, null));
 
             } else {
 
@@ -301,7 +302,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
                     }
 
-                    Function.sendHttpData(ch, httpVersion, 206, contentType, null, null, send.body(), null, Long.parseLong(mat1.group(3)), Long.parseLong(mat1.group(2)), rangeSize);
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 206, contentType, null, null, send.body(), null, Long.parseLong(mat1.group(3)), Long.parseLong(mat1.group(2)), rangeSize));
                 } else {
                     int length = Integer.parseInt(send.headers().firstValue("content-length").isPresent() ? send.headers().firstValue("content-length").get() : "0");
                     int max = length / 10;
@@ -334,9 +335,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     //System.out.println("o : "+contentEncoding);
                     byte[] data = Function.concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]);
                     if (mat2.find()){
-                        Function.sendHttpData(ch, httpVersion, 206, contentType, null, null, data, null, 0, data.length - 1, data.length);
+                        Function.sendHttpData(ch, new HttpHeader(httpVersion, 206, contentType, null, null, data, null, 0, data.length - 1, data.length));
                     } else {
-                        Function.sendHttpData(ch, httpVersion, 200, contentType, null, null, data, null);
+                        Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, contentType, null, null, data, null));
                     }
                 }
             }
