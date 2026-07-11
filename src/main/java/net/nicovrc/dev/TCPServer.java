@@ -11,6 +11,7 @@ import java.nio.channels.*;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.util.Base64;
+import java.util.Date;
 import java.util.TimerTask;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -115,7 +116,7 @@ public class TCPServer extends Thread {
                             if (URI == null) {
                                 //System.out.println("[Debug] HTTPRequest送信");
                                 Function.sendHttpData(ch, httpVersion, 502, Function.contentType_textPlain, null, "*", Function.content_BadGateway, null);
-                                System.out.println(httpVersion);
+                                System.out.println(httpRequest);
                                 return;
                             }
 
@@ -134,6 +135,7 @@ public class TCPServer extends Thread {
                                             throw new RuntimeException(e);
                                         }
                                         Function.sendHttpData(ch, httpVersion, 200, Function.contentType_json, null, "*", httpBody, null);
+                                        System.out.println("[API (" + Function.sdf.format(new Date()) + ")] " + URI + " ---> OK");
                                         close(ch);
                                         break;
                                     }
@@ -141,6 +143,7 @@ public class TCPServer extends Thread {
 
                                 if (httpBody == null) {
                                     Function.sendHttpData(ch, httpVersion, 404, Function.contentType_textPlain, null, "*", Function.content_errorAPINotFound, null);
+                                    System.out.println("[API (" + Function.sdf.format(new Date()) + ")] " + URI + " ---> Error");
                                 }
 
                                 close(ch);
