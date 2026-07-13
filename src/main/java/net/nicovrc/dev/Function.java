@@ -52,6 +52,8 @@ public class Function {
     private static final Pattern HTTPURI1 = Pattern.compile("(.+) HTTP/(\\d\\.\\d)");
     private static final Pattern HTTPURI2 = Pattern.compile("(.+) HTTP/");
 
+    public static final Pattern avproM_ua = Pattern.compile("AVProMobileVideo");
+
     public static final ConcurrentHashMap<String, String> APIAccessLog = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, LogData> GetURLAccessLog = new ConcurrentHashMap<>();
 

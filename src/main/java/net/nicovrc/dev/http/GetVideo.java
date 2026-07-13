@@ -109,6 +109,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             Matcher matcher_vimeourl = matcher_vimeo.matcher(URL);
             Matcher matcher_tiktok = this.matcher_tiktok.matcher(URL);
             Matcher matcher_bilibilicom = matcher_bilicom.matcher(Referer != null ? Referer : "");
+            Matcher matcher_avproMobile = Function.avproM_ua.matcher(httpRequest);
             boolean isBiliCom = matcher_bilibilicom.find();
             if (matcher_tiktok.find()){
                 URL = URL.replaceAll("\\|", "%7C");
@@ -192,6 +193,10 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
                     //body = Function.decompressByte(send.body(), contentEncoding);
                     String s = new String(send_data, StandardCharsets.UTF_8);
+                    if (matcher_avproMobile.find()){
+                        s = s.replaceAll("__", ".");
+                    }
+
                     //System.out.println(s);
                     if (matcher_twit.find()) {
                         s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");

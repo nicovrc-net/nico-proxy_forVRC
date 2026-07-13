@@ -43,7 +43,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
     private final Pattern avpro_ua = Pattern.compile("(NSPlayer|AppleCoreMedia)");
-    private final Pattern avproM_ua = Pattern.compile("AVProMobileVideo");
     private final Pattern matcher_host = Pattern.compile("[H|h]ost: (.+)");
 
     private final Pattern matcher_hlsUri = Pattern.compile("DEFAULT=YES,URI=\"(.+)\"");
@@ -210,7 +209,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     send_data = dummy_bytes;
                                 } else {
                                     send_data = hls_bytes;
-                                    if (avproM_ua.matcher(httpRequest).find()) {
+                                    if (Function.avproM_ua.matcher(httpRequest).find()) {
                                         String s = new String(hls_bytes, StandardCharsets.UTF_8);
                                         Matcher matcher1 = matcher_host.matcher(httpRequest);
                                         if (matcher1.find()) {
@@ -222,14 +221,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                                 Matcher matcher2 = matcher_hlsUri.matcher(string);
                                                 if (matcher2.find()) {
                                                     String group = matcher2.group(1);
-                                                    String s1 = URLEncoder.encode(group, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&");
+                                                    String s1 = URLEncoder.encode(group, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "__");
                                                     String s2 = group.replace(group, s1);
                                                     System.out.println("debug: "+group);
                                                     System.out.println("debug: "+s1);
                                                     System.out.println("debug: "+s2);
                                                     sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"").append("https://").append(host).append(s2).append("\"\n");
                                                 } else if (string.startsWith("/https")){
-                                                    sb.append("https://").append(host).append(URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&"));
+                                                    sb.append("https://").append(host).append(URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "__"));
                                                 } else {
                                                     sb.append(string).append("\n");
                                                 }
