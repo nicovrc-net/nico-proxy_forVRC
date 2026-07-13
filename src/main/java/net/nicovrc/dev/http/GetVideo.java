@@ -249,6 +249,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                     String encode = URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_");
                                     sb.append("https://").append(host).append(encode).append("\n");
 
+                                } else {
+                                    sb.append(string).append("\n");
                                 }
                             }
 
