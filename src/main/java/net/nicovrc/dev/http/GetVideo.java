@@ -110,7 +110,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 Referer = null;
             }
 
-            System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
+            //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
 
             Matcher matcher_fc2url = matcher_fc2.matcher(URL);
             Matcher matcher_twit = matcher_twitcasting.matcher(URL);
@@ -205,55 +205,51 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     //body = Function.decompressByte(send.body(), contentEncoding);
                     String s = new String(send_data, StandardCharsets.UTF_8);
                     //System.out.println(s);
-                    if (matcher_nico.find() && matcher_hostname.find()){
+                    if (matcher_nico.find() && matcher_hostname.find() && matcher_avproMobile.find()){
                         String host = matcher_hostname.group(1);
-                        if (matcher_avproMobile.find()){
-                            StringBuffer sb = new StringBuffer();
-                            String[] split = s.split("\n");
+                        StringBuffer sb = new StringBuffer();
+                        String[] split = s.split("\n");
 
-                            for (String string : split) {
-                                if (CookieText != null && !CookieText.isEmpty()){
-                                    if (Referer == null || Referer.isEmpty()){
-                                        string = string.replaceAll(http, "/https/cookie:["+CookieText+"]/");
-                                    } else {
-                                        string = string.replaceAll(http, "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
-                                    }
+                        for (String string : split) {
+                            if (CookieText != null && !CookieText.isEmpty()){
+                                if (Referer == null || Referer.isEmpty()){
+                                    string = string.replaceAll(http, "/https/cookie:["+CookieText+"]/");
                                 } else {
-                                    if (Referer == null || Referer.isEmpty()){
-                                        string = string.replaceAll(http, "/https/cookie:[]/");
-                                    } else {
-                                        string = string.replaceAll(http, "/https/referer:["+Referer+"]/");
-                                    }
+                                    string = string.replaceAll(http, "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
                                 }
-
-                                Matcher matcher3 = matcher_hlsUri.matcher(string);
-                                Matcher matcher4 = matcher_hlsKey.matcher(string);
-                                //System.out.println("d:"+string);
-                                if (matcher3.find()) {
-                                    String url = matcher3.group(1);
-                                    String url_encode = URLEncoder.encode(url, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa").replaceAll("_dot_key", ".key");
-
-                                    //System.out.println("d:"+url);
-                                    //System.out.println("d:"+url_encode);
-
-                                    if (string.startsWith("#EXT-X-MAP")){
-                                        sb.append("#EXT-X-MAP:URI=\"").append("https://").append(host).append(url_encode).append("\"\n");
-                                    } else if (matcher4.find()) {
-                                        sb.append("#EXT-X-KEY:METHOD=AES-128,\"").append("https://").append(host).append(url_encode).append("\"").append(",IV=").append(matcher4.group(1)).append("\n");
-                                    }
-                                } else if (string.startsWith("/https/")){
-                                    String encode = URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa").replaceAll("_dot_cmfv", ".cmfv");
-                                    sb.append("https://").append(host).append(encode).append("\n");
-
+                            } else {
+                                if (Referer == null || Referer.isEmpty()){
+                                    string = string.replaceAll(http, "/https/cookie:[]/");
                                 } else {
-                                    sb.append(string).append("\n");
+                                    string = string.replaceAll(http, "/https/referer:["+Referer+"]/");
                                 }
                             }
 
-                            s = sb.toString();
+                            Matcher matcher3 = matcher_hlsUri.matcher(string);
+                            Matcher matcher4 = matcher_hlsKey.matcher(string);
+                            //System.out.println("d:"+string);
+                            if (matcher3.find()) {
+                                String url = matcher3.group(1);
+                                String url_encode = URLEncoder.encode(url, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa").replaceAll("_dot_key", ".key");
+
+                                //System.out.println("d:"+url);
+                                //System.out.println("d:"+url_encode);
+
+                                if (string.startsWith("#EXT-X-MAP")){
+                                    sb.append("#EXT-X-MAP:URI=\"").append("https://").append(host).append(url_encode).append("\"\n");
+                                } else if (matcher4.find()) {
+                                    sb.append("#EXT-X-KEY:METHOD=AES-128,\"").append("https://").append(host).append(url_encode).append("\"").append(",IV=").append(matcher4.group(1)).append("\n");
+                                }
+                            } else if (string.startsWith("/https/")){
+                                String encode = URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa").replaceAll("_dot_cmfv", ".cmfv");
+                                sb.append("https://").append(host).append(encode).append("\n");
+
+                            } else {
+                                sb.append(string).append("\n");
+                            }
                         }
 
-
+                        s = sb.toString();
                     } else if (matcher_twit.find()) {
                         s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");
                         s = s.replaceAll("\"/tc\\.vod\\.v2", "\"/https/referer:[" + Referer + "]/" + request.uri().getHost() + "/tc.vod.v2");
