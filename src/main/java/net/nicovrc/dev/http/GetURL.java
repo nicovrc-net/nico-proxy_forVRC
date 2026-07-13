@@ -220,7 +220,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                                             for (String string : split) {
                                                 Matcher matcher2 = matcher_hlsUri.matcher(string);
-                                                System.out.println(string);
+                                                System.out.println("debug: "+string);
                                                 if (matcher2.find()) {
                                                     sb.append(string.replaceAll(matcher2.group(1), "https://"+host+(URLEncoder.encode(matcher2.group(1), StandardCharsets.UTF_8).replaceAll("%2F", "/")))).append("\n");
                                                 } else if (string.startsWith("/https")){
