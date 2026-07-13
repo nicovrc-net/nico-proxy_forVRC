@@ -226,6 +226,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                 }
 
                                 Matcher matcher3 = matcher_hlsUri.matcher(string);
+                                System.out.println("d:"+string);
                                 if (matcher3.find()) {
                                     String url = matcher3.group(1);
                                     String url_encode = url.replaceAll(url, URLEncoder.encode(url, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_"));
