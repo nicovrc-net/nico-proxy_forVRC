@@ -42,7 +42,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern ffmpegUA = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
 
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
-    private final Pattern avpro_ua = Pattern.compile("(NSPlayer|AVProMobileVideo|AppleCoreMedia)");
+    private final Pattern avpro_ua = Pattern.compile("(NSPlayer|AppleCoreMedia)");
+    private final Pattern avproM_ua = Pattern.compile("AVProMobileVideo");
 
     public GetURL(){
 
@@ -198,16 +199,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             byte[] send_data = null;
 
                             if (cacheData.getDummyHLS() != null){
-                                System.out.println("isHLSdummy : " + isHLSDummyPrint);
-                                System.out.println("vlc_ua : " + vlc_ua.matcher(httpRequest).find());
-                                System.out.println("ffmpegUA : " + ffmpegUA.matcher(httpRequest).find());
-                                System.out.println("avpro_ua : " + avpro_ua.matcher(httpRequest).find());
+                                //System.out.println("isHLSdummy : " + isHLSDummyPrint);
+                                //System.out.println("vlc_ua : " + vlc_ua.matcher(httpRequest).find());
+                                //System.out.println("ffmpegUA : " + ffmpegUA.matcher(httpRequest).find());
+                                //System.out.println("avpro_ua : " + avpro_ua.matcher(httpRequest).find());
                                 if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
-                                    if (vlc_ua.matcher(httpRequest).find() || ffmpegUA.matcher(httpRequest).find() || avpro_ua.matcher(httpRequest).find()) {
-                                        send_data = dummy_bytes;
-                                    } else {
-                                        send_data = ("#EXTM3U\n/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
-                                    }
+                                    send_data = dummy_bytes;
                                 } else {
                                     send_data = hls_bytes;
                                 }
@@ -426,16 +423,12 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                     if (cacheData.isHLS()){
                         if (cacheData.getDummyHLS() != null){
-                            System.out.println("isHLSdummy : " + isHLSDummyPrint);
-                            System.out.println("vlc_ua : " + vlc_ua.matcher(httpRequest).find());
-                            System.out.println("ffmpegUA : " + ffmpegUA.matcher(httpRequest).find());
-                            System.out.println("avpro_ua : " + avpro_ua.matcher(httpRequest).find());
+                            //System.out.println("isHLSdummy : " + isHLSDummyPrint);
+                            //System.out.println("vlc_ua : " + vlc_ua.matcher(httpRequest).find());
+                            //System.out.println("ffmpegUA : " + ffmpegUA.matcher(httpRequest).find());
+                            //System.out.println("avpro_ua : " + avpro_ua.matcher(httpRequest).find());
                             if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
-                                if (vlc_ua.matcher(httpRequest).find() || ffmpegUA.matcher(httpRequest).find() || avpro_ua.matcher(httpRequest).find()) {
-                                    send_data = dummy_bytes;
-                                } else {
-                                    send_data = ("#EXTM3U\n/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
-                                }
+                                send_data = dummy_bytes;
                             } else {
                                 send_data = hls_bytes;
                             }
