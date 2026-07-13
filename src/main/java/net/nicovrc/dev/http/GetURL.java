@@ -223,7 +223,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                                 if (matcher2.find()) {
                                                     String group = matcher2.group(1);
                                                     String s1 = URLEncoder.encode(group, StandardCharsets.UTF_8).replaceAll("%2F", "/");
-                                                    String s2 = group.replaceAll(group, s1);
+                                                    String s2 = group.replace(group, s1);
                                                     System.out.println("debug: "+group);
                                                     System.out.println("debug: "+s1);
                                                     System.out.println("debug: "+s2);
