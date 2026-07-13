@@ -32,7 +32,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_tiktok = Pattern.compile("tiktok\\.com");
     private final Pattern matcher_bilicom = Pattern.compile("bilibili\\.com");
 
-    private final Pattern matcher_niconico = Pattern.compile("(asset\\.domand\\.nicovideo\\.jp|delivery\\.domand\\.nicovideo\\.jp)");
+    private final Pattern matcher_niconico = Pattern.compile("nicovideo\\.jp");
     private final Pattern matcher_host = Pattern.compile("[H|h]ost: (.+)");
     private final Pattern matcher_hlsUri = Pattern.compile("URI=\"(.+)\"");
 
