@@ -34,7 +34,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
     private final Pattern matcher_niconico = Pattern.compile("(asset\\.domand\\.nicovideo\\.jp|delivery\\.domand\\.nicovideo\\.jp)");
     private final Pattern matcher_host = Pattern.compile("[H|h]ost: (.+)");
-    private final Pattern matcher_hlsUri = Pattern.compile("#EXT-X-MAP:URI=\"(.+)\"");
+    private final Pattern matcher_hlsUri = Pattern.compile("URI=\"(.+)\"");
 
 
     private final Pattern matcher_bili_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
