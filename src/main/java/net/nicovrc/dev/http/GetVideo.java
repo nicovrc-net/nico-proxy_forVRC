@@ -242,7 +242,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                         sb.append("#EXT-X-KEY:METHOD=AES-128,\"").append("https://").append(host).append(url_encode).append("\"").append(",IV=").append(matcher4.group(1)).append("\n");
                                     }
                                 } else if (string.startsWith("/https/")){
-                                    String encode = URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa");
+                                    String encode = URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa").replaceAll("_dot_cmfv", ".cmfv");
                                     sb.append("https://").append(host).append(encode).append("\n");
 
                                 } else {
