@@ -205,6 +205,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     //body = Function.decompressByte(send.body(), contentEncoding);
                     String s = new String(send_data, StandardCharsets.UTF_8);
                     //System.out.println(s);
+                    /*
                     if (matcher_nico.find() && matcher_hostname.find() && matcher_avproMobile.find()){
                         String host = matcher_hostname.group(1);
                         StringBuffer sb = new StringBuffer();
@@ -250,7 +251,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         }
 
                         s = sb.toString();
-                    } else if (matcher_twit.find()) {
+                    } else*/ if (matcher_twit.find()) {
                         s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");
                         s = s.replaceAll("\"/tc\\.vod\\.v2", "\"/https/referer:[" + Referer + "]/" + request.uri().getHost() + "/tc.vod.v2");
 
