@@ -193,7 +193,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         }
 
                         if (cacheData.isHLS()){
-                            byte[] dummy_bytes = ("#EXTM3U\n/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
+                            byte[] dummy_bytes = cacheData.getDummyHLS(); //("#EXTM3U\n/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
                             byte[] hls_bytes = cacheData.getHLS();
                             byte[] send_data = null;
 
@@ -411,7 +411,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 }
 
                 if (!cacheData.isRedirect()){
-                    byte[] dummy_bytes = ("#EXTM3U\n/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
+                    byte[] dummy_bytes = cacheData.getDummyHLS(); //("#EXTM3U\n/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
                     byte[] hls_bytes = cacheData.getHLS();
                     byte[] send_data = null;
 
