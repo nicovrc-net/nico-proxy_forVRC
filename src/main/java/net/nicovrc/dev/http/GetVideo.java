@@ -109,7 +109,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 Referer = null;
             }
 
-            //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
+            System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
 
             Matcher matcher_fc2url = matcher_fc2.matcher(URL);
             Matcher matcher_twit = matcher_twitcasting.matcher(URL);
