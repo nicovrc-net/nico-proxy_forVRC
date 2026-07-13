@@ -54,6 +54,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             //System.out.println(httpRequest);
 
             URL = URLDecoder.decode(URL, StandardCharsets.UTF_8);
+            if (Function.avproM_ua.matcher(httpRequest).find()){
+                URL = URLDecoder.decode(URL.replaceAll("__", "."), StandardCharsets.UTF_8);
+            }
 
             String httpVersion = Function.getHTTPVersion(httpRequest);
 
@@ -92,10 +95,6 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 httpVersion = null;
 
                 return;
-            }
-
-            if (Function.avproM_ua.matcher(httpRequest).find()){
-                URL = URL.replaceAll("__", ".");
             }
 
             if (CookieText != null && CookieText.equals("null")){
