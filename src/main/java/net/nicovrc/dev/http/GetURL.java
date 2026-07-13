@@ -231,7 +231,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                                 }
                                             }
                                             send_data = sb.toString().getBytes(StandardCharsets.UTF_8);
-                                            System.out.println(new String(send_data, StandardCharsets.UTF_8));
+                                            //System.out.println(new String(send_data, StandardCharsets.UTF_8));
                                         }
                                     }
                                 }
@@ -462,7 +462,25 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     String s = new String(hls_bytes, StandardCharsets.UTF_8);
                                     Matcher matcher1 = matcher_host.matcher(httpRequest);
                                     if (matcher1.find()) {
-                                        send_data = s.replaceAll("/https/", "https://" + matcher1.group(1) + "/https/").getBytes(StandardCharsets.UTF_8);
+                                        String[] split = s.split("\n");
+                                        StringBuffer sb = new StringBuffer();
+                                        String host = matcher1.group(1);
+
+                                        for (String string : split) {
+                                            Matcher matcher2 = matcher_hlsUri.matcher(string);
+                                            if (matcher2.find()) {
+                                                String group = matcher2.group(1);
+                                                String s1 = URLEncoder.encode(group, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "__").replaceAll("__m3u8", ".m3u8");
+                                                String s2 = group.replace(group, s1);
+                                                sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"").append("https://").append(host).append(s2).append("\"\n");
+                                            } else if (string.startsWith("/https")){
+                                                sb.append("https://").append(host).append(URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "__"));
+                                            } else {
+                                                sb.append(string).append("\n");
+                                            }
+                                        }
+                                        send_data = sb.toString().getBytes(StandardCharsets.UTF_8);
+                                        //System.out.println(new String(send_data, StandardCharsets.UTF_8));
                                     }
                                 }
                             }
