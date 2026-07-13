@@ -212,7 +212,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                         String s = new String(hls_bytes, StandardCharsets.UTF_8);
                                         Matcher matcher1 = matcher_host.matcher(httpRequest);
                                         if (matcher1.find()) {
-                                            send_data = s.replaceAll("/https/", "https://" + matcher1.group(1) + "/https/").replaceAll("\\[", "%5B").replaceAll("\\]", "%5D").replaceAll(";", "%3B").replaceAll( "=","%3D").getBytes(StandardCharsets.UTF_8);
+                                            String[] split = s.split("\n");
+                                            split[split.length-1] = split[split.length-1].replaceAll("/https/", "https://" + matcher1.group(1) + "/https/").replaceAll("\\[", "%5B").replaceAll("\\]", "%5D").replaceAll(";", "%3B").replaceAll( "=","%3D");
+                                            StringBuilder builder = new StringBuilder();
+                                            for (String string : split) {
+                                                builder.append(string).append("\n");
+                                            }
+                                            send_data = builder.toString().getBytes(StandardCharsets.UTF_8);
+
                                             System.out.println(new String(send_data, StandardCharsets.UTF_8));
                                         }
                                     }
