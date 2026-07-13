@@ -252,7 +252,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                 }
                             }
 
+                            s = sb.toString();
                         }
+
 
                     } else if (matcher_twit.find()) {
                         s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");
