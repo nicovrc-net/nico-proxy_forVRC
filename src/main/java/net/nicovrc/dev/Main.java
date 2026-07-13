@@ -265,10 +265,10 @@ NicoNico_user_session: ""
                 Function.content_errorVideo_others = Function.getFileByBinary("./error-video/error_000.mp4");
             }
             if (Function.isFoundFile("./error-video/error_404.mp4")){
-                Function.content_errorVideo_others = Function.getFileByBinary("./error-video/error_000.mp4");
+                Function.content_errorVideo_site = Function.getFileByBinary("./error-video/error_000.mp4");
             }
             if (Function.isFoundFile("./error-video/error_404_2.mp4")){
-                Function.content_errorVideo_others = Function.getFileByBinary("./error-video/error_404_2.mp4");
+                Function.content_errorVideo_endLive = Function.getFileByBinary("./error-video/error_404_2.mp4");
             }
             // ログ、Webhook書き出し & キャッシュ削除
             Function.mainTimer.scheduleAtFixedRate(new TimerTask() {
