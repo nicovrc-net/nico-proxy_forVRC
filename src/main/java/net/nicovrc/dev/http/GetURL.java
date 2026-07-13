@@ -428,7 +428,74 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             //System.out.println("ffmpegUA : " + ffmpegUA.matcher(httpRequest).find());
                             //System.out.println("avpro_ua : " + avpro_ua.matcher(httpRequest).find());
                             if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
-                                send_data = dummy_bytes;
+                                if (avproM_ua.matcher(httpRequest).find()) {
+                                    String du = """
+#EXTM3U
+#EXT-X-VERSION:3
+#EXT-X-TARGETDURATION:5
+#EXT-X-MEDIA-SEQUENCE:0
+#EXT-X-PLAYLIST-TYPE:VOD
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video000.ts
+#EXTINF:5.007233,
+https://r2.7mi.site/vrc/kenmin/video001.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video002.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video003.ts
+#EXTINF:4.973844,
+https://r2.7mi.site/vrc/kenmin/video004.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video005.ts
+#EXTINF:5.007233,
+https://r2.7mi.site/vrc/kenmin/video006.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video007.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video008.ts
+#EXTINF:4.973844,
+https://r2.7mi.site/vrc/kenmin/video009.ts
+#EXTINF:5.007233,
+https://r2.7mi.site/vrc/kenmin/video010.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video011.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video012.ts
+#EXTINF:4.973844,
+https://r2.7mi.site/vrc/kenmin/video013.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video014.ts
+#EXTINF:5.007233,
+https://r2.7mi.site/vrc/kenmin/video015.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video016.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video017.ts
+#EXTINF:4.973844,
+https://r2.7mi.site/vrc/kenmin/video018.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video019.ts
+#EXTINF:5.007233,
+https://r2.7mi.site/vrc/kenmin/video020.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video021.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video022.ts
+#EXTINF:4.973844,
+https://r2.7mi.site/vrc/kenmin/video023.ts
+#EXTINF:5.007233,
+https://r2.7mi.site/vrc/kenmin/video024.ts
+#EXTINF:5.007222,
+https://r2.7mi.site/vrc/kenmin/video025.ts
+#EXTINF:5.006667,
+https://r2.7mi.site/vrc/kenmin/video026.ts
+#EXT-X-ENDLIST
+
+                                            """;
+                                    send_data = du.getBytes(StandardCharsets.UTF_8);
+                                } else {
+                                    send_data = dummy_bytes;
+                                }
                             } else {
                                 send_data = hls_bytes;
                             }
