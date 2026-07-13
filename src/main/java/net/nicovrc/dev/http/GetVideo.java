@@ -55,7 +55,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
             URL = URLDecoder.decode(URL, StandardCharsets.UTF_8);
             if (Function.avproM_ua.matcher(httpRequest).find()){
-                URL = URLDecoder.decode(URL.replaceAll("#dot#", "."), StandardCharsets.UTF_8);
+                URL = URLDecoder.decode(URL.replaceAll("_dot_", "."), StandardCharsets.UTF_8);
             }
 
             String httpVersion = Function.getHTTPVersion(httpRequest);
