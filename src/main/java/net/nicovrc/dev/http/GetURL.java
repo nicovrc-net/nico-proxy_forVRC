@@ -46,6 +46,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern avproM_ua = Pattern.compile("AVProMobileVideo");
     private final Pattern matcher_host = Pattern.compile("[H|h]ost: (.+)");
 
+    private final Pattern matcher_hlsUri = Pattern.compile("URI=\"(.+)\"");
+
     public GetURL(){
 
         GetContentList.put("ニコニコ", new NicoVideo());
@@ -213,13 +215,20 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                         Matcher matcher1 = matcher_host.matcher(httpRequest);
                                         if (matcher1.find()) {
                                             String[] split = s.split("\n");
-                                            split[split.length-1] = split[split.length-1].replaceAll("/https/", "https://" + matcher1.group(1) + "/https/").replaceAll("\\[", "%5B").replaceAll("\\]", "%5D").replaceAll(";", "%3B").replaceAll( "=","%3D");
-                                            StringBuilder builder = new StringBuilder();
-                                            for (String string : split) {
-                                                builder.append(string).append("\n");
-                                            }
-                                            send_data = builder.toString().getBytes(StandardCharsets.UTF_8);
+                                            StringBuffer sb = new StringBuffer();
+                                            String host = matcher1.group(1);
 
+                                            for (String string : split) {
+                                                Matcher matcher2 = matcher_hlsUri.matcher(string);
+                                                if (matcher2.find()) {
+                                                    sb.append(string.replaceAll(matcher2.group(1), "https://"+host+(URLEncoder.encode(matcher2.group(1), StandardCharsets.UTF_8).replaceAll("%2F", "/")))).append("\n");
+                                                } else if (string.startsWith("/https")){
+                                                    sb.append("https://").append(host).append(URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/"));
+                                                } else {
+                                                    sb.append(string).append("\n");
+                                                }
+                                            }
+                                            send_data = sb.toString().getBytes(StandardCharsets.UTF_8);
                                             System.out.println(new String(send_data, StandardCharsets.UTF_8));
                                         }
                                     }
