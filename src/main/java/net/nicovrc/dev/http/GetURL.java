@@ -42,7 +42,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern ffmpegUA = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
 
     private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
-    private final Pattern avpro_ua = Pattern.compile("(NSPlayer|AVPro|AppleCoreMedia)");
+    private final Pattern avpro_ua = Pattern.compile("(NSPlayer|AVProMobileVideo|AppleCoreMedia)");
 
     public GetURL(){
 
@@ -199,7 +199,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                             if (cacheData.getDummyHLS() != null){
 
-                                if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find()) {
+                                if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
                                     send_data = dummy_bytes;
                                 } else {
                                     send_data = hls_bytes;
@@ -419,7 +419,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
                     if (cacheData.isHLS()){
                         if (cacheData.getDummyHLS() != null){
-                            if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find()) {
+                            if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
                                 send_data = dummy_bytes;
                             } else {
                                 send_data = hls_bytes;
