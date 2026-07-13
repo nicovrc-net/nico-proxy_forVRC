@@ -94,6 +94,10 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 return;
             }
 
+            if (Function.avproM_ua.matcher(httpVersion).find()){
+                URL = URL.replaceAll("__", ".");
+            }
+
             if (CookieText != null && CookieText.equals("null")){
                 CookieText = null;
             }
