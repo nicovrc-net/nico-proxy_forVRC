@@ -230,25 +230,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                     String url = matcher3.group(1);
                                     String url_encode = url.replaceAll(url, URLEncoder.encode(url, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_"));
 
-                                    System.out.println(url);
-                                    System.out.println(url_encode);
+                                    System.out.println("d:"+url);
+                                    System.out.println("d:"+url_encode);
 
                                     sb.append("#EXT-X-MAP:URI=\"").append("https://").append(host).append(url_encode).append("\"\n");
-                                } else if (string.startsWith("https://")){
-                                    if (CookieText != null && !CookieText.isEmpty()){
-                                        if (Referer == null || Referer.isEmpty()){
-                                            string = string.replaceAll(http, "/https/cookie:["+CookieText+"]/");
-                                        } else {
-                                            string = string.replaceAll(http, "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
-                                        }
-                                    } else {
-                                        if (Referer == null || Referer.isEmpty()){
-                                            string = string.replaceAll(http, "/https/cookie:[]/");
-                                        } else {
-                                            string = string.replaceAll(http, "/https/referer:["+Referer+"]/");
-                                        }
-                                    }
-
+                                } else if (string.startsWith("/https/")){
                                     String encode = URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_");
                                     sb.append("https://").append(host).append(encode).append("\n");
 
