@@ -230,7 +230,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                             //System.out.println("d:"+string);
                             if (matcher3.find()) {
                                 String url = matcher3.group(1);
-                                String url_encode = URLEncoder.encode(url, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("%3D", "=").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa").replaceAll("_dot_key", ".key");
+                                String url_encode = URLEncoder.encode(url, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("%3D", "=").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa").replaceAll("_dot_cmfv", ".cmfv").replaceAll("_dot_key", ".key");
 
                                 //System.out.println("d:"+url);
                                 //System.out.println("d:"+url_encode);
