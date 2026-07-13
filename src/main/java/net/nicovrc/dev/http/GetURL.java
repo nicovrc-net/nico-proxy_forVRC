@@ -223,7 +223,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                                 if (matcher2.find()) {
                                                     String group = matcher2.group(1);
                                                     System.out.println("debug: "+group);
-                                                    sb.append(string.replaceAll(group, "https://"+host+(URLEncoder.encode(group, StandardCharsets.UTF_8).replaceAll("%2F", "/")))).append("\n");
+                                                    sb.append(string.replaceAll(group, URLEncoder.encode(group, StandardCharsets.UTF_8).replaceAll("%2F", "/"))).append("\n");
                                                 } else if (string.startsWith("/https")){
                                                     sb.append("https://").append(host).append(URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/"));
                                                 } else {
