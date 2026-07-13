@@ -203,7 +203,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     if (vlc_ua.matcher(httpRequest).find() || ffmpegUA.matcher(httpRequest).find() || avpro_ua.matcher(httpRequest).find()) {
                                         send_data = dummy_bytes;
                                     } else {
-                                        send_data = hls_bytes;
+                                        send_data = ("#EXTM3U\n/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
                                     }
                                 } else {
                                     send_data = hls_bytes;
@@ -427,7 +427,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                 if (vlc_ua.matcher(httpRequest).find() || ffmpegUA.matcher(httpRequest).find() || avpro_ua.matcher(httpRequest).find()) {
                                     send_data = dummy_bytes;
                                 } else {
-                                    send_data = hls_bytes;
+                                    send_data = ("#EXTM3U\n/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
                                 }
                             } else {
                                 send_data = hls_bytes;
