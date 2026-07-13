@@ -209,7 +209,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                     send_data = dummy_bytes;
                                 } else {
                                     send_data = hls_bytes;
-                                    if (Function.avproM_ua.matcher(httpRequest).find()) {
+                                    if (Function.avproM_ua.matcher(httpRequest).find() && (URL.startsWith("http://nico.ms") || URL.startsWith("https://nico.ms") || URL.startsWith("http://www.nicovideo.jp") || URL.startsWith("https://www.nicovideo.jp"))) {
                                         String s = new String(hls_bytes, StandardCharsets.UTF_8);
                                         Matcher matcher1 = matcher_host.matcher(httpRequest);
                                         if (matcher1.find()) {
@@ -223,7 +223,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                                     String group = matcher2.group(1);
                                                     String s1 = URLEncoder.encode(group, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_m3u8", ".m3u8");
                                                     String s2 = group.replace(group, s1);
-                                                    sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"").append("https://").append(host).append(s2).append("\"\n");
+                                                    sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",CODECS=\"avc1.4d401f,mp4a.40.2\",DEFAULT=YES,URI=\"").append("https://").append(host).append(s2).append("\"\n");
                                                 } else if (string.startsWith("/https")){
                                                     sb.append("https://").append(host).append(URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_m3u8", ".m3u8"));
                                                 } else {
@@ -458,7 +458,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                 send_data = dummy_bytes;
                             } else {
                                 send_data = hls_bytes;
-                                if (Function.avproM_ua.matcher(httpRequest).find()) {
+                                if (Function.avproM_ua.matcher(httpRequest).find() && (URL.startsWith("http://nico.ms") || URL.startsWith("https://nico.ms") || URL.startsWith("http://www.nicovideo.jp") || URL.startsWith("https://www.nicovideo.jp"))) {
                                     String s = new String(hls_bytes, StandardCharsets.UTF_8);
                                     Matcher matcher1 = matcher_host.matcher(httpRequest);
                                     if (matcher1.find()) {
@@ -472,7 +472,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                                 String group = matcher2.group(1);
                                                 String s1 = URLEncoder.encode(group, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_m3u8", ".m3u8");
                                                 String s2 = group.replace(group, s1);
-                                                sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"").append("https://").append(host).append(s2).append("\"\n");
+                                                sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",CODECS=\"avc1.4d401f,mp4a.40.2\",DEFAULT=YES,URI=\"").append("https://").append(host).append(s2).append("\"\n");
                                             } else if (string.startsWith("/https")){
                                                 sb.append("https://").append(host).append(URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_m3u8", ".m3u8"));
                                             } else {
