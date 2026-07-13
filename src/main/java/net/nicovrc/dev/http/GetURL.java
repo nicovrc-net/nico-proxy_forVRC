@@ -461,7 +461,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                 send_data = dummy_bytes;
                             } else {
                                 send_data = hls_bytes;
-                                if (avproM_ua.matcher(httpRequest).find()) {
+                                if (Function.avproM_ua.matcher(httpRequest).find()) {
                                     String s = new String(hls_bytes, StandardCharsets.UTF_8);
                                     Matcher matcher1 = matcher_host.matcher(httpRequest);
                                     if (matcher1.find()) {
