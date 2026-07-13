@@ -32,6 +32,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_tiktok = Pattern.compile("tiktok\\.com");
     private final Pattern matcher_bilicom = Pattern.compile("bilibili\\.com");
 
+    private final Pattern matcher_niconico = Pattern.compile("(asset\\.domand\\.nicovideo\\.jp|delivery\\.domand\\.nicovideo\\.jp)");
+    private final Pattern matcher_host = Pattern.compile("[H|h]ost: (.+)");
+    private final Pattern matcher_hlsUri = Pattern.compile("#EXT-X-MAP:URI=\"(.+)\"");
+
+
     private final Pattern matcher_bili_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
     private final Pattern matcher_bili_range2 = Pattern.compile("[r|R]ange: bytes=(\\d+)-");
 
@@ -113,6 +118,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             Matcher matcher_tiktok = this.matcher_tiktok.matcher(URL);
             Matcher matcher_bilibilicom = matcher_bilicom.matcher(Referer != null ? Referer : "");
             Matcher matcher_avproMobile = Function.avproM_ua.matcher(httpRequest);
+            Matcher matcher_nico = matcher_niconico.matcher(URL);
+            Matcher matcher_hostname = matcher_host.matcher(httpRequest);
             boolean isBiliCom = matcher_bilibilicom.find();
             if (matcher_tiktok.find()){
                 URL = URL.replaceAll("\\|", "%7C");
@@ -196,12 +203,58 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
                     //body = Function.decompressByte(send.body(), contentEncoding);
                     String s = new String(send_data, StandardCharsets.UTF_8);
-                    if (matcher_avproMobile.find()){
-                        s = s.replaceAll("#dot#", ".");
-                    }
-
                     //System.out.println(s);
-                    if (matcher_twit.find()) {
+                    if (matcher_nico.find() && matcher_hostname.find()){
+                        String host = matcher_hostname.group(1);
+                        if (matcher_avproMobile.find()){
+                            StringBuffer sb = new StringBuffer();
+                            String[] split = s.split("\n");
+
+                            for (String string : split) {
+                                if (CookieText != null && !CookieText.isEmpty()){
+                                    if (Referer == null || Referer.isEmpty()){
+                                        string = string.replaceAll(http, "/https/cookie:["+CookieText+"]/");
+                                    } else {
+                                        string = string.replaceAll(http, "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
+                                    }
+                                } else {
+                                    if (Referer == null || Referer.isEmpty()){
+                                        string = string.replaceAll(http, "/https/cookie:[]/");
+                                    } else {
+                                        string = string.replaceAll(http, "/https/referer:["+Referer+"]/");
+                                    }
+                                }
+
+                                Matcher matcher3 = matcher_hlsUri.matcher(string);
+                                if (matcher3.find()) {
+                                    String url = matcher3.group(1);
+                                    String url_encode = url.replaceAll(url, URLEncoder.encode(url, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_"));
+
+                                    sb.append("#EXT-X-MAP:URI=\"").append("https://").append(host).append(url_encode).append("\"\n");
+                                } else if (string.startsWith("https://")){
+                                    if (CookieText != null && !CookieText.isEmpty()){
+                                        if (Referer == null || Referer.isEmpty()){
+                                            string = string.replaceAll(http, "/https/cookie:["+CookieText+"]/");
+                                        } else {
+                                            string = string.replaceAll(http, "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
+                                        }
+                                    } else {
+                                        if (Referer == null || Referer.isEmpty()){
+                                            string = string.replaceAll(http, "/https/cookie:[]/");
+                                        } else {
+                                            string = string.replaceAll(http, "/https/referer:["+Referer+"]/");
+                                        }
+                                    }
+
+                                    String encode = URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_");
+                                    sb.append("https://").append(host).append(encode).append("\n");
+
+                                }
+                            }
+
+                        }
+
+                    } else if (matcher_twit.find()) {
                         s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");
                         s = s.replaceAll("\"/tc\\.vod\\.v2", "\"/https/referer:[" + Referer + "]/" + request.uri().getHost() + "/tc.vod.v2");
 
