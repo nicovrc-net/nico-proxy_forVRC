@@ -227,7 +227,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                                     System.out.println("debug: "+group);
                                                     System.out.println("debug: "+s1);
                                                     System.out.println("debug: "+s2);
-                                                    sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"").append(s2).append("\"\n");
+                                                    sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"").append("https://").append(host).append(s2).append("\"\n");
                                                 } else if (string.startsWith("/https")){
                                                     sb.append("https://").append(host).append(URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/"));
                                                 } else {
