@@ -427,7 +427,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             //System.out.println("vlc_ua : " + vlc_ua.matcher(httpRequest).find());
                             //System.out.println("ffmpegUA : " + ffmpegUA.matcher(httpRequest).find());
                             //System.out.println("avpro_ua : " + avpro_ua.matcher(httpRequest).find());
-                            if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
+                            if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && (avpro_ua.matcher(httpRequest).find())) {
                                 if (avproM_ua.matcher(httpRequest).find()) {
                                     String du = """
 #EXTM3U
