@@ -230,7 +230,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                             //System.out.println("d:"+string);
                             if (matcher3.find()) {
                                 String url = matcher3.group(1);
-                                String url_encode = URLEncoder.encode(url, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa").replaceAll("_dot_key", ".key");
+                                String url_encode = URLEncoder.encode(url, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("%3D", "=").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa").replaceAll("_dot_key", ".key");
 
                                 //System.out.println("d:"+url);
                                 //System.out.println("d:"+url_encode);
@@ -241,7 +241,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                     sb.append("#EXT-X-KEY:METHOD=AES-128,\"").append("https://").append(host).append(url_encode).append("\"").append(",IV=").append(matcher4.group(1)).append("\n");
                                 }
                             } else if (string.startsWith("/https/")){
-                                String encode = URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa").replaceAll("_dot_cmfv", ".cmfv");
+                                String encode = URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("%3D", "=").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa").replaceAll("_dot_cmfv", ".cmfv");
                                 sb.append("https://").append(host).append(encode).append("\n");
 
                             } else {
