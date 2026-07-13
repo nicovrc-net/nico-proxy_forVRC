@@ -198,7 +198,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             byte[] send_data = null;
 
                             if (cacheData.getDummyHLS() != null){
-
+                                System.out.println("isHLSdummy : " + isHLSDummyPrint);
+                                System.out.println("vlc_ua : " + vlc_ua.matcher(httpRequest).find());
+                                System.out.println("ffmpegUA : " + ffmpegUA.matcher(httpRequest).find());
+                                System.out.println("avpro_ua : " + avpro_ua.matcher(httpRequest).find());
                                 if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
                                     if (vlc_ua.matcher(httpRequest).find() || ffmpegUA.matcher(httpRequest).find() || avpro_ua.matcher(httpRequest).find()) {
                                         send_data = dummy_bytes;
