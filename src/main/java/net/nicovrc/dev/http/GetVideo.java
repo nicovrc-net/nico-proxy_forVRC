@@ -35,6 +35,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_niconico = Pattern.compile("nicovideo\\.jp");
     private final Pattern matcher_host = Pattern.compile("[H|h]ost: (.+)");
     private final Pattern matcher_hlsUri = Pattern.compile("URI=\"(.+)\"");
+    private final Pattern matcher_hlsKey = Pattern.compile("IV=(.+)");
 
 
     private final Pattern matcher_bili_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
@@ -226,17 +227,22 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                                 }
 
                                 Matcher matcher3 = matcher_hlsUri.matcher(string);
-                                System.out.println("d:"+string);
+                                Matcher matcher4 = matcher_hlsKey.matcher(string);
+                                //System.out.println("d:"+string);
                                 if (matcher3.find()) {
                                     String url = matcher3.group(1);
-                                    String url_encode = URLEncoder.encode(url, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_");
+                                    String url_encode = URLEncoder.encode(url, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa").replaceAll("_dot_key", ".key");
 
-                                    System.out.println("d:"+url);
-                                    System.out.println("d:"+url_encode);
+                                    //System.out.println("d:"+url);
+                                    //System.out.println("d:"+url_encode);
 
-                                    sb.append("#EXT-X-MAP:URI=\"").append("https://").append(host).append(url_encode).append("\"\n");
+                                    if (string.startsWith("#EXT-X-MAP")){
+                                        sb.append("#EXT-X-MAP:URI=\"").append("https://").append(host).append(url_encode).append("\"\n");
+                                    } else if (matcher4.find()) {
+                                        sb.append("#EXT-X-KEY:METHOD=AES-128,\"").append("https://").append(host).append(url_encode).append("\"").append(",IV=").append(matcher4.group(1)).append("\n");
+                                    }
                                 } else if (string.startsWith("/https/")){
-                                    String encode = URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_");
+                                    String encode = URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("\\.", "_dot_").replaceAll("_dot_cmfa", ".cmfa");
                                     sb.append("https://").append(host).append(encode).append("\n");
 
                                 } else {
