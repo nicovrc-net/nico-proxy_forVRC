@@ -207,6 +207,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             } else {
                                 send_data = hls_bytes;
                             }
+
+                            send_data = URLEncoder.encode(new String(send_data, StandardCharsets.UTF_8), StandardCharsets.UTF_8).getBytes(StandardCharsets.UTF_8);
                             Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_hls, null, null, send_data, null));
                         } else {
                             Function.sendHttpData(ch, new HttpHeader(httpVersion, 302, null, null, null, null, cacheData.getTargetURL()));
@@ -425,6 +427,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         } else {
                             send_data = hls_bytes;
                         }
+
+                        send_data = URLEncoder.encode(new String(send_data, StandardCharsets.UTF_8), StandardCharsets.UTF_8).getBytes(StandardCharsets.UTF_8);
                         Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_hls, null, null, send_data, null));
                     } else {
                         String redirectUrl = "/https/cookie:[" + cacheData.getCookieText() + "]/referer:[" + cacheData.getRefererText() + "]/" + cacheData.getTargetURL().replaceAll("http(.*)://", "");
