@@ -46,6 +46,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_host = Pattern.compile("[H|h]ost: (.+)");
 
     private final Pattern matcher_hlsUri = Pattern.compile("DEFAULT=YES,URI=\"(.+)\"");
+    private Matcher matcher1 = null;
 
     public GetURL(){
 
@@ -76,6 +77,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         if (ch == null){
             return;
         }
+
+        matcher1 = matcher_host.matcher(httpRequest);
 
         final String httpVersion = Function.getHTTPVersion(httpRequest) != null ? Function.getHTTPVersion(httpRequest) : "1.1";
 
@@ -208,10 +211,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                 if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
                                     send_data = dummy_bytes;
                                 } else {
-                                    send_data = hls_bytes;
+                                    send_data = hls_bytes;/*
                                     if (Function.avproM_ua.matcher(httpRequest).find() && (URL.startsWith("http://nico.ms") || URL.startsWith("https://nico.ms") || URL.startsWith("http://www.nicovideo.jp") || URL.startsWith("https://www.nicovideo.jp"))) {
                                         String s = new String(hls_bytes, StandardCharsets.UTF_8);
-                                        Matcher matcher1 = matcher_host.matcher(httpRequest);
                                         if (matcher1.find()) {
                                             String[] split = s.split("\n");
                                             StringBuffer sb = new StringBuffer();
@@ -233,7 +235,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                             send_data = sb.toString().getBytes(StandardCharsets.UTF_8);
                                             //System.out.println(new String(send_data, StandardCharsets.UTF_8));
                                         }
-                                    }
+                                    }*/
                                 }
                             } else {
                                 send_data = hls_bytes;
@@ -457,10 +459,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                             if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
                                 send_data = dummy_bytes;
                             } else {
-                                send_data = hls_bytes;
+                                send_data = hls_bytes;/*
                                 if (Function.avproM_ua.matcher(httpRequest).find() && (URL.startsWith("http://nico.ms") || URL.startsWith("https://nico.ms") || URL.startsWith("http://www.nicovideo.jp") || URL.startsWith("https://www.nicovideo.jp"))) {
                                     String s = new String(hls_bytes, StandardCharsets.UTF_8);
-                                    Matcher matcher1 = matcher_host.matcher(httpRequest);
                                     if (matcher1.find()) {
                                         String[] split = s.split("\n");
                                         StringBuffer sb = new StringBuffer();
@@ -482,7 +483,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                         send_data = sb.toString().getBytes(StandardCharsets.UTF_8);
                                         //System.out.println(new String(send_data, StandardCharsets.UTF_8));
                                     }
-                                }
+                                }*/
                             }
                         } else {
                             send_data = hls_bytes;
