@@ -65,6 +65,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             Matcher m = matcher_UA.matcher(httpRequest);
             if (m.find()) {
                 URL = URLDecoder.decode(URL.replaceAll("_ss_", "[").replaceAll("_se_", "]"), StandardCharsets.UTF_8);
+                URL = URL.replaceAll("_dot_", ".");
             }
 
             Matcher matcher1 = matcher_host.matcher(httpRequest);
