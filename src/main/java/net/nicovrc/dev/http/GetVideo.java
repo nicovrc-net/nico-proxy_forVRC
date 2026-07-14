@@ -62,11 +62,12 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
             URL = URLDecoder.decode(URL, StandardCharsets.UTF_8);
 
+            /*
             Matcher m = matcher_UA.matcher(httpRequest);
             if (m.find()) {
                 URL = URLDecoder.decode(URL.replaceAll("_ss_", "[").replaceAll("_se_", "]"), StandardCharsets.UTF_8);
                 URL = URL.replaceAll("_dot_", ".");
-            }
+            }*/
 
             Matcher matcher1 = matcher_host.matcher(httpRequest);
             String hostname = matcher1.find() ? matcher1.group(1) : "localhost:"+Function.config_httpPort;
@@ -315,33 +316,33 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                     } else {
                         if (CookieText != null && !CookieText.isEmpty()){
-                            if (Referer == null || Referer.isEmpty()){
+                            if (Referer == null || Referer.isEmpty()){/*
                                 if (m.find()){
                                     s = s.replaceAll(http, "https://"+hostname+"/https/cookie:_ss_"+URLEncoder.encode(CookieText, StandardCharsets.UTF_8)+"_se_/");
-                                } else {
+                                } else {*/
                                     s = s.replaceAll(http, "/https/cookie:["+CookieText+"]/");
-                                }
+                                //}
 
-                            } else {
+                            } else {/*
                                 if (m.find()){
                                     s = s.replaceAll(http, "https://"+hostname+"/https/referer:_ss_"+URLEncoder.encode(Referer, StandardCharsets.UTF_8)+"_se_/cookie:_ss_"+URLEncoder.encode(CookieText, StandardCharsets.UTF_8)+"_se_/");
-                                } else {
+                                } else {*/
                                     s = s.replaceAll(http, "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
-                                }
+                                //}
                             }
                         } else {
                             if (Referer == null || Referer.isEmpty()){
-                                if (m.find()){
+                                /*if (m.find()){
                                     s = s.replaceAll(http, "https://"+hostname+"/https/cookie:_ss__se_/");
-                                } else {
+                                } else {*/
                                     s = s.replaceAll(http, "/https/cookie:[]/");
-                                }
+                                //}
                             } else {
-                                if (m.find()) {
+                                /*if (m.find()) {
                                     s = s.replaceAll(http, "https://"+hostname+"/https/referer:_ss_"+URLEncoder.encode(Referer, StandardCharsets.UTF_8)+"_se_/");
-                                } else {
+                                } else {*/
                                     s = s.replaceAll(http, "/https/referer:["+Referer+"]/");
-                                }
+                                //}
                             }
                         }
                     }
