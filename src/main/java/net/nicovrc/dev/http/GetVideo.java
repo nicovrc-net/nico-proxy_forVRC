@@ -32,10 +32,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_tiktok = Pattern.compile("tiktok\\.com");
     private final Pattern matcher_bilicom = Pattern.compile("bilibili\\.com");
 
-    private final Pattern matcher_niconico = Pattern.compile("nicovideo\\.jp");
+    //private final Pattern matcher_niconico = Pattern.compile("nicovideo\\.jp");
     private final Pattern matcher_host = Pattern.compile("[H|h]ost: (.+)");
-    private final Pattern matcher_hlsUri = Pattern.compile("URI=\"(.+)\"");
-    private final Pattern matcher_hlsKey = Pattern.compile("IV=(.+)");
+    //private final Pattern matcher_hlsUri = Pattern.compile("URI=\"(.+)\"");
+    //private final Pattern matcher_hlsKey = Pattern.compile("IV=(.+)");
+    private final Pattern matcher_UA = Pattern.compile("(GStreamer|AVProMobileVideo|VLC/3\\.0\\.6)");
 
 
     private final Pattern matcher_bili_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
@@ -60,9 +61,14 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             //System.out.println(httpRequest);
 
             URL = URLDecoder.decode(URL, StandardCharsets.UTF_8);
-            if (Function.avproM_ua.matcher(httpRequest).find()){
-                URL = URLDecoder.decode(URL.replaceAll("_dot_", "."), StandardCharsets.UTF_8);
+
+            Matcher m = matcher_UA.matcher(httpRequest);
+            if (m.find()) {
+                URL = URLDecoder.decode(URL.replaceAll("_ss_", "[").replaceAll("_se_", "]"), StandardCharsets.UTF_8);
             }
+
+            Matcher matcher1 = matcher_host.matcher(httpRequest);
+            String hostname = matcher1.find() ? matcher1.group(1) : "localhost:"+Function.config_httpPort;
 
             String httpVersion = Function.getHTTPVersion(httpRequest);
 
@@ -118,9 +124,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             Matcher matcher_vimeourl = matcher_vimeo.matcher(URL);
             Matcher matcher_tiktok = this.matcher_tiktok.matcher(URL);
             Matcher matcher_bilibilicom = matcher_bilicom.matcher(Referer != null ? Referer : "");
-            Matcher matcher_avproMobile = Function.avproM_ua.matcher(httpRequest);
-            Matcher matcher_nico = matcher_niconico.matcher(URL);
-            Matcher matcher_hostname = matcher_host.matcher(httpRequest);
+            //Matcher matcher_avproMobile = Function.avproM_ua.matcher(httpRequest);
+            //Matcher matcher_nico = matcher_niconico.matcher(URL);
+            //Matcher matcher_hostname = matcher_host.matcher(httpRequest);
             boolean isBiliCom = matcher_bilibilicom.find();
             if (matcher_tiktok.find()){
                 URL = URL.replaceAll("\\|", "%7C");
@@ -309,15 +315,32 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     } else {
                         if (CookieText != null && !CookieText.isEmpty()){
                             if (Referer == null || Referer.isEmpty()){
-                                s = s.replaceAll(http, "/https/cookie:["+CookieText+"]/");
+                                if (m.find()){
+                                    s = s.replaceAll(http, "https://"+hostname+"/https/cookie:_ss_"+URLEncoder.encode(CookieText, StandardCharsets.UTF_8)+"_se_/");
+                                } else {
+                                    s = s.replaceAll(http, "/https/cookie:["+CookieText+"]/");
+                                }
+
                             } else {
-                                s = s.replaceAll(http, "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
+                                if (m.find()){
+                                    s = s.replaceAll(http, "https://"+hostname+"/https/referer:_ss_"+URLEncoder.encode(Referer, StandardCharsets.UTF_8)+"_se_/cookie:_ss_"+URLEncoder.encode(CookieText, StandardCharsets.UTF_8)+"_se_/");
+                                } else {
+                                    s = s.replaceAll(http, "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
+                                }
                             }
                         } else {
                             if (Referer == null || Referer.isEmpty()){
-                                s = s.replaceAll(http, "/https/cookie:[]/");
+                                if (m.find()){
+                                    s = s.replaceAll(http, "https://"+hostname+"/https/cookie:_ss__se_/");
+                                } else {
+                                    s = s.replaceAll(http, "/https/cookie:[]/");
+                                }
                             } else {
-                                s = s.replaceAll(http, "/https/referer:["+Referer+"]/");
+                                if (m.find()) {
+                                    s = s.replaceAll(http, "https://"+hostname+"/https/referer:_ss_"+URLEncoder.encode(Referer, StandardCharsets.UTF_8)+"_se_/");
+                                } else {
+                                    s = s.replaceAll(http, "/https/referer:["+Referer+"]/");
+                                }
                             }
                         }
                     }
