@@ -221,7 +221,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                                 Matcher matcher2 = matcher_hlsUri.matcher(string);
                                                 if (matcher2.find()) {
                                                     String group = matcher2.group(1);
-                                                    String s1 = URLEncoder.encode(group, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("%3D", "=").replaceAll("\\.", "_dot_").replaceAll("_dot_m3u8", ".m3u8");
+                                                    String s1 = URLEncoder.encode(group.replaceAll("\\[", "_ss_").replaceAll("]", "_se_"), StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("%3D", "=").replaceAll("\\.", "_dot_").replaceAll("_dot_m3u8", ".m3u8");
                                                     String s2 = group.replace(group, s1);
                                                     sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE=\"ja\",URI=\"").append("https://").append(host).append(s2).append("\"\n");
                                                 } else if (string.startsWith("/https")){
@@ -470,7 +470,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                                             Matcher matcher2 = matcher_hlsUri.matcher(string);
                                             if (matcher2.find()) {
                                                 String group = matcher2.group(1);
-                                                String s1 = URLEncoder.encode(group, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("%3D", "=").replaceAll("\\.", "_dot_").replaceAll("_dot_m3u8", ".m3u8");
+                                                String s1 = URLEncoder.encode(group.replaceAll("\\[", "_ss_").replaceAll("]", "_se_"), StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("%3D", "=").replaceAll("\\.", "_dot_").replaceAll("_dot_m3u8", ".m3u8");
                                                 String s2 = group.replace(group, s1);
                                                 sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE=\"ja\",URI=\"").append("https://").append(host).append(s2).append("\"\n");
                                             } else if (string.startsWith("/https")){
