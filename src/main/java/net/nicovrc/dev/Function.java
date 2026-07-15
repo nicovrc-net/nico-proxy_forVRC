@@ -100,6 +100,11 @@ public class Function {
     public static final Pattern matcher_AVPro = Pattern.compile("(NSPlayer|AVPro|AppleCoreMedia)");
     public static final Pattern matcher_FFMpeg = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
 
+    private static final Pattern matcher_hlsURI = Pattern.compile("(,|:)URI=\"(.+)\"");
+    private static final Pattern matcher_hls_twitcasting = Pattern.compile("twitcasting\\.tv");
+    private static final Pattern matcher_hls_abema = Pattern.compile("(.+)-abematv\\.akamaized\\.net");
+    private static final Pattern matcher_hls_vimeo = Pattern.compile("vimeocdn\\.com");
+    public static final Pattern matcher_hls_fc2Live = Pattern.compile("(.+)\\.live\\.fc2\\.com");
 
     public static boolean isFoundFile(String filePass) {
         Path path = Paths.get(filePass);
@@ -568,5 +573,68 @@ public class Function {
                         ByteArrayOutputStream::writeBytes,
                         (left, right) -> left.writeBytes(right.toByteArray()))
                 .toByteArray();
+    }
+
+
+
+    public static byte[] replaceHLS(byte[] hls_data, String http, String httpHostname, String cacheId, String hostname, String url) {
+        final String hlsText = new String(hls_data, StandardCharsets.UTF_8);
+        final Matcher hls_twitcas = matcher_hls_twitcasting.matcher(url);
+        final Matcher hls_abema = matcher_hls_abema.matcher(url);
+        final Matcher hls_vimeo = matcher_hls_vimeo.matcher(url);
+
+        StringBuffer sb = new StringBuffer();
+        for (String line : hlsText.split("\n")){
+            Matcher matcher = matcher_hlsURI.matcher(line);
+
+            if (matcher.find()){
+                String oldUrl = matcher.group(2);
+                String newUrl = http+httpHostname+"/video/?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(oldUrl, StandardCharsets.UTF_8);
+                sb.append(line.replace(oldUrl, newUrl)).append("\n");
+                continue;
+            }
+
+            if (line.startsWith("http")){
+                sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
+                continue;
+            }
+
+            if (line.startsWith("/")){
+                String hlsUrl = "https://"+hostname+line;
+
+                if (hls_twitcas.find() && line.startsWith("/tc\\.vod\\.v2")){
+                    sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
+                    continue;
+                }
+
+                if (hls_abema.find()){
+                    if (line.startsWith("/tsad")){
+                        sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
+                        continue;
+                    }
+                    if (line.startsWith("/preview")) {
+                        sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
+                        continue;
+                    }
+                }
+
+            }
+
+            if (hls_vimeo.find()){
+                StringBuffer tempHost = new StringBuffer();
+                String[] split = url.split("/");
+                for (int i = 0; i < split.length - 6; i++) {
+                    tempHost.append(split[i]).append("/");
+                }
+                line = line.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", tempHost.toString());
+                sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
+                continue;
+            }
+
+            sb.append(line).append("\n");
+        }
+
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
+
     }
 }

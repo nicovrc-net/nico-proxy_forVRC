@@ -10,6 +10,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.Locale;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -204,23 +205,30 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
             String contentType = response.headers().firstValue("Content-Type").isPresent() ? response.headers().firstValue("Content-Type").get() : response.headers().firstValue("content-type").isPresent() ? response.headers().firstValue("content-type").get() : "";
 
-            if (isRange){
-                long rangeSize = -1;
-                String rangeText = "0-0/0";
-                if (response.headers().firstValue("content-range").isPresent()){
-                    rangeText = response.headers().firstValue("content-range").get();
-                    try {
-                        rangeSize = Long.parseLong(rangeText.split("/")[1]);
+            if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")) {
 
-                    } catch (Exception e) {
-                        //e.printStackTrace();
-                    }
-                }
-                String[] split = rangeText.split("/");
-                String[] split1 = split[0].split("-");
-
-                Function.sendHttpData(ch, new HttpHeader(httpVersion, 206, contentType, null, null, response.body(), null, Long.parseLong(split1[0]), Long.parseLong(split1[1]), rangeSize));
+                Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, Function.replaceHLS(response.body(), http, httpHostname, cacherId, request.uri().getHost(), url), null));
                 return;
+
+            } else {
+                if (isRange){
+                    long rangeSize = -1;
+                    String rangeText = "0-0/0";
+                    if (response.headers().firstValue("content-range").isPresent()){
+                        rangeText = response.headers().firstValue("content-range").get();
+                        try {
+                            rangeSize = Long.parseLong(rangeText.split("/")[1]);
+
+                        } catch (Exception e) {
+                            //e.printStackTrace();
+                        }
+                    }
+                    String[] split = rangeText.split("/");
+                    String[] split1 = split[0].split("-");
+
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 206, contentType, null, null, response.body(), null, Long.parseLong(split1[0]), Long.parseLong(split1[1]), rangeSize));
+                    return;
+                }
             }
 
             Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, response.body(), null));

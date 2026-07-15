@@ -34,7 +34,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_VRCStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
 
     private final Pattern matcher_browser = Pattern.compile("(([fF])irefox|([oO])pera|([sS])ec-([cC])h-([uU])a)");
-    private final Pattern matcher_hlsURI = Pattern.compile(",URI=\"(.+)\"");
 
     @Override
     public void run() {
@@ -402,20 +401,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     }
 
 
-    private final Pattern matcher_hls_twitcasting = Pattern.compile("twitcasting\\.tv");
-    private final Pattern matcher_hls_abema = Pattern.compile("(.+)-abematv\\.akamaized\\.net");
-    private final Pattern matcher_hls_vimeo = Pattern.compile("vimeocdn\\.com");
-    private final Pattern matcher_hls_fc2Live = Pattern.compile("(.+)\\.live\\.fc2\\.com");
+
 
     private final Pattern matcher_video_tiktok = Pattern.compile("tiktok\\.com");
     private final Pattern matcher_video_bilicom = Pattern.compile("bilibili\\.com");
 
     private byte[] getHLSData(String url, String cookieText, String refererText, String cacheId) throws Exception {
         byte[] hls_data = null;
-        final Matcher hls_twitcas = matcher_hls_twitcasting.matcher(url);
-        final Matcher hls_abema = matcher_hls_abema.matcher(url);
-        final Matcher hls_vimeo = matcher_hls_vimeo.matcher(url);
-        final Matcher hls_fc2Live = matcher_hls_fc2Live.matcher(url);
+        final Matcher hls_fc2Live = Function.matcher_hls_fc2Live.matcher(url);
 
         final HttpRequest request;
         if (cookieText == null && refererText == null) {
@@ -475,62 +468,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
         final String contentType = response.headers().firstValue("Content-Type").isPresent() ? response.headers().firstValue("Content-Type").get() : response.headers().firstValue("content-type").isPresent() ? response.headers().firstValue("content-type").get() : "";
         if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
-            hls_data = response.body();
-
-            final String hlsText = new String(hls_data, StandardCharsets.UTF_8);
-
-            StringBuffer sb = new StringBuffer();
-            for (String line : hlsText.split("\n")){
-                Matcher matcher = matcher_hlsURI.matcher(line);
-
-                if (matcher.find()){
-                    String oldUrl = matcher.group(1);
-                    String newUrl = http+httpHostname+"/video/?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(oldUrl, StandardCharsets.UTF_8);
-                    sb.append(line.replace(oldUrl, newUrl)).append("\n");
-                    continue;
-                }
-
-                if (line.startsWith("http")){
-                    sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
-                    continue;
-                }
-
-                if (line.startsWith("/")){
-                    String hlsUrl = "https://"+request.uri().getHost()+line;
-
-                    if (hls_twitcas.find() && line.startsWith("/tc\\.vod\\.v2")){
-                        sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
-                        continue;
-                    }
-
-                    if (hls_abema.find()){
-                        if (line.startsWith("/tsad")){
-                            sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
-                            continue;
-                        }
-                        if (line.startsWith("/preview")) {
-                            sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
-                            continue;
-                        }
-                    }
-
-                }
-
-                if (hls_vimeo.find()){
-                    StringBuffer tempHost = new StringBuffer();
-                    String[] split = url.split("/");
-                    for (int i = 0; i < split.length - 6; i++) {
-                        tempHost.append(split[i]).append("/");
-                    }
-                    line = line.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", tempHost.toString());
-                    sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
-                    continue;
-                }
-
-                sb.append(line).append("\n");
-            }
-
-            hls_data = sb.toString().getBytes(StandardCharsets.UTF_8);
+            hls_data = Function.replaceHLS(response.body(), http, httpHostname, cacheId, request.uri().getHost(), url);
         }
         return hls_data;
     }
