@@ -487,6 +487,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     String oldUrl = matcher.group(1);
                     String newUrl = http+httpHostname+"/video/?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(oldUrl, StandardCharsets.UTF_8);
                     sb.append(line.replaceAll(oldUrl, newUrl)).append("\n");
+                    continue;
                 }
 
                 if (line.startsWith("http")){
