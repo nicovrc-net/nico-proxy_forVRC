@@ -51,6 +51,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         httpHostname = Function.getHost(httpRequest);
         http = httpHostname.startsWith("localhost") ? "http://" : "https://";
 
+        URL = URL.replaceAll("\\?url=", "").replaceAll("&url=", "");
+
         final String httpVersion = Function.getHTTPVersion(httpRequest) != null ? Function.getHTTPVersion(httpRequest) : "1.1";
         final boolean isDummyPrint = matcher_dummyPrintParameter.matcher(httpRequest).find();
         final boolean isVLC = Function.matcher_VLC.matcher(httpRequest).find();
@@ -79,6 +81,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         Function.CacheWaitList.put(URL, new Date());
 
         ServiceAPI service = null;
+        System.out.println(URL);
         for (ServiceAPI api : ServiceList.getServiceList()) {
             for (String s : api.getCorrespondingURL()) {
                 Pattern compile = Pattern.compile(s.replaceAll("\\.", "\\.").replaceAll("\\*", ".*"));
