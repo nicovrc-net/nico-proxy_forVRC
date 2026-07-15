@@ -199,6 +199,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             TikTokResult temp = Function.gson.fromJson(json, TikTokResult.class);
             cookieText = temp != null ? temp.getVideoAccessCookie() : null;
         }
+        //System.out.println("cookie: "+cookieText);
 
 
         // 出力用データ生成
@@ -397,7 +398,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         if (matcher.find()){
             return hls;
         }
-        return Function.zeroByte;
+        return hls;
     }
 
 

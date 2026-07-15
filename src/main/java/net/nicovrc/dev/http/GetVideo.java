@@ -112,6 +112,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
         final Long rangeEnd = tempLong[1];
         final Long rangeLength = tempLong[2];
 
+        //System.out.println("cookieText:"+cookieText);
+        //System.out.println("refererText:"+refererText);
+
         // 動画ファイル取得
         try {
             final HttpRequest request;
