@@ -51,14 +51,14 @@ public class Function {
     private static final Pattern HTTP = Pattern.compile("(.+) (.+) HTTP/(\\d\\.\\d)");
     private static final Pattern HTTPURI1 = Pattern.compile("(.+) HTTP/(\\d\\.\\d)");
     private static final Pattern HTTPURI2 = Pattern.compile("(.+) HTTP/");
-
-    public static final Pattern avproM_ua = Pattern.compile("AVProMobileVideo");
+    private static final Pattern matcher_host = Pattern.compile("[H|h]ost: (.+)");
 
     public static final ConcurrentHashMap<String, String> APIAccessLog = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, LogData> GetURLAccessLog = new ConcurrentHashMap<>();
 
     private static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, WebhookData> WebhookData = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<String, Date> CacheWaitList = new ConcurrentHashMap<>();
 
     public static final String contentType_textPlain = "text/plain; charset=utf-8";
     public static final String contentType_json = "application/json; charset=utf-8";
@@ -94,6 +94,12 @@ public class Function {
     public static final Pattern NicoID2 = Pattern.compile("(http|https)://nico\\.ms/(.+)");
     public static final Pattern NicoID3 = Pattern.compile("(http|https)://cas\\.nicovideo\\.jp/user/(.+)");
     public static final Pattern NicoID4 = Pattern.compile("^(sm\\d+|nm\\d+|am\\d+|fz\\d+|ut\\d+|dm\\d+|so\\d+|ax\\d+|ca\\d+|cd\\d+|cw\\d+|fx\\d+|ig\\d+|na\\d+|om\\d+|sd\\d+|sk\\d+|yk\\d+|yo\\d+|za\\d+|zb\\d+|zc\\d+|zd\\d+|ze\\d+|nl\\d+|ch\\d+|\\d+|lv\\d+|ss\\d+)");
+
+    public static final Pattern matcher_niconico = Pattern.compile("nicovideo\\.jp");
+    public static final Pattern matcher_VLC = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
+    public static final Pattern matcher_AVPro = Pattern.compile("(NSPlayer|AVPro|AppleCoreMedia)");
+    public static final Pattern matcher_FFMpeg = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
+
 
     public static boolean isFoundFile(String filePass) {
         Path path = Paths.get(filePass);
@@ -248,6 +254,14 @@ public class Function {
         //System.out.println("URI : "+uri);
 
         return uri;
+    }
+
+    public static String getHost(String HTTPRequest){
+        Matcher matcher = matcher_host.matcher(HTTPRequest);
+        if (matcher.find()){
+            return matcher.group(1);
+        }
+        return null;
     }
 
     public static String getFFmpegPath(){

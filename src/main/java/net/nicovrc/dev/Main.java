@@ -282,8 +282,10 @@ NicoNico_user_session: ""
                             long time = new Date().getTime();
                             map.forEach((url, data)->{
 
-                                if (data.isSet() && time - data.getCacheDate() >= 86400000L) {
-                                    Function.deleteCache(url);
+                                if (Function.CacheWaitList.get(url) == null){
+                                    if (time - data.getCacheDate() >= 86400000L) {
+                                        Function.deleteCache(url);
+                                    }
                                 }
 
                             });

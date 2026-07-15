@@ -1,14 +1,14 @@
 package net.nicovrc.dev.http;
 
 import com.google.gson.JsonElement;
+import net.nicovrc.dev.Service.Result.*;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.data.HttpHeader;
-import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.Service.ServiceAPI;
 import net.nicovrc.dev.Service.ServiceList;
+import net.nicovrc.dev.data.VideoData;
 import net.nicovrc.dev.data.WebhookData;
-import net.nicovrc.dev.http.getContent.*;
 
 import java.net.*;
 import java.net.http.HttpClient;
@@ -27,47 +27,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private String httpRequest = null;
     private HttpClient client = null;
     private String proxy = null;
-    private final HashMap<String, GetContent> GetContentList = new HashMap<>();
+    private String httpHostname = "localhost:"+Function.config_httpPort;
+    private String http = "https://";
 
-    private final List<ServiceAPI> list = ServiceList.getServiceList();
+    private final Pattern matcher_dummyPrintParameter = Pattern.compile("dummy=true");
+    private final Pattern matcher_VRCStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
 
-    private final Pattern NotRemoveQuestionMarkURL = Pattern.compile("(youtu\\.be|www\\.youtube\\.com|(.+)\\.pornhub\\.com)");
+    private final Pattern matcher_browser = Pattern.compile("(([fF])irefox|([oO])pera|([sS])ec-([cC])h-([uU])a)");
 
-    private final Pattern pattern_Asterisk = Pattern.compile("\\*");
-
-    private final Pattern dummy_url = Pattern.compile("&dummy=true");
-    private final Pattern dummy_url2 = Pattern.compile("^/(\\?dummy=true&url=|dummy\\.m3u8\\?dummy=true&url=|proxy/\\?dummy=true&|\\?dummy=true&vi=)(.+)");
-    private final Pattern getUrl2 = Pattern.compile("&url=(.+)");
-    private final Pattern vrc_getStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
-    private final Pattern ffmpegUA = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
-
-    private final Pattern vlc_ua = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
-    private final Pattern avpro_ua = Pattern.compile("(NSPlayer|AppleCoreMedia)");
-    private final Pattern matcher_host = Pattern.compile("[H|h]ost: (.+)");
-
-    private final Pattern matcher_hlsUri = Pattern.compile("DEFAULT=YES,URI=\"(.+)\"");
-    private Matcher matcher1 = null;
-
-    public GetURL(){
-
-        GetContentList.put("ニコニコ", new NicoVideo());
-        GetContentList.put("ツイキャス", new Twitcast());
-        GetContentList.put("Abema", new Abema());
-        GetContentList.put("TikTok", new TikTok());
-        GetContentList.put("mellow-fan", new mellow_fan());
-        GetContentList.put("TVer", new TVer());
-        GetContentList.put("piapro", new AudioSite());
-        GetContentList.put("SoundCloud", new AudioSite());
-        GetContentList.put("Sonicbowl", new AudioSite());
-        GetContentList.put("Mixcloud", new AudioSite());
-        GetContentList.put("bandcamp", new AudioSite());
-        GetContentList.put("Vimeo", new Vimeo());
-        GetContentList.put("fc2", new fc2());
-        GetContentList.put("XVIDEOS.COM", new XVIDEOS());
-        GetContentList.put("Pornhub", new Pornhub());
-        GetContentList.put("bilibili.com", new bilibili_com());
-        GetContentList.put("Twitter", new Twitter());
-    }
 
     @Override
     public void run() {
@@ -77,460 +44,203 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         if (ch == null){
             return;
         }
+        if (httpRequest == null){
+            return;
+        }
 
-        matcher1 = matcher_host.matcher(httpRequest);
+        httpHostname = Function.getHost(httpRequest);
+        http = httpHostname.startsWith("localhost") ? "http://" : "https://";
 
         final String httpVersion = Function.getHTTPVersion(httpRequest) != null ? Function.getHTTPVersion(httpRequest) : "1.1";
+        final boolean isDummyPrint = matcher_dummyPrintParameter.matcher(httpRequest).find();
+        final boolean isVLC = Function.matcher_VLC.matcher(httpRequest).find();
+        final boolean isAVPro = Function.matcher_AVPro.matcher(httpRequest).find();
+        final boolean isFFmpeg = Function.matcher_FFMpeg.matcher(httpRequest).find();
+        final boolean isTitle = matcher_VRCStringUA.matcher(httpRequest).find();
 
-        //System.out.println("a : "+conent_encoding);
-        //System.out.println("s : " + sendContentEncoding);
-
-        try {
-            //System.out.println(URL);
-
-            Matcher matcher_m = dummy_url2.matcher(URL);
-            if (matcher_m.find()){
-                //System.out.println(URL);
-                //URL = "/?url="+matcher_m.group(1)+"&dummy=true";
-                URL = matcher_m.group(2) + "&dummy=true";
-                //System.out.println(URL);
+        while (Function.CacheWaitList.get(URL) != null){
+            try {
+                Thread.sleep(100L);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
+        }
+        final CacheData cache = Function.getCache(URL);
 
-            Matcher matcher = getUrl2.matcher(URL);
-            if (matcher.find()){
-                URL = matcher.group(1);
-            }
 
-            URL = URL.replaceAll("^(/(.*)\\?url=|/\\?vi=|/proxy/(.*)\\?)", "");
-            final String targetUrl = (NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", "");
-            //System.out.println(targetUrl);
+        // キャッシュ有無
+        if (cache != null){
+            // キャッシュあり
+            OutputVideoData(true, isDummyPrint, isTitle, cache, httpVersion, isVLC, isFFmpeg, isAVPro);
+            return;
+        }
 
-            ServiceAPI api = null;
-            //System.out.println(targetUrl);
-            CacheData cacheData = Function.getCache(targetUrl);
+        // キャッシュなし
+        Function.CacheWaitList.put(URL, new Date());
 
-            String json = null;
-            String ServiceName = null;
+        ServiceAPI service = null;
+        for (ServiceAPI api : ServiceList.getServiceList()) {
+            for (String s : api.getCorrespondingURL()) {
+                Pattern compile = Pattern.compile(s.replaceAll("\\.", "\\.").replaceAll("\\*", ".*"));
+                //System.out.println(s);
 
-            final boolean isCache = cacheData != null;
-            final boolean isHLSDummyPrint = !dummy_url.matcher(URL).find();// || ffmpegUA.matcher(httpRequest).find();
-            final boolean isGetTitle = vrc_getStringUA.matcher(httpRequest).find();
-
-            //System.out.println(isCache);
-            if (isCache) {
-                cacheData = Function.getCache(targetUrl);
-                int i = cacheData == null ? 1 : 0;
-                while (i == 0){
-                    cacheData = Function.getCache(targetUrl);
-                    if (cacheData == null){
-                        i = 1;
-                        continue;
-                    }
-                    if (cacheData.getTargetURL() != null && !cacheData.getTargetURL().isEmpty()){
-                        i = 1;
-                    }
+                if (URL.startsWith("http://"+s) ||  URL.startsWith("https://"+s) || (!URL.startsWith("http") && URL.startsWith(s) && api.getServiceName().equals("ニコニコ"))) {
+                    service = api;
+                    break;
                 }
 
-                if (cacheData != null){
-                    String targetURL = cacheData.getTargetURL();
-                    String cookieText = cacheData.getCookieText();
-                    String refererText = cacheData.getRefererText();
-                    boolean isFound = true;
-
-                    HttpRequest request = null;
-                    if (cookieText == null && refererText == null){
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(targetURL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .GET()
-                                .build();
-                    } else if (cookieText != null && refererText == null){
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(targetURL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .headers("Cookie", cookieText)
-                                .GET()
-                                .build();
-                    } else if (cookieText == null){
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(targetURL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .headers("Referer", refererText)
-                                .GET()
-                                .build();
-                    } else {
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(targetURL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .headers("Cookie", cookieText)
-                                .headers("Referer", refererText)
-                                .GET()
-                                .build();
-                    }
-
-                    HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-                    if (send.statusCode() >= 300 || send.statusCode() <= 199){
-                        isFound = false;
-                    }
-                    send = null;
-
-                    if (!isFound){
-                        Function.deleteCache(targetUrl);
-                        cacheData = null;
-                    }
-                }
-
-                if (cacheData != null){
-
-                    final CacheData fCacheData = cacheData;
-                    if (isGetTitle){
-                        Thread.ofVirtual().start(()-> System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + fCacheData.getTitle()));
-
-                        Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, cacheData.getTitle().getBytes(StandardCharsets.UTF_8), null));
-
-                    } else {
-                        if (isHLSDummyPrint){
-                            Thread.ofVirtual().start(() -> System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + URL + " ---> " + fCacheData.getTargetURL()));
-                        }
-
-                        if (cacheData.isRedirect()){
-                            Function.sendHttpData(ch, new HttpHeader(httpVersion, 302, null, null, null, null, cacheData.getTargetURL()));
-                            return;
-                        }
-
-                        if (cacheData.isHLS()){
-                            byte[] dummy_bytes = cacheData.getDummyHLS(); //("#EXTM3U\n/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
-                            byte[] hls_bytes = cacheData.getHLS();
-                            byte[] send_data = null;
-
-                            if (cacheData.getDummyHLS() != null){
-                                //System.out.println("isHLSdummy : " + isHLSDummyPrint);
-                                //System.out.println("vlc_ua : " + vlc_ua.matcher(httpRequest).find());
-                                //System.out.println("ffmpegUA : " + ffmpegUA.matcher(httpRequest).find());
-                                //System.out.println("avpro_ua : " + avpro_ua.matcher(httpRequest).find());
-                                if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
-                                    send_data = dummy_bytes;
-                                } else {
-                                    send_data = hls_bytes;/*
-                                    if (Function.avproM_ua.matcher(httpRequest).find() && (URL.startsWith("http://nico.ms") || URL.startsWith("https://nico.ms") || URL.startsWith("http://www.nicovideo.jp") || URL.startsWith("https://www.nicovideo.jp"))) {
-                                        String s = new String(hls_bytes, StandardCharsets.UTF_8);
-                                        if (matcher1.find()) {
-                                            String[] split = s.split("\n");
-                                            StringBuffer sb = new StringBuffer();
-                                            String host = matcher1.group(1);
-
-                                            for (String string : split) {
-                                                Matcher matcher2 = matcher_hlsUri.matcher(string);
-                                                if (matcher2.find()) {
-                                                    String group = matcher2.group(1);
-                                                    String s1 = URLEncoder.encode(group.replaceAll("\\[", "_ss_").replaceAll("]", "_se_"), StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("%3D", "=").replaceAll("\\.", "_dot_").replaceAll("_dot_m3u8", ".m3u8");
-                                                    String s2 = group.replace(group, s1);
-                                                    sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE=\"ja\",URI=\"").append("https://").append(host).append(s2).append("\"\n");
-                                                } else if (string.startsWith("/https")){
-                                                    sb.append("https://").append(host).append(URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("%3D", "=").replaceAll("\\.", "_dot_").replaceAll("_dot_m3u8", ".m3u8"));
-                                                } else {
-                                                    sb.append(string).append("\n");
-                                                }
-                                            }
-                                            send_data = sb.toString().getBytes(StandardCharsets.UTF_8);
-                                            //System.out.println(new String(send_data, StandardCharsets.UTF_8));
-                                        }
-                                    }*/
-                                }
-                            } else {
-                                send_data = hls_bytes;
-                            }
-
-                            //send_data = URLEncoder.encode(new String(send_data, StandardCharsets.UTF_8), StandardCharsets.UTF_8).getBytes(StandardCharsets.UTF_8);
-                            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_hls, null, null, send_data, null));
-                        } else {
-                            Function.sendHttpData(ch, new HttpHeader(httpVersion, 302, null, null, null, null, cacheData.getTargetURL()));
-                        }
-                    }
-
-                    Thread.ofVirtual().start(()->{
-                        Date date = new Date();
-
-                        LogData logData = new LogData();
-                        logData.setHTTPRequest(httpRequest);
-                        logData.setRequestURL(URL);
-                        logData.setUnixTime(date.getTime());
-
-                        WebhookData webhookData = new WebhookData();
-                        webhookData.setURL(URL);
-                        webhookData.setHTTPRequest(httpRequest);
-                        webhookData.setDate(date);
-
-                        if (!isGetTitle){
-                            logData.setResultURL(fCacheData.getTargetURL());
-                            webhookData.setResult(fCacheData.getTargetURL());
-                        } else {
-                            logData.setResultURL(fCacheData.getTitle());
-                            webhookData.setResult(fCacheData.getTitle());
-                        }
-
-                        if (isHLSDummyPrint){
-                            Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                            Function.WebhookData.put(logData.getLogID(), webhookData);
-                        }
-                    });
-                    return;
-                }
-            }
-
-            for (ServiceAPI vrcapi : list) {
-                boolean isFound = false;
-                for (String str : vrcapi.getCorrespondingURL()) {
-
-                    Pattern matcher_0 = null;
-                    if (pattern_Asterisk.matcher(str).find()){
-                        //System.out.println(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
-                        matcher_0 = Pattern.compile(str.replaceAll("\\.", "\\\\.").replaceAll("\\*", "(.+)"));
-                    }
-
-                    if (URL.startsWith("https://"+str) || URL.startsWith("http://"+str) || URL.startsWith(str) || (matcher_0 != null && matcher_0.matcher(URL).find())){
-                        //System.out.println(str);
-                        if ((str.equals("so") || str.equals("jp")) && URL.startsWith("http")){
-                            continue;
-                        }
-
-                        api = vrcapi;
-                        isFound = true;
-                    }
-                }
-
-                if (isFound){
+                if (URL.startsWith("http") && compile.matcher(URL).find() && !api.getServiceName().equals("ニコニコ")){
+                    service = api;
                     break;
                 }
             }
 
-            try {
-                if (api != null) {
-                    //System.out.println("aaa");
-                    //System.out.println(URL.startsWith("https://twitcasting.tv"));
-                    ServiceName = api.getServiceName();
-                    api.setHttpClient(client);
-                    api.setURL(NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.replaceAll("&dummy=true", "") : URL.split("\\?")[0].replaceAll("&dummy=true", ""));
-                    api.setProxy(null);
-
-                    if (ServiceName.equals("ニコニコ")) {
-
-                        if (Function.config_user_session != null && Function.config_nicosid != null) {
-                            api.setToken(new String[]{Function.config_user_session, Function.config_nicosid});
-                        }
-
-                    } else if (URL.startsWith("https://twitcasting.tv")) {
-                        api.setToken(new String[]{Function.config_twitcast_ClientId, Function.config_twitcast_ClientSecret});
-                    }
-                    json = api.get();
-                    //ServiceName = api.getServiceName();
-                } else {
-                    json = "{}";
-                }
-            } catch (Exception e){
-                e.printStackTrace();
+            if (service != null){
+                break;
             }
+        }
 
-            //System.out.println(json);
-            Date date = new Date();
-
-            LogData logData = new LogData();
-            logData.setHTTPRequest(httpRequest);
-            logData.setRequestURL(URL);
-            logData.setUnixTime(date.getTime());
-
-            WebhookData webhookData = new WebhookData();
-            webhookData.setURL(URL);
-            webhookData.setHTTPRequest(httpRequest);
-            webhookData.setDate(date);
-
-
-            cacheData = new CacheData();
-            if (json != null){
-                JsonElement element = Function.gson.fromJson(json, JsonElement.class);
-
-                String errorMessage = element.getAsJsonObject().has("ErrorMessage") ? element.getAsJsonObject().get("ErrorMessage").getAsString() : null;
-                String targetURL = element.getAsJsonObject().has("VideoURL") ? element.getAsJsonObject().get("VideoURL").getAsString() : (element.getAsJsonObject().has("LiveURL") ? element.getAsJsonObject().get("LiveURL").getAsString() : (element.getAsJsonObject().has("AudioURL") ? element.getAsJsonObject().get("AudioURL").getAsString() : null));
-
-                logData.setResultURL(targetURL);
-                webhookData.setResult(targetURL);
-                if (errorMessage != null && !errorMessage.isEmpty()) {
-                    logData.setErrorMessage(errorMessage);
-                    webhookData.setResult(errorMessage);
-                }
-
-                ContentObject content;
-                //System.out.println("debug : " + ServiceName);
-                GetContent hls = GetContentList.get(ServiceName);
-                if (hls == null && (ServiceName == null || ServiceName.isEmpty())) {
-                    logData.setResultURL(null);
-                    webhookData.setResult("対応してないURL");
-                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                    Function.WebhookData.put(logData.getLogID(), webhookData);
-                    System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "対応してないURL");
-
-                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_site, null));
-
-                    return;
-                } else if (hls == null) {
-                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 302, null, null, null, null, targetURL));
-
-                    content = new ContentObject();
-                    content.setDummyHLSText(null);
-                    content.setHLSText(null);
-                    cacheData.setRedirect(true);
-                    System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
-
-                } else {
-                    //System.out.println("!");
-                    logData.setResultURL(targetURL);
-                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                    if (isHLSDummyPrint) {
-                        webhookData.setResult(targetURL);
-                        Function.WebhookData.put(logData.getLogID(), webhookData);
-                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + targetURL);
-                    }
-
-                    content = hls.run(client, httpRequest, URL, json);
-
-                    cacheData.setHLS(content.getHLSText() != null ? content.getHLSText().getBytes(StandardCharsets.UTF_8) : null);
-                    cacheData.setDummyHLS(content.getDummyHLSText() != null ? content.getDummyHLSText().getBytes(StandardCharsets.UTF_8) : null);
-                    cacheData.setRedirect(false);
-                    cacheData.setCookieText(content.getCookieText());
-                    cacheData.setRefererText(content.getRefererText());
-                    cacheData.setHLSFlag(content.isHLS());
-
-                }
-
-                cacheData.setProxy(proxy);
-                cacheData.setTargetURL(targetURL);
-                cacheData.setTitle(element.getAsJsonObject().has("Title") ? element.getAsJsonObject().get("Title").getAsString() : "(タイトルなし)");
-                cacheData.setSet(true);
-                cacheData.setCacheDate(new Date().getTime());
-
-                // タイトル取得
-                if (isGetTitle) {
-                    if (errorMessage != null) {
-                        Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, ("エラー : " + errorMessage).getBytes(StandardCharsets.UTF_8), null));
-
-                        Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                        Function.WebhookData.put(logData.getLogID(), webhookData);
-                        System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> エラー : " + errorMessage);
-                        return;
-                    }
-
-                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, cacheData.getTitle().getBytes(StandardCharsets.UTF_8), null));
-
-                    logData.setResultURL(cacheData.getTitle());
-                    webhookData.setResult(cacheData.getTitle());
-                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                    Function.WebhookData.put(logData.getLogID(), webhookData);
-                    System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + cacheData.getTitle());
-
-                    Function.addCache((pattern_Asterisk.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
-                    return;
-
-                }
-
-                // エラー
-                if (errorMessage != null) {
-                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.getErrorMessageVideo(client, errorMessage), null));
-
-                    logData.setErrorMessage(errorMessage);
-                    webhookData.setResult(errorMessage);
-
-                    Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                    Function.WebhookData.put(logData.getLogID(), webhookData);
-                    System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + errorMessage);
-                    return;
-                }
-
-                if (!cacheData.isRedirect()){
-                    byte[] dummy_bytes = cacheData.getDummyHLS(); //("#EXTM3U\n/dummy.m3u8?url="+URL+"&dummy=true").getBytes(StandardCharsets.UTF_8);
-                    byte[] hls_bytes = cacheData.getHLS();
-                    byte[] send_data = null;
-
-                    if (cacheData.isHLS()){
-                        if (cacheData.getDummyHLS() != null){
-                            //System.out.println("isHLSdummy : " + isHLSDummyPrint);
-                            //System.out.println("vlc_ua : " + vlc_ua.matcher(httpRequest).find());
-                            //System.out.println("ffmpegUA : " + ffmpegUA.matcher(httpRequest).find());
-                            //System.out.println("avpro_ua : " + avpro_ua.matcher(httpRequest).find());
-                            if (isHLSDummyPrint && !vlc_ua.matcher(httpRequest).find() && !ffmpegUA.matcher(httpRequest).find() && !avpro_ua.matcher(httpRequest).find()) {
-                                send_data = dummy_bytes;
-                            } else {
-                                send_data = hls_bytes;/*
-                                if (Function.avproM_ua.matcher(httpRequest).find() && (URL.startsWith("http://nico.ms") || URL.startsWith("https://nico.ms") || URL.startsWith("http://www.nicovideo.jp") || URL.startsWith("https://www.nicovideo.jp"))) {
-                                    String s = new String(hls_bytes, StandardCharsets.UTF_8);
-                                    if (matcher1.find()) {
-                                        String[] split = s.split("\n");
-                                        StringBuffer sb = new StringBuffer();
-                                        String host = matcher1.group(1);
-
-                                        for (String string : split) {
-                                            Matcher matcher2 = matcher_hlsUri.matcher(string);
-                                            if (matcher2.find()) {
-                                                String group = matcher2.group(1);
-                                                String s1 = URLEncoder.encode(group.replaceAll("\\[", "_ss_").replaceAll("]", "_se_"), StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("%3D", "=").replaceAll("\\.", "_dot_").replaceAll("_dot_m3u8", ".m3u8");
-                                                String s2 = group.replace(group, s1);
-                                                sb.append("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,AUTOSELECT=YES,LANGUAGE=\"ja\",URI=\"").append("https://").append(host).append(s2).append("\"\n");
-                                            } else if (string.startsWith("/https")){
-                                                sb.append("https://").append(host).append(URLEncoder.encode(string, StandardCharsets.UTF_8).replaceAll("%2F", "/").replaceAll("%3F", "?").replaceAll("%26", "&").replaceAll("%3D", "=").replaceAll("\\.", "_dot_").replaceAll("_dot_m3u8", ".m3u8"));
-                                            } else {
-                                                sb.append(string).append("\n");
-                                            }
-                                        }
-                                        send_data = sb.toString().getBytes(StandardCharsets.UTF_8);
-                                        //System.out.println(new String(send_data, StandardCharsets.UTF_8));
-                                    }
-                                }*/
-                            }
-                        } else {
-                            send_data = hls_bytes;
-                        }
-
-                        //send_data = URLEncoder.encode(new String(send_data, StandardCharsets.UTF_8), StandardCharsets.UTF_8).getBytes(StandardCharsets.UTF_8);
-                        Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_hls, null, null, send_data, null));
-                    } else {
-                        String redirectUrl = "/https/cookie:[" + cacheData.getCookieText() + "]/referer:[" + cacheData.getRefererText() + "]/" + cacheData.getTargetURL().replaceAll("http(.*)://", "");
-                        Function.sendHttpData(ch, new HttpHeader(httpVersion, 302, null, null, null, null, redirectUrl));
-                    }
-
-                }
-
-                Function.addCache((NotRemoveQuestionMarkURL.matcher(URL).find() ? URL.split("&")[0] : URL.split("\\?")[0]).replaceAll("&dummy=true", ""), cacheData);
-                return;
-
-            }
-
-            // ここには来ないと思うけど一応
-            try {
-                logData.setResultURL(null);
-                webhookData.setResult("内部エラー");
-                Function.GetURLAccessLog.put(logData.getLogID(), logData);
-                Function.WebhookData.put(logData.getLogID(), webhookData);
-                System.out.println("[Get URL (" + Function.sdf.format(date) + ")] " + URL + " ---> " + "内部エラー");
-                Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_others, null));
-            } catch (Exception ex){
-                ex.printStackTrace();
-            }
+        if (service == null){
+            // 対応していないサイト
+            Function.CacheWaitList.remove(URL);
+            Thread.ofVirtual().start(()->{
+                PrintLog(URL, "対応していないサイト", false);
+                AddLog(URL, "対応していないサイト", false);
+                AddWebhook(URL, "対応していないサイト");
+            });
+            SendErrorData(isTitle, httpVersion, "対応していないサイト");
             return;
-        } catch (Exception e){
-            e.printStackTrace();
+        }
 
-            try {
-                Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_others, null));
-            } catch (Exception ex){
-                ex.printStackTrace();
+        if (service.getServiceName().equals("ツイキャス")){
+            service.setToken(new String[]{Function.config_twitcast_ClientId, Function.config_twitcast_ClientSecret});
+        } else if (service.getServiceName().equals("ニコニコ")){
+            service.setToken(new String[]{Function.config_user_session, Function.config_nicosid});
+        }
+
+        final CacheData data = new CacheData();
+        data.setProxy(proxy);
+        data.setCacheDate(new Date().getTime());
+
+        final String jsonText = service.get();
+        final JsonElement json = Function.gson.fromJson(jsonText, JsonElement.class);
+        if (json != null && json.getAsJsonObject().has("ErrorMessage")){
+            // エラーの場合
+            Function.CacheWaitList.remove(URL);
+            String errorMessage = json.getAsJsonObject().get("ErrorMessage").getAsString();
+            Thread.ofVirtual().start(()->{
+                PrintLog(URL, "エラー: "+errorMessage, false);
+                AddLog(URL, "エラー: "+errorMessage, false);
+                AddWebhook(URL, "エラー: "+errorMessage);
+            });
+
+            SendErrorData(isTitle, httpVersion, "エラー: "+errorMessage);
+
+            return;
+        }
+        // エラーなし
+        String originUrl = "";
+        String cookieText = null;
+        String refererText = null;
+        String title = "タイトルなし";
+
+        // 生URL
+        if (json != null && json.getAsJsonObject().has("VideoURL")){
+            originUrl = json.getAsJsonObject().get("VideoURL").getAsString();
+        } else if (json != null && json.getAsJsonObject().has("LiveURL")){
+            originUrl = json.getAsJsonObject().get("LiveURL").getAsString();
+        } else if (json != null && json.getAsJsonObject().has("AudioURL")){
+            originUrl = json.getAsJsonObject().get("AudioURL").getAsString();
+        }
+        if (json != null && json.getAsJsonObject().has("VideoHLSURL")){
+            originUrl = json.getAsJsonObject().get("VideoHLSURL").getAsString();
+        }
+
+        // タイトル
+        if (json != null && json.getAsJsonObject().has("Title")){
+            title = json.getAsJsonObject().get("Title").getAsString();
+        } else if (json != null && json.getAsJsonObject().has("TweetText")){
+            title = json.getAsJsonObject().get("TweetText").getAsString();
+        }
+
+        // Cookie
+        if (service.getServiceName().equals("bilibili.com")){
+            bilibiliResult temp = Function.gson.fromJson(json, bilibiliResult.class);
+            StringBuilder sb = new StringBuilder();
+            if (temp != null){
+                temp.getVideoAccessCookie().forEach((key, value) -> {
+                    sb.append(key).append("=").append(value).append(";");
+                });
+                cookieText = sb.substring(0, sb.length() - 1);
             }
+            refererText = URL;
+        } else if (service.getServiceName().equals("ニコニコ")){
+            NicoVideoResult temp = Function.gson.fromJson(json, NicoVideoResult.class);
+            StringBuilder sb = new StringBuilder();
+            if (temp != null && temp.getVideoAccessCookie() != null){
+                temp.getVideoAccessCookie().forEach((key, value) -> {
+                    sb.append(key).append("=").append(value).append(";");
+                });
+                cookieText = sb.substring(0, sb.length() - 1);
+            } else if (temp != null && temp.getLiveAccessCookie() != null){
+                temp.getLiveAccessCookie().forEach((key, value) -> {
+                    sb.append(key).append("=").append(value).append(";");
+                });
+                cookieText = sb.substring(0, sb.length() - 1);
+            }
+        } else if (service.getServiceName().equals("TikTok")) {
+            TikTokResult temp = Function.gson.fromJson(json, TikTokResult.class);
+            cookieText = temp != null ? temp.getVideoAccessCookie() : null;
         }
 
-        // ここには来ないと思うけど
+
+        // 出力用データ生成
+        byte[] videoData = null;
         try {
-            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_others, null));
-        } catch (Exception ex){
-            ex.printStackTrace();
+            videoData = getHLSData(originUrl, cookieText, refererText, data.getCacheId());
+            if (videoData != null) {
+                data.setHLS(videoData);
+                data.setContentType(Function.contentType_hls);
+            } else {
+                VideoData video = getVideoData(originUrl, cookieText, refererText);
+                if (video == null) {
+                    Thread.ofVirtual().start(()->{
+                        Function.CacheWaitList.remove(URL);
+                        PrintLog(URL, "エラー: 動画ファイル取得失敗", false);
+                        AddLog(URL, "エラー: 動画ファイル取得失敗", false);
+                        AddWebhook(URL, "エラー: 動画ファイル取得失敗");
+                    });
+                    SendErrorData(isTitle, httpVersion, "内部エラー");
+                    return;
+                }
+                data.setRange(video.isRange());
+                data.setRangeStart(video.getStartRange());
+                data.setRangeEnd(video.getEndRange());
+                data.setData(video.isRange() && video.getEndRange() != (video.getLength() - 1) ? null : (video.isRange() && video.getEndRange() == (video.getLength() - 1) ? video.getVideoData() : null));
+                String tempUrl = http+httpHostname+"/video/?cacheId="+URLEncoder.encode(data.getCacheId(), StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(originUrl, StandardCharsets.UTF_8);
+                data.setRedirectURL(video.isRange() && video.getEndRange() != (video.getLength() - 1) ? tempUrl : (video.isRange() && video.getEndRange() == (video.getLength() - 1) ? null : tempUrl));
+            }
+            data.setURL(URL);
+            data.setOriginURL(originUrl.isEmpty() ? null : originUrl);
+            data.setCookieText(cookieText);
+            data.setRefererText(refererText);
+            data.setTitle(title);
+        } catch (Exception e){
+
+            Thread.ofVirtual().start(()->{
+                PrintLog(URL, "エラー: "+e.getMessage(), false);
+                AddLog(URL, "エラー: "+e.getMessage(), false);
+                AddWebhook(URL, "エラー: "+e.getMessage());
+            });
+
+            SendErrorData(isTitle, httpVersion, "内部エラー");
         }
+
+        // 送信
+        OutputVideoData(false, isDummyPrint, isTitle, data, httpVersion, isVLC, isFFmpeg, isAVPro);
+        Function.addCache(URL, data);
+        Function.CacheWaitList.remove(URL);
+
     }
 
     @Override
@@ -562,4 +272,387 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     public void setProxy(String proxy) {
         this.proxy = proxy;
     }
+
+    private void SendErrorData(boolean isTitle, String httpVersion, String str) {
+        try {
+
+            if (str.equals("内部エラー")){
+                if (isTitle){
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, str.getBytes(StandardCharsets.UTF_8), null));
+                } else {
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_others, null));
+                }
+                return;
+            }
+
+            if (str.startsWith("エラー:")){
+                if (isTitle){
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, str.getBytes(StandardCharsets.UTF_8), null));
+                } else {
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.getErrorMessageVideo(client, str.replaceFirst("エラー: ", "")), null));
+                }
+                return;
+            }
+
+            if (str.equals("対応していないサイト")){
+                if (isTitle){
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, str.getBytes(StandardCharsets.UTF_8), null));
+                } else {
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_site, null));
+                }
+            }
+
+        } catch (Exception e){
+            if (isTitle){
+                Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, "内部エラー".getBytes(StandardCharsets.UTF_8), null));
+            } else {
+                Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_others, null));
+            }
+        }
+    }
+
+    private void PrintLog(String fromUrl ,String toUrl, boolean isCache){
+        if (isCache){
+            Thread.ofVirtual().start(() -> System.out.println("[Get URL (キャッシュ," + Function.sdf.format(new Date()) + ")] " + fromUrl + " ---> " + toUrl));
+        } else {
+            Thread.ofVirtual().start(() -> System.out.println("[Get URL (" + Function.sdf.format(new Date()) + ")] " + fromUrl + " ---> " + toUrl));
+        }
+    }
+
+    private void AddWebhook(String fromUrl ,String toUrl){
+        Thread.ofVirtual().start(() -> {
+            WebhookData webhookData = new WebhookData();
+            webhookData.setHTTPRequest(httpRequest);
+            webhookData.setDate(new Date());
+            webhookData.setURL(fromUrl);
+            webhookData.setResult(toUrl);
+
+            Function.WebhookData.put(UUID.randomUUID().toString(), webhookData);
+        });
+    }
+
+    private void AddLog(String fromUrl ,String toUrl, boolean isCache){
+        Thread.ofVirtual().start(() -> {
+            WebhookData webhookData = new WebhookData();
+            webhookData.setHTTPRequest(httpRequest);
+            webhookData.setDate(new Date());
+            webhookData.setURL(fromUrl);
+            webhookData.setResult(toUrl);
+
+            Function.WebhookData.put(UUID.randomUUID().toString(), webhookData);
+        });
+    }
+
+    private void OutputVideoData(boolean isCache, boolean isDummyPrint, boolean isTitle, CacheData cache, String httpVersion, boolean isVLC, boolean isFFmpeg, boolean isAVPro){
+        if (!isDummyPrint){
+            if (isTitle) {
+                PrintLog(URL, cache.getTitle() != null ? cache.getTitle() : "タイトルなし", isCache);
+                AddLog(URL, cache.getTitle() != null ? cache.getTitle() : "タイトルなし", isCache);
+                AddWebhook(URL, cache.getTitle() != null ? cache.getTitle() : (cache.getOriginURL() != null ? cache.getOriginURL() : null));
+            } else {
+                PrintLog(URL, cache.getOriginURL() != null ? cache.getOriginURL() : "", isCache);
+                AddLog(URL, cache.getOriginURL() != null ? cache.getOriginURL() : "", isCache);
+            }
+        }
+
+        if (isTitle) {
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, cache.getTitle().getBytes(StandardCharsets.UTF_8), null));
+            return;
+        }
+
+        if (cache.isRedirect()){
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 302, null, null, null, null, cache.getRedirectURL()));
+            return;
+        }
+
+        if (cache.isRange()){
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 206, cache.getContentType(), null, null, cache.getData(), null, 0, cache.getRangeEnd(), cache.getRangeLength()));
+            return;
+        }
+
+        if (!cache.isHLS()){
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, null, cache.getData(), null));
+            return;
+        }
+
+        final byte[] hls_bytes = cache.getHLS();
+
+        if (isDummyPrint && !isVLC && !isFFmpeg && !isAVPro){
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, null, createDummyHLS(hls_bytes), null));
+            return;
+        }
+
+        Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, null, hls_bytes, null));
+    }
+
+    private byte[] createDummyHLS(byte[] hls){
+        Matcher matcher = matcher_browser.matcher(httpRequest);
+        if (matcher.find()){
+            return hls;
+        }
+        return Function.zeroByte;
+    }
+
+
+    private final Pattern matcher_hls_twitcasting = Pattern.compile("twitcasting\\.tv");
+    private final Pattern matcher_hls_abema = Pattern.compile("(.+)-abematv\\.akamaized\\.net");
+    private final Pattern matcher_hls_vimeo = Pattern.compile("vimeocdn\\.com");
+    private final Pattern matcher_hls_fc2Live = Pattern.compile("(.+)\\.live\\.fc2\\.com");
+
+    private final Pattern matcher_video_tiktok = Pattern.compile("tiktok\\.com");
+    private final Pattern matcher_video_bilicom = Pattern.compile("bilibili\\.com");
+
+    private byte[] getHLSData(String url, String cookieText, String refererText, String cacheId) throws Exception {
+        byte[] hls_data = null;
+        final Matcher hls_twitcas = matcher_hls_twitcasting.matcher(url);
+        final Matcher hls_abema = matcher_hls_abema.matcher(url);
+        final Matcher hls_vimeo = matcher_hls_vimeo.matcher(url);
+        final Matcher hls_fc2Live = matcher_hls_fc2Live.matcher(url);
+
+        final HttpRequest request;
+        if (cookieText == null && refererText == null) {
+            request = HttpRequest.newBuilder()
+                    .uri(new URI(url))
+                    .headers("User-Agent", Function.UserAgent)
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .GET()
+                    .build();
+        } else if (cookieText != null && refererText == null) {
+            request = HttpRequest.newBuilder()
+                    .uri(new URI(url))
+                    .headers("User-Agent", Function.UserAgent)
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Cookie", cookieText)
+                    .GET()
+                    .build();
+        } else if (cookieText == null) {
+            request = HttpRequest.newBuilder()
+                    .uri(new URI(url))
+                    .headers("User-Agent", Function.UserAgent)
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Referer", refererText)
+                    .GET()
+                    .build();
+        } else if (hls_fc2Live.find()) {
+            request = HttpRequest.newBuilder()
+                    .uri(new URI(url))
+                    .headers("User-Agent", Function.UserAgent)
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Connection", "keep-alive")
+                    .headers("Cookie", "live_media_session=JD052LLx2GF0CXAJuPdlT")
+                    .headers("Origin", "https://live.fc2.com")
+                    .headers("Referer", "https://live.fc2.com/")
+                    .GET()
+                    .build();
+        } else {
+            request = HttpRequest.newBuilder()
+                    .uri(new URI(url))
+                    .headers("User-Agent", Function.UserAgent)
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Cookie", cookieText)
+                    .headers("Referer", refererText)
+                    .GET()
+                    .build();
+        }
+
+        final HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+        if (response.statusCode() < 200 && response.statusCode() >= 300){
+            return hls_data;
+        }
+
+        final String contentType = response.headers().firstValue("Content-Type").isPresent() ? response.headers().firstValue("Content-Type").get() : response.headers().firstValue("content-type").isPresent() ? response.headers().firstValue("content-type").get() : "";
+        if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
+            hls_data = response.body();
+
+            final String hlsText = new String(hls_data, StandardCharsets.UTF_8);
+
+            StringBuffer sb = new StringBuffer();
+            for (String line : hlsText.split("\n")){
+                if (line.startsWith("http")){
+                    sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
+                    continue;
+                }
+
+                if (line.startsWith("/")){
+                    String hlsUrl = "https://"+request.uri().getHost()+line;
+
+                    if (hls_twitcas.find() && line.startsWith("/tc\\.vod\\.v2")){
+                        sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
+                        continue;
+                    }
+
+                    if (hls_abema.find()){
+                        if (line.startsWith("/tsad")){
+                            sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
+                            continue;
+                        }
+                        if (line.startsWith("/preview")) {
+                            sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
+                            continue;
+                        }
+                    }
+
+                }
+
+                if (hls_vimeo.find()){
+                    StringBuffer tempHost = new StringBuffer();
+                    String[] split = url.split("/");
+                    for (int i = 0; i < split.length - 6; i++) {
+                        tempHost.append(split[i]).append("/");
+                    }
+                    line = line.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", tempHost.toString());
+                    sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
+                }
+            }
+        }
+        return hls_data;
+    }
+
+    private final Pattern matcher_http_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
+    private final Pattern matcher_http_range2 = Pattern.compile("[r|R]ange: bytes=(\\d+)-");
+
+    private VideoData getVideoData(String url, String cookieText, String refererText) throws Exception {
+
+        final Matcher matcher_tiktok = matcher_video_tiktok.matcher(url);
+        final Matcher matcher_bilibili_com = matcher_video_bilicom.matcher(refererText !=  null ? refererText : "");
+
+        final VideoData videoData = new VideoData();
+        videoData.setRange(false);
+
+        if (matcher_tiktok.find()){
+            url = url.replaceAll("\\|", "%7C");
+        }
+
+        if (!matcher_bilibili_com.find()){
+            final HttpRequest request;
+
+            if (cookieText == null && refererText == null) {
+                request = HttpRequest.newBuilder()
+                        .uri(new URI(url))
+                        .headers("User-Agent", Function.UserAgent)
+                        .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .GET()
+                        .build();
+            } else if (cookieText != null && refererText == null) {
+                request = HttpRequest.newBuilder()
+                        .uri(new URI(url))
+                        .headers("User-Agent", Function.UserAgent)
+                        .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Cookie", cookieText)
+                        .GET()
+                        .build();
+            } else {
+                request = HttpRequest.newBuilder()
+                        .uri(new URI(url))
+                        .headers("User-Agent", Function.UserAgent)
+                        .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Referer", refererText)
+                        .GET()
+                        .build();
+            }
+
+            final HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            if (response.statusCode() >= 200 && response.statusCode() < 300){
+                videoData.setVideoData(response.body());
+                return videoData;
+            }
+            return null;
+        }
+
+        // bilibiliの場合だけHTTP分割ダウンロードに対応する
+        final Matcher range1 = matcher_http_range1.matcher(httpRequest);
+        final Matcher range2 = matcher_http_range2.matcher(httpRequest);
+
+        final HttpRequest request;
+
+        if (range1.find()){
+            videoData.setRange(true);
+            videoData.setStartRange(Long.parseLong(range1.group(2)));
+            videoData.setEndRange(Long.parseLong(range1.group(3)));
+
+            request = HttpRequest.newBuilder()
+                    .uri(new URI(url))
+                    .headers("User-Agent", Function.UserAgent)
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Referer", refererText)
+                    .headers("Range", "bytes=" + videoData.getStartRange() + "-" + videoData.getEndRange())
+                    .GET()
+                    .build();
+
+            final HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+            long rangeSize = -1;
+            if (response.headers().firstValue("content-range").isPresent()){
+                String s = response.headers().firstValue("content-range").get();
+                try {
+                    rangeSize = Long.parseLong(s.split("/")[1]);
+                } catch (Exception e) {
+                    //e.printStackTrace();
+                }
+            }
+            videoData.setLength(rangeSize);
+
+            return videoData;
+
+        } else if (range2.find()){
+            videoData.setRange(true);
+            HttpRequest request2 = HttpRequest.newBuilder()
+                    .uri(new URI(url))
+                    .headers("User-Agent", Function.UserAgent)
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Referer", refererText)
+                    .HEAD()
+                    .build();
+
+            HttpResponse<byte[]> response = client.send(request2, HttpResponse.BodyHandlers.ofByteArray());
+
+            final int length = Integer.parseInt(response.headers().firstValue("content-length").isPresent() ? response.headers().firstValue("content-length").get() : "0");
+            final int max = length / 10;
+            final byte[][] temp = new byte[max][10];
+
+            for (int i = 0; i < temp.length; i++) {
+                int mi = max * i;
+                int mx = max * (i + 1);
+                //System.out.println(mi + " - " +Math.min(mx - 1, length - 1));
+                request2 = HttpRequest.newBuilder()
+                        .uri(new URI(URL))
+                        .headers("User-Agent", Function.UserAgent)
+                        .headers("Referer", refererText)
+                        .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        // Range bytes=0-1227
+                        .headers("Range", "bytes=" + mi + "-" + Math.min(mx - 1, length - 1))
+                        .build();
+                response = client.send(request2, HttpResponse.BodyHandlers.ofByteArray());
+
+                //System.out.println(send.statusCode());
+                //out.write(send.body());
+                temp[i] = response.body();
+                if (response.statusCode() >= 300){
+                    break;
+                }
+
+            }
+            videoData.setVideoData(Function.concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]));
+            videoData.setLength(videoData.getVideoData().length);
+            videoData.setStartRange(0);
+            videoData.setEndRange(videoData.getLength() - 1);
+
+            return videoData;
+
+        } else {
+            return null;
+        }
+    }
+
 }
