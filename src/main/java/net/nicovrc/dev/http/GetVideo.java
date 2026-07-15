@@ -4,6 +4,7 @@ import net.nicovrc.dev.Function;
 import net.nicovrc.dev.data.HttpHeader;
 
 import java.net.URI;
+import java.net.URLDecoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -21,10 +22,15 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private String httpHostname = "localhost:"+Function.config_httpPort;
     private String http = "https://";
 
-    private final Pattern matcher_cacheId = Pattern.compile("cacheId=(.+)");
-    private final Pattern matcher_accessUrl = Pattern.compile("url=(.+)");
+    private final Pattern matcher_cacheId = Pattern.compile("cacheId=(.+)&");
+    private final Pattern matcher_accessUrl = Pattern.compile("url=(.+) HTTP");
+    private final Pattern matcher_cacheId2 = Pattern.compile("cacheId=(.+) HTTP");
+    private final Pattern matcher_accessUrl2 = Pattern.compile("url=(.+)&");
 
     private final Pattern matcher_http_range = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
+
+    private final Pattern matcher_cache = Pattern.compile("\\?(.*)cacheId=");
+    private final Pattern matcher_access = Pattern.compile("&(.*)url=");
 
     @Override
     public void run() {
@@ -45,6 +51,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
         final Matcher matcher_id = matcher_cacheId.matcher(httpRequest);
         final Matcher matcher_accessURL = matcher_accessUrl.matcher(httpRequest);
+        final Matcher matcher_id2 = matcher_cacheId2.matcher(httpRequest);
+        final Matcher matcher_accessURL2 = matcher_accessUrl2.matcher(httpRequest);
 
         final Matcher matcher_httpRange = matcher_http_range.matcher(httpRequest);
 
@@ -52,20 +60,25 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
         final String accessUrl;
 
         if (matcher_id.find()) {
-            String tempCacherId = matcher_id.group(1);
-            tempCacherId = tempCacherId.split("&")[0];
-            cacherId = tempCacherId.split("\\?")[1];
+            //System.out.println(tempCacherId);
+            cacherId = URLDecoder.decode(matcher_id.group(1), StandardCharsets.UTF_8);
+        } else if (matcher_id2.find()) {
+            //System.out.println(tempCacherId);
+            cacherId = URLDecoder.decode(matcher_id2.group(1), StandardCharsets.UTF_8);
         } else {
             cacherId = "";
         }
 
         if (matcher_accessURL.find()) {
-            String tempAccessUrl = matcher_accessURL.group(1);
-            tempAccessUrl = tempAccessUrl.split("&")[0];
-            accessUrl = tempAccessUrl.split("\\?")[1];
+            accessUrl = URLDecoder.decode(matcher_accessURL.group(1), StandardCharsets.UTF_8);
+        } else if (matcher_accessURL2.find()) {
+            accessUrl = URLDecoder.decode(matcher_accessURL2.group(1), StandardCharsets.UTF_8);
         } else {
             accessUrl = "";
         }
+
+        //System.out.println("cacherId: " + cacherId);
+        //System.out.println("accessUrl: " + accessUrl);
 
         final String[] tempText = {null, null};
         final Long[] tempLong = {null, null, null};
