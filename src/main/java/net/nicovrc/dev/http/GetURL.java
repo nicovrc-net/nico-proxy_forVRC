@@ -81,7 +81,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         Function.CacheWaitList.put(URL, new Date());
 
         ServiceAPI service = null;
-        System.out.println(URL);
+        //System.out.println(URL);
         for (ServiceAPI api : ServiceList.getServiceList()) {
             for (String s : api.getCorrespondingURL()) {
                 Pattern compile = Pattern.compile(s.replaceAll("\\.", "\\.").replaceAll("\\*", ".*"));
