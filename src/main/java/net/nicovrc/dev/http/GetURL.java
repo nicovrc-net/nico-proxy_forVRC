@@ -30,11 +30,11 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private String httpHostname = "localhost:"+Function.config_httpPort;
     private String http = "https://";
 
-    private final Pattern matcher_dummyPrintParameter = Pattern.compile("dummy=true");
+    //private final Pattern matcher_dummyPrintParameter = Pattern.compile("dummy=true");
     private final Pattern matcher_VRCStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
 
     private final Pattern matcher_browser = Pattern.compile("(([fF])irefox|([oO])pera|([sS])ec-([cC])h-([uU])a)");
-
+    private final Pattern matcher_hlsURI = Pattern.compile(",URI=\"(.+)\"");
 
     @Override
     public void run() {
@@ -54,7 +54,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         URL = URL.replaceAll("/\\?url=", "").replaceAll("&url=", "").replaceAll("/dummy\\.m3u8", "");
 
         final String httpVersion = Function.getHTTPVersion(httpRequest) != null ? Function.getHTTPVersion(httpRequest) : "1.1";
-        final boolean isDummyPrint = matcher_dummyPrintParameter.matcher(httpRequest).find();
+        //final boolean isDummyPrint = matcher_dummyPrintParameter.matcher(httpRequest).find();
+        final boolean isDummyPrint = false;
         final boolean isVLC = Function.matcher_VLC.matcher(httpRequest).find();
         final boolean isAVPro = Function.matcher_AVPro.matcher(httpRequest).find();
         final boolean isFFmpeg = Function.matcher_FFMpeg.matcher(httpRequest).find();
@@ -480,6 +481,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             StringBuffer sb = new StringBuffer();
             for (String line : hlsText.split("\n")){
+                Matcher matcher = matcher_hlsURI.matcher(line);
+
+                if (matcher.find()){
+                    String oldUrl = matcher.group(1);
+                    String newUrl = http+httpHostname+"/video/?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(oldUrl, StandardCharsets.UTF_8);
+                    sb.append(line.replaceAll(oldUrl, newUrl)).append("\n");
+                }
+
                 if (line.startsWith("http")){
                     sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
                     continue;
