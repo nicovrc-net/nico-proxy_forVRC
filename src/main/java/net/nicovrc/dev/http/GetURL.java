@@ -516,6 +516,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     sb.append(http).append(httpHostname).append("/video/?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
                 }
             }
+
+            hls_data = sb.toString().getBytes(StandardCharsets.UTF_8);
         }
         return hls_data;
     }
