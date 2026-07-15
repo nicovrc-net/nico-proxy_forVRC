@@ -51,7 +51,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         httpHostname = Function.getHost(httpRequest);
         http = httpHostname.startsWith("localhost") ? "http://" : "https://";
 
-        URL = URL.replaceAll("\\?url=", "").replaceAll("&url=", "");
+        URL = URL.replaceAll("/\\?url=", "").replaceAll("&url=", "").replaceAll("/dummy\\.m3u8", "");
 
         final String httpVersion = Function.getHTTPVersion(httpRequest) != null ? Function.getHTTPVersion(httpRequest) : "1.1";
         final boolean isDummyPrint = matcher_dummyPrintParameter.matcher(httpRequest).find();
