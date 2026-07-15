@@ -115,6 +115,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             return;
         }
 
+        service.setProxy(proxy);
+        service.setURL(URL);
+        service.setHttpClient(client);
+
         if (service.getServiceName().equals("ツイキャス")){
             service.setToken(new String[]{Function.config_twitcast_ClientId, Function.config_twitcast_ClientSecret});
         } else if (service.getServiceName().equals("ニコニコ")){
