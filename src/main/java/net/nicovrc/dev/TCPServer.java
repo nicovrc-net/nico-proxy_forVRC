@@ -4,7 +4,6 @@ import net.nicovrc.dev.api.NicoVRCAPI;
 import net.nicovrc.dev.data.HttpHeader;
 import net.nicovrc.dev.http.GetURL;
 import net.nicovrc.dev.http.GetVideo;
-import net.nicovrc.dev.http.GetVideo_old;
 
 import java.net.InetSocketAddress;
 import java.net.http.HttpClient;
@@ -28,6 +27,8 @@ public class TCPServer extends Thread {
     private final GetVideo getVideo = new GetVideo();
 
     private final static Pattern matcher_uri = Pattern.compile("(url=|vi=|dummy=|dummy\\.m3u8|/proxy)");
+    private final static Pattern matcher_http_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
+    private final static Pattern matcher_http_range2 = Pattern.compile("[r|R]ange: bytes=(\\d+)-");
 
 
     public TCPServer(HttpClient client){
@@ -131,6 +132,11 @@ public class TCPServer extends Thread {
                             //final boolean VideoMatchFlag = URI.startsWith("/https");
                             final boolean VideoMatchFlag = URI.startsWith("/video");
 
+                            Matcher matcher_range1 = matcher_http_range1.matcher(httpRequest);
+                            Matcher matcher_range2 = matcher_http_range2.matcher(httpRequest);
+                            final boolean RangeVideoFlag = matcher_range1.find();
+                            final boolean RangeVideoFullFlag = matcher_range2.find();
+
                             if (ApiMatchFlag) {
                                 byte[] httpBody = null;
                                 for (NicoVRCAPI api : Function.APIList) {
@@ -157,12 +163,7 @@ public class TCPServer extends Thread {
                                 return;
                             }
 
-                            if (VideoMatchFlag) {
-                                //getVideoOld.setHTTPRequest(httpRequest);
-                                //getVideoOld.setURL(URI);
-                                //getVideoOld.setHTTPSocket(ch);
-
-                                //getVideoOld.run();
+                            if (VideoMatchFlag || (RangeVideoFlag && !matcher_range1.group(1).equals("0"))) {
                                 getVideo.setHTTPRequest(httpRequest);
                                 getVideo.setURL(URI);
                                 getVideo.setHTTPSocket(ch);
@@ -172,7 +173,7 @@ public class TCPServer extends Thread {
                                 return;
                             }
 
-                            if (UrlMatchFlag) {
+                            if (UrlMatchFlag || RangeVideoFlag || RangeVideoFullFlag) {
                                 getURL.setHTTPRequest(httpRequest);
                                 getURL.setURL(URI);
                                 getURL.setHTTPSocket(ch);
