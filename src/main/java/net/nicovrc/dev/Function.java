@@ -112,6 +112,12 @@ public class Function {
     private static final Pattern matcher_hls_vimeo = Pattern.compile("vimeocdn\\.com");
     public static final Pattern matcher_hls_fc2Live = Pattern.compile("(.+)\\.live\\.fc2\\.com");
 
+    private static final Pattern matcher_nico_hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
+    private static final Pattern matcher_nico_hls_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
+    private static final Pattern matcher_nico_hls_audio_bitrate = Pattern.compile("audio-aac-(\\d+)kbps");
+    private static final Pattern matcher_nico_hls_live_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
+    private static final Pattern matcher_nico_hls_live_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
+
     public static boolean isFoundFile(String filePass) {
         Path path = Paths.get(filePass);
         return Files.exists(path);
@@ -625,7 +631,7 @@ public class Function {
             }
 
             if (line.startsWith("/")){
-                String hlsUrl = "https://"+hostname+line;
+                String hlsUrl = http+hostname+line;
 
                 if (hls_twitcas.find() && line.startsWith("/tc\\.vod\\.v2")){
                     sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
@@ -661,5 +667,52 @@ public class Function {
 
         return sb.toString().getBytes(StandardCharsets.UTF_8);
 
+    }
+
+    public static String recreateHLS(String hlsText){
+        String[] split = hlsText.split("\n");
+
+        String video = "";
+        String audio = "";
+
+        long tempBandwith = -1;
+        long maxVideoBandwith = -1;
+        long maxAudioBandwith = -1;
+
+        int i = 0;
+
+        for (String s : split){
+            Matcher matcher_video_video = matcher_nico_hls_video.matcher(s);
+            Matcher matcher_video_audio = matcher_nico_hls_audio.matcher(s);
+            Matcher matcher_video_audio_bitrate = matcher_nico_hls_audio_bitrate.matcher(s);
+            if (matcher_video_video.find()){
+                tempBandwith = Long.parseLong(matcher_video_video.group(1));
+                if (maxVideoBandwith <= tempBandwith){
+                    maxVideoBandwith = tempBandwith;
+                    video = s + "\n" + split[i + 1];
+                }
+                i++;
+                continue;
+            }
+
+            if (matcher_video_audio.find()){
+                if (matcher_video_audio_bitrate.find()){
+                    tempBandwith = Long.parseLong(matcher_video_audio_bitrate.group(1));
+                    if (maxAudioBandwith <= tempBandwith){
+                        maxAudioBandwith = tempBandwith;
+                        audio = s;
+                    }
+                }
+                i++;
+                continue;
+            }
+            i++;
+        }
+
+        hlsText = "#EXTM3U\n#EXT-X-VERSION:6\n#EXT-X-INDEPENDENT-SEGMENTS\n#audio#\n#video#";
+        hlsText = hlsText.replace("#video#", video);
+        hlsText = hlsText.replace("#audio#", audio);
+
+        return hlsText;
     }
 }

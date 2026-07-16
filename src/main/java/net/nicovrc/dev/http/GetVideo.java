@@ -28,10 +28,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_cacheId2 = Pattern.compile("cacheId=(.+) HTTP");
     private final Pattern matcher_accessUrl2 = Pattern.compile("url=(.+)&");
 
-    private final Pattern matcher_http_range = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
+    private final Pattern matcher_hlsSelect = Pattern.compile("dummy=true");
 
-    private final Pattern matcher_cache = Pattern.compile("\\?(.*)cacheId=");
-    private final Pattern matcher_access = Pattern.compile("&(.*)url=");
+    private final Pattern matcher_http_range = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
 
     @Override
     public void run() {
@@ -62,18 +61,18 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
         if (matcher_id.find()) {
             //System.out.println(tempCacherId);
-            cacherId = URLDecoder.decode(matcher_id.group(1), StandardCharsets.UTF_8);
+            cacherId = URLDecoder.decode(matcher_id.group(1).replace("&dummy=true", ""), StandardCharsets.UTF_8).split("&")[0];
         } else if (matcher_id2.find()) {
             //System.out.println(tempCacherId);
-            cacherId = URLDecoder.decode(matcher_id2.group(1), StandardCharsets.UTF_8);
+            cacherId = URLDecoder.decode(matcher_id2.group(1).replace("&dummy=true", ""), StandardCharsets.UTF_8).split("&")[0];
         } else {
             cacherId = "";
         }
 
         if (matcher_accessURL.find()) {
-            accessUrl = URLDecoder.decode(matcher_accessURL.group(1), StandardCharsets.UTF_8);
+            accessUrl = URLDecoder.decode(matcher_accessURL.group(1).replace("&dummy=true", ""), StandardCharsets.UTF_8);
         } else if (matcher_accessURL2.find()) {
-            accessUrl = URLDecoder.decode(matcher_accessURL2.group(1), StandardCharsets.UTF_8);
+            accessUrl = URLDecoder.decode(matcher_accessURL2.group(1).replace("&dummy=true", ""), StandardCharsets.UTF_8);
         } else {
             accessUrl = "";
         }
@@ -209,8 +208,20 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             String contentType = response.headers().firstValue("Content-Type").isPresent() ? response.headers().firstValue("Content-Type").get() : response.headers().firstValue("content-type").isPresent() ? response.headers().firstValue("content-type").get() : "";
 
             if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")) {
+                byte[] hls = Function.replaceHLS(response.body(), http, httpHostname, cacherId, request.uri().getHost(), url);
 
-                Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, Function.replaceHLS(response.body(), http, httpHostname, cacherId, request.uri().getHost(), url), null));
+                Matcher matcher = Function.matcher_niconico.matcher(request.uri().getHost());
+                Matcher matcher2 = matcher_hlsSelect.matcher(httpRequest);
+                if (matcher.find() && matcher2.find()) {
+                    // VRC かつ ニコ動などは選択できる最高画質/音質のみにする
+                    //System.out.println(new String(hls, StandardCharsets.UTF_8));
+                    //System.out.println("CacheID : " + cacherId);
+                    //System.out.println("Access : " + accessUrl);
+                    hls = Function.recreateHLS(new String(hls, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8);
+                    //System.out.println(new  String(hls, StandardCharsets.UTF_8));
+                }
+
+                Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, hls, null));
                 return;
 
             } else {
