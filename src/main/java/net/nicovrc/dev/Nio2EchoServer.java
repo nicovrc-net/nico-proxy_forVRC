@@ -152,6 +152,7 @@ public class Nio2EchoServer {
                 return;
             }
 
+            System.out.println(URI);
             if (VideoMatchFlag || (RangeVideoFlag && !matcher_range1.group(1).equals("0"))) {
                 //System.out.println("debug1");
                 getVideo.setHTTPRequest(httpRequest);

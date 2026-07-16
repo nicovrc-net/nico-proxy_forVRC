@@ -1,22 +1,10 @@
 package net.nicovrc.dev;
 
-import net.nicovrc.dev.api.NicoVRCAPI;
-import net.nicovrc.dev.data.HttpHeader;
 import net.nicovrc.dev.http.GetURL;
 import net.nicovrc.dev.http.GetVideo;
 
-import java.net.InetSocketAddress;
 import java.net.http.HttpClient;
-import java.nio.ByteBuffer;
-import java.nio.channels.AsynchronousServerSocketChannel;
-import java.nio.channels.AsynchronousSocketChannel;
-import java.nio.channels.CompletionHandler;
-import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.Scanner;
 import java.util.TimerTask;
-import java.util.UUID;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class TCPServer extends Thread {
