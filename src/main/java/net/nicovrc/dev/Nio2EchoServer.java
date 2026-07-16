@@ -81,7 +81,7 @@ public class Nio2EchoServer {
 
             final String httpRequest = Function.getHTTPRequest(ctx.buffer);
 
-            //System.out.println(httpRequest);
+            System.out.println(httpRequest);
 
             if (httpRequest.isEmpty()) {
                 ctx.close();
