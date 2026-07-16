@@ -78,7 +78,7 @@ public class Function {
     private final static Pattern matcher_file_m3u8 = Pattern.compile("m3u8");
     private final static Pattern matcher_file_cmfa = Pattern.compile("cmfa");
     private final static Pattern matcher_file_cmfv = Pattern.compile("cmfv");
-    private final static Pattern matcher_file_keys = Pattern.compile("keys");
+    private final static Pattern matcher_file_key = Pattern.compile("key");
 
     public static final Timer mainTimer = new Timer();
     public static final Timer checkTimer = new Timer();
@@ -600,12 +600,12 @@ public class Function {
             final Matcher matcher_m3u8 = matcher_file_m3u8.matcher(line);
             final Matcher matcher_cmfv = matcher_file_cmfv.matcher(line);
             final Matcher matcher_cmfa = matcher_file_cmfa.matcher(line);
-            final Matcher matcher_keys = matcher_file_keys.matcher(line);
+            final Matcher matcher_key = matcher_file_key.matcher(line);
 
             final boolean ism3u8 = matcher_m3u8.find();
             final boolean iscmfv = matcher_cmfv.find();
             final boolean iscmfa = matcher_cmfa.find();
-            final boolean iskeys = matcher_keys.find();
+            final boolean iskey = matcher_key.find();
 
             String type = "dummy.ts";
             if (ism3u8){
@@ -614,8 +614,8 @@ public class Function {
                 type = "dummy.cmfv";
             } else if (iscmfa){
                 type = "dummy.cmfa";
-            } else if (iskeys){
-                type = "dummy.keys";
+            } else if (iskey){
+                type = "dummy.key";
             }
 
             if (matcher.find()){
