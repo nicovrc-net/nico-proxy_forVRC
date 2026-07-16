@@ -70,9 +70,15 @@ public class Function {
     public static final byte[] content_NotFound = "Not Found".getBytes(StandardCharsets.UTF_8);
     public static final byte[] content_MethodNotAllowed = "Method Not Allowed".getBytes(StandardCharsets.UTF_8);
     public static final byte[] content_VideoNotFound = "Video Not Found".getBytes(StandardCharsets.UTF_8);
+
     public static byte[] content_errorVideo_others = null;
     public static byte[] content_errorVideo_site = null;
     public static byte[] content_errorVideo_endLive = null;
+
+    private final static Pattern matcher_file_m3u8 = Pattern.compile("m3u8");
+    private final static Pattern matcher_file_cmfa = Pattern.compile("cmfa");
+    private final static Pattern matcher_file_cmfv = Pattern.compile("cmfv");
+    private final static Pattern matcher_file_keys = Pattern.compile("keys");
 
     public static final Timer mainTimer = new Timer();
     public static final Timer checkTimer = new Timer();
@@ -575,10 +581,6 @@ public class Function {
                 .toByteArray();
     }
 
-    final static Pattern matcher_file_m3u8 = Pattern.compile("m3u8");
-    final static Pattern matcher_file_cmfa = Pattern.compile("cmfa");
-    final static Pattern matcher_file_cmfv = Pattern.compile("cmfv");
-    final static Pattern matcher_file_keys = Pattern.compile("keys");
     public static byte[] replaceHLS(byte[] hls_data, String http, String httpHostname, String cacheId, String hostname, String url) {
         final String hlsText = new String(hls_data, StandardCharsets.UTF_8);
         final Matcher hls_twitcas = matcher_hls_twitcasting.matcher(url);

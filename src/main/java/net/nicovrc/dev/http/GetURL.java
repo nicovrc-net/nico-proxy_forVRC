@@ -465,7 +465,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             // ffmpegは一番最後はdummy化しない
             hlsText = hlsText.replace("#video#", video != null ? video : "");
             hlsText = hlsText.replace("#audio#", audio != null ? audio : "");
-            System.out.println(hlsText);
+            //System.out.println(hlsText);
             return hlsText.getBytes(StandardCharsets.UTF_8);
         }
 
