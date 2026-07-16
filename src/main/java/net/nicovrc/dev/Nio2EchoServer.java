@@ -35,6 +35,11 @@ public class Nio2EchoServer {
         try {
             this.asyncChannel = AsynchronousServerSocketChannel.open();
             this.client = client;
+
+            getURL.setHTTPClient(client);
+            getURL.setProxy(null);
+            getVideo.setHTTPClient(client);
+            getVideo.setProxy(null);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -80,7 +85,7 @@ public class Nio2EchoServer {
 
             final String httpRequest = Function.getHTTPRequest(ctx.buffer);
 
-            System.out.println(httpRequest);
+            //System.out.println(httpRequest);
 
             if (httpRequest.isEmpty()) {
                 ctx.close();
