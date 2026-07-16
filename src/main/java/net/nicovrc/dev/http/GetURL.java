@@ -1,9 +1,8 @@
 package net.nicovrc.dev.http;
 
 import com.google.gson.JsonElement;
-import net.nicovrc.dev.Service.Result.NicoNicoVideo;
-import net.nicovrc.dev.api.GetVideoInfo;
 import net.nicovrc.dev.Service.Result.*;
+import net.nicovrc.dev.api.GetVideoInfo;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.data.HttpHeader;
@@ -373,7 +372,18 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         }
 
         if (isTitle) {
-            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, "*", cache.getTitle().getBytes(StandardCharsets.UTF_8), null));
+            GetVideoInfo info = new GetVideoInfo();
+            String resultJsonText = info.Run(httpRequest, client);
+
+            //System.out.println(resultJsonText);
+            NicoVideoResult resultJson = Function.gson.fromJson(resultJsonText, NicoVideoResult.class);
+            resultJson.setThumbnail(null);
+            resultJson.setVideoURL(null);
+            resultJson.setLiveURL(null);
+            resultJson.setVideoAccessCookie(null);
+            resultJson.setLiveAccessCookie(null);
+
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, Function.gson.toJson(resultJson).getBytes(StandardCharsets.UTF_8), null));
             return;
         }
 
