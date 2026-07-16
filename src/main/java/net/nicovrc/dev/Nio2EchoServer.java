@@ -27,7 +27,6 @@ public class Nio2EchoServer {
     private final GetVideo getVideo = new GetVideo();
 
     private final static Pattern matcher_uri = Pattern.compile("(url=|vi=|dummy=|dummy\\.m3u8|/proxy)");
-    private final static Pattern matcher_uri_vi = Pattern.compile("vi=");
     private final static Pattern matcher_http_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
     private final static Pattern matcher_http_range2 = Pattern.compile("[r|R]ange: bytes=(\\d+)-");
 
@@ -148,6 +147,7 @@ public class Nio2EchoServer {
             }
 
             if (VideoMatchFlag || (RangeVideoFlag && !matcher_range1.group(1).equals("0"))) {
+                System.out.println("debug1");
                 getVideo.setHTTPRequest(httpRequest);
                 getVideo.setURL(URI);
                 getVideo.setHTTPSocket(ch);
@@ -158,6 +158,7 @@ public class Nio2EchoServer {
             }
 
             if (UrlMatchFlag || RangeVideoFlag || RangeVideoFullFlag) {
+                System.out.println("debug2");
                 getURL.setHTTPRequest(httpRequest);
                 getURL.setURL(URI);
                 getURL.setHTTPSocket(ch);
