@@ -576,6 +576,9 @@ public class Function {
     }
 
     final static Pattern matcher_file_m3u8 = Pattern.compile("m3u8");
+    final static Pattern matcher_file_cmfa = Pattern.compile("cmfa");
+    final static Pattern matcher_file_cmfv = Pattern.compile("cmfv");
+    final static Pattern matcher_file_keys = Pattern.compile("keys");
     public static byte[] replaceHLS(byte[] hls_data, String http, String httpHostname, String cacheId, String hostname, String url) {
         final String hlsText = new String(hls_data, StandardCharsets.UTF_8);
         final Matcher hls_twitcas = matcher_hls_twitcasting.matcher(url);
@@ -587,17 +590,35 @@ public class Function {
         for (String line : hlsText.split("\n")){
             final Matcher matcher = matcher_hlsURI.matcher(line);
             final Matcher matcher_m3u8 = matcher_file_m3u8.matcher(line);
+            final Matcher matcher_cmfv = matcher_file_cmfv.matcher(line);
+            final Matcher matcher_cmfa = matcher_file_cmfa.matcher(line);
+            final Matcher matcher_keys = matcher_file_keys.matcher(line);
+
             final boolean ism3u8 = matcher_m3u8.find();
+            final boolean iscmfv = matcher_cmfv.find();
+            final boolean iscmfa = matcher_cmfa.find();
+            final boolean iskeys = matcher_keys.find();
+
+            String type = "dummy.ts";
+            if (ism3u8){
+                type = "dummy.m3u8";
+            } else if (iscmfv){
+                type = "dummy.cmfv";
+            } else if (iscmfa){
+                type = "dummy.cmfa";
+            } else if (iskeys){
+                type = "dummy.keys";
+            }
 
             if (matcher.find()){
                 String oldUrl = matcher.group(2);
-                String newUrl = http+httpHostname+"/video/"+(ism3u8 ? "dummy.m3u8" : "")+"?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(oldUrl, StandardCharsets.UTF_8);
+                String newUrl = http+httpHostname+"/video/"+type+"?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(oldUrl, StandardCharsets.UTF_8);
                 sb.append(line.replace(oldUrl, newUrl)).append("\n");
                 continue;
             }
 
             if (line.startsWith("http")){
-                sb.append(http).append(httpHostname).append("/video/"+(ism3u8 ? "dummy.m3u8" : "")+"?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
+                sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
                 continue;
             }
 
@@ -605,17 +626,17 @@ public class Function {
                 String hlsUrl = "https://"+hostname+line;
 
                 if (hls_twitcas.find() && line.startsWith("/tc\\.vod\\.v2")){
-                    sb.append(http).append(httpHostname).append("/video/"+(ism3u8 ? "dummy.m3u8" : "")+"?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
+                    sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
                     continue;
                 }
 
                 if (hls_abema.find()){
                     if (line.startsWith("/tsad")){
-                        sb.append(http).append(httpHostname).append("/video/").append(ism3u8 ? "dummy.m3u8" : "").append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
+                        sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
                         continue;
                     }
                     if (line.startsWith("/preview")) {
-                        sb.append(http).append(httpHostname).append("/video/").append(ism3u8 ? "dummy.m3u8" : "").append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
+                        sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
                         continue;
                     }
                 }
