@@ -1,10 +1,8 @@
 package net.nicovrc.dev.http.getContent;
 
 import net.nicovrc.dev.Function;
-import net.nicovrc.dev.Service.Result.NicoNicoVideo;
+import net.nicovrc.dev.Service.Result.NicoVideoResult;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -30,7 +28,7 @@ public class NicoVideo implements GetContent {
         String hlsText = null;
         String cookieText = null;
 
-        NicoNicoVideo result = Function.gson.fromJson(json, NicoNicoVideo.class);
+        NicoVideoResult result = Function.gson.fromJson(json, NicoVideoResult.class);
         if (result != null) {
             if (result.getVideoURL() != null) {
                 // ニコ動
@@ -60,8 +58,8 @@ public class NicoVideo implements GetContent {
                     tempHLS = "#EXTM3U\n" +
                             "#EXT-X-VERSION:6\n" +
                             "#EXT-X-INDEPENDENT-SEGMENTS\n" +
-                            //"#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
-                            //"#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"audio\"\n" +
+                            "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"audio\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
+                            "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"audio\"\n" +
                             "dummy";
 
                 }
@@ -158,8 +156,8 @@ public class NicoVideo implements GetContent {
                     hls = "#EXTM3U\n" +
                             "#EXT-X-VERSION:6\n" +
                             "#EXT-X-INDEPENDENT-SEGMENTS\n" +
-                            //"#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"main\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
-                            //"#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"main\"\n" +
+                            "#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"main\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"" + matcher2.group(2) + "\"\n" +
+                            "#EXT-X-STREAM-INF:BANDWIDTH=" + matcher1.group(1) + ",AVERAGE-BANDWIDTH=" + matcher1.group(2) + ",CODECS=\"" + matcher1.group(3) + "\",RESOLUTION=" + matcher1.group(4) + ",FRAME-RATE=" + matcher1.group(5) + ",AUDIO=\"main\"\n" +
                             "dummy";
                 }
 

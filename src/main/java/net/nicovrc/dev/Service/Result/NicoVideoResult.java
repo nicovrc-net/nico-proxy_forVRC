@@ -2,7 +2,7 @@ package net.nicovrc.dev.Service.Result;
 
 import java.util.HashMap;
 
-public class NicoNicoVideo {
+public class NicoVideoResult {
     private String URL;
     private String Title;
     private String Description;

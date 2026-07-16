@@ -265,10 +265,10 @@ NicoNico_user_session: ""
                 Function.content_errorVideo_others = Function.getFileByBinary("./error-video/error_000.mp4");
             }
             if (Function.isFoundFile("./error-video/error_404.mp4")){
-                Function.content_errorVideo_others = Function.getFileByBinary("./error-video/error_000.mp4");
+                Function.content_errorVideo_site = Function.getFileByBinary("./error-video/error_404.mp4");
             }
             if (Function.isFoundFile("./error-video/error_404_2.mp4")){
-                Function.content_errorVideo_others = Function.getFileByBinary("./error-video/error_404_2.mp4");
+                Function.content_errorVideo_endLive = Function.getFileByBinary("./error-video/error_404_2.mp4");
             }
             // ログ、Webhook書き出し & キャッシュ削除
             Function.mainTimer.scheduleAtFixedRate(new TimerTask() {
@@ -282,8 +282,10 @@ NicoNico_user_session: ""
                             long time = new Date().getTime();
                             map.forEach((url, data)->{
 
-                                if (data.isSet() && time - data.getCacheDate() >= 86400000L) {
-                                    Function.deleteCache(url);
+                                if (Function.CacheWaitList.get(url) == null){
+                                    if (time - data.getCacheDate() >= 86400000L) {
+                                        Function.deleteCache(url);
+                                    }
                                 }
 
                             });
@@ -464,17 +466,23 @@ NicoNico_user_session: ""
             }
 
             // HTTP受付
-            TCPServer tcpServer = new TCPServer(client);
-            tcpServer.start();
-            try {
-                tcpServer.join();
-            } catch (Exception e){
-                e.printStackTrace();
+            new TCPServer(client).start(Function.config_httpPort);
+            while (true) {
+                if (Function.isFoundFile("./stop_lock.txt")){
+                    Function.deleteFile("./stop_lock.txt");
+                    break;
+                }
+                try {
+                    Thread.sleep(100L);
+                } catch (Exception ignored) {
+                    //ignored.printStackTrace();
+                }
             }
 
             // 終了処理
             //proxyCheckTimer.cancel();
             Function.mainTimer.cancel();
+            Function.checkTimer.cancel();
             WriteLog(jedis);
             SendWebhook(client);
             jedis.close();

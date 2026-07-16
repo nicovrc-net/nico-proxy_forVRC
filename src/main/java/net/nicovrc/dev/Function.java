@@ -3,6 +3,7 @@ package net.nicovrc.dev;
 import com.google.gson.Gson;
 import net.nicovrc.dev.api.NicoVRCAPI;
 import net.nicovrc.dev.data.CacheData;
+import net.nicovrc.dev.data.HttpHeader;
 import net.nicovrc.dev.data.LogData;
 import net.nicovrc.dev.data.WebhookData;
 import redis.clients.jedis.RedisClient;
@@ -50,12 +51,14 @@ public class Function {
     private static final Pattern HTTP = Pattern.compile("(.+) (.+) HTTP/(\\d\\.\\d)");
     private static final Pattern HTTPURI1 = Pattern.compile("(.+) HTTP/(\\d\\.\\d)");
     private static final Pattern HTTPURI2 = Pattern.compile("(.+) HTTP/");
+    private static final Pattern matcher_host = Pattern.compile("[H|h]ost: (.+)");
 
     public static final ConcurrentHashMap<String, String> APIAccessLog = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, LogData> GetURLAccessLog = new ConcurrentHashMap<>();
 
     private static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, WebhookData> WebhookData = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<String, Date> CacheWaitList = new ConcurrentHashMap<>();
 
     public static final String contentType_textPlain = "text/plain; charset=utf-8";
     public static final String contentType_json = "application/json; charset=utf-8";
@@ -67,9 +70,15 @@ public class Function {
     public static final byte[] content_NotFound = "Not Found".getBytes(StandardCharsets.UTF_8);
     public static final byte[] content_MethodNotAllowed = "Method Not Allowed".getBytes(StandardCharsets.UTF_8);
     public static final byte[] content_VideoNotFound = "Video Not Found".getBytes(StandardCharsets.UTF_8);
+
     public static byte[] content_errorVideo_others = null;
     public static byte[] content_errorVideo_site = null;
     public static byte[] content_errorVideo_endLive = null;
+
+    private final static Pattern matcher_file_m3u8 = Pattern.compile("m3u8");
+    private final static Pattern matcher_file_cmfa = Pattern.compile("cmfa");
+    private final static Pattern matcher_file_cmfv = Pattern.compile("cmfv");
+    private final static Pattern matcher_file_key = Pattern.compile("key");
 
     public static final Timer mainTimer = new Timer();
     public static final Timer checkTimer = new Timer();
@@ -91,6 +100,23 @@ public class Function {
     public static final Pattern NicoID2 = Pattern.compile("(http|https)://nico\\.ms/(.+)");
     public static final Pattern NicoID3 = Pattern.compile("(http|https)://cas\\.nicovideo\\.jp/user/(.+)");
     public static final Pattern NicoID4 = Pattern.compile("^(sm\\d+|nm\\d+|am\\d+|fz\\d+|ut\\d+|dm\\d+|so\\d+|ax\\d+|ca\\d+|cd\\d+|cw\\d+|fx\\d+|ig\\d+|na\\d+|om\\d+|sd\\d+|sk\\d+|yk\\d+|yo\\d+|za\\d+|zb\\d+|zc\\d+|zd\\d+|ze\\d+|nl\\d+|ch\\d+|\\d+|lv\\d+|ss\\d+)");
+
+    public static final Pattern matcher_niconico = Pattern.compile("nicovideo\\.jp");
+    public static final Pattern matcher_VLC = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
+    public static final Pattern matcher_AVPro = Pattern.compile("(NSPlayer|AVPro|AppleCoreMedia)");
+    public static final Pattern matcher_FFMpeg = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
+
+    private static final Pattern matcher_hlsURI = Pattern.compile("(,|:)URI=\"(.+)\"");
+    private static final Pattern matcher_hls_twitcasting = Pattern.compile("twitcasting\\.tv");
+    private static final Pattern matcher_hls_abema = Pattern.compile("(.+)-abematv\\.akamaized\\.net");
+    private static final Pattern matcher_hls_vimeo = Pattern.compile("vimeocdn\\.com");
+    public static final Pattern matcher_hls_fc2Live = Pattern.compile("(.+)\\.live\\.fc2\\.com");
+
+    private static final Pattern matcher_nico_hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
+    private static final Pattern matcher_nico_hls_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
+    private static final Pattern matcher_nico_hls_audio_bitrate = Pattern.compile("audio-aac-(\\d+)kbps");
+    private static final Pattern matcher_nico_hls_live_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
+    private static final Pattern matcher_nico_hls_live_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
 
     public static boolean isFoundFile(String filePass) {
         Path path = Paths.get(filePass);
@@ -167,71 +193,14 @@ public class Function {
         return new String(buffer.array(), StandardCharsets.UTF_8);
     }
 
-    public static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl) {
-        return createHTTPHeader(httpVersion, code, contentType, contentEncoding, AccessControlAllowOrigin, body, redirectUrl, false, -1, -1, -1);
-    }
-
-    public static String createHTTPHeader(String httpVersion, int code, String contentType, String contentEncoding, String AccessControlAllowOrigin, byte[] body, String redirectUrl,boolean isRange, long rangeStart, long rangeEnd, long rangeSize){
-        StringBuffer sb_header = new StringBuffer();
-
-        //System.out.println(code);
-
-        sb_header.append("HTTP/").append(httpVersion == null ? "1.1" : httpVersion);
-        sb_header.append(" ").append(code).append(" ");
-        switch (code) {
-            case 200 -> sb_header.append("OK");
-            case 206 -> sb_header.append("Partial Content");
-            case 302 -> sb_header.append("Found");
-            case 400 -> sb_header.append("Bad Request");
-            case 403 -> sb_header.append("Forbidden");
-            case 404 -> sb_header.append("Not Found");
-            case 405 -> sb_header.append("Method Not Allowed");
-            case 503 -> sb_header.append("Service Unavailable");
-        }
-        sb_header.append("\r\n");
-
-        if (code != 302){
-            if (AccessControlAllowOrigin != null){
-                sb_header.append("Access-Control-Allow-Origin: ").append(AccessControlAllowOrigin).append("\r\n");
-            }
-            if (isRange){
-                sb_header.append("Accept-Ranges: bytes\r\n");
-            }
-            sb_header.append("Content-Length: ").append(body.length).append("\r\n");
-            if (contentEncoding != null && !contentEncoding.isEmpty()) {
-                sb_header.append("Content-Encoding: ").append(contentEncoding).append("\r\n");
-            }
-            sb_header.append("Content-Type: ").append(contentType).append("\r\n");
-
-            if (isRange){
-                sb_header.append("Content-Ranges: ").append(rangeStart).append("-").append(rangeEnd).append("/").append(rangeSize).append("\r\n");
-            }
-        }
-
-        sb_header.append("Date: ").append(new Date()).append("\r\n");
-
-        if (code == 302 && redirectUrl != null){
-            sb_header.append("Location: ").append(redirectUrl).append("\r\n");
-        }
-
-        sb_header.append("\r\n");
-        String httpRequest = sb_header.toString();
-        sb_header.setLength(0);
-        sb_header = null;
-
-        //System.out.println(httpRequest);
-        return httpRequest;
-
-    }
-
-    public static byte[] createSendHTTPData(String header, byte[] body){
+    public static byte[] createSendHttpData(HttpHeader header, byte[] body){
         if (body == null){
-            return header.getBytes(StandardCharsets.UTF_8);
+            return header.toString().getBytes(StandardCharsets.UTF_8);
         }
-        return concatByteArrays(header.getBytes(StandardCharsets.UTF_8), body);
+        return concatByteArrays(header.toString().getBytes(StandardCharsets.UTF_8), body);
     }
 
-    public static void sendHTTPData(AsynchronousSocketChannel ch, byte[] data){
+    public static void sendHttpData(AsynchronousSocketChannel ch, byte[] data){
         ByteBuffer write = ByteBuffer.allocate(data.length);
         write.put(data);
         write.flip();
@@ -254,6 +223,10 @@ public class Function {
                 }
             }
         });
+    }
+
+    public static void sendHttpData(AsynchronousSocketChannel ch, HttpHeader header){
+        sendHttpData(ch, createSendHttpData(header, header.getHttpBody()));
     }
 
     public static String getHTTPVersion(String HTTPRequest){
@@ -298,6 +271,14 @@ public class Function {
         //System.out.println("URI : "+uri);
 
         return uri;
+    }
+
+    public static String getHost(String HTTPRequest){
+        Matcher matcher = matcher_host.matcher(HTTPRequest);
+        if (matcher.find()){
+            return matcher.group(1);
+        }
+        return null;
     }
 
     public static String getFFmpegPath(){
@@ -604,5 +585,137 @@ public class Function {
                         ByteArrayOutputStream::writeBytes,
                         (left, right) -> left.writeBytes(right.toByteArray()))
                 .toByteArray();
+    }
+
+    public static byte[] replaceHLS(byte[] hls_data, String http, String httpHostname, String cacheId, String hostname, String url) {
+        final String hlsText = new String(hls_data, StandardCharsets.UTF_8);
+        final Matcher hls_twitcas = matcher_hls_twitcasting.matcher(url);
+        final Matcher hls_abema = matcher_hls_abema.matcher(url);
+        final Matcher hls_vimeo = matcher_hls_vimeo.matcher(url);
+
+
+        StringBuffer sb = new StringBuffer();
+        for (String line : hlsText.split("\n")){
+            final Matcher matcher = matcher_hlsURI.matcher(line);
+            final Matcher matcher_m3u8 = matcher_file_m3u8.matcher(line);
+            final Matcher matcher_cmfv = matcher_file_cmfv.matcher(line);
+            final Matcher matcher_cmfa = matcher_file_cmfa.matcher(line);
+            final Matcher matcher_key = matcher_file_key.matcher(line);
+
+            final boolean ism3u8 = matcher_m3u8.find();
+            final boolean iscmfv = matcher_cmfv.find();
+            final boolean iscmfa = matcher_cmfa.find();
+            final boolean iskey = matcher_key.find();
+
+            String str = UUID.randomUUID().toString().split("-")[0];
+            String type = "dummy-"+str+".ts";
+            if (ism3u8){
+                type = "dummy-"+str+".m3u8";
+            } else if (iscmfv){
+                type = "dummy-"+str+".cmfv";
+            } else if (iscmfa){
+                type = "dummy-"+str+".cmfa";
+            } else if (iskey){
+                type = "dummy-"+str+".key";
+            }
+
+            if (matcher.find()){
+                String oldUrl = matcher.group(2);
+                String newUrl = http+httpHostname+"/video/"+type+"?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(oldUrl, StandardCharsets.UTF_8);
+                sb.append(line.replace(oldUrl, newUrl)).append("\n");
+                continue;
+            }
+
+            if (line.startsWith("http")){
+                sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
+                continue;
+            }
+
+            if (line.startsWith("/")){
+                String hlsUrl = http+hostname+line;
+
+                if (hls_twitcas.find() && line.startsWith("/tc\\.vod\\.v2")){
+                    sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
+                    continue;
+                }
+
+                if (hls_abema.find()){
+                    if (line.startsWith("/tsad")){
+                        sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
+                        continue;
+                    }
+                    if (line.startsWith("/preview")) {
+                        sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(hlsUrl, StandardCharsets.UTF_8)).append("\n");
+                        continue;
+                    }
+                }
+
+            }
+
+            if (hls_vimeo.find()){
+                StringBuffer tempHost = new StringBuffer();
+                String[] split = url.split("/");
+                for (int i = 0; i < split.length - 6; i++) {
+                    tempHost.append(split[i]).append("/");
+                }
+                line = line.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", tempHost.toString());
+                sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
+                continue;
+            }
+
+            sb.append(line).append("\n");
+        }
+
+        return sb.toString().getBytes(StandardCharsets.UTF_8);
+
+    }
+
+    public static String recreateHLS(String hlsText){
+        String[] split = hlsText.split("\n");
+
+        String video = "";
+        String audio = "";
+        String audioText = "";
+
+        long tempBandwith = -1;
+        long maxVideoBandwith = -1;
+        long maxAudioBandwith = -1;
+
+        int i = 0;
+
+        for (String s : split){
+            Matcher matcher_video_video = matcher_nico_hls_video.matcher(s);
+            Matcher matcher_video_audio = matcher_nico_hls_audio.matcher(s);
+            Matcher matcher_video_audio_bitrate = matcher_nico_hls_audio_bitrate.matcher(s);
+            if (matcher_video_video.find()){
+                tempBandwith = Long.parseLong(matcher_video_video.group(1));
+                if (maxVideoBandwith <= tempBandwith){
+                    maxVideoBandwith = tempBandwith;
+                    video = s.replace(matcher_video_video.group(6), "audio") + "\n" + split[i + 1];
+                }
+                i++;
+                continue;
+            }
+
+            if (matcher_video_audio.find()){
+                if (matcher_video_audio_bitrate.find()){
+                    tempBandwith = Long.parseLong(matcher_video_audio_bitrate.group(1));
+                    if (maxAudioBandwith <= tempBandwith){
+                        maxAudioBandwith = tempBandwith;
+                        audio = s;
+                        audioText = matcher_video_audio_bitrate.group(0);
+                    }
+                }
+                i++;
+                continue;
+            }
+            i++;
+        }
+
+        hlsText = "#EXTM3U\n#EXT-X-VERSION:6\n#EXT-X-INDEPENDENT-SEGMENTS\n#audio#\n#video#";
+        hlsText = hlsText.replace("#video#", video.replace("audio", audioText));
+        hlsText = hlsText.replace("#audio#", audio);
+
+        return hlsText;
     }
 }

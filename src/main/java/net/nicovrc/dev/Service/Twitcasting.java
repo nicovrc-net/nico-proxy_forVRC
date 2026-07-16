@@ -3,7 +3,7 @@ package net.nicovrc.dev.Service;
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
-import net.nicovrc.dev.Service.Result.Twitcas;
+import net.nicovrc.dev.Service.Result.TwitcasResult;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -99,7 +99,7 @@ public class Twitcasting implements ServiceAPI {
             JsonElement json = Function.gson.fromJson(send.body(), JsonElement.class);
 
             if (json.isJsonObject() && json.getAsJsonObject().has("movie")){
-                Twitcas result = new Twitcas();
+                TwitcasResult result = new TwitcasResult();
                 result.setURL(json.getAsJsonObject().get("movie").getAsJsonObject().get("link").getAsString());
                 result.setTitle(json.getAsJsonObject().get("movie").getAsJsonObject().get("title").getAsString());
                 result.setSubTitle(json.getAsJsonObject().get("movie").getAsJsonObject().get("subtitle").isJsonNull() ? null : json.getAsJsonObject().get("movie").getAsJsonObject().get("subtitle").getAsString());

@@ -2,7 +2,7 @@ package net.nicovrc.dev.Service.Result;
 
 import java.util.HashMap;
 
-public class bilibili {
+public class bilibiliResult {
     private String URL;
     private String Title;
     private String Description;

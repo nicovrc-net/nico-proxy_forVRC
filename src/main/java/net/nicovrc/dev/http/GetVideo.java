@@ -1,8 +1,10 @@
 package net.nicovrc.dev.http;
 
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.data.HttpHeader;
 
-import java.net.*;
+import java.net.URI;
+import java.net.URLDecoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -13,367 +15,251 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GetVideo implements Runnable, NicoVRCHTTP {
-
     private String httpRequest = null;
-    private String URL = null;
+    private String url = null;
     private AsynchronousSocketChannel ch = null;
     private HttpClient client = null;
+    private String proxy = null;
+    private String httpHostname = "localhost:"+Function.config_httpPort;
+    private String http = "https://";
 
-    private final Pattern matcher_cookie = Pattern.compile("cookie:\\[(.*)\\]");
-    private final Pattern matcher_referer = Pattern.compile("referer:\\[(.*)\\]");
-    private final Pattern matcher_url1 = Pattern.compile("^/https/(cookie|referer):\\[(.*)\\]/(.*)");
-    private final Pattern matcher_url2 = Pattern.compile("^/https/(cookie|referer):\\[(.*)\\]/(cookie|referer):\\[(.*)\\]/(.*)");
+    private final Pattern matcher_cacheId = Pattern.compile("cacheId=(.+)&");
+    private final Pattern matcher_accessUrl = Pattern.compile("url=(.+) HTTP");
+    private final Pattern matcher_cacheId2 = Pattern.compile("cacheId=(.+) HTTP");
+    private final Pattern matcher_accessUrl2 = Pattern.compile("url=(.+)&");
 
-    private final Pattern matcher_twitcasting = Pattern.compile("twitcasting\\.tv");
-    private final Pattern matcher_abema = Pattern.compile("(.+)-abematv\\.akamaized\\.net");
-    private final Pattern matcher_vimeo = Pattern.compile("vimeocdn\\.com");
-    private final Pattern matcher_fc2 = Pattern.compile("(.+)\\.live\\.fc2\\.com");
-    private final Pattern matcher_tiktok = Pattern.compile("tiktok\\.com");
-    private final Pattern matcher_bilicom = Pattern.compile("bilibili\\.com");
+    private final Pattern matcher_hlsSelect = Pattern.compile("dummy=true");
 
-    private final Pattern matcher_bili_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
-    private final Pattern matcher_bili_range2 = Pattern.compile("[r|R]ange: bytes=(\\d+)-");
-
-    private final String http = "https://";
+    private final Pattern matcher_http_range = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
 
     @Override
     public void run() {
-        String httpHeader = null;
-        byte[] httpBody = null;
-
         if (client == null){
             return;
         }
-
         if (ch == null){
             return;
         }
+        if (httpRequest == null){
+            return;
+        }
+        httpHostname = Function.getHost(httpRequest);
+        http = httpHostname.startsWith("localhost") ? "http://" : "https://";
 
+        // 下準備
+        final String httpVersion = Function.getHTTPVersion(httpRequest) != null ? Function.getHTTPVersion(httpRequest) : "1.1";
+
+        final Matcher matcher_id = matcher_cacheId.matcher(httpRequest);
+        final Matcher matcher_accessURL = matcher_accessUrl.matcher(httpRequest);
+        final Matcher matcher_id2 = matcher_cacheId2.matcher(httpRequest);
+        final Matcher matcher_accessURL2 = matcher_accessUrl2.matcher(httpRequest);
+
+        final Matcher matcher_httpRange = matcher_http_range.matcher(httpRequest);
+
+        final String cacherId;
+        final String accessUrl;
+
+        if (matcher_id.find()) {
+            //System.out.println(tempCacherId);
+            cacherId = URLDecoder.decode(matcher_id.group(1).replace("&dummy=true", ""), StandardCharsets.UTF_8).split("&")[0];
+        } else if (matcher_id2.find()) {
+            //System.out.println(tempCacherId);
+            cacherId = URLDecoder.decode(matcher_id2.group(1).replace("&dummy=true", ""), StandardCharsets.UTF_8).split("&")[0];
+        } else {
+            cacherId = "";
+        }
+
+        if (matcher_accessURL.find()) {
+            accessUrl = URLDecoder.decode(matcher_accessURL.group(1).replace("&dummy=true", ""), StandardCharsets.UTF_8);
+        } else if (matcher_accessURL2.find()) {
+            accessUrl = URLDecoder.decode(matcher_accessURL2.group(1).replace("&dummy=true", ""), StandardCharsets.UTF_8);
+        } else {
+            accessUrl = "";
+        }
+
+        //System.out.println("cacherId: " + cacherId);
+        //System.out.println("accessUrl: " + accessUrl);
+
+        final String[] tempText = {null, null};
+        final Long[] tempLong = {null, null, null};
+
+        Function.getCacheList().forEach(((url, cache) -> {
+            if (cache.getCacheId().equals(cacherId)){
+                tempText[0] = cache.getCookieText();
+                tempText[1] = cache.getRefererText();
+                if (cache.isRange()){
+                    tempLong[0] = cache.getRangeStart();
+                    tempLong[1] = cache.getRangeEnd();
+                    tempLong[2] = cache.getRangeLength();
+                }
+            }
+        }));
+
+        if (matcher_httpRange.find()){
+            String start = matcher_httpRange.group(1);
+            String end = matcher_httpRange.group(2);
+
+            if (!start.equals("0")){
+                tempLong[0] = Long.parseLong(start);
+                tempLong[1] = Long.parseLong(end);
+            }
+        }
+
+        final String cookieText = tempText[0];
+        final String refererText = tempText[1];
+        final Long rangeStart = tempLong[0];
+        final Long rangeEnd = tempLong[1];
+        final Long rangeLength = tempLong[2];
+
+        //System.out.println("cookieText:"+cookieText);
+        //System.out.println("refererText:"+refererText);
+
+        // 動画ファイル取得
         try {
-            //System.out.println("/https/");
-            //System.out.println(URL);
-
-            //System.out.println(httpRequest);
-
-            URL = URLDecoder.decode(URL, StandardCharsets.UTF_8);
-
-            String httpVersion = Function.getHTTPVersion(httpRequest);
-
-            Matcher matcher = matcher_cookie.matcher(URL);
-            Matcher matcher2 = matcher_referer.matcher(URL);
-            String CookieText = null;
-            String Referer = null;
-            String URL = null;
-            if (matcher.find()){
-                CookieText = matcher.group(1);
-            }
-            if (matcher2.find()) {
-                Referer = matcher2.group(1);
-            }
-            if (CookieText != null && Referer != null){
-                Matcher matcher3 = matcher_url2.matcher(this.URL);
-                //System.out.println("debug1");
-
-                if (matcher3.find()){
-                    URL = http+matcher3.group(5);
-                }
-            } else {
-                Matcher matcher3 = matcher_url1.matcher(this.URL);
-                //System.out.println("debug2");
-
-                if (matcher3.find()){
-                    URL = http+matcher3.group(3);
-                }
-            }
-
-            //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
-            if (URL == null) {
-                //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
-                httpBody = Function.content_VideoNotFound;
-                httpHeader = Function.createHTTPHeader(httpVersion, 404, Function.contentType_textPlain, null, null, httpBody, null);
-
-                Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
-                httpVersion = null;
-
-                return;
-            }
-
-            if (CookieText != null && CookieText.equals("null")){
-                CookieText = null;
-            }
-            if (Referer != null && Referer.equals("null")){
-                Referer = null;
-            }
-
-            //System.out.println("debug : " + CookieText + " / " + Referer + " / " + URL);
-
-            Matcher matcher_fc2url = matcher_fc2.matcher(URL);
-            Matcher matcher_twit = matcher_twitcasting.matcher(URL);
-            Matcher matcher_abematv = matcher_abema.matcher(URL);
-            Matcher matcher_vimeourl = matcher_vimeo.matcher(URL);
-            Matcher matcher_tiktok = this.matcher_tiktok.matcher(URL);
-            Matcher matcher_bilibilicom = matcher_bilicom.matcher(Referer != null ? Referer : "");
-            boolean isBiliCom = matcher_bilibilicom.find();
-            if (matcher_tiktok.find()){
-                URL = URL.replaceAll("\\|", "%7C");
-            }
-
-            HttpRequest request;
-            if (matcher_fc2url.find()) {
-                request = HttpRequest.newBuilder()
-                        .uri(new URI(URL))
-                        .headers("User-Agent", Function.UserAgent)
-                        .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                        .headers("Connection", "keep-alive")
-                        .headers("Cookie", "live_media_session=JD052LLx2GF0CXAJuPdlT")
-                        .headers("Origin", "https://live.fc2.com")
-                        .headers("Referer", "https://live.fc2.com/")
-                        .GET()
-                        .build();
-            } else {
-
-                if (isBiliCom){
+            final HttpRequest request;
+            final boolean isRange = rangeLength != null && rangeEnd != null && rangeEnd.equals(rangeLength - 1);
+            if (cookieText != null && refererText != null) {
+                if (isRange){
                     request = HttpRequest.newBuilder()
-                            .uri(new URI(URL))
+                            .uri(new URI(accessUrl))
                             .headers("User-Agent", Function.UserAgent)
                             .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
                             .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                            .headers("Referer", Referer)
-                            .HEAD()
+                            .headers("Cookie", cookieText)
+                            .headers("Referer", refererText)
+                            .headers("Range", "bytes=" + rangeStart + "-" + rangeEnd)
+                            .GET()
                             .build();
-                } else if (CookieText == null || CookieText.isEmpty()){
-                    if (Referer == null || Referer.isEmpty()){
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(URL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .headers("Accept", "*/*")
-                                .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                                .GET()
-                                .build();
-                    } else {
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(URL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .headers("Referer", Referer)
-                                .headers("Accept", "*/*")
-                                .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                                .GET()
-                                .build();
-                    }
                 } else {
-                    //System.out.println(URL);
-                    if (Referer == null || Referer.isEmpty()){
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(URL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .headers("Cookie", CookieText)
-                                .headers("Accept", "*/*")
-                                .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                                .GET()
-                                .build();
-                    } else {
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(URL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .headers("Cookie", CookieText)
-                                .headers("Referer", Referer)
-                                .headers("Accept", "*/*")
-                                .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                                .GET()
-                                .build();
-                    }
+                    request = HttpRequest.newBuilder()
+                            .uri(new URI(accessUrl))
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Cookie", cookieText)
+                            .headers("Referer", refererText)
+                            .GET()
+                            .build();
+                }
+            } else if (cookieText != null) {
+                if (isRange){
+                    request = HttpRequest.newBuilder()
+                            .uri(new URI(accessUrl))
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Cookie", cookieText)
+                            .headers("Range", "bytes=" + rangeStart + "-" + rangeEnd)
+                            .GET()
+                            .build();
+                } else {
+                    request = HttpRequest.newBuilder()
+                            .uri(new URI(accessUrl))
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Cookie", cookieText)
+                            .GET()
+                            .build();
+                }
+            } else if (refererText != null) {
+                if (isRange){
+                    request = HttpRequest.newBuilder()
+                            .uri(new URI(accessUrl))
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Referer", refererText)
+                            .headers("Range", "bytes=" + rangeStart + "-" + rangeEnd)
+                            .GET()
+                            .build();
+                } else {
+                    request = HttpRequest.newBuilder()
+                            .uri(new URI(accessUrl))
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Referer", refererText)
+                            .GET()
+                            .build();
+                }
+            } else {
+                if (isRange){
+                    request = HttpRequest.newBuilder()
+                            .uri(new URI(accessUrl))
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Range", "bytes=" + rangeStart + "-" + rangeEnd)
+                            .GET()
+                            .build();
+                } else {
+                    request = HttpRequest.newBuilder()
+                            .uri(new URI(accessUrl))
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .GET()
+                            .build();
                 }
             }
 
-            HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            String contentType = send.headers().firstValue("Content-Type").isPresent() ? send.headers().firstValue("Content-Type").get() : send.headers().firstValue("content-type").isPresent() ? send.headers().firstValue("content-type").get() : "";
+            HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            String contentType = response.headers().firstValue("Content-Type").isPresent() ? response.headers().firstValue("Content-Type").get() : response.headers().firstValue("content-type").isPresent() ? response.headers().firstValue("content-type").get() : "";
 
-            if (!isBiliCom) {
-                //System.out.println("a");
-                httpBody = send.body();
+            if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")) {
+                byte[] hls = Function.replaceHLS(response.body(), http, httpHostname, cacherId, request.uri().getHost(), url);
 
-                if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")){
-                    //body = Function.decompressByte(send.body(), contentEncoding);
-                    String s = new String(httpBody, StandardCharsets.UTF_8);
-                    //System.out.println(s);
-                    if (matcher_twit.find()) {
-                        s = s.replaceAll(http, "/https/referer:[" + Referer + "]/");
-                        s = s.replaceAll("\"/tc\\.vod\\.v2", "\"/https/referer:[" + Referer + "]/" + request.uri().getHost() + "/tc.vod.v2");
-
-                        StringBuffer sb = new StringBuffer();
-                        for (String str : s.split("\n")) {
-                            if (!str.startsWith("/mpegts") && !str.startsWith("/tc.vod.v2")) {
-                                sb.append(str).append("\n");
-                                continue;
-                            }
-
-                            sb.append("/https/referer:[").append(Referer).append("]/").append(request.uri().getHost()).append(str).append("\n");
-
-                        }
-
-                        s = sb.toString();
-                        sb.setLength(0);
-                        sb = null;
-
-                    } else if (matcher_abematv.find()) {
-                        //System.out.println("!!!!");
-                        s = s.replaceAll(http, "/https/cookie:[]/");
-
-                        StringBuffer sb = new StringBuffer();
-                        for (String str : s.split("\n")) {
-                            if (str.startsWith("/tsad")){
-                                sb.append("/https/referer:[]/").append(request.uri().getHost()).append(str).append("\n");
-                                continue;
-                            }
-                            if (!str.startsWith("/preview")) {
-                                sb.append(str.replaceAll(http, "/https/cookie:[]/")).append("\n");
-                                continue;
-                            }
-
-                            sb.append("/https/referer:[]/").append(request.uri().getHost()).append(str).append("\n");
-
-                        }
-
-                        s = sb.toString();
-                        sb.setLength(0);
-                        sb = null;
-                    } else if (matcher_vimeourl.find()) {
-
-                        StringBuffer sb = new StringBuffer();
-                        String[] split = URL.split("/");
-                        for (int i = 0; i < split.length - 6; i++) {
-                            sb.append(split[i]).append("/");
-                        }
-
-                        s = s.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", sb.toString());
-                        s = s.replaceAll(http, "/https/cookie:[]/");
-
-                        sb.setLength(0);
-                        sb = null;
-
-                    } else {
-                        if (CookieText != null && !CookieText.isEmpty()){
-                            if (Referer == null || Referer.isEmpty()){
-                                s = s.replaceAll(http, "/https/cookie:["+CookieText+"]/");
-                            } else {
-                                s = s.replaceAll(http, "/https/referer:["+Referer+"]/cookie:["+CookieText+"]/");
-                            }
-                        } else {
-                            if (Referer == null || Referer.isEmpty()){
-                                s = s.replaceAll(http, "/https/cookie:[]/");
-                            } else {
-                                s = s.replaceAll(http, "/https/referer:["+Referer+"]/");
-                            }
-                        }
-                    }
-
-                    httpBody = s.getBytes(StandardCharsets.UTF_8);
-
-                    s = null;
+                Matcher matcher = Function.matcher_niconico.matcher(request.uri().getHost());
+                Matcher matcher2 = matcher_hlsSelect.matcher(httpRequest);
+                if (matcher.find() && matcher2.find()) {
+                    // VRC かつ ニコ動などは選択できる最高画質/音質のみにする
+                    //System.out.println(new String(hls, StandardCharsets.UTF_8));
+                    //System.out.println("CacheID : " + cacherId);
+                    //System.out.println("Access : " + accessUrl);
+                    hls = Function.recreateHLS(new String(hls, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8);
+                    //System.out.println(new  String(hls, StandardCharsets.UTF_8));
                 }
-                //System.out.println("b");
-                httpHeader = Function.createHTTPHeader(httpVersion, send.statusCode(), contentType, null, null, httpBody, null);
 
-                Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
+                Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, hls, null));
+                return;
 
             } else {
-
-                Matcher mat1 = matcher_bili_range1.matcher(httpRequest);
-                Matcher mat2 = matcher_bili_range2.matcher(httpRequest);
-
-                //System.out.println(httpRequest);
-                //System.out.println(mat1.find());
-                //System.out.println(mat2.find());
-
-                if (mat1.find()){
-                    request = HttpRequest.newBuilder()
-                            .uri(new URI(URL))
-                            .headers("User-Agent", Function.UserAgent)
-                            .headers("Referer", Referer)
-                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                            // Range bytes=0-1227
-                            .headers("Range", "bytes=" + mat1.group(2) + "-" + mat1.group(3))
-                            .build();
-                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-
+                if (isRange){
                     long rangeSize = -1;
-                    if (send.headers().firstValue("content-range").isPresent()){
-                        String s = send.headers().firstValue("content-range").get();
+                    String rangeText = "0-0/0";
+                    if (response.headers().firstValue("content-range").isPresent()){
+                        rangeText = response.headers().firstValue("content-range").get();
                         try {
-                            rangeSize = Long.parseLong(s.split("/")[1]);
+                            rangeSize = Long.parseLong(rangeText.split("/")[1]);
+
                         } catch (Exception e) {
                             //e.printStackTrace();
                         }
                     }
+                    String[] split = rangeText.split("/");
+                    String[] split1 = split[0].split("-");
 
-                    httpBody = send.body();
-                    httpHeader = Function.createHTTPHeader(httpVersion, 206, contentType, null, null, httpBody, null, true, Long.parseLong(mat1.group(3)), Long.parseLong(mat1.group(2)), rangeSize);
-                    Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
-                } else {
-                    int length = Integer.parseInt(send.headers().firstValue("content-length").isPresent() ? send.headers().firstValue("content-length").get() : "0");
-                    int max = length / 10;
-                    byte[][] temp = new byte[max][10];
-
-                    for (int i = 0; i < 5; i++) {
-                        int mi = max * i;
-                        int mx = max * (i + 1);
-                        //System.out.println(mi + " - " +Math.min(mx - 1, length - 1));
-                        request = HttpRequest.newBuilder()
-                                .uri(new URI(URL))
-                                .headers("User-Agent", Function.UserAgent)
-                                .headers("Referer", Referer)
-                                .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                                .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                                // Range bytes=0-1227
-                                .headers("Range", "bytes=" + mi + "-" + Math.min(mx - 1, length - 1))
-                                .build();
-                        send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-
-                        //System.out.println(send.statusCode());
-                        //out.write(send.body());
-                        temp[i] = send.body();
-                        if (send.statusCode() >= 300){
-                            break;
-                        }
-
-                    }
-                    //contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
-                    //System.out.println("o : "+contentEncoding);
-                    httpBody = Function.concatByteArrays(temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9]);
-                    if (mat2.find()){
-                        httpHeader = Function.createHTTPHeader(httpVersion, 206, contentType, null, null, httpBody, null, true, 0, httpBody.length - 1, httpBody.length);
-                        Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
-                    } else {
-                        httpHeader = Function.createHTTPHeader(httpVersion, 200, contentType, null, null, httpBody, null, false, -1, -1, -1);
-                        Function.sendHTTPData(ch, Function.createSendHTTPData(httpHeader, httpBody));
-                    }
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 206, contentType, null, null, response.body(), null, Long.parseLong(split1[0]), Long.parseLong(split1[1]), rangeSize));
+                    return;
                 }
             }
-            httpVersion = null;
-            send = null;
-            request = null;
-            contentType = null;
-            httpRequest = null;
 
-            matcher_fc2url = null;
-            matcher_twit = null;
-            matcher_abematv = null;
-            matcher_vimeourl = null;
-            matcher_bilibilicom = null;
-
-            httpHeader = null;
-            httpBody = null;
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, response.body(), null));
+            return;
 
         } catch (Exception e){
-             e.printStackTrace();
+            e.printStackTrace();
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.getErrorMessageVideo(client, e.getMessage()), null));
+            return;
         }
+
+        //Function.sendHttpData(ch, new HttpHeader(httpVersion, 404, Function.contentType_textPlain, null, null, "???".getBytes(StandardCharsets.UTF_8), null));
     }
 
     @Override
     public String getStartURI() {
-        return "/https/";
+        return "/video";
     }
 
     @Override
@@ -383,12 +269,12 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
     @Override
     public void setURL(String URL) {
-        this.URL = URL;
+        this.url = URL;
     }
 
     @Override
-    public void setHTTPSocket(AsynchronousSocketChannel ch) {
-        this.ch = ch;
+    public void setHTTPSocket(AsynchronousSocketChannel sock) {
+        this.ch = sock;
     }
 
     @Override
@@ -398,6 +284,6 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
     @Override
     public void setProxy(String proxy) {
-
+        this.proxy = proxy;
     }
 }

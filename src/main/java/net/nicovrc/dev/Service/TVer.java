@@ -110,7 +110,7 @@ public class TVer implements ServiceAPI {
 
                 //System.out.println(json);
                 if (channel.equals("local")){
-                    if (videoRefID.startsWith("cbc") || videoRefID.startsWith("ctc")){
+                    if (videoRefID.startsWith("cbc") || videoRefID.startsWith("ctc") || videoRefID.startsWith("mxtv")){
                         channel = "mcc";
                     }
                 }
@@ -172,7 +172,7 @@ public class TVer implements ServiceAPI {
                         channel = "ntv";
                     }
                     if (channel.equals("local")){
-                        if (videoRefID.startsWith("cbc") || videoRefID.startsWith("ctc")){
+                        if (videoRefID.startsWith("cbc") || videoRefID.startsWith("ctc") || videoRefID.startsWith("mxtv")){
                             channel = "mcc";
                         }
                     }

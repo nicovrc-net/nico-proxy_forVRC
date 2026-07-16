@@ -3,19 +3,37 @@ package net.nicovrc.dev.data;
 
 import net.nicovrc.dev.Function;
 
+import java.util.Date;
+import java.util.UUID;
+
 public class CacheData {
 
+    private final String cacheId;
+
     private Long CacheDate = null;
-    private boolean isSet = false;
-    private String targetURL = null;
-    private boolean isRedirect = false;
+    private String URL = null;
+    private String OriginURL = null;
+    private String RedirectURL = null;
     private String proxy = null;
     private String title = null;
     private byte[] HLS = null;
-    private byte[] dummyHLS = null;
+    private byte[] Data = null;
     private String CookieText = null;
     private String RefererText = null;
-    private boolean isHLS = true;
+    private String contentType = null;
+
+    private boolean isRange = false;
+    private Long RangeStart = null;
+    private Long RangeEnd = null;
+    private Long RangeLength = null;
+
+    public CacheData() {
+        this.cacheId = UUID.randomUUID().toString() + "_" + new Date().getTime();
+    }
+
+    public String getCacheId() {
+        return cacheId;
+    }
 
     public Long getCacheDate() {
         return CacheDate;
@@ -25,28 +43,32 @@ public class CacheData {
         CacheDate = cacheDate;
     }
 
-    public boolean isSet() {
-        return isSet;
+    public String getURL() {
+        return URL;
     }
 
-    public void setSet(boolean set) {
-        isSet = set;
+    public void setURL(String URL) {
+        this.URL = URL;
     }
 
-    public String getTargetURL() {
-        return targetURL;
+    public String getRedirectURL() {
+        return RedirectURL;
     }
 
-    public void setTargetURL(String targetURL) {
-        this.targetURL = targetURL;
+    public String getOriginURL() {
+        return OriginURL;
+    }
+
+    public void setOriginURL(String OriginURL) {
+        this.OriginURL = OriginURL;
+    }
+
+    public void setRedirectURL(String RedirectURL) {
+        this.RedirectURL = RedirectURL;
     }
 
     public boolean isRedirect() {
-        return isRedirect;
-    }
-
-    public void setRedirect(boolean isRedirect) {
-        this.isRedirect = isRedirect;
+        return RedirectURL != null;
     }
 
     public String getProxy() {
@@ -76,15 +98,12 @@ public class CacheData {
         this.HLS = HLS;
     }
 
-    public byte[] getDummyHLS() {
-        if (dummyHLS == null){
-            return Function.zeroByte;
-        }
-        return dummyHLS;
+    public byte[] getData() {
+        return Data;
     }
 
-    public void setDummyHLS(byte[] dummyHLS) {
-        this.dummyHLS = dummyHLS;
+    public void setData(byte[] data) {
+        this.Data = data;
     }
 
     public String getCookieText() {
@@ -103,11 +122,47 @@ public class CacheData {
         RefererText = refererText;
     }
 
-    public boolean isHLS() {
-        return isHLS;
+    public String getContentType() {
+        return contentType;
     }
 
-    public void setHLSFlag(boolean HLS) {
-        isHLS = HLS;
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public boolean isHLS() {
+        return HLS != null;
+    }
+
+    public boolean isRange() {
+        return isRange;
+    }
+
+    public void setRange(boolean range) {
+        this.isRange = range;
+    }
+
+    public Long getRangeStart() {
+        return RangeStart;
+    }
+
+    public void setRangeStart(Long rangeStart) {
+        this.RangeStart = rangeStart;
+    }
+
+    public Long getRangeEnd() {
+        return RangeEnd;
+    }
+
+    public void setRangeEnd(Long rangeEnd) {
+        this.RangeEnd = rangeEnd;
+    }
+
+    public Long getRangeLength() {
+        return RangeLength;
+    }
+
+    public void setRangeLength(Long rangeLength) {
+        this.RangeLength = rangeLength;
     }
 }
