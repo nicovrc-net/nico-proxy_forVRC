@@ -414,11 +414,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         //}
 
         String hlsText = new String(hls, StandardCharsets.UTF_8);
-        String video = null;
-        String audio = null;
-        long maxVideoBandwith = -1;
-        long maxAudioBandwith = -1;
-        long tempBandwith = -1;
         if (matcher2.find()){
             // ニコ動などは選択できる最高画質/音質のみにする
             hlsText = Function.recreateHLS(hlsText);

@@ -608,15 +608,15 @@ public class Function {
             final boolean iskey = matcher_key.find();
 
             String str = UUID.randomUUID().toString().split("-")[0];
-            String type = "dummy"+str+".ts";
+            String type = "dummy-"+str+".ts";
             if (ism3u8){
-                type = "dummy"+str+".m3u8";
+                type = "dummy-"+str+".m3u8";
             } else if (iscmfv){
-                type = "dummy"+str+".cmfv";
+                type = "dummy-"+str+".cmfv";
             } else if (iscmfa){
-                type = "dummy"+str+".cmfa";
+                type = "dummy-"+str+".cmfa";
             } else if (iskey){
-                type = "dummy"+str+".key";
+                type = "dummy-"+str+".key";
             }
 
             if (matcher.find()){
@@ -675,6 +675,7 @@ public class Function {
 
         String video = "";
         String audio = "";
+        String audioText = "";
 
         long tempBandwith = -1;
         long maxVideoBandwith = -1;
@@ -690,7 +691,7 @@ public class Function {
                 tempBandwith = Long.parseLong(matcher_video_video.group(1));
                 if (maxVideoBandwith <= tempBandwith){
                     maxVideoBandwith = tempBandwith;
-                    video = s + "\n" + split[i + 1];
+                    video = s.replace(matcher_video_video.group(6), "audio") + "\n" + split[i + 1];
                 }
                 i++;
                 continue;
@@ -698,6 +699,7 @@ public class Function {
 
             if (matcher_video_audio.find()){
                 if (matcher_video_audio_bitrate.find()){
+                    audioText = matcher_video_audio_bitrate.group(0);
                     tempBandwith = Long.parseLong(matcher_video_audio_bitrate.group(1));
                     if (maxAudioBandwith <= tempBandwith){
                         maxAudioBandwith = tempBandwith;
@@ -711,8 +713,8 @@ public class Function {
         }
 
         hlsText = "#EXTM3U\n#EXT-X-VERSION:6\n#EXT-X-INDEPENDENT-SEGMENTS\n#audio#\n#video#";
-        hlsText = hlsText.replace("#video#", video.replaceFirst("dummy\\.m3u8", "dummy-video.m3u8"));
-        hlsText = hlsText.replace("#audio#", audio.replaceFirst("dummy\\.m3u8", "dummy-audio.m3u8"));
+        hlsText = hlsText.replace("#video#", video);
+        hlsText = hlsText.replace("#audio#", audio.replace(audioText, "audio"));
 
         return hlsText;
     }
