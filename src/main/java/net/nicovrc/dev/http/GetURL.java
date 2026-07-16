@@ -432,7 +432,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
         // 最後だけダミーURL化する
         String[] split = hlsText.split("\n");
-        split[split.length - 1] = http+httpHostname+"/video/dummy.m3u8?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(hlsOriginUrl, StandardCharsets.UTF_8)+"&dummy=true";
+        split[split.length - 1] = http+httpHostname+"/video/dummy-main.m3u8?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(hlsOriginUrl, StandardCharsets.UTF_8)+"&dummy=true";
 
         for (String s : split){
             sb.append(s).append("\n");
