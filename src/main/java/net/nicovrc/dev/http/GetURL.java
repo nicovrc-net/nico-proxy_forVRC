@@ -425,15 +425,13 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             return hlsText.getBytes(StandardCharsets.UTF_8);
         }
 
-        // 最後だけダミーURL化する
-        String[] split = hlsText.split("\n");
-        split[split.length - 1] = http+httpHostname+"/video/dummy-main.m3u8?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(hlsOriginUrl, StandardCharsets.UTF_8)+"&dummy=true";
+        // VRC向けに必要最小限だけにする
+        String str = "#EXTM3U\n" +
+                "#EXT-X-VERSION:6\n" +
+                "#EXT-X-INDEPENDENT-SEGMENTS\n" +
+                http+httpHostname+"/video/dummy-main.m3u8?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(hlsOriginUrl, StandardCharsets.UTF_8)+"&dummy=true";
 
-        for (String s : split){
-            sb.append(s).append("\n");
-        }
-
-        hls = sb.toString().getBytes(StandardCharsets.UTF_8);
+        hls = str.getBytes(StandardCharsets.UTF_8);
         //System.out.print(new String(hls, StandardCharsets.UTF_8));
         return hls;
     }
