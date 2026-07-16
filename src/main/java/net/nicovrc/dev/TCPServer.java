@@ -23,7 +23,6 @@ public class TCPServer extends Thread {
     private final HttpClient client;
 
     private final GetURL getURL = new GetURL();
-    //private final GetVideo_old getVideoOld = new GetVideo_old();
     private final GetVideo getVideo = new GetVideo();
 
     private final static Pattern matcher_uri = Pattern.compile("(url=|vi=|dummy=|dummy\\.m3u8|/proxy)");
@@ -32,13 +31,9 @@ public class TCPServer extends Thread {
 
 
     public TCPServer(HttpClient client){
-
-
         this.client = client;
         getURL.setHTTPClient(client);
         getURL.setProxy(null);
-        //getVideoOld.setHTTPClient(client);
-        //getVideoOld.setProxy(null);
         getVideo.setHTTPClient(client);
         getVideo.setProxy(null);
 
@@ -129,7 +124,6 @@ public class TCPServer extends Thread {
                             final Matcher matcher = matcher_uri.matcher(URI);
                             final boolean ApiMatchFlag = URI.startsWith("/api/");
                             final boolean UrlMatchFlag = matcher.find();
-                            //final boolean VideoMatchFlag = URI.startsWith("/https");
                             final boolean VideoMatchFlag = URI.startsWith("/video");
 
                             Matcher matcher_range1 = matcher_http_range1.matcher(httpRequest);

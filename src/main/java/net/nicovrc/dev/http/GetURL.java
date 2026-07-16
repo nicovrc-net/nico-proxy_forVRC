@@ -33,7 +33,20 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     //private final Pattern matcher_dummyPrintParameter = Pattern.compile("dummy=true");
     private final Pattern matcher_VRCStringUA = Pattern.compile("UnityPlayer/(.+) \\(UnityWebRequest/(.+), libcurl/(.+)\\)");
 
-    private final Pattern matcher_browser = Pattern.compile("(([fF])irefox|([oO])pera|([sS])ec-([cC])h-([uU])a)");
+    private final Pattern matcher_browser = Pattern.compile("(([fF])irefox|([oO])pera|([sS])ec-([cC])h-([uU])a|[Ss]fari)");
+    private final Pattern matcher_ffmpegUA = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
+    private final Pattern matcher_niconico = Pattern.compile("(\\.nicovideo\\.jp|nico\\.ms)");
+
+    private final Pattern matcher_nico_hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
+    private final Pattern matcher_nico_hls_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
+    private final Pattern matcher_nico_hls_audio_bitrate = Pattern.compile("audio-aac-(\\d+)kbps");
+    private final Pattern matcher_nico_hls_live_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
+    private final Pattern matcher_nico_hls_live_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
+
+    private final Pattern matcher_video_tiktok = Pattern.compile("tiktok\\.com");
+    private final Pattern matcher_video_bilicom = Pattern.compile("bilibili\\.com");
+    private final Pattern matcher_http_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
+    private final Pattern matcher_http_range2 = Pattern.compile("[r|R]ange: bytes=(\\d+)-");
 
     @Override
     public void run() {
@@ -385,27 +398,89 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
         final byte[] hls_bytes = cache.getHLS();
 
-        if (isDummyPrint && !isVLC && !isFFmpeg && !isAVPro){
-            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, null, createDummyHLS(hls_bytes), null));
+        if (!isVLC && !isAVPro){
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, null, createDummyHLS(hls_bytes, cache.getCacheId(), cache.getOriginURL()), null));
             return;
         }
 
         Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, null, hls_bytes, null));
     }
 
-    private byte[] createDummyHLS(byte[] hls){
-        Matcher matcher = matcher_browser.matcher(httpRequest);
-        if (matcher.find()){
-            return hls;
+    private byte[] createDummyHLS(byte[] hls, String cacheId, String hlsOriginUrl){
+
+        final Matcher matcher = matcher_browser.matcher(httpRequest);
+        final Matcher matcher1 = matcher_ffmpegUA.matcher(httpRequest);
+        // System.out.println("URL: "+URL);
+        final Matcher matcher2 = matcher_niconico.matcher(URL);
+        final StringBuffer sb = new StringBuffer();
+
+        //if (matcher.find()){
+        //    // ブラウザからはそのままにする
+        //    return hls;
+        //}
+
+        String hlsText = new String(hls, StandardCharsets.UTF_8);
+        String video = null;
+        String audio = null;
+        long maxVideoBandwith = -1;
+        long maxAudioBandwith = -1;
+        long tempBandwith = -1;
+        if (matcher2.find()){
+            // ニコ動などは選択できる最高画質/音質のみにする
+            String[] split = hlsText.split("\n");
+            int i = 0;
+            for (String s : split){
+                Matcher matcher_video_video = matcher_nico_hls_video.matcher(s);
+                Matcher matcher_video_audio = matcher_nico_hls_audio.matcher(s);
+                Matcher matcher_video_audio_bitrate = matcher_nico_hls_audio_bitrate.matcher(s);
+                if (matcher_video_video.find()){
+                    tempBandwith = Long.parseLong(matcher_video_video.group(1));
+                    if (maxVideoBandwith <= tempBandwith){
+                        maxVideoBandwith = tempBandwith;
+                        video = s + "\n" + split[i + 1];
+                    }
+                    i++;
+                    continue;
+                }
+
+                if (matcher_video_audio.find()){
+                    if (matcher_video_audio_bitrate.find()){
+                        tempBandwith = Long.parseLong(matcher_video_audio_bitrate.group(1));
+                        if (maxAudioBandwith <= tempBandwith){
+                            maxAudioBandwith = tempBandwith;
+                            audio = s;
+                        }
+                    }
+                    i++;
+                    continue;
+                }
+                i++;
+            }
+
+            hlsText = "#EXTM3U\n#EXT-X-VERSION:6\n#EXT-X-INDEPENDENT-SEGMENTS\n#audio#\n#video#";
+
         }
+
+        if (matcher1.find()){
+            // ffmpegは一番最後はdummy化しない
+            hlsText = hlsText.replace("#video#", video != null ? video : "");
+            hlsText = hlsText.replace("#audio#", audio != null ? audio : "");
+            System.out.println(hlsText);
+            return hlsText.getBytes(StandardCharsets.UTF_8);
+        }
+
+        // 最後だけダミーURL化する
+        String[] split = hlsText.split("\n");
+        split[split.length - 1] = "https://"+httpHostname+"?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(hlsOriginUrl, StandardCharsets.UTF_8);
+
+        for (String s : split){
+            sb.append(s).append("\n");
+        }
+
+        hls = sb.toString().getBytes(StandardCharsets.UTF_8);
         return hls;
     }
 
-
-
-
-    private final Pattern matcher_video_tiktok = Pattern.compile("tiktok\\.com");
-    private final Pattern matcher_video_bilicom = Pattern.compile("bilibili\\.com");
 
     private byte[] getHLSData(String url, String cookieText, String refererText, String cacheId) throws Exception {
         byte[] hls_data = null;
@@ -474,8 +549,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         return hls_data;
     }
 
-    private final Pattern matcher_http_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
-    private final Pattern matcher_http_range2 = Pattern.compile("[r|R]ange: bytes=(\\d+)-");
 
     private VideoData getVideoData(String url, String cookieText, String refererText) throws Exception {
 
