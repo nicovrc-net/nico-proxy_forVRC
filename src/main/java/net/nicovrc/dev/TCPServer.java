@@ -13,6 +13,7 @@ import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Scanner;
 import java.util.TimerTask;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -76,7 +77,21 @@ public class TCPServer extends Thread {
     public void run() {
         System.out.println("[Info] TCP Port " + Function.config_httpPort + "で 処理受付用HTTPサーバー待機開始");
         System.out.println("[Info] VRC動画プレーヤーからはhttp://(サーバーIP):"+Function.config_httpPort+"/?url=(URL)");
+        new Nio2EchoServer(client).start(Function.config_httpPort);
 
+        while (true) {
+            if (Function.isFoundFile("./stop_lock.txt")){
+                Function.deleteFile("./stop_lock.txt");
+                break;
+            }
+            try {
+                Thread.sleep(100L);
+            } catch (Exception ignored) {
+                //ignored.printStackTrace();
+            }
+        }
+
+        /*
         try (AsynchronousServerSocketChannel server = AsynchronousServerSocketChannel.open()
                 .bind(new InetSocketAddress(Function.config_httpPort))) {
             server.accept(null, new CompletionHandler<AsynchronousSocketChannel, Void>() {
@@ -222,7 +237,7 @@ public class TCPServer extends Thread {
             //Thread.currentThread().join();
         } catch (Exception e) {
             e.printStackTrace();
-        }
+        }*/
 
         Function.checkTimer.cancel();
     }
