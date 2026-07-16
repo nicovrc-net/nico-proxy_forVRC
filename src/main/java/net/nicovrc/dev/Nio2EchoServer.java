@@ -101,12 +101,13 @@ public class Nio2EchoServer {
                 Function.sendHttpData(ch, new HttpHeader(httpVersion, 405, Function.contentType_textPlain, null, "*", Function.content_MethodNotAllowed, null));
                 return;
             }
+            System.out.println("debug0");
 
             final String URI = Function.getURI(httpRequest);
             if (URI == null) {
                 //System.out.println("[Debug] HTTPRequest送信");
                 Function.sendHttpData(ch, new HttpHeader(httpVersion, 502, Function.contentType_textPlain, null, "*", Function.content_BadGateway, null));
-                System.out.println(httpRequest);
+                //System.out.println(httpRequest);
                 return;
             }
 
