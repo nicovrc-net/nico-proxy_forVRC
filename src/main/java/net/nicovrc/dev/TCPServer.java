@@ -171,9 +171,11 @@ public class TCPServer extends Thread {
                             if (UrlMatchFlag || RangeVideoFlag || RangeVideoFullFlag) {
                                 boolean b1 = matcher_uri_vi.matcher(URI).find();
                                 if (URI.startsWith("/proxy")) {
-                                    getURL.setURL(URI.replaceFirst("/proxy/\\?", ""));
+                                    getURL.setURL(URI.replaceFirst("/proxy/\\?", "/?url="));
                                 } else if (b1) {
                                     getURL.setURL(URI.replaceFirst("vi=", "url="));
+                                } else {
+                                    getURL.setURL(URI);
                                 }
                                 getURL.setHTTPRequest(httpRequest);
 
