@@ -607,15 +607,16 @@ public class Function {
             final boolean iscmfa = matcher_cmfa.find();
             final boolean iskey = matcher_key.find();
 
-            String type = "dummy.ts";
+            String str = UUID.randomUUID().toString().split("-")[0];
+            String type = "dummy"+str+".ts";
             if (ism3u8){
-                type = "dummy.m3u8";
+                type = "dummy"+str+".m3u8";
             } else if (iscmfv){
-                type = "dummy.cmfv";
+                type = "dummy"+str+".cmfv";
             } else if (iscmfa){
-                type = "dummy.cmfa";
+                type = "dummy"+str+".cmfa";
             } else if (iskey){
-                type = "dummy.key";
+                type = "dummy"+str+".key";
             }
 
             if (matcher.find()){
@@ -658,7 +659,7 @@ public class Function {
                     tempHost.append(split[i]).append("/");
                 }
                 line = line.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", tempHost.toString());
-                sb.append(http).append(httpHostname).append("/video/").append(ism3u8 ? "dummy.m3u8" : "").append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
+                sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(line, StandardCharsets.UTF_8)).append("\n");
                 continue;
             }
 
