@@ -293,35 +293,35 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             if (str.equals("内部エラー")){
                 if (isTitle){
-                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, str.getBytes(StandardCharsets.UTF_8), null));
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, "*", str.getBytes(StandardCharsets.UTF_8), null));
                 } else {
-                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_others, null));
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, "*", Function.content_errorVideo_others, null));
                 }
                 return;
             }
 
             if (str.startsWith("エラー:")){
                 if (isTitle){
-                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, str.getBytes(StandardCharsets.UTF_8), null));
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, "*", str.getBytes(StandardCharsets.UTF_8), null));
                 } else {
-                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.getErrorMessageVideo(client, str.replaceFirst("エラー: ", "")), null));
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, "*", Function.getErrorMessageVideo(client, str.replaceFirst("エラー: ", "")), null));
                 }
                 return;
             }
 
             if (str.equals("対応していないサイト")){
                 if (isTitle){
-                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, str.getBytes(StandardCharsets.UTF_8), null));
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, "*", str.getBytes(StandardCharsets.UTF_8), null));
                 } else {
-                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_site, null));
+                    Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, "*", Function.content_errorVideo_site, null));
                 }
             }
 
         } catch (Exception e){
             if (isTitle){
-                Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, "内部エラー".getBytes(StandardCharsets.UTF_8), null));
+                Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, "*", "内部エラー".getBytes(StandardCharsets.UTF_8), null));
             } else {
-                Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_others, null));
+                Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, "*", Function.content_errorVideo_others, null));
             }
         }
     }
@@ -371,33 +371,33 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         }
 
         if (isTitle) {
-            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, null, cache.getTitle().getBytes(StandardCharsets.UTF_8), null));
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_textPlain, null, "*", cache.getTitle().getBytes(StandardCharsets.UTF_8), null));
             return;
         }
 
         if (cache.isRedirect()){
-            Function.sendHttpData(ch, new HttpHeader(httpVersion, 302, null, null, null, null, cache.getRedirectURL()));
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 302, null, null, "*", null, cache.getRedirectURL()));
             return;
         }
 
         if (cache.isRange()){
-            Function.sendHttpData(ch, new HttpHeader(httpVersion, 206, cache.getContentType(), null, null, cache.getData(), null, 0, cache.getRangeEnd(), cache.getRangeLength()));
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 206, cache.getContentType(), null, "*", cache.getData(), null, 0, cache.getRangeEnd(), cache.getRangeLength()));
             return;
         }
 
         if (!cache.isHLS()){
-            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, null, cache.getData(), null));
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, "*", cache.getData(), null));
             return;
         }
 
         final byte[] hls_bytes = cache.getHLS();
 
         if (!isVLC && !isAVPro){
-            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, null, createDummyHLS(hls_bytes, cache.getCacheId(), cache.getOriginURL()), null));
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, "*", createDummyHLS(hls_bytes, cache.getCacheId(), cache.getOriginURL()), null));
             return;
         }
 
-        Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, null, hls_bytes, null));
+        Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, "*", hls_bytes, null));
     }
 
     private byte[] createDummyHLS(byte[] hls, String cacheId, String hlsOriginUrl){
