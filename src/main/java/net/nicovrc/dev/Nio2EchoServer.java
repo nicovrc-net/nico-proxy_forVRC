@@ -106,7 +106,7 @@ public class Nio2EchoServer {
                 Function.sendHttpData(ch, new HttpHeader(httpVersion, 405, Function.contentType_textPlain, null, "*", Function.content_MethodNotAllowed, null));
                 return;
             }
-            System.out.println("debug0");
+            //System.out.println("debug0");
 
             final String URI = Function.getURI(httpRequest);
             if (URI == null) {
@@ -153,7 +153,7 @@ public class Nio2EchoServer {
             }
 
             if (VideoMatchFlag || (RangeVideoFlag && !matcher_range1.group(1).equals("0"))) {
-                System.out.println("debug1");
+                //System.out.println("debug1");
                 getVideo.setHTTPRequest(httpRequest);
                 getVideo.setURL(URI);
                 getVideo.setHTTPSocket(ch);
@@ -164,7 +164,7 @@ public class Nio2EchoServer {
             }
 
             if (UrlMatchFlag || RangeVideoFlag || RangeVideoFullFlag) {
-                System.out.println("debug2");
+                //System.out.println("debug2");
                 getURL.setHTTPRequest(httpRequest);
                 getURL.setURL(URI);
                 getURL.setHTTPSocket(ch);
