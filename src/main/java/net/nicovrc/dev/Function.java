@@ -699,11 +699,11 @@ public class Function {
 
             if (matcher_video_audio.find()){
                 if (matcher_video_audio_bitrate.find()){
-                    audioText = matcher_video_audio_bitrate.group(0);
                     tempBandwith = Long.parseLong(matcher_video_audio_bitrate.group(1));
                     if (maxAudioBandwith <= tempBandwith){
                         maxAudioBandwith = tempBandwith;
                         audio = s;
+                        audioText = matcher_video_audio_bitrate.group(0);
                     }
                 }
                 i++;
