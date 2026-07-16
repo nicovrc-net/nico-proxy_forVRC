@@ -26,6 +26,7 @@ public class TCPServer extends Thread {
     private final GetVideo getVideo = new GetVideo();
 
     private final static Pattern matcher_uri = Pattern.compile("(url=|vi=|dummy=|dummy\\.m3u8|/proxy)");
+    private final static Pattern matcher_uri_vi = Pattern.compile("vi=");
     private final static Pattern matcher_http_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
     private final static Pattern matcher_http_range2 = Pattern.compile("[r|R]ange: bytes=(\\d+)-");
 
@@ -168,8 +169,14 @@ public class TCPServer extends Thread {
                             }
 
                             if (UrlMatchFlag || RangeVideoFlag || RangeVideoFullFlag) {
+                                boolean b1 = matcher_uri_vi.matcher(URI).find();
+                                if (URI.startsWith("/proxy")) {
+                                    getURL.setURL(URI.replaceFirst("/proxy/\\?", ""));
+                                } else if (b1) {
+                                    getURL.setURL(URI.replaceFirst("vi=", "url="));
+                                }
                                 getURL.setHTTPRequest(httpRequest);
-                                getURL.setURL(URI);
+
                                 getURL.setHTTPSocket(ch);
 
                                 getURL.run();
