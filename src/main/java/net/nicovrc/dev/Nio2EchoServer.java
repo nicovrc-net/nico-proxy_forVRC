@@ -158,16 +158,8 @@ public class Nio2EchoServer {
             }
 
             if (UrlMatchFlag || RangeVideoFlag || RangeVideoFullFlag) {
-                boolean b1 = matcher_uri_vi.matcher(URI).find();
-                if (URI.startsWith("/proxy")) {
-                    getURL.setURL(URI.replaceFirst("/proxy/\\?", "/?url="));
-                } else if (b1) {
-                    getURL.setURL(URI.replaceFirst("vi=", "url="));
-                } else {
-                    getURL.setURL(URI);
-                }
                 getURL.setHTTPRequest(httpRequest);
-
+                getURL.setURL(URI);
                 getURL.setHTTPSocket(ch);
 
                 getURL.run();
