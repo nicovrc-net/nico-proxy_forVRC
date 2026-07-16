@@ -177,7 +177,7 @@ public class Nio2EchoServer {
 
             Function.sendHttpData(ch, new HttpHeader(httpVersion, 404, Function.contentType_textPlain, null, "*", Function.content_NotFound, null));
 
-            ctx.asyncSocketChannel.write(ctx.buffer, ctx, responseHandler);
+            //ctx.asyncSocketChannel.write(ctx.buffer, ctx, responseHandler);
         }
 
         @Override
