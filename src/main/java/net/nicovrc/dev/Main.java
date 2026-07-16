@@ -466,17 +466,23 @@ NicoNico_user_session: ""
             }
 
             // HTTP受付
-            TCPServer tcpServer = new TCPServer(client);
-            tcpServer.start();
-            try {
-                tcpServer.join();
-            } catch (Exception e){
-                e.printStackTrace();
+            new TCPServer(client).start(Function.config_httpPort);
+            while (true) {
+                if (Function.isFoundFile("./stop_lock.txt")){
+                    Function.deleteFile("./stop_lock.txt");
+                    break;
+                }
+                try {
+                    Thread.sleep(100L);
+                } catch (Exception ignored) {
+                    //ignored.printStackTrace();
+                }
             }
 
             // 終了処理
             //proxyCheckTimer.cancel();
             Function.mainTimer.cancel();
+            Function.checkTimer.cancel();
             WriteLog(jedis);
             SendWebhook(client);
             jedis.close();
