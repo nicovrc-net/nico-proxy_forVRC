@@ -203,8 +203,6 @@ public class TCPServer extends Thread {
                         getURL.setURL(URI.replaceFirst("/proxy/\\?", ""));
                     } else if (b1) {
                         getURL.setURL(URI.replaceFirst("vi=", "url="));
-                    } else {
-                        getURL.setURL(URI);
                     }
                     getURL.setHTTPRequest(httpRequest);
 
