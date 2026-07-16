@@ -713,8 +713,8 @@ public class Function {
         }
 
         hlsText = "#EXTM3U\n#EXT-X-VERSION:6\n#EXT-X-INDEPENDENT-SEGMENTS\n#audio#\n#video#";
-        hlsText = hlsText.replace("#video#", video);
-        hlsText = hlsText.replace("#audio#", audio.replace(audioText, "audio"));
+        hlsText = hlsText.replace("#video#", video.replace("audio", audioText));
+        hlsText = hlsText.replace("#audio#", audio);
 
         return hlsText;
     }
