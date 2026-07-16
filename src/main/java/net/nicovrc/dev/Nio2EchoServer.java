@@ -23,9 +23,6 @@ public class Nio2EchoServer {
     private final AsynchronousServerSocketChannel asyncChannel;
     private final HttpClient client;
 
-    private final GetURL getURL = new GetURL();
-    private final GetVideo getVideo = new GetVideo();
-
     private final static Pattern matcher_uri = Pattern.compile("(url=|vi=|dummy=|dummy\\.m3u8|/proxy)");
     private final static Pattern matcher_http_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
     private final static Pattern matcher_http_range2 = Pattern.compile("[r|R]ange: bytes=(\\d+)-");
@@ -35,11 +32,6 @@ public class Nio2EchoServer {
         try {
             this.asyncChannel = AsynchronousServerSocketChannel.open();
             this.client = client;
-
-            getURL.setHTTPClient(client);
-            getURL.setProxy(null);
-            getVideo.setHTTPClient(client);
-            getVideo.setProxy(null);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -152,15 +144,24 @@ public class Nio2EchoServer {
                 return;
             }
 
-            System.out.println(URI);
+            //System.out.println(URI);
+            final GetURL getURL = new GetURL();
+            final GetVideo getVideo = new GetVideo();
+            getURL.setHTTPClient(client);
+            getURL.setProxy(null);
+            getVideo.setHTTPClient(client);
+            getVideo.setProxy(null);
+
             if (VideoMatchFlag || (RangeVideoFlag && !matcher_range1.group(1).equals("0"))) {
                 //System.out.println("debug1");
                 getVideo.setHTTPRequest(httpRequest);
                 getVideo.setURL(URI);
                 getVideo.setHTTPSocket(ch);
 
-                getVideo.run();
-                ctx.close();
+                Thread.ofVirtual().start(()->{
+                    getVideo.run();
+                    ctx.close();
+                });
                 return;
             }
 
@@ -170,8 +171,10 @@ public class Nio2EchoServer {
                 getURL.setURL(URI);
                 getURL.setHTTPSocket(ch);
 
-                getURL.run();
-                ctx.close();
+                Thread.ofVirtual().start(()->{
+                    getURL.run();
+                    ctx.close();
+                });
                 return;
             }
 
