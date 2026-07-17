@@ -35,7 +35,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.5.0-beta.3";
+    public static final String Version = "3.5.0-beta.4";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -59,6 +59,7 @@ public class Function {
     private static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, WebhookData> WebhookData = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, Date> CacheWaitList = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<String, ConcurrentHashMap<String, String>> VideoDataList = new ConcurrentHashMap<>();
 
     public static final String contentType_textPlain = "text/plain; charset=utf-8";
     public static final String contentType_json = "application/json; charset=utf-8";
@@ -74,6 +75,8 @@ public class Function {
     public static byte[] content_errorVideo_others = null;
     public static byte[] content_errorVideo_site = null;
     public static byte[] content_errorVideo_endLive = null;
+
+    public final static Pattern matcher_abema = Pattern.compile("abema");
 
     private final static Pattern matcher_file_m3u8 = Pattern.compile("m3u8");
     private final static Pattern matcher_file_cmfa = Pattern.compile("cmfa");
@@ -117,6 +120,8 @@ public class Function {
     private static final Pattern matcher_nico_hls_audio_bitrate = Pattern.compile("audio-aac-(\\d+)kbps");
     private static final Pattern matcher_nico_hls_live_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
     private static final Pattern matcher_nico_hls_live_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
+
+    private static final Pattern matcher_abemahlsHost = Pattern.compile("//(.*)abematv\\.akamaized\\.net");
 
     public static boolean isFoundFile(String filePass) {
         Path path = Paths.get(filePass);
@@ -717,5 +722,73 @@ public class Function {
         hlsText = hlsText.replace("#audio#", audio);
 
         return hlsText;
+    }
+
+
+    public static String fixAbemaHLS(String hlsText, String originURL, String http, String httpHostname, String cacheId){
+        /*if (Function.VideoDataList.get(cacheId) == null) {
+            ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
+            Function.VideoDataList.put(cacheId, map);
+        }*/
+
+        String[] split = hlsText.split("\n");
+        StringBuffer sb = new StringBuffer();
+
+        for (String s : split) {
+            final Matcher matcher_m3u8 = matcher_file_m3u8.matcher(s);
+            final Matcher matcher_cmfv = matcher_file_cmfv.matcher(s);
+            final Matcher matcher_cmfa = matcher_file_cmfa.matcher(s);
+            final Matcher matcher_key = matcher_file_key.matcher(s);
+
+            final boolean ism3u8 = matcher_m3u8.find();
+            final boolean iscmfv = matcher_cmfv.find();
+            final boolean iscmfa = matcher_cmfa.find();
+            final boolean iskey = matcher_key.find();
+
+            final Matcher matcher = matcher_abemahlsHost.matcher(originURL);
+
+            String[] uuid = UUID.randomUUID().toString().split("-");
+            String str = uuid[0]+uuid[1];
+            String type = str+".ts";
+            if (ism3u8){
+                type = str+".m3u8";
+            } else if (iscmfv){
+                type = str+".cmfv";
+            } else if (iscmfa){
+                type = str+".cmfa";
+            } else if (iskey){
+                type = str+".key";
+            }
+
+            if (s.startsWith("#EXT-X-KEY:METHOD=AES-128")){
+                sb.append(s.replaceFirst("\\.ts", ".key")).append('\n');
+                continue;
+            }
+
+            if (s.startsWith("http://") || s.startsWith("https://")){
+                sb.append(s).append("\n");
+                continue;
+            }
+
+            if (!s.startsWith("180/") && !s.startsWith("240/") && !s.startsWith("/preview") && !s.startsWith("/tsad") ){
+                sb.append(s).append("\n");
+                continue;
+            }
+
+            if (s.startsWith("/preview") && matcher.find()){
+                sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode("https://"+matcher.group(1)+"abematv.akamaized.net"+s, StandardCharsets.UTF_8)).append("\n");
+                continue;
+            }
+
+            if (matcher.find()) {
+                sb.append(http).append(httpHostname).append("/video/").append(type).append("?cacheId=").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("&url=").append(URLEncoder.encode(originURL.replaceFirst("playlist\\.m3u8", "")+s, StandardCharsets.UTF_8)).append("\n");
+                continue;
+            }
+
+            sb.append(s).append("\n");
+        }
+        //System.out.println(sb.toString());
+
+        return sb.toString();
     }
 }

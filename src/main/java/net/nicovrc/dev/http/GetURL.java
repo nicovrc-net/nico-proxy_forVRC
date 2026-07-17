@@ -17,6 +17,7 @@ import java.net.http.HttpResponse;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -392,7 +393,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
         final byte[] hls_bytes = cache.getHLS();
 
+        Matcher matcher = Function.matcher_abema.matcher(cache.getOriginURL());
+        if (matcher.find()) {
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, "*", Function.fixAbemaHLS(new String(hls_bytes, StandardCharsets.UTF_8), cache.getOriginURL(), http, httpHostname, cache.getCacheId()).getBytes(StandardCharsets.UTF_8), null));
+            return;
+        }
+
         if (!isVLC && !isAVPro){
+
             Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, "*", createDummyHLS(hls_bytes, cache.getCacheId(), cache.getOriginURL()), null));
             return;
         }

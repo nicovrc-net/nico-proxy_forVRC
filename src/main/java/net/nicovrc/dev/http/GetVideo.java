@@ -1,6 +1,7 @@
 package net.nicovrc.dev.http;
 
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.HttpHeader;
 
 import java.net.URI;
@@ -83,6 +84,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
         final String[] tempText = {null, null};
         final Long[] tempLong = {null, null, null};
 
+        final CacheData[] temp = {null};
+
         Function.getCacheList().forEach(((url, cache) -> {
             if (cache.getCacheId().equals(cacherId)){
                 tempText[0] = cache.getCookieText();
@@ -92,8 +95,16 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     tempLong[1] = cache.getRangeEnd();
                     tempLong[2] = cache.getRangeLength();
                 }
+                temp[0] = cache;
             }
         }));
+
+        final CacheData cache = temp[0];
+
+        if (cache == null){
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_others, null));
+            return;
+        }
 
         if (matcher_httpRange.find()){
             String start = matcher_httpRange.group(1);
@@ -113,6 +124,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
         //System.out.println("cookieText:"+cookieText);
         //System.out.println("refererText:"+refererText);
+        System.out.println("accessUrl:" +  accessUrl);
 
         // 動画ファイル取得
         try {
@@ -212,6 +224,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                 Matcher matcher = Function.matcher_niconico.matcher(request.uri().getHost());
                 Matcher matcher2 = matcher_hlsSelect.matcher(httpRequest);
+                Matcher matcher3 = Function.matcher_abema.matcher(cache.getOriginURL());
                 if (matcher.find() && matcher2.find()) {
                     // VRC かつ ニコ動などは選択できる最高画質/音質のみにする
                     //System.out.println(new String(hls, StandardCharsets.UTF_8));
@@ -219,6 +232,10 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     //System.out.println("Access : " + accessUrl);
                     hls = Function.recreateHLS(new String(hls, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8);
                     //System.out.println(new  String(hls, StandardCharsets.UTF_8));
+                }
+                if (matcher3.find()) {
+                    // AbemaはHLSの再処理が必要
+                    hls = Function.fixAbemaHLS(new String(hls, StandardCharsets.UTF_8), cache.getOriginURL(), http, httpHostname, cacherId).getBytes(StandardCharsets.UTF_8);
                 }
 
                 Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, hls, null));
