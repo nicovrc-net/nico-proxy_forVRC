@@ -648,9 +648,9 @@ NicoNico_user_session: ""
                                     .POST(HttpRequest.BodyPublishers.ofString(Function.gson.toJson(webhookData)))
                                     .build();
                             HttpResponse<String> send = client.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
-                            send = null;
                             request = null;
                             //System.out.println(send.body());
+                            send = null;
 
                             count[0]++;
                             embeds = null;

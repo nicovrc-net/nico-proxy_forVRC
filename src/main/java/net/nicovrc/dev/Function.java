@@ -196,7 +196,7 @@ public class Function {
     }
 
     public static String getHTTPRequest(ByteBuffer buffer) {
-        return new String(buffer.array(), StandardCharsets.UTF_8);
+        return new String(buffer.array(), StandardCharsets.UTF_8).split("\\u0000\\u0000")[0];
     }
 
     public static byte[] createSendHttpData(HttpHeader header, byte[] body){
