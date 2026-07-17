@@ -697,6 +697,7 @@ public class Function {
         long tempBandwith = -1;
         long maxVideoBandwith = -1;
         long maxAudioBandwith = -1;
+        long maxLiveVideoBandwith = -1;
 
         int i = 0;
 
@@ -704,6 +705,8 @@ public class Function {
             Matcher matcher_video_video = matcher_nico_hls_video.matcher(s);
             Matcher matcher_video_audio = matcher_nico_hls_audio.matcher(s);
             Matcher matcher_video_audio_bitrate = matcher_nico_hls_audio_bitrate.matcher(s);
+            Matcher matcher_live_video = matcher_nico_hls_live_video.matcher(s);
+
             if (matcher_video_video.find()){
                 tempBandwith = Long.parseLong(matcher_video_video.group(1));
                 if (maxVideoBandwith <= tempBandwith){
@@ -722,6 +725,16 @@ public class Function {
                         audio = s;
                         audioText = matcher_video_audio_bitrate.group(0);
                     }
+                }
+                i++;
+                continue;
+            }
+
+            if (matcher_live_video.find()){
+                tempBandwith = Long.parseLong(matcher_video_video.group(1));
+                if (maxLiveVideoBandwith <= tempBandwith){
+                    maxLiveVideoBandwith = tempBandwith;
+                    video = s.replace(matcher_live_video.group(6), "audio") + "\n" + split[i + 1];
                 }
                 i++;
                 continue;
