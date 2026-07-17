@@ -255,6 +255,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         // 送信
         OutputVideoData(false, isDummyPrint, isTitle, data, httpVersion, isVLC, isFFmpeg, isAVPro);
         Function.addCache(URL, data);
+        Function.CacheIDDataList.put(data.getCacheId(), URL);
         Function.CacheWaitList.remove(URL);
 
     }
@@ -392,6 +393,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         }
 
         final byte[] hls_bytes = cache.getHLS();
+        if (Function.VideoDataList.get(cache.getCacheId()) == null) {
+            ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
+            Function.VideoDataList.put(cache.getCacheId(), map);
+        }
 
         Matcher matcher = Function.matcher_abema.matcher(cache.getOriginURL());
         if (matcher.find()) {
@@ -416,10 +421,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         final Matcher matcher2 = matcher_niconico.matcher(URL);
         final StringBuffer sb = new StringBuffer();
 
-        //if (matcher.find()){
-        //    // ブラウザからはそのままにする
-        //    return hls;
-        //}
+        if (matcher.find()){
+            // ブラウザからはそのままにする
+            return hls;
+        }
 
         String hlsText = new String(hls, StandardCharsets.UTF_8);
         if (matcher2.find()){
@@ -433,11 +438,20 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             return hlsText.getBytes(StandardCharsets.UTF_8);
         }
 
+        if (Function.VideoDataList.get(cacheId) == null) {
+            ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
+            Function.VideoDataList.put(cacheId, map);
+        }
+
+        String[] split = UUID.randomUUID().toString().split("-");
+        String videoId = split[0]+split[1];
+        Function.VideoDataList.get(cacheId).put(videoId, hlsOriginUrl);
+
         // VRC向けに必要最小限だけにする
         String str = "#EXTM3U\n" +
                 "#EXT-X-VERSION:6\n" +
                 "#EXT-X-INDEPENDENT-SEGMENTS\n" +
-                http+httpHostname+"/video/dummy-main.m3u8?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(hlsOriginUrl, StandardCharsets.UTF_8)+"&dummy=true";
+                http+httpHostname+"/video/"+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"/"+videoId+".m3u8";
 
         hls = str.getBytes(StandardCharsets.UTF_8);
         //System.out.print(new String(hls, StandardCharsets.UTF_8));
