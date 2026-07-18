@@ -223,7 +223,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                 if (matcher4.find() && matcher5.find()) {
                     temp = temp.replaceAll(matcher5.group(0), ",RESOLUTION=");
-                    hls = temp.getBytes(StandardCharsets.UTF_8);
+                    //hls = temp.getBytes(StandardCharsets.UTF_8);
                 }
 
                 Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, hls, null));
