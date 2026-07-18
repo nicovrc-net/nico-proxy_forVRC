@@ -416,6 +416,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         // System.out.println("URL: "+URL);
         final Matcher matcher2 = matcher_niconico.matcher(URL);
 
+        String[] split = UUID.randomUUID().toString().split("-");
+        String videoId = split[0]+split[1];
+        Function.addVideoIDList(videoId, hlsOriginUrl);
+
         if (matcher.find()){
             // ブラウザからはそのままにする
             return hls;
@@ -432,10 +436,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             //System.out.println(hlsText);
             return hlsText.getBytes(StandardCharsets.UTF_8);
         }
-
-        String[] split = UUID.randomUUID().toString().split("-");
-        String videoId = split[0]+split[1];
-        Function.addVideoIDList(videoId, hlsOriginUrl);
 
         // VRC向けに必要最小限だけにする
         String str = "#EXTM3U\n" +
