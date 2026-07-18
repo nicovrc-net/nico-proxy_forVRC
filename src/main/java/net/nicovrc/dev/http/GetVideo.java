@@ -197,7 +197,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 Matcher matcher2 = matcher_dummyHLS.matcher(httpRequest);
                 Matcher matcher3 = Function.matcher_abema.matcher(cache.getOriginURL());
                 Matcher matcher4 = Function.matcher_AVProMobile.matcher(httpRequest);
-                if (matcher.find() && matcher2.find()){
+                if (matcher.find() ){
                     // VRC かつ ニコ動などは選択できる最高画質/音質のみにする
                     //System.out.println(new String(hls, StandardCharsets.UTF_8));
                     //System.out.println("CacheID : " + cacherId);
