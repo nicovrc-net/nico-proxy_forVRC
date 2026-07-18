@@ -105,6 +105,7 @@ public class Function {
     public static final Pattern matcher_niconico = Pattern.compile("nicovideo\\.jp");
     public static final Pattern matcher_VLC = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
     public static final Pattern matcher_AVPro = Pattern.compile("(NSPlayer|AVPro|AppleCoreMedia)");
+    public static final Pattern matcher_AVProMobile = Pattern.compile("AVProMobileVideo");
     public static final Pattern matcher_FFMpeg = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
 
     private static final Pattern matcher_hlsURI = Pattern.compile("(,|:)URI=\"(.+)\"");
@@ -678,7 +679,7 @@ public class Function {
 
     }
 
-    public static String recreateHLS(String hlsText){
+    public static String recreateHLS(String hlsText, boolean isAVProMobile){
         String[] split = hlsText.split("\n");
 
         String video = "";
@@ -736,6 +737,10 @@ public class Function {
         hlsText = "#EXTM3U\n#EXT-X-VERSION:6\n#EXT-X-INDEPENDENT-SEGMENTS\n#audio#\n#video#";
         hlsText = hlsText.replace("#video#", video.replace("audio", audioText));
         hlsText = hlsText.replace("#audio#", audio);
+
+        if (isAVProMobile){
+            hlsText = hlsText.replaceAll(",CODECS=\"(.+)\",RESOLUTION=", ",RESOLUTION=");
+        }
 
         return hlsText;
     }
