@@ -122,6 +122,8 @@ public class Function {
 
     private static final Pattern matcher_abemahlsHost = Pattern.compile("//(.*)abematv\\.akamaized\\.net");
 
+    private static final Pattern matcher_codecs = Pattern.compile(",CODECS=\"(.+)\",RESOLUTION=");
+
     public static boolean isFoundFile(String filePass) {
         Path path = Paths.get(filePass);
         return Files.exists(path);
@@ -734,12 +736,21 @@ public class Function {
             i++;
         }
 
+        if (video.isEmpty() || audio.isEmpty()){
+            return hlsText;
+        }
+
         hlsText = "#EXTM3U\n#EXT-X-VERSION:6\n#EXT-X-INDEPENDENT-SEGMENTS\n#audio#\n#video#";
         hlsText = hlsText.replace("#video#", video.replace("audio", audioText));
         hlsText = hlsText.replace("#audio#", audio);
 
-        if (isAVProMobile){
-            hlsText = hlsText.replaceAll(",CODECS=\"(.+)\",RESOLUTION=", ",RESOLUTION=");
+        //System.out.print("----");
+        //System.out.println(hlsText);
+        //System.out.print("----\n\n");
+
+        Matcher matcher = matcher_codecs.matcher(hlsText);
+        if (isAVProMobile && matcher.find()){
+            hlsText = hlsText.replaceAll(matcher.group(0), ",RESOLUTION=");
         }
 
         return hlsText;

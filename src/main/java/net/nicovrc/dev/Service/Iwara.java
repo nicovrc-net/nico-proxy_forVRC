@@ -78,7 +78,7 @@ public class Iwara implements ServiceAPI {
                 jsonText = new String(send.body(), StandardCharsets.UTF_8);
             }
 
-            System.out.println(jsonText);
+            //System.out.println(jsonText);
             JsonElement json = Function.gson.fromJson(jsonText, JsonElement.class);
 
             IwaraResult result = new IwaraResult();
