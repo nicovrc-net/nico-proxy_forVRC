@@ -53,7 +53,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
         if (matcher_uri.find()) {
             cacherId = matcher_uri.group(1);
             String videoId = matcher_uri.group(2);
-            accessUrl = Function.getVideoDataListData(cacherId).get(videoId);
+            accessUrl = Function.getVideoIDListData(videoId);
         } else {
             cacherId = null;
             accessUrl = null;

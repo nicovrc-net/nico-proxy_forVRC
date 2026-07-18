@@ -1,12 +1,8 @@
 package net.nicovrc.dev;
 
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import net.nicovrc.dev.api.NicoVRCAPI;
-import net.nicovrc.dev.data.CacheData;
-import net.nicovrc.dev.data.HttpHeader;
-import net.nicovrc.dev.data.LogData;
-import net.nicovrc.dev.data.WebhookData;
+import net.nicovrc.dev.data.*;
 import redis.clients.jedis.RedisClient;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.SetParams;
@@ -60,7 +56,7 @@ public class Function {
     private static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, WebhookData> WebhookData = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, Date> CacheWaitList = new ConcurrentHashMap<>();
-    private static final ConcurrentHashMap<String, ConcurrentHashMap<String, String>> VideoDataList = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, String> VideoIDList = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, String> CacheIDDataList = new ConcurrentHashMap<>();
 
     public static final String contentType_textPlain = "text/plain; charset=utf-8";
@@ -595,11 +591,6 @@ public class Function {
     }
 
     public static byte[] replaceHLS(byte[] hls_data, String http, String httpHostname, String cacheId, String hostname, String url) {
-        if (Function.VideoDataList.get(cacheId) == null) {
-            ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
-            Function.VideoDataList.put(cacheId, map);
-        }
-
         final String hlsText = new String(hls_data, StandardCharsets.UTF_8);
         final Matcher hls_twitcas = matcher_hls_twitcasting.matcher(url);
         final Matcher hls_abema = matcher_hls_abema.matcher(url);
@@ -635,7 +626,7 @@ public class Function {
 
             if (matcher.find()){
                 String oldUrl = matcher.group(2);
-                Function.VideoDataList.get(cacheId).put(videoId, oldUrl);
+                addVideoIDList(videoId, oldUrl);
 
                 String newUrl = http+httpHostname+"/video/"+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"/"+type;
                 sb.append(line.replace(oldUrl, newUrl)).append("\n");
@@ -643,13 +634,13 @@ public class Function {
             }
 
             if (line.startsWith("http")){
-                Function.VideoDataList.get(cacheId).put(videoId, line);
+                addVideoIDList(videoId, line);
                 sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
                 continue;
             }
 
             if (line.startsWith("/")){
-                Function.VideoDataList.get(cacheId).put(videoId, http+hostname+line);
+                addVideoIDList(videoId, http+hostname+line);
 
                 if (hls_twitcas.find() && line.startsWith("/tc\\.vod\\.v2")){
                     sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
@@ -676,7 +667,7 @@ public class Function {
                     tempHost.append(split2[i]).append("/");
                 }
                 line = line.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", tempHost.toString());
-                Function.VideoDataList.get(cacheId).put(videoId, line);
+                addVideoIDList(videoId, line);
                 sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
                 continue;
             }
@@ -752,11 +743,6 @@ public class Function {
 
 
     public static String fixAbemaHLS(String hlsText, String originURL, String http, String httpHostname, String cacheId){
-        if (Function.VideoDataList.get(cacheId) == null) {
-            ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
-            Function.VideoDataList.put(cacheId, map);
-        }
-
         String[] split = hlsText.split("\n");
         StringBuffer sb = new StringBuffer();
 
@@ -803,14 +789,14 @@ public class Function {
 
             if (s.startsWith("/preview") && matcher.find()){
                 String url = "https://"+matcher.group(1)+"abematv.akamaized.net"+s;
-                Function.VideoDataList.get(cacheId).put(str, url);
+                addVideoIDList(str, url);
                 sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
                 continue;
             }
 
             if (matcher.find()) {
                 String url = originURL.replaceFirst("playlist\\.m3u8", "")+s;
-                Function.VideoDataList.get(cacheId).put(str, url);
+                addVideoIDList(str, url);
                 sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
                 continue;
             }
@@ -822,28 +808,27 @@ public class Function {
         return sb.toString();
     }
 
-    public static void addVideoDataList(String cacheId, ConcurrentHashMap<String, String> map) {
+    public static void addVideoIDList(String videoId, String url) {
         if (config_CacheToRedis && redisClient != null) {
-            String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
-            redisClient.set("nicovrc:cachelist2:" + str, gson.toJson(map), new SetParams().ex(86400));
+            String str = Base64.getEncoder().encodeToString(videoId.getBytes(StandardCharsets.UTF_8));
+            redisClient.set("nicovrc:cachelist3:" + str, url, new SetParams().ex(86400));
             return;
         }
-        VideoDataList.put(cacheId, map);
+        VideoIDList.put(videoId, url);
     }
 
-    public static ConcurrentHashMap<String, String> getVideoDataListData(String cacheId) {
-        if (config_CacheToRedis && redisClient != null){
-            String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
-            String s = redisClient.get("nicovrc:cachelist2:" + str);
-            return gson.fromJson(s, new TypeToken<ConcurrentHashMap<String, String>>() {}.getType());
+    public static String getVideoIDListData(String videoId) {
+        if (config_CacheToRedis && redisClient != null) {
+            String str = Base64.getEncoder().encodeToString(videoId.getBytes(StandardCharsets.UTF_8));
+            return redisClient.get("nicovrc:cachelist3:" + str);
         }
-        return VideoDataList.get(cacheId);
+        return VideoIDList.get(videoId);
     }
 
     public static void addCacheIDDataList(String cacheId, String url) {
         if (config_CacheToRedis && redisClient != null){
             String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
-            redisClient.set("nicovrc:cachelist3:" + str, url, new SetParams().ex(86400));
+            redisClient.set("nicovrc:cachelist4:" + str, url, new SetParams().ex(86400));
             return;
         }
         CacheIDDataList.put(cacheId, url);
@@ -852,7 +837,7 @@ public class Function {
     public static String getCacheIDDataListData(String cacheId) {
         if (config_CacheToRedis && redisClient != null){
             String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
-            return redisClient.get("nicovrc:cachelist3:" + str);
+            return redisClient.get("nicovrc:cachelist4:" + str);
         }
         return CacheIDDataList.get(cacheId);
     }

@@ -393,10 +393,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         }
 
         final byte[] hls_bytes = cache.getHLS();
-        if (Function.getVideoDataListData(cache.getCacheId()) == null) {
-            ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
-            Function.addVideoDataList(cache.getCacheId(), map);
-        }
 
         Matcher matcher = Function.matcher_abema.matcher(cache.getOriginURL());
         if (matcher.find()) {
@@ -438,14 +434,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             return hlsText.getBytes(StandardCharsets.UTF_8);
         }
 
-        if (Function.getVideoDataListData(cacheId) == null) {
-            ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
-            Function.addVideoDataList(cacheId, map);
-        }
-
         String[] split = UUID.randomUUID().toString().split("-");
         String videoId = split[0]+split[1];
-        Function.getVideoDataListData(cacheId).put(videoId, hlsOriginUrl);
+        Function.addVideoIDList(videoId, hlsOriginUrl);
 
         // VRC向けに必要最小限だけにする
         String str = "#EXTM3U\n" +
