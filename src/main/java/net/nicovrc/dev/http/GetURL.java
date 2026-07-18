@@ -400,7 +400,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             return;
         }
 
-        if (!isVLC && !isAVPro){
+        if (!isVLC){
 
             Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, "*", createDummyHLS(hls_bytes, cache.getCacheId(), cache.getOriginURL()), null));
             return;
