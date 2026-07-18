@@ -811,7 +811,7 @@ public class Function {
     public static void addVideoIDList(String videoId, String url) {
         if (config_CacheToRedis && redisClient != null) {
             String str = Base64.getEncoder().encodeToString(videoId.getBytes(StandardCharsets.UTF_8));
-            redisClient.set("nicovrc:cachelist3:" + str, url, new SetParams().ex(86400));
+            redisClient.set("nicovrc:cachelist2:" + str, url, new SetParams().ex(86400));
             return;
         }
         VideoIDList.put(videoId, url);
@@ -820,7 +820,7 @@ public class Function {
     public static String getVideoIDListData(String videoId) {
         if (config_CacheToRedis && redisClient != null) {
             String str = Base64.getEncoder().encodeToString(videoId.getBytes(StandardCharsets.UTF_8));
-            return redisClient.get("nicovrc:cachelist3:" + str);
+            return redisClient.get("nicovrc:cachelist2:" + str);
         }
         return VideoIDList.get(videoId);
     }
@@ -828,7 +828,7 @@ public class Function {
     public static void addCacheIDDataList(String cacheId, String url) {
         if (config_CacheToRedis && redisClient != null){
             String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
-            redisClient.set("nicovrc:cachelist4:" + str, url, new SetParams().ex(86400));
+            redisClient.set("nicovrc:cachelist3:" + str, url, new SetParams().ex(86400));
             return;
         }
         CacheIDDataList.put(cacheId, url);
@@ -837,7 +837,7 @@ public class Function {
     public static String getCacheIDDataListData(String cacheId) {
         if (config_CacheToRedis && redisClient != null){
             String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
-            return redisClient.get("nicovrc:cachelist4:" + str);
+            return redisClient.get("nicovrc:cachelist3:" + str);
         }
         return CacheIDDataList.get(cacheId);
     }
