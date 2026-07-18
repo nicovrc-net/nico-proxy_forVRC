@@ -415,7 +415,6 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         final Matcher matcher1 = matcher_ffmpegUA.matcher(httpRequest);
         // System.out.println("URL: "+URL);
         final Matcher matcher2 = matcher_niconico.matcher(URL);
-        final StringBuffer sb = new StringBuffer();
 
         if (matcher.find()){
             // ブラウザからはそのままにする

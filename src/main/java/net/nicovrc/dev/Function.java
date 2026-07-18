@@ -626,9 +626,9 @@ public class Function {
 
             if (matcher.find()){
                 String oldUrl = matcher.group(2);
-                addVideoIDList(videoId, oldUrl);
 
                 String newUrl = http+httpHostname+"/video/"+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"/"+type;
+                addVideoIDList(videoId, newUrl);
                 sb.append(line.replace(oldUrl, newUrl)).append("\n");
                 continue;
             }
