@@ -196,15 +196,15 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 Matcher matcher = Function.matcher_niconico.matcher(request.uri().getHost());
                 Matcher matcher2 = matcher_dummyHLS.matcher(httpRequest);
                 Matcher matcher3 = Function.matcher_abema.matcher(cache.getOriginURL());
-                if (matcher.find() && matcher2.find()){
+                Matcher matcher4 = Function.matcher_AVProMobile.matcher(httpRequest);
+                if (matcher.find()){
                     // VRC かつ ニコ動などは選択できる最高画質/音質のみにする
                     //System.out.println(new String(hls, StandardCharsets.UTF_8));
                     //System.out.println("CacheID : " + cacherId);
                     //System.out.println("Access : " + accessUrl);
-                    hls = Function.recreateHLS(new String(hls, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8);
-                    //System.out.println(new  String(hls, StandardCharsets.UTF_8));
-                }
-                if (matcher3.find()) {
+                    hls = Function.recreateHLS(new String(hls, StandardCharsets.UTF_8), matcher4.find()).getBytes(StandardCharsets.UTF_8);
+                    //System.out.println(new String(hls, StandardCharsets.UTF_8));
+                } else if (matcher3.find()) {
                     // AbemaはHLSの再処理が必要
                     hls = Function.fixAbemaHLS(new String(hls, StandardCharsets.UTF_8), cache.getOriginURL(), http, httpHostname, cacherId).getBytes(StandardCharsets.UTF_8);
                 }

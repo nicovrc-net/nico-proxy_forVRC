@@ -105,6 +105,7 @@ public class Function {
     public static final Pattern matcher_niconico = Pattern.compile("nicovideo\\.jp");
     public static final Pattern matcher_VLC = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
     public static final Pattern matcher_AVPro = Pattern.compile("(NSPlayer|AVPro|AppleCoreMedia)");
+    public static final Pattern matcher_AVProMobile = Pattern.compile("AVProMobileVideo");
     public static final Pattern matcher_FFMpeg = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
 
     private static final Pattern matcher_hlsURI = Pattern.compile("(,|:)URI=\"(.+)\"");
@@ -120,6 +121,8 @@ public class Function {
     private static final Pattern matcher_nico_hls_live_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
 
     private static final Pattern matcher_abemahlsHost = Pattern.compile("//(.*)abematv\\.akamaized\\.net");
+
+    private static final Pattern matcher_codecs = Pattern.compile(",CODECS=\"(.+)\",RESOLUTION=");
 
     public static boolean isFoundFile(String filePass) {
         Path path = Paths.get(filePass);
@@ -678,7 +681,7 @@ public class Function {
 
     }
 
-    public static String recreateHLS(String hlsText){
+    public static String recreateHLS(String hlsText, boolean isAVProMobile){
         String[] split = hlsText.split("\n");
 
         String video = "";
@@ -733,9 +736,22 @@ public class Function {
             i++;
         }
 
+        if (video.isEmpty() || audio.isEmpty()){
+            return hlsText;
+        }
+
         hlsText = "#EXTM3U\n#EXT-X-VERSION:6\n#EXT-X-INDEPENDENT-SEGMENTS\n#audio#\n#video#";
         hlsText = hlsText.replace("#video#", video.replace("audio", audioText));
         hlsText = hlsText.replace("#audio#", audio);
+
+        //System.out.print("----");
+        //System.out.println(hlsText);
+        //System.out.print("----\n\n");
+
+        Matcher matcher = matcher_codecs.matcher(hlsText);
+        if (isAVProMobile && matcher.find()){
+            hlsText = hlsText.replaceAll(matcher.group(0), ",RESOLUTION=");
+        }
 
         return hlsText;
     }

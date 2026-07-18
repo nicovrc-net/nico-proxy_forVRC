@@ -578,8 +578,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - バグ修正
-            - その他いろいろ改良
+            - Quest単機などのAndroid環境でニコ動の音が出ないバグ修正
           draft: false
           prerelease: true
 

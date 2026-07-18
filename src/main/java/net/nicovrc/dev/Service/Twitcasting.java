@@ -125,7 +125,7 @@ public class Twitcasting implements ServiceAPI {
                     HttpResponse<String> send2 = client.send(request2, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
 
                     if (send2.statusCode() >= 200 && send2.statusCode() <= 399){
-                        System.out.println(send2.body());
+                        //System.out.println(send2.body());
                         isHLSNotFound = false;
                     }
 
