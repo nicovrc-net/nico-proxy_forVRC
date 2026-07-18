@@ -222,7 +222,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 Matcher matcher5 = matcher_hls_codec.matcher(temp);
 
                 if (matcher4.find() && matcher5.find()) {
-                    temp = temp.replaceAll(matcher5.group(0), "");
+                    temp = temp.replaceAll(matcher5.group(0), ",RESOLUTION=");
                     hls = temp.getBytes(StandardCharsets.UTF_8);
                 }
 
