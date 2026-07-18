@@ -26,7 +26,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_videoURI = Pattern.compile("/video/(.+)/(.+)\\.(m3u8|ts|cmfv|cmfa|key)");
     private final Pattern matcher_http_range = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
     private final Pattern matcher_avproMobile = Pattern.compile("AVProMobileVideo");
-    private final Pattern matcher_hls_codec = Pattern.compile(",CODECS=\"(.+)\"");
+    private final Pattern matcher_hls_codec = Pattern.compile(",CODECS=\"(.+)\",");
 
     @Override
     public void run() {
