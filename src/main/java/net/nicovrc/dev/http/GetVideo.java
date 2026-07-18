@@ -76,6 +76,12 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             }
         }
 
+        String string = Function.getCacheIDDataListData(cacherId);
+        if (string == null){
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_others, null));
+            return;
+        }
+
         CacheData cache = Function.getCache(Function.getCacheIDDataListData(cacherId));
 
         if (cache == null){
