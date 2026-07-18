@@ -204,8 +204,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     //System.out.println("Access : " + accessUrl);
                     hls = Function.recreateHLS(new String(hls, StandardCharsets.UTF_8), matcher4.find()).getBytes(StandardCharsets.UTF_8);
                     //System.out.println(new  String(hls, StandardCharsets.UTF_8));
-                }
-                if (matcher3.find()) {
+                } else if (matcher3.find()) {
                     // AbemaはHLSの再処理が必要
                     hls = Function.fixAbemaHLS(new String(hls, StandardCharsets.UTF_8), cache.getOriginURL(), http, httpHostname, cacherId).getBytes(StandardCharsets.UTF_8);
                 }
