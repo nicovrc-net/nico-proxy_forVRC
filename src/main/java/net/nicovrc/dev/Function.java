@@ -1,6 +1,7 @@
 package net.nicovrc.dev;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import net.nicovrc.dev.api.NicoVRCAPI;
 import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.HttpHeader;
@@ -59,8 +60,8 @@ public class Function {
     private static final ConcurrentHashMap<String, CacheData> CacheList = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, WebhookData> WebhookData = new ConcurrentHashMap<>();
     public static final ConcurrentHashMap<String, Date> CacheWaitList = new ConcurrentHashMap<>();
-    public static final ConcurrentHashMap<String, ConcurrentHashMap<String, String>> VideoDataList = new ConcurrentHashMap<>();
-    public static final ConcurrentHashMap<String, String> CacheIDDataList = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, ConcurrentHashMap<String, String>> VideoDataList = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, String> CacheIDDataList = new ConcurrentHashMap<>();
 
     public static final String contentType_textPlain = "text/plain; charset=utf-8";
     public static final String contentType_json = "application/json; charset=utf-8";
@@ -819,5 +820,40 @@ public class Function {
         //System.out.println(sb.toString());
 
         return sb.toString();
+    }
+
+    public static void addVideoDataList(String cacheId, ConcurrentHashMap<String, String> map) {
+        if (config_CacheToRedis && redisClient != null) {
+            String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
+            redisClient.set("nicovrc:cachelist2:" + str, gson.toJson(map), new SetParams().ex(86400));
+            return;
+        }
+        VideoDataList.put(cacheId, map);
+    }
+
+    public static ConcurrentHashMap<String, String> getVideoDataListData(String cacheId) {
+        if (config_CacheToRedis && redisClient != null){
+            String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
+            String s = redisClient.get("nicovrc:cachelist2:" + str);
+            return gson.fromJson(s, new TypeToken<ConcurrentHashMap<String, String>>() {}.getType());
+        }
+        return VideoDataList.get(cacheId);
+    }
+
+    public static void addCacheIDDataList(String cacheId, String url) {
+        if (config_CacheToRedis && redisClient != null){
+            String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
+            redisClient.set("nicovrc:cachelist3:" + str, url, new SetParams().ex(86400));
+            return;
+        }
+        CacheIDDataList.put(cacheId, url);
+    }
+
+    public static String getCacheIDDataListData(String cacheId) {
+        if (config_CacheToRedis && redisClient != null){
+            String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
+            return redisClient.get("nicovrc:cachelist3:" + str);
+        }
+        return CacheIDDataList.get(cacheId);
     }
 }

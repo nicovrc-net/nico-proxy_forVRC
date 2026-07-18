@@ -255,7 +255,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         // 送信
         OutputVideoData(false, isDummyPrint, isTitle, data, httpVersion, isVLC, isFFmpeg, isAVPro);
         Function.addCache(URL, data);
-        Function.CacheIDDataList.put(data.getCacheId(), URL);
+        Function.addCacheIDDataList(data.getCacheId(), URL);
         Function.CacheWaitList.remove(URL);
 
     }
@@ -393,9 +393,9 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         }
 
         final byte[] hls_bytes = cache.getHLS();
-        if (Function.VideoDataList.get(cache.getCacheId()) == null) {
+        if (Function.getVideoDataListData(cache.getCacheId()) == null) {
             ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
-            Function.VideoDataList.put(cache.getCacheId(), map);
+            Function.addVideoDataList(cache.getCacheId(), map);
         }
 
         Matcher matcher = Function.matcher_abema.matcher(cache.getOriginURL());
@@ -438,14 +438,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             return hlsText.getBytes(StandardCharsets.UTF_8);
         }
 
-        if (Function.VideoDataList.get(cacheId) == null) {
+        if (Function.getVideoDataListData(cacheId) == null) {
             ConcurrentHashMap<String, String> map = new ConcurrentHashMap<>();
-            Function.VideoDataList.put(cacheId, map);
+            Function.addVideoDataList(cacheId, map);
         }
 
         String[] split = UUID.randomUUID().toString().split("-");
         String videoId = split[0]+split[1];
-        Function.VideoDataList.get(cacheId).put(videoId, hlsOriginUrl);
+        Function.getVideoDataListData(cacheId).put(videoId, hlsOriginUrl);
 
         // VRC向けに必要最小限だけにする
         String str = "#EXTM3U\n" +

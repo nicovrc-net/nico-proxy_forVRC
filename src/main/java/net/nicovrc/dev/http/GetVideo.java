@@ -5,7 +5,6 @@ import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.HttpHeader;
 
 import java.net.URI;
-import java.net.URLDecoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -54,7 +53,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
         if (matcher_uri.find()) {
             cacherId = matcher_uri.group(1);
             String videoId = matcher_uri.group(2);
-            accessUrl = Function.VideoDataList.get(cacherId).get(videoId);
+            accessUrl = Function.getVideoDataListData(cacherId).get(videoId);
         } else {
             cacherId = null;
             accessUrl = null;
@@ -76,7 +75,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             }
         }
 
-        CacheData cache = Function.getCache(Function.CacheIDDataList.get(cacherId));
+        CacheData cache = Function.getCache(Function.getCacheIDDataListData(cacherId));
 
         if (cache == null){
             Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_others, null));
