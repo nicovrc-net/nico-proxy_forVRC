@@ -24,7 +24,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private String http = "https://";
 
     private final Pattern matcher_videoURI = Pattern.compile("/video/(.+)/(.+)\\.(m3u8|ts|cmfv|cmfa|key)");
-    private final Pattern matcher_dummyHLS = Pattern.compile("dummy=true");
+    private final Pattern matcher_dummyHLS = Pattern.compile("dummy=true|ExoPlayerLib");
     private final Pattern matcher_http_range = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
 
     @Override
