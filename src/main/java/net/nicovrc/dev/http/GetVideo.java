@@ -1,10 +1,10 @@
 package net.nicovrc.dev.http;
 
 import net.nicovrc.dev.Function;
+import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.HttpHeader;
 
 import java.net.URI;
-import java.net.URLDecoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -23,13 +23,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private String httpHostname = "localhost:"+Function.config_httpPort;
     private String http = "https://";
 
-    private final Pattern matcher_cacheId = Pattern.compile("cacheId=(.+)&");
-    private final Pattern matcher_accessUrl = Pattern.compile("url=(.+) HTTP");
-    private final Pattern matcher_cacheId2 = Pattern.compile("cacheId=(.+) HTTP");
-    private final Pattern matcher_accessUrl2 = Pattern.compile("url=(.+)&");
-
-    private final Pattern matcher_hlsSelect = Pattern.compile("dummy=true");
-
+    private final Pattern matcher_videoURI = Pattern.compile("/video/(.+)/(.+)\\.(m3u8|ts|cmfv|cmfa|key)");
+    private final Pattern matcher_dummyHLS = Pattern.compile("dummy=true");
     private final Pattern matcher_http_range = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
 
     @Override
@@ -49,70 +44,58 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
         // 下準備
         final String httpVersion = Function.getHTTPVersion(httpRequest) != null ? Function.getHTTPVersion(httpRequest) : "1.1";
 
-        final Matcher matcher_id = matcher_cacheId.matcher(httpRequest);
-        final Matcher matcher_accessURL = matcher_accessUrl.matcher(httpRequest);
-        final Matcher matcher_id2 = matcher_cacheId2.matcher(httpRequest);
-        final Matcher matcher_accessURL2 = matcher_accessUrl2.matcher(httpRequest);
-
+        final Matcher matcher_uri = matcher_videoURI.matcher(httpRequest);
         final Matcher matcher_httpRange = matcher_http_range.matcher(httpRequest);
 
         final String cacherId;
         final String accessUrl;
 
-        if (matcher_id.find()) {
-            //System.out.println(tempCacherId);
-            cacherId = URLDecoder.decode(matcher_id.group(1).replace("&dummy=true", ""), StandardCharsets.UTF_8).split("&")[0];
-        } else if (matcher_id2.find()) {
-            //System.out.println(tempCacherId);
-            cacherId = URLDecoder.decode(matcher_id2.group(1).replace("&dummy=true", ""), StandardCharsets.UTF_8).split("&")[0];
+        if (matcher_uri.find()) {
+            cacherId = matcher_uri.group(1);
+            String videoId = matcher_uri.group(2);
+            accessUrl = Function.getVideoIDListData(videoId);
         } else {
-            cacherId = "";
-        }
-
-        if (matcher_accessURL.find()) {
-            accessUrl = URLDecoder.decode(matcher_accessURL.group(1).replace("&dummy=true", ""), StandardCharsets.UTF_8);
-        } else if (matcher_accessURL2.find()) {
-            accessUrl = URLDecoder.decode(matcher_accessURL2.group(1).replace("&dummy=true", ""), StandardCharsets.UTF_8);
-        } else {
-            accessUrl = "";
+            cacherId = null;
+            accessUrl = null;
         }
 
         //System.out.println("cacherId: " + cacherId);
         //System.out.println("accessUrl: " + accessUrl);
 
-        final String[] tempText = {null, null};
-        final Long[] tempLong = {null, null, null};
-
-        Function.getCacheList().forEach(((url, cache) -> {
-            if (cache.getCacheId().equals(cacherId)){
-                tempText[0] = cache.getCookieText();
-                tempText[1] = cache.getRefererText();
-                if (cache.isRange()){
-                    tempLong[0] = cache.getRangeStart();
-                    tempLong[1] = cache.getRangeEnd();
-                    tempLong[2] = cache.getRangeLength();
-                }
-            }
-        }));
+        long tempLong1 = -1;
+        long tempLong2 = -1;
 
         if (matcher_httpRange.find()){
             String start = matcher_httpRange.group(1);
             String end = matcher_httpRange.group(2);
 
             if (!start.equals("0")){
-                tempLong[0] = Long.parseLong(start);
-                tempLong[1] = Long.parseLong(end);
+                tempLong1 = Long.parseLong(start);
+                tempLong2 = Long.parseLong(end);
             }
         }
 
-        final String cookieText = tempText[0];
-        final String refererText = tempText[1];
-        final Long rangeStart = tempLong[0];
-        final Long rangeEnd = tempLong[1];
-        final Long rangeLength = tempLong[2];
+        CacheData cache = Function.getCache(Function.getCacheIDDataListData(cacherId));
+
+        if (cache == null){
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_others, null));
+            return;
+        }
+
+        if (accessUrl == null){
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, Function.contentType_video_mp4, null, null, Function.content_errorVideo_others, null));
+            return;
+        }
+
+        final String cookieText = cache.getCookieText();
+        final String refererText = cache.getRefererText();
+        final Long rangeStart = tempLong1 == -1 ? null :  tempLong1;
+        final Long rangeEnd = tempLong2 == -1 ? null : tempLong2;
+        final Long rangeLength = cache.getRangeLength();
 
         //System.out.println("cookieText:"+cookieText);
         //System.out.println("refererText:"+refererText);
+        //System.out.println("accessUrl:" +  accessUrl);
 
         // 動画ファイル取得
         try {
@@ -211,14 +194,19 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 byte[] hls = Function.replaceHLS(response.body(), http, httpHostname, cacherId, request.uri().getHost(), url);
 
                 Matcher matcher = Function.matcher_niconico.matcher(request.uri().getHost());
-                Matcher matcher2 = matcher_hlsSelect.matcher(httpRequest);
-                if (matcher.find() && matcher2.find()) {
+                Matcher matcher2 = matcher_dummyHLS.matcher(httpRequest);
+                Matcher matcher3 = Function.matcher_abema.matcher(cache.getOriginURL());
+                if (matcher.find() && matcher2.find()){
                     // VRC かつ ニコ動などは選択できる最高画質/音質のみにする
                     //System.out.println(new String(hls, StandardCharsets.UTF_8));
                     //System.out.println("CacheID : " + cacherId);
                     //System.out.println("Access : " + accessUrl);
                     hls = Function.recreateHLS(new String(hls, StandardCharsets.UTF_8)).getBytes(StandardCharsets.UTF_8);
                     //System.out.println(new  String(hls, StandardCharsets.UTF_8));
+                }
+                if (matcher3.find()) {
+                    // AbemaはHLSの再処理が必要
+                    hls = Function.fixAbemaHLS(new String(hls, StandardCharsets.UTF_8), cache.getOriginURL(), http, httpHostname, cacherId).getBytes(StandardCharsets.UTF_8);
                 }
 
                 Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, hls, null));

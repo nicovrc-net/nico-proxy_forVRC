@@ -18,6 +18,7 @@ import java.net.http.HttpResponse;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -255,6 +256,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         // 送信
         OutputVideoData(false, isDummyPrint, isTitle, data, httpVersion, isVLC, isFFmpeg, isAVPro);
         Function.addCache(URL, data);
+        Function.addCacheIDDataList(data.getCacheId(), URL);
         Function.CacheWaitList.remove(URL);
 
     }
@@ -404,7 +406,14 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
         final byte[] hls_bytes = cache.getHLS();
 
+        Matcher matcher = Function.matcher_abema.matcher(cache.getOriginURL());
+        if (matcher.find()) {
+            Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, "*", Function.fixAbemaHLS(new String(hls_bytes, StandardCharsets.UTF_8), cache.getOriginURL(), http, httpHostname, cache.getCacheId()).getBytes(StandardCharsets.UTF_8), null));
+            return;
+        }
+
         if (!isVLC && !isAVPro){
+
             Function.sendHttpData(ch, new HttpHeader(httpVersion, 200, cache.getContentType(), null, "*", createDummyHLS(hls_bytes, cache.getCacheId(), cache.getOriginURL()), null));
             return;
         }
@@ -418,12 +427,15 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         final Matcher matcher1 = matcher_ffmpegUA.matcher(httpRequest);
         // System.out.println("URL: "+URL);
         final Matcher matcher2 = matcher_niconico.matcher(URL);
-        final StringBuffer sb = new StringBuffer();
 
-        //if (matcher.find()){
-        //    // ブラウザからはそのままにする
-        //    return hls;
-        //}
+        String[] split = UUID.randomUUID().toString().split("-");
+        String videoId = split[0]+split[1];
+        Function.addVideoIDList(videoId, hlsOriginUrl);
+
+        if (matcher.find()){
+            // ブラウザからはそのままにする
+            return hls;
+        }
 
         String hlsText = new String(hls, StandardCharsets.UTF_8);
         if (matcher2.find()){
@@ -441,7 +453,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         String str = "#EXTM3U\n" +
                 "#EXT-X-VERSION:6\n" +
                 "#EXT-X-INDEPENDENT-SEGMENTS\n" +
-                http+httpHostname+"/video/dummy-main.m3u8?cacheId="+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(hlsOriginUrl, StandardCharsets.UTF_8)+"&dummy=true";
+                http+httpHostname+"/video/"+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"/"+videoId+".m3u8";
 
         hls = str.getBytes(StandardCharsets.UTF_8);
         //System.out.print(new String(hls, StandardCharsets.UTF_8));
