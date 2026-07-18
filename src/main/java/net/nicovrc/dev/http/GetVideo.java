@@ -24,8 +24,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private String http = "https://";
 
     private final Pattern matcher_videoURI = Pattern.compile("/video/(.+)/(.+)\\.(m3u8|ts|cmfv|cmfa|key)");
-    private final Pattern matcher_dummyHLS = Pattern.compile("dummy=true|ExoPlayerLib");
     private final Pattern matcher_http_range = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
+    private final Pattern matcher_avproMobile = Pattern.compile("AVProMobileVideo");
+    private final Pattern matcher_hls_codec = Pattern.compile(",CODECS=\"(.+)\"");
 
     @Override
     public void run() {
@@ -194,9 +195,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 byte[] hls = Function.replaceHLS(response.body(), http, httpHostname, cacherId, request.uri().getHost(), url);
 
                 Matcher matcher = Function.matcher_niconico.matcher(request.uri().getHost());
-                Matcher matcher2 = matcher_dummyHLS.matcher(httpRequest);
+                Matcher matcher2 = Function.matcher_VLC.matcher(httpRequest);
                 Matcher matcher3 = Function.matcher_abema.matcher(cache.getOriginURL());
-                if (matcher.find() && matcher2.find()){
+                Matcher matcher4 = matcher_avproMobile.matcher(httpRequest);
+
+                if (matcher.find() && !matcher2.find()) {
                     // VRC かつ ニコ動などは選択できる最高画質/音質のみにする
                     //System.out.println(new String(hls, StandardCharsets.UTF_8));
                     //System.out.println("CacheID : " + cacherId);
@@ -207,6 +210,14 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 if (matcher3.find()) {
                     // AbemaはHLSの再処理が必要
                     hls = Function.fixAbemaHLS(new String(hls, StandardCharsets.UTF_8), cache.getOriginURL(), http, httpHostname, cacherId).getBytes(StandardCharsets.UTF_8);
+                }
+
+                String temp = new String(hls, StandardCharsets.UTF_8);
+                Matcher matcher5 = matcher_hls_codec.matcher(temp);
+
+                if (matcher4.find() && matcher5.find()) {
+                    temp = temp.replaceAll(matcher5.group(0), "");
+                    hls = temp.getBytes(StandardCharsets.UTF_8);
                 }
 
                 Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, hls, null));
