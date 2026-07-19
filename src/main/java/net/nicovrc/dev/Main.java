@@ -7,6 +7,8 @@ import com.google.gson.JsonElement;
 import net.nicovrc.dev.api.*;
 import net.nicovrc.dev.data.*;
 import redis.clients.jedis.*;
+import redis.clients.jedis.params.ScanParams;
+import redis.clients.jedis.resps.ScanResult;
 
 import java.io.File;
 import java.net.InetSocketAddress;
@@ -213,6 +215,34 @@ NicoNico_user_session: ""
                     .clientConfig(redis_config)
                     .build();
             Function.redisClient = jedis;
+
+            // 古い形式のキャッシュを削除する
+            ScanParams params = new ScanParams();
+            params.count(1000);
+            params.match("nicovrc:cachelist:*");
+            String cur = ScanParams.SCAN_POINTER_START;
+
+            boolean isEnd = false;
+            while (!isEnd) {
+                ScanResult<String> scanResult = jedis.scan(cur, params);
+                List<String> result = scanResult.getResult();
+
+                for (String key : result) {
+                    String s = jedis.get(key);
+                    try {
+                        JsonElement json = Function.gson.fromJson(s, JsonElement.class);
+                        if (!json.isJsonObject() && json.getAsJsonObject().has("cacheId")) {
+                            jedis.del(key);
+                        }
+                    } catch (Exception e) {
+                        //jedis.del(key);
+                    }
+                }
+                cur = scanResult.getCursor();
+                if (cur.equals("0")) {
+                    isEnd = true;
+                }
+            }
 
             // エラー動画
             if (!Function.isFoundFolder("./error-video")){
