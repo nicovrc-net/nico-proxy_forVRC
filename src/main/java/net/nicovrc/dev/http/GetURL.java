@@ -417,8 +417,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         final Matcher matcher2 = matcher_niconico.matcher(URL);
         final Matcher matcher3 = Function.matcher_AVProMobile.matcher(httpRequest);
 
-        String[] split = UUID.randomUUID().toString().split("-");
-        String videoId = split[0]+split[1];
+        String videoId = Function.getVideoID(hlsOriginUrl);
         Function.addVideoIDList(videoId, hlsOriginUrl);
 
         if (matcher.find()){

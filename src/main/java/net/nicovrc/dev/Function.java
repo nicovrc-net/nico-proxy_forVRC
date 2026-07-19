@@ -614,48 +614,41 @@ public class Function {
             final boolean iskey = matcher_key.find();
 
             String[] split = UUID.randomUUID().toString().split("-");
-            String videoId = split[0]+split[1];
-
-            String type = videoId+".ts";
-            if (ism3u8){
-                type = videoId+".m3u8";
-            } else if (iscmfv){
-                type = videoId+".cmfv";
-            } else if (iscmfa){
-                type = videoId+".cmfa";
-            } else if (iskey){
-                type = videoId+".key";
-            }
+            String videoId = null;
 
             if (matcher.find()){
                 String oldUrl = matcher.group(2);
-                String newUrl = http+httpHostname+"/video/"+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"/"+type;
+                videoId = Function.getVideoID(oldUrl);
+
+                String newUrl = http+httpHostname+"/video/"+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"/"+getFileName(line, videoId);
                 addVideoIDList(videoId, oldUrl);
                 sb.append(line.replace(oldUrl, newUrl)).append("\n");
                 continue;
             }
 
             if (line.startsWith("http")){
+                videoId = getVideoID(line);
                 addVideoIDList(videoId, line);
-                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
+                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(line, videoId)).append("\n");
                 continue;
             }
 
             if (line.startsWith("/")){
+                videoId = getVideoID(http+hostname+line);
                 addVideoIDList(videoId, http+hostname+line);
 
                 if (hls_twitcas.find() && line.startsWith("/tc\\.vod\\.v2")){
-                    sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
+                    sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(line, videoId)).append("\n");
                     continue;
                 }
 
                 if (hls_abema.find()){
                     if (line.startsWith("/tsad")){
-                        sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
+                        sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(line, videoId)).append("\n");
                         continue;
                     }
                     if (line.startsWith("/preview")) {
-                        sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
+                        sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(line, videoId)).append("\n");
                         continue;
                     }
                 }
@@ -669,8 +662,9 @@ public class Function {
                     tempHost.append(split2[i]).append("/");
                 }
                 line = line.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", tempHost.toString());
+                videoId = getVideoID(line);
                 addVideoIDList(videoId, line);
-                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
+                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(line, videoId)).append("\n");
                 continue;
             }
 
@@ -775,17 +769,7 @@ public class Function {
             final Matcher matcher = matcher_abemahlsHost.matcher(originURL);
 
             String[] uuid = UUID.randomUUID().toString().split("-");
-            String str = uuid[0]+uuid[1];
-            String type = str+".ts";
-            if (ism3u8){
-                type = str+".m3u8";
-            } else if (iscmfv){
-                type = str+".cmfv";
-            } else if (iscmfa){
-                type = str+".cmfa";
-            } else if (iskey){
-                type = str+".key";
-            }
+            String videoId = null;
 
             if (s.startsWith("#EXT-X-KEY:METHOD=AES-128")){
                 sb.append(s.replaceFirst("\\.ts", ".key")).append('\n');
@@ -804,15 +788,17 @@ public class Function {
 
             if (s.startsWith("/preview") && matcher.find()){
                 String url = "https://"+matcher.group(1)+"abematv.akamaized.net"+s;
-                addVideoIDList(str, url);
-                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
+                videoId = getVideoID(url);
+                addVideoIDList(videoId, url);
+                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(url, videoId)).append("\n");
                 continue;
             }
 
             if (matcher.find()) {
                 String url = originURL.replaceFirst("playlist\\.m3u8", "")+s;
-                addVideoIDList(str, url);
-                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
+                videoId = getVideoID(url);
+                addVideoIDList(videoId, url);
+                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(url, videoId)).append("\n");
                 continue;
             }
 
@@ -821,6 +807,32 @@ public class Function {
         //System.out.println(sb.toString());
 
         return sb.toString();
+    }
+
+    public static String getFileName(String name, String videoId){
+
+        final Matcher matcher_m3u8 = matcher_file_m3u8.matcher(name);
+        final Matcher matcher_cmfv = matcher_file_cmfv.matcher(name);
+        final Matcher matcher_cmfa = matcher_file_cmfa.matcher(name);
+        final Matcher matcher_key = matcher_file_key.matcher(name);
+
+        final boolean ism3u8 = matcher_m3u8.find();
+        final boolean iscmfv = matcher_cmfv.find();
+        final boolean iscmfa = matcher_cmfa.find();
+        final boolean iskey = matcher_key.find();
+
+        String type = videoId+".ts";
+        if (ism3u8){
+            type = videoId+".m3u8";
+        } else if (iscmfv){
+            type = videoId+".cmfv";
+        } else if (iscmfa){
+            type = videoId+".cmfa";
+        } else if (iskey){
+            type = videoId+".key";
+        }
+
+        return type;
     }
 
     public static void addVideoIDList(String videoId, String url) {
@@ -838,6 +850,66 @@ public class Function {
             return redisClient.get("nicovrc:cachelist2:" + str);
         }
         return VideoIDList.get(videoId);
+    }
+    public static String getVideoID(String url) {
+        if (config_CacheToRedis && redisClient != null) {
+            ScanParams params = new ScanParams();
+            params.count(1000);
+            params.match("nicovrc:cachelist2:*");
+            String cur = ScanParams.SCAN_POINTER_START;
+
+            boolean isEnd = false;
+            long count = 0;
+
+            String resultID = null;
+            while (!isEnd) {
+                ScanResult<String> scanResult = redisClient.scan(cur, params);
+                List<String> result = scanResult.getResult();
+
+                for (String key : result) {
+                    String s = redisClient.get(key);
+                    if (s.equals(url)) {
+                        isEnd = true;
+                        String[] split = key.split(":");
+                        resultID = new String(Base64.getDecoder().decode(split[split.length - 1].getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
+                        break;
+                    }
+                }
+
+                if (isEnd) {
+                    break;
+                }
+
+                cur = scanResult.getCursor();
+                if (cur.equals("0")) {
+                    isEnd = true;
+                }
+            }
+
+            if (resultID == null) {
+                String[] split = UUID.randomUUID().toString().split("-");
+                resultID = split[0]+split[1];
+            }
+
+            return resultID;
+        }
+
+        final String[] d = {null};
+        VideoIDList.forEach((id, cacheUrl)->{
+            if (d[0] != null) {
+                return;
+            }
+
+            if (cacheUrl.equals(url)) {
+                d[0] = id;
+            }
+        });
+
+        String[] split = UUID.randomUUID().toString().split("-");
+        if (d[0] == null) {
+            return split[0]+split[1];
+        }
+        return d[0];
     }
 
     public static void addCacheIDDataList(String cacheId, String url) {
