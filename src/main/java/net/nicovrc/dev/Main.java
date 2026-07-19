@@ -217,30 +217,32 @@ NicoNico_user_session: ""
             Function.redisClient = jedis;
 
             // 古い形式のキャッシュを削除する
-            ScanParams params = new ScanParams();
-            params.count(1000);
-            params.match("nicovrc:cachelist:*");
-            String cur = ScanParams.SCAN_POINTER_START;
+            if (Function.config_CacheToRedis){
+                ScanParams params = new ScanParams();
+                params.count(1000);
+                params.match("nicovrc:cachelist:*");
+                String cur = ScanParams.SCAN_POINTER_START;
 
-            boolean isEnd = false;
-            while (!isEnd) {
-                ScanResult<String> scanResult = jedis.scan(cur, params);
-                List<String> result = scanResult.getResult();
+                boolean isEnd = false;
+                while (!isEnd) {
+                    ScanResult<String> scanResult = jedis.scan(cur, params);
+                    List<String> result = scanResult.getResult();
 
-                for (String key : result) {
-                    String s = jedis.get(key);
-                    try {
-                        JsonElement json = Function.gson.fromJson(s, JsonElement.class);
-                        if (!json.isJsonObject() && json.getAsJsonObject().has("cacheId")) {
-                            jedis.del(key);
+                    for (String key : result) {
+                        String s = jedis.get(key);
+                        try {
+                            JsonElement json = Function.gson.fromJson(s, JsonElement.class);
+                            if (!json.isJsonObject() && json.getAsJsonObject().has("cacheId")) {
+                                jedis.del(key);
+                            }
+                        } catch (Exception e) {
+                            //jedis.del(key);
                         }
-                    } catch (Exception e) {
-                        //jedis.del(key);
                     }
-                }
-                cur = scanResult.getCursor();
-                if (cur.equals("0")) {
-                    isEnd = true;
+                    cur = scanResult.getCursor();
+                    if (cur.equals("0")) {
+                        isEnd = true;
+                    }
                 }
             }
 
