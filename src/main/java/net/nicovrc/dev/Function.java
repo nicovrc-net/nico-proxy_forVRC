@@ -852,64 +852,8 @@ public class Function {
         return VideoIDList.get(videoId);
     }
     public static String getVideoID(String url) {
-        if (config_CacheToRedis && redisClient != null) {
-            ScanParams params = new ScanParams();
-            params.count(1000);
-            params.match("nicovrc:cachelist2:*");
-            String cur = ScanParams.SCAN_POINTER_START;
-
-            boolean isEnd = false;
-            long count = 0;
-
-            String resultID = null;
-            while (!isEnd) {
-                ScanResult<String> scanResult = redisClient.scan(cur, params);
-                List<String> result = scanResult.getResult();
-
-                for (String key : result) {
-                    String s = redisClient.get(key);
-                    if (s.equals(url)) {
-                        isEnd = true;
-                        String[] split = key.split(":");
-                        resultID = new String(Base64.getDecoder().decode(split[split.length - 1].getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
-                        break;
-                    }
-                }
-
-                if (isEnd) {
-                    break;
-                }
-
-                cur = scanResult.getCursor();
-                if (cur.equals("0")) {
-                    isEnd = true;
-                }
-            }
-
-            if (resultID == null) {
-                String[] split = UUID.randomUUID().toString().split("-");
-                resultID = split[0]+split[1];
-            }
-
-            return resultID;
-        }
-
-        final String[] d = {null};
-        VideoIDList.forEach((id, cacheUrl)->{
-            if (d[0] != null) {
-                return;
-            }
-
-            if (cacheUrl.equals(url)) {
-                d[0] = id;
-            }
-        });
-
         String[] split = UUID.randomUUID().toString().split("-");
-        if (d[0] == null) {
-            return split[0]+split[1];
-        }
-        return d[0];
+        return split[0]+split[1];
     }
 
     public static void addCacheIDDataList(String cacheId, String url) {
