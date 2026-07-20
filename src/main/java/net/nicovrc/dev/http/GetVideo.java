@@ -226,9 +226,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         sb.append(string).append("\n");
                     }
 
-                    System.out.println("----");
-                    System.out.println(sb.toString());
-                    System.out.println("----");
+                    //System.out.println("----");
+                    //System.out.println(sb.toString());
+                    //System.out.println("----");
                     hls = sb.toString().getBytes(StandardCharsets.UTF_8);
 
                 }

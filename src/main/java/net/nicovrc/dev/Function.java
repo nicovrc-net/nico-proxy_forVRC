@@ -602,7 +602,7 @@ public class Function {
         final Matcher hls_vimeo = matcher_hls_vimeo.matcher(url);
         final Matcher hls_tver = matcher_hls_tver.matcher(url);
 
-        System.out.println("url : "+url);
+        //System.out.println("url : "+url);
 
         StringBuffer sb = new StringBuffer();
 
@@ -714,7 +714,7 @@ public class Function {
             sb.setLength(0);
             sb.append("#EXTM3U\n").append("#EXT-X-VERSION:4\n").append("#EXT-X-INDEPENDENT-SEGMENTS\n").append(video).append("\n");
 
-            System.out.println(sb.toString());
+            //System.out.println(sb.toString());
         }
 
         return sb.toString().getBytes(StandardCharsets.UTF_8);
