@@ -884,7 +884,9 @@ public class Function {
     public static void addVideoIDList(String videoId, String url) {
         if (config_CacheToRedis && redisClient != null) {
             String str = Base64.getEncoder().encodeToString(videoId.getBytes(StandardCharsets.UTF_8));
-            redisClient.set("nicovrc:cachelist2:" + str, url, new SetParams().ex(86400));
+            redisClient.set("nicovrc:cachelist_videoid2url:" + str, url, new SetParams().ex(86400));
+            str = Base64.getEncoder().encodeToString(url.getBytes(StandardCharsets.UTF_8));
+            redisClient.set("nicovrc:cachelist_url2videoid:" + str, videoId, new SetParams().ex(86400));
             return;
         }
         VideoIDList.put(videoId, url);
@@ -893,44 +895,15 @@ public class Function {
     public static String getVideoIDListData(String videoId) {
         if (config_CacheToRedis && redisClient != null) {
             String str = Base64.getEncoder().encodeToString(videoId.getBytes(StandardCharsets.UTF_8));
-            return redisClient.get("nicovrc:cachelist2:" + str);
+            return redisClient.get("nicovrc:cachelist_videoid2url:" + str);
         }
         return VideoIDList.get(videoId);
     }
     public static String getVideoID(String url) {
         if (config_CacheToRedis && redisClient != null) {
-            ScanParams params = new ScanParams();
-            params.count(1000);
-            params.match("nicovrc:cachelist2:*");
-            String cur = ScanParams.SCAN_POINTER_START;
 
-            boolean isEnd = false;
-            long count = 0;
-
-            String resultID = null;
-            while (!isEnd) {
-                ScanResult<String> scanResult = redisClient.scan(cur, params);
-                List<String> result = scanResult.getResult();
-
-                for (String key : result) {
-                    String s = redisClient.get(key);
-                    if (s.equals(url)) {
-                        isEnd = true;
-                        String[] split = key.split(":");
-                        resultID = new String(Base64.getDecoder().decode(split[split.length - 1].getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
-                        break;
-                    }
-                }
-
-                if (isEnd) {
-                    break;
-                }
-
-                cur = scanResult.getCursor();
-                if (cur.equals("0")) {
-                    isEnd = true;
-                }
-            }
+            String str = Base64.getEncoder().encodeToString(url.getBytes(StandardCharsets.UTF_8));
+            String resultID = redisClient.get("nicovrc:cachelist_url2videoid:" + str);
 
             if (resultID == null) {
                 String[] split = UUID.randomUUID().toString().split("-");
@@ -961,7 +934,7 @@ public class Function {
     public static void addCacheIDDataList(String cacheId, String url) {
         if (config_CacheToRedis && redisClient != null){
             String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
-            redisClient.set("nicovrc:cachelist3:" + str, url, new SetParams().ex(86400));
+            redisClient.set("nicovrc:cachelist_datalist:" + str, url, new SetParams().ex(86400));
             return;
         }
         CacheIDDataList.put(cacheId, url);
@@ -970,7 +943,7 @@ public class Function {
     public static String getCacheIDDataListData(String cacheId) {
         if (config_CacheToRedis && redisClient != null){
             String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
-            return redisClient.get("nicovrc:cachelist3:" + str);
+            return redisClient.get("nicovrc:cachelist_datalist:" + str);
         }
         return CacheIDDataList.get(cacheId);
     }
