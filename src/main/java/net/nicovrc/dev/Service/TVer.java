@@ -398,7 +398,7 @@ public class TVer implements ServiceAPI {
                 JsonElement json = null;
 
                 try {
-                    uri = new URI("https://cf-platform-api.tver.jp/service/api/v1/callLiveEpisode/"+id+"?platform_uid=2be39f5922194c42807d683a0303e1106ecb&platform_token=mc1yxsex0zc8h6lh9ezpu7vd6k9kww6vqysyo79g&require_data=mylist");
+                    uri = new URI("https://cf-platform-api.tver.jp/service/api/v1/callLiveEpisode/"+id+"?platform_uid=5d0c3173d071452f85c1dd9f450d10d1ff57&platform_token=asvezo2asd4m6v0vsvcf7rhe8n9mv6odwlov7jas&require_data=mylist");
                     request = HttpRequest.newBuilder()
                             .uri(uri)
                             .headers("User-Agent", Function.UserAgent)
@@ -428,7 +428,7 @@ public class TVer implements ServiceAPI {
                 }
 
                 if (version == 0){
-                    uri = new URI("https://platform-api.tver.jp/service/api/v1/callLiveEpisode/"+id+"?platform_uid=platform_uid=2be39f5922194c42807d683a0303e1106ecb&platform_token=mc1yxsex0zc8h6lh9ezpu7vd6k9kww6vqysyo79g&require_data=mylist");
+                    uri = new URI("https://platform-api.tver.jp/service/api/v1/callLiveEpisode/"+id+"?platform_uid=5d0c3173d071452f85c1dd9f450d10d1ff57&platform_token=asvezo2asd4m6v0vsvcf7rhe8n9mv6odwlov7jas&require_data=mylist");
                     request = HttpRequest.newBuilder()
                             .uri(uri)
                             .headers("User-Agent", Function.UserAgent)
