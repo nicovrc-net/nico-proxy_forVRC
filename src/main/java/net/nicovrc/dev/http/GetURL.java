@@ -40,6 +40,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
     private final Pattern matcher_video_tiktok = Pattern.compile("tiktok\\.com");
     private final Pattern matcher_video_bilicom = Pattern.compile("bilibili\\.com");
+    private final Pattern matcher_video_tver = Pattern.compile("tver\\.jp");
     private final Pattern matcher_http_range1 = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
     private final Pattern matcher_http_range2 = Pattern.compile("[r|R]ange: bytes=(\\d+)-");
 
@@ -206,6 +207,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         } else if (service.getServiceName().equals("TikTok")) {
             TikTokResult temp = Function.gson.fromJson(json, TikTokResult.class);
             cookieText = temp != null ? temp.getVideoAccessCookie() : null;
+        }
+
+        if (service.getServiceName().equals("TVer")){
+            refererText = "https://tver.jp";
         }
         //System.out.println("cookie: "+cookieText);
 
@@ -452,6 +457,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
     private byte[] getHLSData(String url, String cookieText, String refererText, String cacheId) throws Exception {
         byte[] hls_data = null;
         final Matcher hls_fc2Live = Function.matcher_hls_fc2Live.matcher(url);
+        final Matcher hls_tver = matcher_video_tver.matcher(url);
 
         final HttpRequest request;
         if (cookieText == null && refererText == null) {
@@ -492,6 +498,16 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     .headers("Referer", "https://live.fc2.com/")
                     .GET()
                     .build();
+        } else if (hls_tver.find()) {
+            request = HttpRequest.newBuilder()
+                    .uri(new URI(url))
+                    .headers("User-Agent", Function.UserAgent)
+                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                    .headers("Origin", "https://tver.jp")
+                    .headers("Referer", "https://tver.jp/")
+                    .GET()
+                    .build();
         } else {
             request = HttpRequest.newBuilder()
                     .uri(new URI(url))
@@ -504,7 +520,11 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     .build();
         }
 
+
         final HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+
+        System.out.println(url);
+        System.out.println(new String(response.body(), StandardCharsets.UTF_8));
         if (response.statusCode() < 200 && response.statusCode() >= 300){
             return hls_data;
         }

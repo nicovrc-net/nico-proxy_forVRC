@@ -112,6 +112,7 @@ public class Function {
     private static final Pattern matcher_hls_twitcasting = Pattern.compile("twitcasting\\.tv");
     private static final Pattern matcher_hls_abema = Pattern.compile("(.+)-abematv\\.akamaized\\.net");
     private static final Pattern matcher_hls_vimeo = Pattern.compile("vimeocdn\\.com");
+    private static final Pattern matcher_hls_tver = Pattern.compile("tver\\.jp");
     public static final Pattern matcher_hls_fc2Live = Pattern.compile("(.+)\\.live\\.fc2\\.com");
 
     private static final Pattern matcher_nico_hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
