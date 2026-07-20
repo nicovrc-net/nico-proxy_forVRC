@@ -53,7 +53,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
         if (matcher_uri.find()) {
             cacherId = matcher_uri.group(1);
             String videoId = matcher_uri.group(2);
-            accessUrl = Function.getVideoIDListData(videoId);
+            accessUrl = Function.getVideoIDListData(videoId).split("\"")[0];
         } else {
             cacherId = null;
             accessUrl = null;
@@ -197,6 +197,42 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 Matcher matcher2 = matcher_dummyHLS.matcher(httpRequest);
                 Matcher matcher3 = Function.matcher_abema.matcher(cache.getOriginURL());
                 Matcher matcher4 = Function.matcher_AVProMobile.matcher(httpRequest);
+                Matcher matcher5 = Function.matcher_hls_tver.matcher(httpRequest);
+
+                if (matcher5.find() && accessUrl.equals(cache.getOriginURL())) {
+                    // TVer
+                    //System.out.println(new String(hls, StandardCharsets.UTF_8));
+                    String s = new String(hls, StandardCharsets.UTF_8);
+                    StringBuilder sb = new StringBuilder();
+
+                    int i = 0;
+                    String[] split = s.split("\n");
+                    for (String string : split) {
+                        if (string.startsWith("#EXT-X-CONTENT-STEERING")) {
+                            i++;
+                            continue;
+                        }
+                        if (string.startsWith("#EXT-X-MEDIA:TYPE=SUBTITLES")) {
+                            i++;
+                            continue;
+                        }
+                        if (string.startsWith("#EXT-X-STREAM-INF:")) {
+                            sb.append(string).append("\n");
+                            sb.append(split[i+1]).append("\n");
+                            i++;
+                            break;
+                        }
+
+                        sb.append(string).append("\n");
+                    }
+
+                    System.out.println("----");
+                    System.out.println(sb.toString());
+                    System.out.println("----");
+                    hls = sb.toString().getBytes(StandardCharsets.UTF_8);
+
+                }
+
                 if (matcher.find()){
                     // VRC かつ ニコ動などは選択できる最高画質/音質のみにする
                     //System.out.println(new String(hls, StandardCharsets.UTF_8));

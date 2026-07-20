@@ -219,6 +219,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         byte[] videoData = null;
         try {
             videoData = getHLSData(originUrl, cookieText, refererText, data.getCacheId());
+            //System.out.println(new String(videoData, StandardCharsets.UTF_8));
             if (videoData != null) {
                 data.setHLS(videoData);
                 data.setContentType(Function.contentType_hls);
@@ -523,8 +524,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
         final HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
 
-        System.out.println(url);
-        System.out.println(new String(response.body(), StandardCharsets.UTF_8));
+        //System.out.println(url);
+        //System.out.println(new String(response.body(), StandardCharsets.UTF_8));
         if (response.statusCode() < 200 && response.statusCode() >= 300){
             return hls_data;
         }
