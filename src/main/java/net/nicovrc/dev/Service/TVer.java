@@ -390,32 +390,70 @@ public class TVer implements ServiceAPI {
 
                 String id = matcher3.group(1);
                 int version = 0;
-
-                URI uri = new URI("https://cf-platform-api.tver.jp/service/api/v1/callLiveEpisode/"+id+"?platform_uid=2be39f5922194c42807d683a0303e1106ecb&platform_token=mc1yxsex0zc8h6lh9ezpu7vd6k9kww6vqysyo79g&require_data=mylist");
-                HttpRequest request = HttpRequest.newBuilder()
-                        .uri(uri)
-                        .headers("User-Agent", Function.UserAgent)
-                        .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
-                        .headers("Accept-Encoding", "gzip, br")
-                        .headers("Origin", "https://tver.jp")
-                        .headers("Referer", "https://tver.jp/")
-                        .headers("x-tver-platform-type", "web")
-                        .GET()
-                        .build();
-
-                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-                String contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                URI uri = null;
+                HttpRequest request = null;
+                HttpResponse<byte[]> send = null;
+                String contentEncoding = null;
                 String text = "{}";
-                if (!contentEncoding.isEmpty()){
-                    byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
-                    text = new String(bytes, StandardCharsets.UTF_8);
-                } else {
-                    text = new String(send.body(), StandardCharsets.UTF_8);
+                JsonElement json = null;
+
+                try {
+                    uri = new URI("https://cf-platform-api.tver.jp/service/api/v1/callLiveEpisode/"+id+"?platform_uid=2be39f5922194c42807d683a0303e1106ecb&platform_token=mc1yxsex0zc8h6lh9ezpu7vd6k9kww6vqysyo79g&require_data=mylist");
+                    request = HttpRequest.newBuilder()
+                            .uri(uri)
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
+                            .headers("Origin", "https://tver.jp")
+                            .headers("Referer", "https://tver.jp/")
+                            .headers("x-tver-platform-type", "web")
+                            .GET()
+                            .build();
+
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        text = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        text = new String(send.body(), StandardCharsets.UTF_8);
+                    }
+
+                    json = Function.gson.fromJson(text, JsonElement.class);
+                    version = json.getAsJsonObject().get("result").getAsJsonObject().get("episode").getAsJsonObject().get("content").getAsJsonObject().get("version").getAsInt();
+
+                } catch (Exception e) {
+                    //e.printStackTrace();
                 }
 
-                JsonElement json = Function.gson.fromJson(text, JsonElement.class);
-                version = json.getAsJsonObject().get("result").getAsJsonObject().get("episode").getAsJsonObject().get("content").getAsJsonObject().get("version").getAsInt();
+                if (version == 0){
+                    uri = new URI("https://platform-api.tver.jp/service/api/v1/callLiveEpisode/"+id+"?platform_uid=platform_uid=2be39f5922194c42807d683a0303e1106ecb&platform_token=mc1yxsex0zc8h6lh9ezpu7vd6k9kww6vqysyo79g&require_data=mylist");
+                    request = HttpRequest.newBuilder()
+                            .uri(uri)
+                            .headers("User-Agent", Function.UserAgent)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
+                            .headers("Origin", "https://tver.jp")
+                            .headers("Referer", "https://tver.jp/")
+                            .headers("x-tver-platform-type", "web")
+                            .GET()
+                            .build();
+
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        text = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        text = new String(send.body(), StandardCharsets.UTF_8);
+                    }
+
+                    json = Function.gson.fromJson(text, JsonElement.class);
+                    version = json.getAsJsonObject().get("result").getAsJsonObject().get("episode").getAsJsonObject().get("content").getAsJsonObject().get("version").getAsInt();
+
+                }
 
                 uri = new URI("https://statics.tver.jp/content/live/"+id+".json?v="+version);
                 request = HttpRequest.newBuilder()
