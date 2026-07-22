@@ -792,7 +792,7 @@ public class Function {
         Matcher matcher = matcher_codecs.matcher(hlsText);
 
         if (isLinuxVRC && matcher.find()){
-            hlsText = hlsText.replaceAll("mp4a\\.40\\.2", "");
+            hlsText = hlsText.replaceAll(",mp4a\\.40\\.2", "").replaceAll("mp4a\\.40\\.2,", "");
         }
 
         if (isAVProMobile && matcher.find()){
