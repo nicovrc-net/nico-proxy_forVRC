@@ -107,6 +107,7 @@ public class Function {
     public static final Pattern matcher_AVPro = Pattern.compile("(NSPlayer|AVPro|AppleCoreMedia)");
     public static final Pattern matcher_AVProMobile = Pattern.compile("AVProMobileVideo");
     public static final Pattern matcher_FFMpeg = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
+    public static final Pattern matcher_vrcLinux = Pattern.compile("GStreamer");
 
     private static final Pattern matcher_hlsURI = Pattern.compile("(,|:)URI=\"(.+)\"");
     private static final Pattern matcher_hls_twitcasting = Pattern.compile("twitcasting\\.tv");
@@ -721,7 +722,7 @@ public class Function {
 
     }
 
-    public static String recreateHLS(String hlsText, boolean isAVProMobile){
+    public static String recreateHLS(String hlsText, boolean isAVProMobile, boolean isLinuxVRC){
         String[] split = hlsText.split("\n");
 
         String video = "";
@@ -789,6 +790,11 @@ public class Function {
         //System.out.print("----\n\n");
 
         Matcher matcher = matcher_codecs.matcher(hlsText);
+
+        if (isLinuxVRC && matcher.find()){
+            hlsText = hlsText.replaceAll("mp4a\\.40\\.2", "");
+        }
+
         if (isAVProMobile && matcher.find()){
             hlsText = hlsText.replaceAll(matcher.group(0), ",RESOLUTION=");
         }

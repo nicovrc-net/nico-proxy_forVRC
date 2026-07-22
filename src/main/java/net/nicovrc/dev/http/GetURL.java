@@ -422,6 +422,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         // System.out.println("URL: "+URL);
         final Matcher matcher2 = matcher_niconico.matcher(URL);
         final Matcher matcher3 = Function.matcher_AVProMobile.matcher(httpRequest);
+        final Matcher matcher4 = Function.matcher_vrcLinux.matcher(httpRequest);
 
         String videoId = Function.getVideoID(hlsOriginUrl);
         Function.addVideoIDList(videoId, hlsOriginUrl);
@@ -434,7 +435,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         String hlsText = new String(hls, StandardCharsets.UTF_8);
         if (matcher2.find()){
             // ニコ動などは選択できる最高画質/音質のみにする
-            hlsText = Function.recreateHLS(hlsText, matcher3.find());
+            hlsText = Function.recreateHLS(hlsText, matcher3.find(), matcher4.find());
         }
 
         if (matcher1.find()){

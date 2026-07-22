@@ -198,6 +198,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 Matcher matcher3 = Function.matcher_abema.matcher(cache.getOriginURL());
                 Matcher matcher4 = Function.matcher_AVProMobile.matcher(httpRequest);
                 Matcher matcher5 = Function.matcher_hls_tver.matcher(httpRequest);
+                Matcher matcher6 = Function.matcher_vrcLinux.matcher(httpRequest);
 
                 if (matcher5.find() && accessUrl.equals(cache.getOriginURL())) {
                     // TVer
@@ -238,7 +239,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     //System.out.println(new String(hls, StandardCharsets.UTF_8));
                     //System.out.println("CacheID : " + cacherId);
                     //System.out.println("Access : " + accessUrl);
-                    hls = Function.recreateHLS(new String(hls, StandardCharsets.UTF_8), matcher4.find()).getBytes(StandardCharsets.UTF_8);
+                    hls = Function.recreateHLS(new String(hls, StandardCharsets.UTF_8), matcher4.find(), matcher6.find()).getBytes(StandardCharsets.UTF_8);
                     //System.out.println(new String(hls, StandardCharsets.UTF_8));
                 } else if (matcher3.find()) {
                     // AbemaはHLSの再処理が必要
