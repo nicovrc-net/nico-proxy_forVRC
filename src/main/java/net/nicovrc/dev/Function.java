@@ -32,7 +32,7 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.5.0-beta.4";
+    public static final String Version = "3.5.0";
     public static final Gson gson = new Gson();
     public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -107,11 +107,13 @@ public class Function {
     public static final Pattern matcher_AVPro = Pattern.compile("(NSPlayer|AVPro|AppleCoreMedia)");
     public static final Pattern matcher_AVProMobile = Pattern.compile("AVProMobileVideo");
     public static final Pattern matcher_FFMpeg = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
+    public static final Pattern matcher_vrcLinux = Pattern.compile("GStreamer");
 
     private static final Pattern matcher_hlsURI = Pattern.compile("(,|:)URI=\"(.+)\"");
     private static final Pattern matcher_hls_twitcasting = Pattern.compile("twitcasting\\.tv");
     private static final Pattern matcher_hls_abema = Pattern.compile("(.+)-abematv\\.akamaized\\.net");
     private static final Pattern matcher_hls_vimeo = Pattern.compile("vimeocdn\\.com");
+    public static final Pattern matcher_hls_tver = Pattern.compile("\\.streaks\\.jp");
     public static final Pattern matcher_hls_fc2Live = Pattern.compile("(.+)\\.live\\.fc2\\.com");
 
     private static final Pattern matcher_nico_hls_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
@@ -119,6 +121,7 @@ public class Function {
     private static final Pattern matcher_nico_hls_audio_bitrate = Pattern.compile("audio-aac-(\\d+)kbps");
     private static final Pattern matcher_nico_hls_live_video = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH=(\\d+),CODECS=\"(.+)\",RESOLUTION=(.+),FRAME-RATE=(.+),AUDIO=\"(.+)\"");
     private static final Pattern matcher_nico_hls_live_audio = Pattern.compile("#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID=\"(.+)\",NAME=\"Main Audio\",DEFAULT=YES,URI=\"(.+)\"");
+    private static final Pattern matcher_tver_hls_live2 = Pattern.compile("#EXT-X-STREAM-INF:BANDWIDTH=(\\d+),AVERAGE-BANDWIDTH");
 
     private static final Pattern matcher_abemahlsHost = Pattern.compile("//(.*)abematv\\.akamaized\\.net");
 
@@ -598,90 +601,128 @@ public class Function {
         final Matcher hls_twitcas = matcher_hls_twitcasting.matcher(url);
         final Matcher hls_abema = matcher_hls_abema.matcher(url);
         final Matcher hls_vimeo = matcher_hls_vimeo.matcher(url);
+        final Matcher hls_tver = matcher_hls_tver.matcher(url);
 
+        //System.out.println("url : "+url);
 
         StringBuffer sb = new StringBuffer();
-        for (String line : hlsText.split("\n")){
-            final Matcher matcher = matcher_hlsURI.matcher(line);
-            final Matcher matcher_m3u8 = matcher_file_m3u8.matcher(line);
-            final Matcher matcher_cmfv = matcher_file_cmfv.matcher(line);
-            final Matcher matcher_cmfa = matcher_file_cmfa.matcher(line);
-            final Matcher matcher_key = matcher_file_key.matcher(line);
 
-            final boolean ism3u8 = matcher_m3u8.find();
-            final boolean iscmfv = matcher_cmfv.find();
-            final boolean iscmfa = matcher_cmfa.find();
-            final boolean iskey = matcher_key.find();
+        if (!hls_tver.find()) {
+            for (String line : hlsText.split("\n")){
+                final Matcher matcher = matcher_hlsURI.matcher(line);
+                final Matcher matcher_m3u8 = matcher_file_m3u8.matcher(line);
+                final Matcher matcher_cmfv = matcher_file_cmfv.matcher(line);
+                final Matcher matcher_cmfa = matcher_file_cmfa.matcher(line);
+                final Matcher matcher_key = matcher_file_key.matcher(line);
+                final Matcher matcher_tver_bandwidth = matcher_tver_hls_live2.matcher(line);
 
-            String[] split = UUID.randomUUID().toString().split("-");
-            String videoId = split[0]+split[1];
+                final boolean ism3u8 = matcher_m3u8.find();
+                final boolean iscmfv = matcher_cmfv.find();
+                final boolean iscmfa = matcher_cmfa.find();
+                final boolean iskey = matcher_key.find();
 
-            String type = videoId+".ts";
-            if (ism3u8){
-                type = videoId+".m3u8";
-            } else if (iscmfv){
-                type = videoId+".cmfv";
-            } else if (iscmfa){
-                type = videoId+".cmfa";
-            } else if (iskey){
-                type = videoId+".key";
-            }
+                String[] split = UUID.randomUUID().toString().split("-");
+                String videoId = null;
 
-            if (matcher.find()){
-                String oldUrl = matcher.group(2);
-                String newUrl = http+httpHostname+"/video/"+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"/"+type;
-                addVideoIDList(videoId, oldUrl);
-                sb.append(line.replace(oldUrl, newUrl)).append("\n");
-                continue;
-            }
+                if (matcher.find()){
+                    String oldUrl = matcher.group(2);
+                    videoId = Function.getVideoID(oldUrl);
 
-            if (line.startsWith("http")){
-                addVideoIDList(videoId, line);
-                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
-                continue;
-            }
-
-            if (line.startsWith("/")){
-                addVideoIDList(videoId, http+hostname+line);
-
-                if (hls_twitcas.find() && line.startsWith("/tc\\.vod\\.v2")){
-                    sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
+                    String newUrl = http+httpHostname+"/video/"+URLEncoder.encode(cacheId, StandardCharsets.UTF_8)+"/"+getFileName(line, videoId);
+                    addVideoIDList(videoId, oldUrl);
+                    sb.append(line.replace(oldUrl, newUrl)).append("\n");
                     continue;
                 }
 
-                if (hls_abema.find()){
-                    if (line.startsWith("/tsad")){
-                        sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
-                        continue;
-                    }
-                    if (line.startsWith("/preview")) {
-                        sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
-                        continue;
-                    }
+                if (line.startsWith("http")){
+                    videoId = getVideoID(line);
+                    addVideoIDList(videoId, line);
+                    sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(line, videoId)).append("\n");
+                    continue;
                 }
 
-            }
+                if (line.startsWith("/")){
+                    videoId = getVideoID(http+hostname+line);
+                    addVideoIDList(videoId, http+hostname+line);
 
-            if (hls_vimeo.find()){
-                StringBuffer tempHost = new StringBuffer();
-                String[] split2 = url.split("/");
-                for (int i = 0; i < split2.length - 6; i++) {
-                    tempHost.append(split2[i]).append("/");
+                    if (hls_twitcas.find() && line.startsWith("/tc\\.vod\\.v2")){
+                        sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(line, videoId)).append("\n");
+                        continue;
+                    }
+
+                    if (hls_abema.find()){
+                        if (line.startsWith("/tsad")){
+                            sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(line, videoId)).append("\n");
+                            continue;
+                        }
+                        if (line.startsWith("/preview")) {
+                            sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(line, videoId)).append("\n");
+                            continue;
+                        }
+                    }
+
                 }
-                line = line.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", tempHost.toString());
-                addVideoIDList(videoId, line);
-                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
-                continue;
-            }
 
-            sb.append(line).append("\n");
+                if (hls_vimeo.find()){
+                    StringBuffer tempHost = new StringBuffer();
+                    String[] split2 = url.split("/");
+                    for (int i = 0; i < split2.length - 6; i++) {
+                        tempHost.append(split2[i]).append("/");
+                    }
+                    line = line.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./\\.\\./", tempHost.toString());
+                    videoId = getVideoID(line);
+                    addVideoIDList(videoId, line);
+                    sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(line, videoId)).append("\n");
+                    continue;
+                }
+
+                sb.append(line).append("\n");
+            }
+        } else {
+            long temp = -1;
+            long maxBandwidth = -1;
+            String video = "";
+            int i = 0;
+
+            String[] split = hlsText.split("\n");
+            for (String line : split) {
+                final Matcher matcher_tver_bandwidth = matcher_tver_hls_live2.matcher(line);
+
+                if (line.startsWith("#EXT-X-CONTENT-STEERING:SERVER-URI")){
+                    i++;
+                    continue;
+                }
+                if (line.startsWith("#EXT-X-MEDIA:TYPE=SUBTITLES")){
+                    i++;
+                    continue;
+                }
+                if (line.startsWith("#EXT-X-IMAGE-STREAM-INF")){
+                    i++;
+                    continue;
+                }
+
+                if (matcher_tver_bandwidth.find()){
+                    temp = Long.parseLong(matcher_tver_bandwidth.group(1));
+                    if (temp > maxBandwidth){
+                        maxBandwidth = temp;
+                        video = line+"\n"+split[i+1];
+                    }
+                    i++;
+                    continue;
+                }
+                i++;
+            }
+            sb.setLength(0);
+            sb.append("#EXTM3U\n").append("#EXT-X-VERSION:4\n").append("#EXT-X-INDEPENDENT-SEGMENTS\n").append(video).append("\n");
+
+            //System.out.println(sb.toString());
         }
 
         return sb.toString().getBytes(StandardCharsets.UTF_8);
 
     }
 
-    public static String recreateHLS(String hlsText, boolean isAVProMobile){
+    public static String recreateHLS(String hlsText, boolean isAVProMobile, boolean isLinuxVRC){
         String[] split = hlsText.split("\n");
 
         String video = "";
@@ -749,6 +790,11 @@ public class Function {
         //System.out.print("----\n\n");
 
         Matcher matcher = matcher_codecs.matcher(hlsText);
+
+        if (isLinuxVRC && matcher.find()){
+            hlsText = hlsText.replaceAll(",mp4a\\.40\\.2", "").replaceAll("mp4a\\.40\\.2,", "");
+        }
+
         if (isAVProMobile && matcher.find()){
             hlsText = hlsText.replaceAll(matcher.group(0), ",RESOLUTION=");
         }
@@ -775,17 +821,7 @@ public class Function {
             final Matcher matcher = matcher_abemahlsHost.matcher(originURL);
 
             String[] uuid = UUID.randomUUID().toString().split("-");
-            String str = uuid[0]+uuid[1];
-            String type = str+".ts";
-            if (ism3u8){
-                type = str+".m3u8";
-            } else if (iscmfv){
-                type = str+".cmfv";
-            } else if (iscmfa){
-                type = str+".cmfa";
-            } else if (iskey){
-                type = str+".key";
-            }
+            String videoId = null;
 
             if (s.startsWith("#EXT-X-KEY:METHOD=AES-128")){
                 sb.append(s.replaceFirst("\\.ts", ".key")).append('\n');
@@ -804,15 +840,17 @@ public class Function {
 
             if (s.startsWith("/preview") && matcher.find()){
                 String url = "https://"+matcher.group(1)+"abematv.akamaized.net"+s;
-                addVideoIDList(str, url);
-                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
+                videoId = getVideoID(url);
+                addVideoIDList(videoId, url);
+                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(url, videoId)).append("\n");
                 continue;
             }
 
             if (matcher.find()) {
                 String url = originURL.replaceFirst("playlist\\.m3u8", "")+s;
-                addVideoIDList(str, url);
-                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(type).append("\n");
+                videoId = getVideoID(url);
+                addVideoIDList(videoId, url);
+                sb.append(http).append(httpHostname).append("/video/").append(URLEncoder.encode(cacheId, StandardCharsets.UTF_8)).append("/").append(getFileName(url, videoId)).append("\n");
                 continue;
             }
 
@@ -823,10 +861,38 @@ public class Function {
         return sb.toString();
     }
 
+    public static String getFileName(String name, String videoId){
+
+        final Matcher matcher_m3u8 = matcher_file_m3u8.matcher(name);
+        final Matcher matcher_cmfv = matcher_file_cmfv.matcher(name);
+        final Matcher matcher_cmfa = matcher_file_cmfa.matcher(name);
+        final Matcher matcher_key = matcher_file_key.matcher(name);
+
+        final boolean ism3u8 = matcher_m3u8.find();
+        final boolean iscmfv = matcher_cmfv.find();
+        final boolean iscmfa = matcher_cmfa.find();
+        final boolean iskey = matcher_key.find();
+
+        String type = videoId+".ts";
+        if (ism3u8){
+            type = videoId+".m3u8";
+        } else if (iscmfv){
+            type = videoId+".cmfv";
+        } else if (iscmfa){
+            type = videoId+".cmfa";
+        } else if (iskey){
+            type = videoId+".key";
+        }
+
+        return type;
+    }
+
     public static void addVideoIDList(String videoId, String url) {
         if (config_CacheToRedis && redisClient != null) {
             String str = Base64.getEncoder().encodeToString(videoId.getBytes(StandardCharsets.UTF_8));
-            redisClient.set("nicovrc:cachelist2:" + str, url, new SetParams().ex(86400));
+            redisClient.set("nicovrc:cachelist_videoid2url:" + str, url, new SetParams().ex(86400));
+            str = Base64.getEncoder().encodeToString(url.getBytes(StandardCharsets.UTF_8));
+            redisClient.set("nicovrc:cachelist_url2videoid:" + str, videoId, new SetParams().ex(86400));
             return;
         }
         VideoIDList.put(videoId, url);
@@ -835,15 +901,46 @@ public class Function {
     public static String getVideoIDListData(String videoId) {
         if (config_CacheToRedis && redisClient != null) {
             String str = Base64.getEncoder().encodeToString(videoId.getBytes(StandardCharsets.UTF_8));
-            return redisClient.get("nicovrc:cachelist2:" + str);
+            return redisClient.get("nicovrc:cachelist_videoid2url:" + str);
         }
         return VideoIDList.get(videoId);
+    }
+    public static String getVideoID(String url) {
+        if (config_CacheToRedis && redisClient != null) {
+
+            String str = Base64.getEncoder().encodeToString(url.getBytes(StandardCharsets.UTF_8));
+            String resultID = redisClient.get("nicovrc:cachelist_url2videoid:" + str);
+
+            if (resultID == null) {
+                String[] split = UUID.randomUUID().toString().split("-");
+                resultID = split[0]+split[1];
+            }
+
+            return resultID;
+        }
+
+        final String[] d = {null};
+        VideoIDList.forEach((id, cacheUrl)->{
+            if (d[0] != null) {
+                return;
+            }
+
+            if (cacheUrl.equals(url)) {
+                d[0] = id;
+            }
+        });
+
+        String[] split = UUID.randomUUID().toString().split("-");
+        if (d[0] == null) {
+            return split[0]+split[1];
+        }
+        return d[0];
     }
 
     public static void addCacheIDDataList(String cacheId, String url) {
         if (config_CacheToRedis && redisClient != null){
             String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
-            redisClient.set("nicovrc:cachelist3:" + str, url, new SetParams().ex(86400));
+            redisClient.set("nicovrc:cachelist_datalist:" + str, url, new SetParams().ex(86400));
             return;
         }
         CacheIDDataList.put(cacheId, url);
@@ -852,7 +949,7 @@ public class Function {
     public static String getCacheIDDataListData(String cacheId) {
         if (config_CacheToRedis && redisClient != null){
             String str = Base64.getEncoder().encodeToString(cacheId.getBytes(StandardCharsets.UTF_8));
-            return redisClient.get("nicovrc:cachelist3:" + str);
+            return redisClient.get("nicovrc:cachelist_datalist:" + str);
         }
         return CacheIDDataList.get(cacheId);
     }
