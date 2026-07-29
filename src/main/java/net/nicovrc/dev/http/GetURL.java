@@ -2,13 +2,10 @@ package net.nicovrc.dev.http;
 
 import com.google.gson.JsonElement;
 import net.nicovrc.dev.Service.Result.*;
-import net.nicovrc.dev.data.CacheData;
+import net.nicovrc.dev.data.*;
 import net.nicovrc.dev.Function;
-import net.nicovrc.dev.data.HttpHeader;
 import net.nicovrc.dev.Service.ServiceAPI;
 import net.nicovrc.dev.Service.ServiceList;
-import net.nicovrc.dev.data.VideoData;
-import net.nicovrc.dev.data.WebhookData;
 
 import java.net.*;
 import java.net.http.HttpClient;
@@ -117,7 +114,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             Function.CacheWaitList.remove(URL);
             Thread.ofVirtual().start(()->{
                 PrintLog(URL, "対応していないサイト", false);
-                AddLog(URL, "対応していないサイト", false);
+                AddLog(URL, null, "対応していないサイト");
                 AddWebhook(URL, "対応していないサイト");
             });
             SendErrorData(isTitle, httpVersion, "対応していないサイト");
@@ -146,9 +143,10 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             String errorMessage = json.getAsJsonObject().get("ErrorMessage").getAsString();
             Thread.ofVirtual().start(()->{
                 PrintLog(URL, "エラー: "+errorMessage, false);
-                AddLog(URL, "エラー: "+errorMessage, false);
+                AddLog(URL, null, errorMessage);
                 AddWebhook(URL, "エラー: "+errorMessage);
             });
+
 
             SendErrorData(isTitle, httpVersion, "エラー: "+errorMessage);
 
@@ -229,7 +227,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     Thread.ofVirtual().start(()->{
                         Function.CacheWaitList.remove(URL);
                         PrintLog(URL, "エラー: 動画ファイル取得失敗", false);
-                        AddLog(URL, "エラー: 動画ファイル取得失敗", false);
+                        AddLog(URL, null, "エラー: 動画ファイル取得失敗");
                         AddWebhook(URL, "エラー: 動画ファイル取得失敗");
                     });
                     SendErrorData(isTitle, httpVersion, "内部エラー");
@@ -354,15 +352,18 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         });
     }
 
-    private void AddLog(String fromUrl ,String toUrl, boolean isCache){
+    private void AddLog(String fromUrl ,String toUrl, String errorMessage){
         Thread.ofVirtual().start(() -> {
-            WebhookData webhookData = new WebhookData();
-            webhookData.setHTTPRequest(httpRequest);
-            webhookData.setDate(new Date());
-            webhookData.setURL(fromUrl);
-            webhookData.setResult(toUrl);
 
-            Function.WebhookData.put(UUID.randomUUID().toString(), webhookData);
+            LogData logData = new LogData();
+
+            logData.setHTTPRequest(httpRequest);
+            logData.setRequestURL(fromUrl);
+            logData.setUnixTime(new Date().getTime());
+            logData.setResultURL(toUrl);
+            logData.setErrorMessage(errorMessage);
+
+            Function.GetURLAccessLog.put(UUID.randomUUID().toString(), logData);
         });
     }
 
@@ -370,11 +371,11 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         if (!isDummyPrint){
             if (isTitle) {
                 PrintLog(URL, cache.getTitle() != null ? cache.getTitle() : "タイトルなし", isCache);
-                AddLog(URL, cache.getTitle() != null ? cache.getTitle() : "タイトルなし", isCache);
+                AddLog(URL, cache.getTitle() != null ? cache.getTitle() : "タイトルなし", "");
                 AddWebhook(URL, cache.getTitle() != null ? cache.getTitle() : (cache.getOriginURL() != null ? cache.getOriginURL() : null));
             } else {
                 PrintLog(URL, cache.getOriginURL() != null ? cache.getOriginURL() : "", isCache);
-                AddLog(URL, cache.getOriginURL() != null ? cache.getOriginURL() : "", isCache);
+                AddLog(URL, cache.getOriginURL() != null ? cache.getOriginURL() : "", "");
             }
         }
 
