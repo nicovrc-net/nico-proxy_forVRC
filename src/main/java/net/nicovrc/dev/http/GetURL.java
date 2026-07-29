@@ -249,7 +249,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
 
             Thread.ofVirtual().start(()->{
                 PrintLog(URL, "エラー: "+e.getMessage(), false);
-                AddLog(URL, "エラー: "+e.getMessage(), false);
+                AddLog(URL, null, e.getMessage());
                 AddWebhook(URL, "エラー: "+e.getMessage());
             });
 
