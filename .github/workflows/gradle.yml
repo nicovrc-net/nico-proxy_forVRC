@@ -615,7 +615,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - バグ修正
+            - Quest環境などでTVerの音がでない問題修正
           draft: false
           prerelease: false
 
