@@ -26,6 +26,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_videoURI = Pattern.compile("/video/(.+)/(.+)\\.(m3u8|ts|cmfv|cmfa|key)");
     private final Pattern matcher_dummyHLS = Pattern.compile("dummy=true");
     private final Pattern matcher_http_range = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
+    private final Pattern matcher_tver = Pattern.compile("https://steering-manifest\\.streaks\\.jp");
 
     @Override
     public void run() {
@@ -232,6 +233,13 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     //System.out.println("----");
                     hls = sb.toString().getBytes(StandardCharsets.UTF_8);
 
+                }
+
+                String s = new String(hls, StandardCharsets.UTF_8);
+                Matcher matcher7 = matcher_tver.matcher(s);
+                if (matcher4.find() && matcher7.find()) {
+                    s = s.replaceAll(",mp4a\\.40\\.2", "");
+                    hls = s.getBytes(StandardCharsets.UTF_8);
                 }
 
                 if (matcher.find()){
