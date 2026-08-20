@@ -43,6 +43,12 @@ jobs:
           name: jar
           path: ./build/libs/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
 
+      - name: Upload Package
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: start_windows
+          path: ./package/windows/start.ps1
+
   build-26:
     runs-on: ubuntu-24.04
     permissions:
@@ -535,6 +541,12 @@ jobs:
         with:
           name: jar
 
+      - name: Download PowerShellScript
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: start_windows
+
       - name: Create PKGBUILD File
         if: startsWith(github.ref, 'refs/tags/')
         id: create_pkgbuild
@@ -568,6 +580,31 @@ jobs:
 
         shell: bash
 
+      - name: Create Windows Package
+        if: startsWith(github.ref, 'refs/tags/')
+        id: create_windows_package
+        run: |
+          mkdir ./temp
+          cp ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar ./temp
+          cp ./start.ps1 ./temp
+          
+          wget https://www.7-zip.org/a/7z2602-linux-x64.tar.xz
+          tar -Jxvf ./7z2602-linux-x64.tar.xz
+          mkdir ./tools
+          mkdir ./tools/7z2602
+          mv ./7zz ./tools/7z2602
+          mv ./7zzs ./tools/7z2602
+          mv ./History.txt ./tools/7z2602
+          mv ./License.txt ./tools/7z2602
+          mv ./MANUAL ./tools/7z2602
+          mv ./readme.txt ./tools/7z2602
+          chmod +x ./tools/7z2602/7zz
+          
+          ./tools/7z2602/7zz a ./windows.zip ./temp/*
+          
+          rm -fr ./tools
+          rm -fr ./temp
+
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/')
         id: create_release
@@ -578,7 +615,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - バグ修正
+            - Quest環境などでTVerの音がでない問題修正
           draft: false
           prerelease: false
 
@@ -615,6 +652,17 @@ jobs:
           asset_name: PKGBUILD
           asset_content_type: text/plain
 
+      - name: Upload Windows Package File
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./windows.zip
+          asset_name: for_Windows.zip
+          asset_content_type: application/zip
+
       - name: Delete File
         uses: geekyeggo/delete-artifact@v5
         with:
@@ -623,3 +671,4 @@ jobs:
             ffmpeg
             video
             brotli
+            start_windows

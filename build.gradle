@@ -12,11 +12,11 @@ repositories {
 }
 
 dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter:6.1.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:6.1.3'
 
     implementation 'com.amihaiemil.web:eo-yaml:8.0.6'
 
-    implementation 'redis.clients:jedis:7.5.3'
+    implementation 'redis.clients:jedis:8.0.0'
     implementation 'com.google.code.gson:gson:2.14.0'
 }
 
