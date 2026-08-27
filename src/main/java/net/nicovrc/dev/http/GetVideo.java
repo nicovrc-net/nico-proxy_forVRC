@@ -237,7 +237,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                 String s = new String(hls, StandardCharsets.UTF_8);
                 Matcher matcher7 = matcher_tver.matcher(s);
-                if (matcher4.find() && matcher7.find()) {
+                if (matcher4.find() || matcher7.find()) {
                     s = s.replaceAll(",mp4a\\.40\\.2", "");
                     hls = s.getBytes(StandardCharsets.UTF_8);
                 }
