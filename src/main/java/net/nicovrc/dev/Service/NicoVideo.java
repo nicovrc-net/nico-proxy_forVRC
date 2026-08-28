@@ -509,14 +509,14 @@ public class NicoVideo implements ServiceAPI {
                                 final HttpClient client1;
                                 if (Proxy == null){
                                     client1 = HttpClient.newBuilder()
-                                            .version(HttpClient.Version.HTTP_2)
+                                            .version(HttpClient.Version.HTTP_3)
                                             .followRedirects(HttpClient.Redirect.NORMAL)
                                             .connectTimeout(Duration.ofSeconds(5))
                                             .build();
                                 } else {
                                     String[] s = Proxy.split(":");
                                     client1 = HttpClient.newBuilder()
-                                            .version(HttpClient.Version.HTTP_2)
+                                            .version(HttpClient.Version.HTTP_3)
                                             .followRedirects(HttpClient.Redirect.NORMAL)
                                             .connectTimeout(Duration.ofSeconds(5))
                                             .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
