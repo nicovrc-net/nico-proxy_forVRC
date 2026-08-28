@@ -27,7 +27,7 @@ public class Main {
 
     private static final Pattern matcher_Json = Pattern.compile("<meta name=\"server-response\" content=\"\\{(.+)}\" />");
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
 
         System.setProperty("jdk.httpclient.allowRestrictedHeaders", "Connection,Host");
 
