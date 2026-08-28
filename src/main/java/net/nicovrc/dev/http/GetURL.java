@@ -225,7 +225,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 data.setContentType(Function.contentType_hls);
             } else {
                 VideoData video = getVideoData(originUrl, cookieText, refererText);
-                if (video == null) {
+                if (video == null && !service.getServiceName().equals("Youtube")) {
                     Thread.ofVirtual().start(()->{
                         Function.CacheWaitList.remove(URL);
                         PrintLog(URL, "エラー: 動画ファイル取得失敗", false);
@@ -235,12 +235,21 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     SendErrorData(isTitle, httpVersion, "内部エラー");
                     return;
                 }
-                data.setRange(video.isRange());
-                data.setRangeStart(video.getStartRange());
-                data.setRangeEnd(video.getEndRange());
-                data.setData(video.isRange() && video.getEndRange() != (video.getLength() - 1) ? null : (video.isRange() && video.getEndRange() == (video.getLength() - 1) ? video.getVideoData() : null));
-                String tempUrl = http+httpHostname+"/video/?cacheId="+URLEncoder.encode(data.getCacheId(), StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(originUrl, StandardCharsets.UTF_8);
-                data.setRedirectURL(video.isRange() && video.getEndRange() != (video.getLength() - 1) ? tempUrl : (video.isRange() && video.getEndRange() == (video.getLength() - 1) ? null : tempUrl));
+
+                if (service.getServiceName().equals("Youtube")) {
+                    data.setRange(false);
+                    data.setRangeStart(0L);
+                    data.setRangeEnd(0L);
+                    data.setData(null);
+                    data.setRedirectURL(originUrl);
+                } else {
+                    data.setRange(video.isRange());
+                    data.setRangeStart(video.getStartRange());
+                    data.setRangeEnd(video.getEndRange());
+                    data.setData(video.isRange() && video.getEndRange() != (video.getLength() - 1) ? null : (video.isRange() && video.getEndRange() == (video.getLength() - 1) ? video.getVideoData() : null));
+                    String tempUrl = http+httpHostname+"/video/?cacheId="+URLEncoder.encode(data.getCacheId(), StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(originUrl, StandardCharsets.UTF_8);
+                    data.setRedirectURL(video.isRange() && video.getEndRange() != (video.getLength() - 1) ? tempUrl : (video.isRange() && video.getEndRange() == (video.getLength() - 1) ? null : tempUrl));
+                }
             }
             data.setURL(URL);
             data.setOriginURL(originUrl.isEmpty() ? null : originUrl);
