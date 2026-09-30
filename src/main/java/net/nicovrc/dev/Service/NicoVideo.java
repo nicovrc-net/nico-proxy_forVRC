@@ -336,7 +336,7 @@ public class NicoVideo implements ServiceAPI {
 
             if (json != null){
                 if (json.isJsonObject() && json.getAsJsonObject().has("data")){
-                    String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
+                    String nicosid = Function.config_nicosid;
                     //cookieText = (cookieText.isEmpty() ? "; " : "") + "nicosid="+nicosid;
 
                     // 動画
