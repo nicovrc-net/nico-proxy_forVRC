@@ -27,7 +27,7 @@ public class Main {
 
     private static final Pattern matcher_Json = Pattern.compile("<meta name=\"server-response\" content=\"\\{(.+)}\" />");
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
 
         System.setProperty("jdk.httpclient.allowRestrictedHeaders", "Connection,Host");
 
@@ -205,7 +205,7 @@ NicoNico_user_session: ""
 
         final RedisClient jedis;
         try (HttpClient client = HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_2)
+                .version(HttpClient.Version.HTTP_3)
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(5))
                 .build()
@@ -355,7 +355,7 @@ NicoNico_user_session: ""
                                 String[] s = proxy1.string(i).split(":");
 
                                 try (HttpClient client2 = HttpClient.newBuilder()
-                                        .version(HttpClient.Version.HTTP_2)
+                                        .version(HttpClient.Version.HTTP_3)
                                         .followRedirects(HttpClient.Redirect.NORMAL)
                                         .connectTimeout(Duration.ofSeconds(5))
                                         .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
@@ -430,7 +430,7 @@ NicoNico_user_session: ""
                                 String[] s = proxy2.string(i).split(":");
 
                                 try (HttpClient client2 = HttpClient.newBuilder()
-                                        .version(HttpClient.Version.HTTP_2)
+                                        .version(HttpClient.Version.HTTP_3)
                                         .followRedirects(HttpClient.Redirect.NORMAL)
                                         .connectTimeout(Duration.ofSeconds(5))
                                         .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))

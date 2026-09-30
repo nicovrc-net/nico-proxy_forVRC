@@ -9,45 +9,12 @@ name: Java CI with Gradle
 
 on:
   push:
-    branches: [ "v3" ]
-    tags: ['3.*']
+    branches: [ "v3-java26" ]
+    tags: ['3.*-java26']
   pull_request:
-    branches: [ "master","v3" ]
+    branches: [ "v3-java26" ]
 
 jobs:
-  build-21:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/checkout@v7.0.0
-      - name: Set up JDK 21
-        uses: actions/setup-java@v5.4.0
-        with:
-          java-version: '21'
-          distribution: 'oracle'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v6.1.0
-
-      - name: Make gradlew executable
-        run: chmod +x ./gradlew
-
-      - name: Build with Gradle Wrapper
-        run: ./gradlew shadowJar
-
-      - name: Upload JarFile
-        uses: actions/upload-artifact@v7.0.0
-        with:
-          name: jar
-          path: ./build/libs/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
-
-      - name: Upload Package
-        uses: actions/upload-artifact@v7.0.0
-        with:
-          name: start_windows
-          path: ./package/windows/start.ps1
 
   build-26:
     runs-on: ubuntu-24.04
@@ -70,6 +37,18 @@ jobs:
 
       - name: Build with Gradle Wrapper
         run: ./gradlew shadowJar
+
+      - name: Upload JarFile
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: jar
+          path: ./build/libs/NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
+
+      - name: Upload Package
+        uses: actions/upload-artifact@v7.0.0
+        with:
+          name: start_windows
+          path: ./package/windows/start.ps1
 
   download_ffmpeg:
     runs-on: ubuntu-24.04
@@ -130,7 +109,7 @@ jobs:
           path: ./brotli/out/brotli
 
   autotest1:
-    needs: [build-21, build_br]
+    needs: [build-26, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -139,8 +118,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v5.2.0
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: '26'
+          distribution: 'oracle'
 
       - name: Download JarFile
         uses: actions/download-artifact@v8.0.1
@@ -169,7 +148,7 @@ jobs:
         shell: bash
 
   autotest2:
-    needs: [build-21, build_br]
+    needs: [build-26, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -178,8 +157,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v5.2.0
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: '26'
+          distribution: 'oracle'
 
       - name: Download JarFile
         uses: actions/download-artifact@v8.0.1
@@ -208,7 +187,7 @@ jobs:
         shell: bash
 
   autotest3:
-    needs: [build-21, download_errorVideo, build_br]
+    needs: [build-26, download_errorVideo, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -217,8 +196,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v5.2.0
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: '26'
+          distribution: 'oracle'
 
       - name: Download JarFile
         uses: actions/download-artifact@v8.0.1
@@ -258,7 +237,7 @@ jobs:
         shell: bash
 
   autotest4:
-    needs: [build-21, download_errorVideo, build_br]
+    needs: [build-26, download_errorVideo, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -267,8 +246,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v5.2.0
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: '26'
+          distribution: 'oracle'
 
       - name: Download JarFile
         uses: actions/download-artifact@v8.0.1
@@ -308,7 +287,7 @@ jobs:
         shell: bash
 
   autotest5:
-    needs: [build-21, download_errorVideo, build_br]
+    needs: [build-26, download_errorVideo, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -317,8 +296,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v5.2.0
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: '26'
+          distribution: 'oracle'
 
       - name: Download JarFile
         uses: actions/download-artifact@v8.0.1
@@ -358,7 +337,7 @@ jobs:
         shell: bash
 
   autotest6:
-    needs: [build-21, download_ffmpeg, download_errorVideo, build_br]
+    needs: [build-26, download_ffmpeg, download_errorVideo, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -367,8 +346,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v5.2.0
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: '26'
+          distribution: 'oracle'
 
       - name: Download JarFile
         uses: actions/download-artifact@v8.0.1
@@ -413,7 +392,7 @@ jobs:
         shell: bash
 
   autotest7:
-    needs: [build-21, download_errorVideo, build_br]
+    needs: [build-26, download_errorVideo, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -422,8 +401,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v5.2.0
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: '26'
+          distribution: 'oracle'
 
       - name: Download JarFile
         uses: actions/download-artifact@v8.0.1
@@ -462,7 +441,7 @@ jobs:
           fi
         shell: bash
   autotest8:
-    needs: [build-21, download_errorVideo, build_br]
+    needs: [build-26, download_errorVideo, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -471,8 +450,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v5.2.0
         with:
-          java-version: '21'
-          distribution: 'temurin'
+          java-version: '26'
+          distribution: 'oracle'
 
       - name: Download JarFile
         uses: actions/download-artifact@v8.0.1
