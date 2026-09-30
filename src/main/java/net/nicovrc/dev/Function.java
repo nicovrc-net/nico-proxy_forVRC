@@ -34,7 +34,7 @@ import java.util.zip.GZIPOutputStream;
 public class Function {
     public static final String Version = "3.5.4";
     public static final Gson gson = new Gson();
-    public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:154.0) Gecko/20100101 Firefox/154.0 nicovrc-net/" + Version;
+    public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:157.0) Gecko/20100101 Firefox/157.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static final byte[] zeroByte = new byte[0];
