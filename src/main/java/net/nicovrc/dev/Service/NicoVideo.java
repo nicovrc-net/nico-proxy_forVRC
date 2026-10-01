@@ -323,15 +323,62 @@ public class NicoVideo implements ServiceAPI {
 
                     //System.out.println(json);
 
-                    String nicosid = Function.config_nicosid;
+                    if (json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().has("$watchV4")){
+                        // 新仕様
+                        String nicosid = Function.config_nicosid;
+                        //cookieText = (cookieText.isEmpty() ? "; " : "") + "nicosid="+nicosid;
+
+                        // 動画
+                        result.setURL(json.getAsJsonObject().get("data").getAsJsonObject().get("metadata").getAsJsonObject().get("jsonLds").getAsJsonArray().get(0).getAsJsonObject().get("@id").getAsString());
+                        result.setTitle(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("title").getAsString());
+                        result.setDescription(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("description").getAsString());
+
+                        JsonArray array = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("tags").getAsJsonObject().get("items").getAsJsonArray();
+                        String[] tags = new String[array.size()];
+                        int i = 0;
+                        for (JsonElement element : array) {
+                            tags[i] = element.getAsJsonObject().get("name").getAsString();
+                            i++;
+                        }
+                        result.setTags(tags);
+
+                        result.setViewCount(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("count").getAsJsonObject().get("view").getAsLong());
+                        result.setCommentCount(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("count").getAsJsonObject().get("comment").getAsLong());
+                        result.setMyListCount(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("count").getAsJsonObject().get("mylist").getAsLong());
+                        result.setLikeCount(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("count").getAsJsonObject().get("like").getAsLong());
+
+                        result.setDuration(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("duration").getAsLong());
+
+                        result.setThumbnail(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("thumbnail").getAsJsonObject().get("player").getAsString());
+
+                        HashMap<String, String> cookie = new HashMap<>();
+                        if (domand_bid != null){
+                            cookie.put("domand_bid", domand_bid);
+                        }
+                        cookie.put("nicosid", nicosid);
+
+                        if (Function.config_user_session != null){
+                            cookie.put("user_session", Function.config_user_session);
+                        }
+
+                        result.setVideoAccessCookie(cookie);
+
+                        result.setVideoURL(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("media").getAsJsonObject().get("hls").getAsJsonObject().get("url").getAsString().replaceAll("&amp;", "&"));
+
+                        return Function.gson.toJson(result);
+                    }
+
+                    // 旧仕様
+
+                    String nicosid = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("client").getAsJsonObject().get("nicosid").getAsString();
                     //cookieText = (cookieText.isEmpty() ? "; " : "") + "nicosid="+nicosid;
 
                     // 動画
                     result.setURL(json.getAsJsonObject().get("data").getAsJsonObject().get("metadata").getAsJsonObject().get("jsonLds").getAsJsonArray().get(0).getAsJsonObject().get("@id").getAsString());
-                    result.setTitle(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("title").getAsString());
-                    result.setDescription(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("description").getAsString());
+                    result.setTitle(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("title").getAsString());
+                    result.setDescription(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("description").getAsString());
 
-                    JsonArray array = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("tags").getAsJsonObject().get("items").getAsJsonArray();
+                    JsonArray array = json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("tag").getAsJsonObject().get("items").getAsJsonArray();
                     String[] tags = new String[array.size()];
                     int i = 0;
                     for (JsonElement element : array) {
@@ -340,30 +387,130 @@ public class NicoVideo implements ServiceAPI {
                     }
                     result.setTags(tags);
 
-                    result.setViewCount(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("count").getAsJsonObject().get("view").getAsLong());
-                    result.setCommentCount(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("count").getAsJsonObject().get("comment").getAsLong());
-                    result.setMyListCount(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("count").getAsJsonObject().get("mylist").getAsLong());
-                    result.setLikeCount(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("count").getAsJsonObject().get("like").getAsLong());
+                    result.setViewCount(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("count").getAsJsonObject().get("view").getAsLong());
+                    result.setCommentCount(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("count").getAsJsonObject().get("comment").getAsLong());
+                    result.setMyListCount(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("count").getAsJsonObject().get("mylist").getAsLong());
+                    result.setLikeCount(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("count").getAsJsonObject().get("like").getAsLong());
 
-                    result.setDuration(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("duration").getAsLong());
+                    result.setDuration(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("duration").getAsLong());
 
-                    result.setThumbnail(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("thumbnail").getAsJsonObject().get("player").getAsString());
+                    result.setThumbnail(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("video").getAsJsonObject().get("thumbnail").getAsJsonObject().get("player").getAsString());
 
-                    HashMap<String, String> cookie = new HashMap<>();
-                    if (domand_bid != null){
-                        cookie.put("domand_bid", domand_bid);
+                    String accessRightKey = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").get("accessRightKey").getAsString();
+                    String trackId = json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("client").get("watchTrackId").getAsString();
+
+                    StringBuffer videoJson = new StringBuffer();
+                    //System.out.println(json);
+
+                    String audioJson1 = null;
+                    String audioJson2 = null;
+
+                    for (JsonElement element : json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").getAsJsonArray("audios")) {
+                        //System.out.println(element);
+                        if (audioJson1 == null && element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
+                            audioJson1 = element.getAsJsonObject().get("id").getAsString();
+
+                            continue;
+                        }
+                        if (audioJson1 != null && element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
+                            audioJson2 = element.getAsJsonObject().get("id").getAsString();
+                            break;
+                        }
                     }
-                    cookie.put("nicosid", nicosid);
 
-                    if (Function.config_user_session != null){
-                        cookie.put("user_session", Function.config_user_session);
+                    for (JsonElement element : json.getAsJsonObject().getAsJsonObject("data").getAsJsonObject("response").getAsJsonObject("media").getAsJsonObject("domand").getAsJsonArray("videos")) {
+                        //System.out.println(element);
+                        if (element.getAsJsonObject().get("isAvailable").getAsBoolean()) {
+                            if (audioJson2 != null){
+                                videoJson.append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson1).append("\"],").append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson2).append("\"],");
+                            } else {
+                                videoJson.append("[\"").append(element.getAsJsonObject().get("id").getAsString()).append("\",\"").append(audioJson1).append("\"],");
+                            }
+                        }
                     }
 
-                    result.setVideoAccessCookie(cookie);
+                    String sendJson = "{\"outputs\":["+videoJson.substring(0, videoJson.length() - 1)+"]}";
+                    //System.out.println(sendJson);
 
-                    result.setVideoURL(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("media").getAsJsonObject().get("hls").getAsJsonObject().get("url").getAsString().replaceAll("&amp;", "&"));
+                    // https://nvapi.nicovideo.jp/v1/watch/sm45021027/access-rights/hls?actionTrackId=IpQvCiNIUy_1754217531720
+                    //System.out.println(id);
+                    //System.out.println(trackId);
+                    uri = new URI("https://nvapi.nicovideo.jp/v1/watch/"+id+"/access-rights/hls?actionTrackId="+trackId);
+                    //System.out.println(sendJson);
+                    request = HttpRequest.newBuilder()
+                            .uri(uri)
+                            .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                            .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                            .headers("Accept-Encoding", "gzip, br")
+                            .headers("X-Access-Right-Key", accessRightKey)
+                            .headers("X-Frontend-Id", "6")
+                            .headers("X-Frontend-Version", "0")
+                            .headers("X-Niconico-Language", "ja-jp")
+                            .headers("X-Request-With", "nicovideo")
+                            .headers("Cookie", cookieText.toString())
+                            .headers("User-Agent", Function.UserAgent)
+                            .POST(HttpRequest.BodyPublishers.ofString(sendJson))
+                            .build();
+
+                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                    jsonText = "{}";
+                    if (!contentEncoding.isEmpty()){
+                        byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                        jsonText = new String(bytes, StandardCharsets.UTF_8);
+                    } else {
+                        jsonText = new String(send.body(), StandardCharsets.UTF_8);
+                    }
+                    if (send.statusCode() >= 400){
+                        //System.out.println("TEST");
+                        uri = null;
+                        request = null;
+                        //client.close();
+                        client = null;
+                        /*
+                        System.out.println("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")");
+                        send.headers().map().forEach((a, b)->{
+                            System.out.println("--- "+a+" ---");
+                            for (int x = 0; x < b.size(); x++){
+                                System.out.println(b.get(x));
+                            }
+                        });
+                        System.out.println(send.body());*/
+                        return Function.gson.toJson(new ErrorMessage("取得に失敗しました。(HTTPエラーコード : "+send.statusCode()+")"));
+                    }
+                    //System.out.println(body);
+                    json = Function.gson.fromJson(jsonText, JsonElement.class);
+                    //client.close();
+
+                    List<String> cookieTextList = new ArrayList<>();
+                    if (!send.headers().allValues("Set-Cookie").isEmpty()){
+                        cookieTextList = send.headers().allValues("Set-Cookie");
+                    }
+                    if (!send.headers().allValues("set-cookie").isEmpty()){
+                        cookieTextList = send.headers().allValues("set-cookie");
+                    }
+
+                    if (json.isJsonObject() && json.getAsJsonObject().has("data") && json.getAsJsonObject().get("data").getAsJsonObject().has("contentUrl")){
+                        result.setVideoURL(json.getAsJsonObject().get("data").getAsJsonObject().get("contentUrl").getAsString());
+
+                        String[] split = cookieTextList.get(0).split(";");
+
+                        HashMap<String, String> cookie = new HashMap<>();
+                        if (user_session != null){
+                            cookie.put("user_session", user_session);
+                        }
+                        cookie.put("nicosid", nicosid);
+                        if (split[0].startsWith("domand_bid=")){
+                            cookie.put("domand_bid", split[0].replaceAll("domand_bid=", ""));
+                        }
+                        result.setVideoAccessCookie(cookie);
+                    } else {
+                        //System.out.println("動画取得に失敗しました。");
+                        return Function.gson.toJson(new ErrorMessage("動画取得に失敗しました。"));
+                    }
 
                     return Function.gson.toJson(result);
+
                 } else {
                     // ニコ生
                     NicoVideoResult liveData = new NicoVideoResult();
