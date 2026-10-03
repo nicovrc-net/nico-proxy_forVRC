@@ -5,7 +5,7 @@ if ( -not (Test-Path '.\jdk-21')){
         $_.binary.os -eq "windows" -and $_.binary.image_type -eq "jdk"
     }
     $zipUrl = $windowsJdk.binary.package.link[0]
-    $package_name = $windowsJdk.release_name | Out-String
+    $package_name = $windowsJdk.release_name[0]
 
     Invoke-WebRequest -Uri $zipUrl -OutFile ./jdk-21.zip
     Expand-Archive -Path ./jdk-21.zip -DestinationPath ./
