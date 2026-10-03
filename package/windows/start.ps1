@@ -1,8 +1,8 @@
 if ( -not (Test-Path '.\jdk-21')){
-    Invoke-WebRequest -Uri https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12%2B8/OpenJDK21U-jdk_x64_windows_hotspot_21.0.12_8.zip -OutFile ./OpenJDK21U-jdk_x64_windows_hotspot_21.0.12_8.zip
-    Expand-Archive -Path ./OpenJDK21U-jdk_x64_windows_hotspot_21.0.12_8.zip -DestinationPath ./
-    Remove-Item ./OpenJDK21U-jdk_x64_windows_hotspot_21.0.12_8.zip
-    Rename-Item ./jdk-21.0.12+8 ./jdk-21
+    Invoke-WebRequest -Uri https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip -OutFile ./OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip
+    Expand-Archive -Path ./OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip -DestinationPath ./
+    Remove-Item ./OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip
+    Rename-Item ./jdk-21.0.12.1+1 ./jdk-21
 }
 
 if ( -not (Test-Path '.\brotli.exe')){
