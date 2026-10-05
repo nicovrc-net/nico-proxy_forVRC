@@ -1,5 +1,5 @@
-if ( -not (Test-Path '.\jdk-21')){
-    $url = "https://api.adoptium.net/v3/assets/latest/21/hotspot?vendor=eclipse"
+if ( -not (Test-Path '.\jdk-26')){
+    $url = "https://api.adoptium.net/v3/assets/latest/26/hotspot?vendor=eclipse"
     $jsonContent = Invoke-RestMethod -Uri $url -Method Get
     $windowsJdk = $jsonContent | Where-Object {
         $_.binary.os -eq "windows" -and $_.binary.image_type -eq "jdk"
@@ -7,20 +7,13 @@ if ( -not (Test-Path '.\jdk-21')){
     $zipUrl = $windowsJdk.binary.package.link[0]
     $package_name = $windowsJdk.release_name[0]
 
-    Invoke-WebRequest -Uri $zipUrl -OutFile ./jdk-21.zip
-    Expand-Archive -Path ./jdk-21.zip -DestinationPath ./
-    Remove-Item ./jdk-21.zip
-    Rename-Item ./$package_name ./jdk-21
+    Invoke-WebRequest -Uri $zipUrl -OutFile ./jdk-26.zip
+    Expand-Archive -Path ./jdk-26.zip -DestinationPath ./
+    Remove-Item ./jdk-26.zip
+    Rename-Item ./$package_name ./jdk-26
 }
 
-if ( -not (Test-Path '.\brotli.exe')){
-    Invoke-WebRequest -Uri https://github.com/google/brotli/releases/download/v1.2.0/brotli-x64-windows-static.zip -OutFile ./brotli-x64-windows-static.zip
-    Expand-Archive -Path ./brotli-x64-windows-static.zip -DestinationPath ./
-    Remove-Item ./brotli-x64-windows-static.zip
-    Remove-Item ./LICENSE.brotli
-}
-
-./jdk-21/bin/java.exe -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
+./jdk-26/bin/java.exe -jar ./NicoVideoPlayForVRC-4.0-SNAPSHOT-all.jar
 
 # SIG # Begin signature block
 # MIIIpQYJKoZIhvcNAQcCoIIIljCCCJICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
