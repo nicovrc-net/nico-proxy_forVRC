@@ -618,6 +618,7 @@ jobs:
             - bilibiliの仕様変更対応
             - SoundCloudの仕様変更対応
             - Vimeoの仕様変更対応
+            - バグ修正
           draft: false
           prerelease: false
 
