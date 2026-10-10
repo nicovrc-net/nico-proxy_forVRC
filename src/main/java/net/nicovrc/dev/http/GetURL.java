@@ -385,6 +385,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             } else {
                 PrintLog(URL, cache.getOriginURL() != null ? cache.getOriginURL() : "", isCache);
                 AddLog(URL, cache.getOriginURL() != null ? cache.getOriginURL() : "", "");
+                AddWebhook(URL, cache.getOriginURL() != null ? cache.getOriginURL() : (cache.getOriginURL() != null ? cache.getOriginURL() : null));
             }
         }
 
