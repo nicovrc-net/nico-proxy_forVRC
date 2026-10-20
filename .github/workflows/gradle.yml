@@ -615,7 +615,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - bilibiliの仕様変更対応
+            - ニコ動の仕様変更対応
             - SoundCloudの仕様変更対応
             - Vimeoの仕様変更対応
             - バグ修正

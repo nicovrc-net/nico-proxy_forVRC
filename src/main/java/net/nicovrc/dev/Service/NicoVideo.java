@@ -321,7 +321,7 @@ public class NicoVideo implements ServiceAPI {
             if (json != null){
                 if (json.isJsonObject() && json.getAsJsonObject().has("data")){
 
-                    //System.out.println(json);
+                    System.out.println(json);
 
                     if (json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().has("$watchV4")){
                         // 新仕様
@@ -363,8 +363,58 @@ public class NicoVideo implements ServiceAPI {
 
                         result.setVideoAccessCookie(cookie);
 
-                        result.setVideoURL(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("media").getAsJsonObject().get("hls").getAsJsonObject().get("url").getAsString().replaceAll("&amp;", "&"));
+                        if (!json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("media").getAsJsonObject().get("hls").isJsonNull()) {
+                            result.setVideoURL(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("media").getAsJsonObject().get("hls").getAsJsonObject().get("url").getAsString().replaceAll("&amp;", "&"));
+                        } else {
+                            StringBuffer buffer = new StringBuffer("{\"outputs\":[");
 
+                            for (JsonElement jsonElement : json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("media").getAsJsonObject().get("contents").getAsJsonObject().get("videos").getAsJsonArray()) {
+                                if (jsonElement.getAsJsonObject().get("isAvailable").getAsBoolean()) {
+                                    for (JsonElement element : json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("media").getAsJsonObject().get("contents").getAsJsonObject().get("audios").getAsJsonArray()) {
+                                        if (element.getAsJsonObject().get("isAvailable").getAsBoolean()){
+                                            buffer.append("[\"").append(jsonElement.getAsJsonObject().get("id").getAsString()).append("\",\"").append(element.getAsJsonObject().get("id").getAsString()).append("\"],");
+                                        }
+                                    }
+
+                                }
+                            }
+                            buffer.setLength(buffer.length() - 1);
+                            buffer.append("]}");
+
+                            System.out.println(buffer.toString());
+
+                            //System.out.println("https://nvapi.nicovideo.jp/v1/watch/"+json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("id").getAsString()+"/access-rights/hls?actionTrackId="+json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("client").getAsJsonObject().get("watchTrackId").getAsString());
+                            request = HttpRequest.newBuilder()
+                                    .uri(new URI("https://nvapi.nicovideo.jp/v1/watch/"+json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("id").getAsString()+"/access-rights/hls?actionTrackId="+json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("client").getAsJsonObject().get("watchTrackId").getAsString()))
+                                    .headers("User-Agent", Function.UserAgent)
+                                    .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                                    .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                                    .headers("Accept-Encoding", "gzip, br")
+                                    .headers("Cookie", cookieText.toString())
+                                    .headers("X-Access-Right-Key", json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("media").getAsJsonObject().get("accessRightKey").getAsString())
+                                    .headers("X-Frontend-Id", "6")
+                                    .headers("X-Frontend-Version", "0")
+                                    .headers("X-Niconico-Language", "ja-jp")
+                                    .headers("X-Request-With", "https://www.nicovideo.jp")
+                                    .POST(HttpRequest.BodyPublishers.ofString(buffer.toString()))
+                                    .build();
+
+                            send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                            contentEncoding = send.headers().firstValue("Content-Encoding").isPresent() ? send.headers().firstValue("Content-Encoding").get() : send.headers().firstValue("content-encoding").isPresent() ? send.headers().firstValue("content-encoding").get() : "";
+                            jsonText = "{}";
+                            if (!contentEncoding.isEmpty()){
+                                byte[] bytes = Function.decompressByte(send.body(), contentEncoding);
+                                jsonText = new String(bytes, StandardCharsets.UTF_8);
+                            } else {
+                                jsonText = new String(send.body(), StandardCharsets.UTF_8);
+                            }
+
+                            json = Function.gson.fromJson(jsonText, JsonElement.class);
+
+                            result.setVideoURL(json.getAsJsonObject().get("data").getAsJsonObject().get("contentUrl").getAsString());
+
+
+                        }
                         return Function.gson.toJson(result);
                     }
 
