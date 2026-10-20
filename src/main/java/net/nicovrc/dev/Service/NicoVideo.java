@@ -67,7 +67,7 @@ public class NicoVideo implements ServiceAPI {
     private final Pattern matcher_videoError1 = Pattern.compile("(この動画は存在しないか、削除された可能性があります。|お探しのページは、すでに削除されたか存在しない可能性があります|errorCode&quot;:&quot;NOT_FOUND&)");
     private final Pattern matcher_videoError2 = Pattern.compile("この動画は(.+)の申立により、著作権侵害として削除されました。");
 
-    private final Pattern matcher_cookie_domand = Pattern.compile("domand_bid=(.+); Expires=");
+    private final Pattern matcher_cookie_domand = Pattern.compile("domand_bid=(.+); (E|e)xpires=");
 
     private final ConcurrentHashMap<String, NicoVideoResult> LiveCacheList = new ConcurrentHashMap<>();
 
@@ -262,23 +262,6 @@ public class NicoVideo implements ServiceAPI {
                 }
             });*/
 
-            final String[] tempCookie = {null};
-
-            if (!send.headers().allValues("Set-Cookie").isEmpty()){
-                send.headers().allValues("Set-Cookie").forEach((cookie) -> {
-                    Matcher matcher = matcher_cookie_domand.matcher(cookie);
-                    if (matcher.find()) {
-                        tempCookie[0] = matcher.group(1);
-                    }
-                });
-
-            }
-
-            String domand_bid = null;
-            if (tempCookie[0] != null){
-                domand_bid = tempCookie[0];
-            }
-
             //System.out.println("domand_bid = " + domand_bid);
 
             if (send.statusCode() >= 400){
@@ -352,16 +335,13 @@ public class NicoVideo implements ServiceAPI {
                         result.setThumbnail(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("thumbnail").getAsJsonObject().get("player").getAsString());
 
                         HashMap<String, String> cookie = new HashMap<>();
-                        if (domand_bid != null){
-                            cookie.put("domand_bid", domand_bid);
-                        }
+
                         cookie.put("nicosid", nicosid);
 
                         if (Function.config_user_session != null){
                             cookie.put("user_session", Function.config_user_session);
                         }
 
-                        result.setVideoAccessCookie(cookie);
 
                         if (!json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("media").getAsJsonObject().get("hls").isJsonNull()) {
                             result.setVideoURL(json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("media").getAsJsonObject().get("hls").getAsJsonObject().get("url").getAsString().replaceAll("&amp;", "&"));
@@ -408,6 +388,37 @@ public class NicoVideo implements ServiceAPI {
                             } else {
                                 jsonText = new String(send.body(), StandardCharsets.UTF_8);
                             }
+
+                            final String[] tempCookie = {null};
+
+                            if (!send.headers().allValues("Set-Cookie").isEmpty()){
+                                send.headers().allValues("Set-Cookie").forEach((cookie1) -> {
+                                    Matcher matcher1 = matcher_cookie_domand.matcher(cookie1);
+                                    if (matcher1.find()) {
+                                        tempCookie[0] = matcher1.group(1);
+                                    }
+                                });
+
+                            }
+                            if (!send.headers().allValues("set-cookie").isEmpty()){
+                                send.headers().allValues("set-cookie").forEach((cookie1) -> {
+                                    Matcher matcher1 = matcher_cookie_domand.matcher(cookie1);
+                                    if (matcher1.find()) {
+                                        tempCookie[0] = matcher1.group(1);
+                                    }
+                                });
+
+                            }
+
+                            String domand_bid = null;
+                            if (tempCookie[0] != null){
+                                domand_bid = tempCookie[0];
+                            }
+
+                            if (domand_bid != null){
+                                cookie.put("domand_bid", domand_bid);
+                            }
+                            result.setVideoAccessCookie(cookie);
 
                             json = Function.gson.fromJson(jsonText, JsonElement.class);
 

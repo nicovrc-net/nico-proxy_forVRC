@@ -196,6 +196,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     sb.append(key).append("=").append(value).append(";");
                 });
                 cookieText = sb.substring(0, sb.length() - 1);
+
+                //System.out.println("cookieText:"+cookieText);
             } else if (temp != null && temp.getLiveAccessCookie() != null){
                 temp.getLiveAccessCookie().forEach((key, value) -> {
                     sb.append(key).append("=").append(value).append(";");
@@ -594,6 +596,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             }
 
             final HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            System.out.println(new String(response.body(), StandardCharsets.UTF_8));
             if (response.statusCode() >= 200 && response.statusCode() < 300){
                 videoData.setVideoData(response.body());
                 return videoData;
