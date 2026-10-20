@@ -321,7 +321,7 @@ public class NicoVideo implements ServiceAPI {
             if (json != null){
                 if (json.isJsonObject() && json.getAsJsonObject().has("data")){
 
-                    System.out.println(json);
+                    //System.out.println(json);
 
                     if (json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().has("$watchV4")){
                         // 新仕様
@@ -381,7 +381,7 @@ public class NicoVideo implements ServiceAPI {
                             buffer.setLength(buffer.length() - 1);
                             buffer.append("]}");
 
-                            System.out.println(buffer.toString());
+                            //System.out.println(buffer.toString());
 
                             //System.out.println("https://nvapi.nicovideo.jp/v1/watch/"+json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("video").getAsJsonObject().get("id").getAsString()+"/access-rights/hls?actionTrackId="+json.getAsJsonObject().get("data").getAsJsonObject().get("response").getAsJsonObject().get("$watchV4").getAsJsonObject().get("data").getAsJsonObject().get("client").getAsJsonObject().get("watchTrackId").getAsString());
                             request = HttpRequest.newBuilder()
@@ -411,9 +411,8 @@ public class NicoVideo implements ServiceAPI {
 
                             json = Function.gson.fromJson(jsonText, JsonElement.class);
 
+                            //System.out.println(json.getAsJsonObject().get("data").getAsJsonObject().get("contentUrl").getAsString());
                             result.setVideoURL(json.getAsJsonObject().get("data").getAsJsonObject().get("contentUrl").getAsString());
-
-
                         }
                         return Function.gson.toJson(result);
                     }
