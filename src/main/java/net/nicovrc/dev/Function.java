@@ -8,6 +8,13 @@ import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.params.SetParams;
 import redis.clients.jedis.resps.ScanResult;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineBreakMeasurer;
+import java.awt.font.TextAttribute;
+import java.awt.font.TextLayout;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -23,8 +30,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -32,9 +42,9 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.5.6";
+    public static final String Version = "3.6.0";
     public static final Gson gson = new Gson();
-    public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:157.0) Gecko/20100101 Firefox/157.0 nicovrc-net/" + Version;
+    public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static final byte[] zeroByte = new byte[0];
@@ -348,6 +358,7 @@ public class Function {
             if (isFoundFile("./error-video/" + videoId + ".mp4")) {
                 content = getFileByBinary("./error-video/" + videoId + ".mp4");
             } else {
+                /*
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(new URI("https://nicovrc.net/v3-video/error.php?msg=" + URLEncoder.encode(message, StandardCharsets.UTF_8)))
                         .headers("User-Agent", Function.UserAgent)
@@ -355,9 +366,78 @@ public class Function {
                         .build();
                 HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
                 writeFile("./error-video/" + videoId + ".png", send.body());
+                 */
+
+                // エラー動画を生成するためのファイルを準備
+                if (!isFoundFile("./error-video/base.png")) {
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(new URI("https://raw.githubusercontent.com/nicovrc-net/nico-proxy_forVRC/refs/heads/master/errorvideo/error-v3.png"))
+                            .headers("User-Agent", Function.UserAgent)
+                            .GET()
+                            .build();
+                    HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    writeFile("./error-video/base.png", send.body());
+                }
+                if (!isFoundFile("./error-video/NotoSansCJK-VF.ttf.ttc")) {
+                    HttpRequest request = HttpRequest.newBuilder()
+                            .uri(new URI("https://github.com/notofonts/noto-cjk/raw/main/Sans/Variable/OTC/NotoSansCJK-VF.ttf.ttc"))
+                            .headers("User-Agent", Function.UserAgent)
+                            .GET()
+                            .build();
+                    HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                    writeFile("./error-video/NotoSansCJK-VF.ttf.ttc", send.body());
+                }
+
+                // エラー画像生成
+                BufferedImage image = ImageIO.read(new File("./error-video/base.png"));
+                Graphics2D g = image.createGraphics();
+                g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                        RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+                Font[] fonts = Font.createFonts(new File("./error-video/NotoSansCJK-VF.ttf.ttc"));
+                Font font = fonts[0].deriveFont(48.0f);
+                g.setFont(font);
+                g.setColor(Color.BLACK);
+
+                int boxX = 100;
+                int boxY = 360;
+                int boxWidth = 1815;
+                int boxHeight = 375;
+
+                FontRenderContext frc = g.getFontRenderContext();
+
+                AttributedString attrStr = new AttributedString(message);
+                attrStr.addAttribute(TextAttribute.FONT, g.getFont());
+
+                AttributedCharacterIterator it = attrStr.getIterator();
+
+                LineBreakMeasurer lbm =
+                        new LineBreakMeasurer(it, frc);
+
+                float drawPosY = boxY;
+
+                while (lbm.getPosition() < it.getEndIndex()) {
+
+                    TextLayout layout =
+                            lbm.nextLayout(boxWidth);
+
+                    drawPosY += layout.getAscent();
+
+                    if (drawPosY > boxY + boxHeight) {
+                        break; // 枠外には描画しない
+                    }
+
+                    layout.draw(g, boxX, drawPosY);
+
+                    drawPosY += layout.getDescent()
+                            + layout.getLeading();
+                }
+
+                g.dispose();
+                ImageIO.write(image, "png", new File("./error-video/"+videoId+".png"));
 
                 Runtime runtime = Runtime.getRuntime();
                 String ffmpegPass = Function.getFFmpegPath();
+                // 音声作成
                 if (!isFoundFile("./error-video/out.mp3")) {
                     final Process exec0 = runtime.exec(new String[]{ffmpegPass, "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono", "-t", "5", "-aq", "1", "-c:a", "libmp3lame", "./error-video/out.mp3"});
                     Thread.ofVirtual().start(() -> {
@@ -373,6 +453,8 @@ public class Function {
                     });
                     exec0.waitFor();
                 }
+
+                // 映像作成
                 //System.out.println(Arrays.toString(new String[]{ffmpegPass, "-loop", "1", "-i", "./error-video/" + videoId + ".png", "-i", "./error-video/out.mp3", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "copy", "-map", "0:v:0", "-map", "1:a:0", "-t", "20", "-r", "60", "./error-video/" + videoId + ".mp4"}));
                 String[] command = new String[]{ffmpegPass, "-v","quiet","-loop", "1", "-i", "./error-video/" + videoId + ".png", "-i", "./error-video/out.mp3", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "copy", "-map", "0:v:0", "-map", "1:a:0", "-t", "20", "-r", "60", "./error-video/" + videoId + ".mp4"};
                 final Process exec1 = runtime.exec(command);

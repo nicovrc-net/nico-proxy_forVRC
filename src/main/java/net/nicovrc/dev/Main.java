@@ -10,6 +10,13 @@ import redis.clients.jedis.*;
 import redis.clients.jedis.params.ScanParams;
 import redis.clients.jedis.resps.ScanResult;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.font.FontRenderContext;
+import java.awt.font.LineBreakMeasurer;
+import java.awt.font.TextAttribute;
+import java.awt.font.TextLayout;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
@@ -18,8 +25,11 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.text.AttributedCharacterIterator;
+import java.text.AttributedString;
 import java.time.Duration;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -248,60 +258,231 @@ NicoNico_user_session: ""
 
             // エラー動画
             if (!Function.isFoundFolder("./error-video")){
-                if (Function.createFolder("./error-video")) {
-                    HttpRequest request = HttpRequest.newBuilder()
-                            .uri(new URI("https://r2.7mi.site/vrc/nico/error_404.mp4"))
-                            .headers("User-Agent", Function.UserAgent)
-                            .GET()
-                            .build();
+                Function.createFolder("./error-video");
+            }
 
-                    HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-                    if (send.statusCode() >= 400) {
-                        send = null;
-                        request = null;
-                    } else {
-                        Function.writeFile("./error-video/error_404.mp4", send.body());
-                    }
-                    request = HttpRequest.newBuilder()
-                            .uri(new URI("https://r2.7mi.site/vrc/nico/error_000.mp4"))
-                            .headers("User-Agent", Function.UserAgent)
-                            .GET()
-                            .build();
+            // エラー動画を生成するためのファイルを準備
+            if (!Function.isFoundFile("./error-video/base.png")) {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(new URI("https://raw.githubusercontent.com/nicovrc-net/nico-proxy_forVRC/refs/heads/master/errorvideo/error-v3.png"))
+                        .headers("User-Agent", Function.UserAgent)
+                        .GET()
+                        .build();
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                Function.writeFile("./error-video/base.png", send.body());
+            }
+            if (!Function.isFoundFile("./error-video/NotoSansCJK-VF.ttf.ttc")) {
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(new URI("https://github.com/notofonts/noto-cjk/raw/main/Sans/Variable/OTC/NotoSansCJK-VF.ttf.ttc"))
+                        .headers("User-Agent", Function.UserAgent)
+                        .GET()
+                        .build();
+                HttpResponse<byte[]> send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+                Function.writeFile("./error-video/NotoSansCJK-VF.ttf.ttc", send.body());
+            }
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-                    if (send.statusCode() >= 400) {
-                        send = null;
-                        request = null;
-                        //client.close();
-                    } else {
-                        Function.writeFile("./error-video/error_000.mp4", send.body());
-                    }
+            // エラー画像生成
+            BufferedImage image = ImageIO.read(new File("./error-video/base.png"));
+            Graphics2D g1 = image.createGraphics();
+            g1.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            Font[] fonts = Font.createFonts(new File("./error-video/NotoSansCJK-VF.ttf.ttc"));
+            Font font = fonts[0].deriveFont(48.0f);
+            g1.setFont(font);
+            g1.setColor(Color.BLACK);
 
-                    request = HttpRequest.newBuilder()
-                            .uri(new URI("https://r2.7mi.site/vrc/nico/error_404_2.mp4"))
-                            .headers("User-Agent", Function.UserAgent)
-                            .GET()
-                            .build();
+            int boxX = 100;
+            int boxY = 360;
+            int boxWidth = 1815;
+            int boxHeight = 375;
 
-                    send = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-                    if (send.statusCode() >= 400) {
-                        send = null;
-                        request = null;
-                    } else {
-                        Function.writeFile("./error-video/error_404_2.mp4", send.body());
-                    }
+            FontRenderContext frc = g1.getFontRenderContext();
+            AttributedString attrStr = new AttributedString("内部処理エラーです。再度試していただきもう一度このエラー画面が出たら　　　以下のDiscordに報告お願いします。");
+            attrStr.addAttribute(TextAttribute.FONT, g1.getFont());
+
+            AttributedCharacterIterator it = attrStr.getIterator();
+
+            LineBreakMeasurer lbm =
+                    new LineBreakMeasurer(it, frc);
+
+            float drawPosY = boxY;
+
+            while (lbm.getPosition() < it.getEndIndex()) {
+
+                TextLayout layout =
+                        lbm.nextLayout(boxWidth);
+
+                drawPosY += layout.getAscent();
+
+                if (drawPosY > boxY + boxHeight) {
+                    break; // 枠外には描画しない
                 }
+
+                layout.draw(g1, boxX, drawPosY);
+
+                drawPosY += layout.getDescent()
+                        + layout.getLeading();
             }
 
-            if (Function.isFoundFile("./error-video/error_000.mp4")){
-                Function.content_errorVideo_others = Function.getFileByBinary("./error-video/error_000.mp4");
+            g1.dispose();
+            ImageIO.write(image, "png", new File("./error-video/000.png"));
+
+            image = ImageIO.read(new File("./error-video/base.png"));
+            Graphics2D g2 = image.createGraphics();
+            g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g2.setFont(font);
+            g2.setColor(Color.BLACK);
+
+            frc = g2.getFontRenderContext();
+            attrStr = new AttributedString("対応していないサイトです。要望は以下のDiscordにお願いします。");
+            attrStr.addAttribute(TextAttribute.FONT, g2.getFont());
+
+            it = attrStr.getIterator();
+
+            lbm = new LineBreakMeasurer(it, frc);
+
+            drawPosY = boxY;
+
+            while (lbm.getPosition() < it.getEndIndex()) {
+
+                TextLayout layout =
+                        lbm.nextLayout(boxWidth);
+
+                drawPosY += layout.getAscent();
+
+                if (drawPosY > boxY + boxHeight) {
+                    break; // 枠外には描画しない
+                }
+
+                layout.draw(g2, boxX, drawPosY);
+
+                drawPosY += layout.getDescent()
+                        + layout.getLeading();
             }
-            if (Function.isFoundFile("./error-video/error_404.mp4")){
-                Function.content_errorVideo_site = Function.getFileByBinary("./error-video/error_404.mp4");
+
+            g2.dispose();
+            ImageIO.write(image, "png", new File("./error-video/404.png"));
+
+            image = ImageIO.read(new File("./error-video/base.png"));
+            Graphics2D g3 = image.createGraphics();
+            g3.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g3.setFont(font);
+            g3.setColor(Color.BLACK);
+
+            frc = g3.getFontRenderContext();
+
+            attrStr = new AttributedString("終了している配信です。");
+            attrStr.addAttribute(TextAttribute.FONT, g3.getFont());
+
+            it = attrStr.getIterator();
+
+            lbm = new LineBreakMeasurer(it, frc);
+
+            drawPosY = boxY;
+
+            while (lbm.getPosition() < it.getEndIndex()) {
+
+                TextLayout layout =
+                        lbm.nextLayout(boxWidth);
+
+                drawPosY += layout.getAscent();
+
+                if (drawPosY > boxY + boxHeight) {
+                    break; // 枠外には描画しない
+                }
+
+                layout.draw(g3, boxX, drawPosY);
+
+                drawPosY += layout.getDescent()
+                        + layout.getLeading();
             }
-            if (Function.isFoundFile("./error-video/error_404_2.mp4")){
-                Function.content_errorVideo_endLive = Function.getFileByBinary("./error-video/error_404_2.mp4");
+
+            g3.dispose();
+            ImageIO.write(image, "png", new File("./error-video/404_2.png"));
+
+            Runtime runtime = Runtime.getRuntime();
+            String ffmpegPass = Function.getFFmpegPath();
+            if (!Function.isFoundFile("./error-video/out.mp3")) {
+                final Process exec0 = runtime.exec(new String[]{ffmpegPass, "-f", "lavfi", "-i", "anullsrc=r=44100:cl=mono", "-t", "5", "-aq", "1", "-c:a", "libmp3lame", "./error-video/out.mp3"});
+                Thread.ofVirtual().start(() -> {
+                    try {
+                        Thread.sleep(5000L);
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+
+                    if (exec0.isAlive()) {
+                        exec0.destroy();
+                    }
+                });
+                exec0.waitFor();
             }
+
+            String[] command = null;
+            final Process[] exec1 = {null};
+            if (!Function.isFoundFile("./error-video/error_000.mp4")) {
+                command = new String[]{ffmpegPass, "-v","quiet","-loop", "1", "-i", "./error-video/000.png", "-i", "./error-video/out.mp3", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "copy", "-map", "0:v:0", "-map", "1:a:0", "-t", "20", "-r", "60", "./error-video/error_000.mp4"};
+                exec1[0] = runtime.exec(command);
+                Thread.ofVirtual().start(() -> {
+                    try {
+                        Thread.sleep(5000L);
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+
+                    if (exec1[0].isAlive()) {
+                        exec1[0].destroy();
+                    }
+                });
+                exec1[0].waitFor();
+                //System.out.println(ffmpegPass);
+                Function.deleteCache("./error-video/000.png");
+            }
+
+            if (!Function.isFoundFile("./error-video/error_404.mp4")) {
+                command = new String[]{ffmpegPass, "-v","quiet","-loop", "1", "-i", "./error-video/404.png", "-i", "./error-video/out.mp3", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "copy", "-map", "0:v:0", "-map", "1:a:0", "-t", "20", "-r", "60", "./error-video/error_404.mp4"};
+                runtime.exec(command);
+                Thread.ofVirtual().start(() -> {
+                    try {
+                        Thread.sleep(5000L);
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+
+                    if (exec1[0].isAlive()) {
+                        exec1[0].destroy();
+                    }
+                });
+                exec1[0].waitFor();
+                Function.deleteCache("./error-video/404.png");
+            }
+
+            if (!Function.isFoundFile("./error-video/error_404_2.mp4")){
+                command = new String[]{ffmpegPass, "-v","quiet","-loop", "1", "-i", "./error-video/404_2.png", "-i", "./error-video/out.mp3", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "copy", "-map", "0:v:0", "-map", "1:a:0", "-t", "20", "-r", "60", "./error-video/error_404_2.mp4"};
+                runtime.exec(command);
+                Thread.ofVirtual().start(() -> {
+                    try {
+                        Thread.sleep(5000L);
+                    } catch (Exception e) {
+                        //e.printStackTrace();
+                    }
+
+                    if (exec1[0].isAlive()) {
+                        exec1[0].destroy();
+                    }
+                });
+                exec1[0].waitFor();
+                //System.out.println(ffmpegPass);
+                Function.deleteCache("./error-video/404_2.png");
+            }
+
+
+            Function.content_errorVideo_others = Function.getFileByBinary("./error-video/error_000.mp4");
+            Function.content_errorVideo_site = Function.getFileByBinary("./error-video/error_404.mp4");
+            Function.content_errorVideo_endLive = Function.getFileByBinary("./error-video/error_404_2.mp4");
+
             // ログ、Webhook書き出し & キャッシュ削除
             Function.mainTimer.scheduleAtFixedRate(new TimerTask() {
                 @Override
