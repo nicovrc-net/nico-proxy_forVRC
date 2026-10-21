@@ -91,24 +91,6 @@ jobs:
           name: ffmpeg
           path: ./ffmpeg
 
-  download_errorVideo:
-    runs-on: ubuntu-24.04
-    permissions:
-      contents: write
-    steps:
-      - name: Download Video
-        run: |
-          wget https://nicovrc.net/v3-video/error_404.mp4 > null
-          wget https://nicovrc.net/v3-video/error_000.mp4 > null
-          wget https://nicovrc.net/v3-video/error_404_2.mp4 > null
-        shell: bash
-
-      - name: Upload Video
-        uses: actions/upload-artifact@v7.0.0
-        with:
-          name: video
-          path: ./*.mp4
-
   build_br:
     runs-on: ubuntu-24.04
     permissions:
@@ -208,7 +190,7 @@ jobs:
         shell: bash
 
   autotest3:
-    needs: [build-21, download_errorVideo, build_br]
+    needs: [build-21, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -258,7 +240,7 @@ jobs:
         shell: bash
 
   autotest4:
-    needs: [build-21, download_errorVideo, build_br]
+    needs: [build-21, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -308,7 +290,7 @@ jobs:
         shell: bash
 
   autotest5:
-    needs: [build-21, download_errorVideo, build_br]
+    needs: [build-21, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -358,7 +340,7 @@ jobs:
         shell: bash
 
   autotest6:
-    needs: [build-21, download_ffmpeg, download_errorVideo, build_br]
+    needs: [build-21, download_ffmpeg, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -413,7 +395,7 @@ jobs:
         shell: bash
 
   autotest7:
-    needs: [build-21, download_errorVideo, build_br]
+    needs: [build-21, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -462,7 +444,7 @@ jobs:
           fi
         shell: bash
   autotest8:
-    needs: [build-21, download_errorVideo, build_br]
+    needs: [build-21, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -615,10 +597,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - ニコ動の仕様変更対応
-            - SoundCloudの仕様変更対応
-            - Vimeoの仕様変更対応
-            - バグ修正
+            - エラー動画の作成に関して外部依存していたのを自前で用意するようにした
           draft: false
           prerelease: false
 
