@@ -212,17 +212,6 @@ jobs:
         with:
           name: brotli
 
-      - name: Download Video
-        uses: actions/download-artifact@v8.0.1
-        with:
-          name: video
-
-      - name: Set VideoFile
-        run: |
-          mkdir ./error-video
-          mv ./*.mp4 ./error-video
-        shell: bash
-
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
@@ -262,17 +251,6 @@ jobs:
         with:
           name: brotli
 
-      - name: Download Video
-        uses: actions/download-artifact@v8.0.1
-        with:
-          name: video
-
-      - name: Set VideoFile
-        run: |
-          mkdir ./error-video
-          mv ./*.mp4 ./error-video
-        shell: bash
-
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
@@ -311,17 +289,6 @@ jobs:
         uses: actions/download-artifact@v8.0.1
         with:
           name: brotli
-
-      - name: Download Video
-        uses: actions/download-artifact@v8.0.1
-        with:
-          name: video
-
-      - name: Set VideoFile
-        run: |
-          mkdir ./error-video
-          mv ./*.mp4 ./error-video
-        shell: bash
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -367,17 +334,6 @@ jobs:
         with:
           name: ffmpeg
 
-      - name: Download Video
-        uses: actions/download-artifact@v8.0.1
-        with:
-          name: video
-
-      - name: Set VideoFile
-        run: |
-          mkdir ./error-video
-          mv ./*.mp4 ./error-video
-        shell: bash
-
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
@@ -417,17 +373,6 @@ jobs:
         with:
           name: brotli
 
-      - name: Download Video
-        uses: actions/download-artifact@v8.0.1
-        with:
-          name: video
-
-      - name: Set VideoFile
-        run: |
-          mkdir ./error-video
-          mv ./*.mp4 ./error-video
-        shell: bash
-
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
@@ -465,17 +410,6 @@ jobs:
         uses: actions/download-artifact@v8.0.1
         with:
           name: brotli
-
-      - name: Download Video
-        uses: actions/download-artifact@v8.0.1
-        with:
-          name: video
-
-      - name: Set VideoFile
-        run: |
-          mkdir ./error-video
-          mv ./*.mp4 ./error-video
-        shell: bash
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -651,6 +585,5 @@ jobs:
           name: |
             jar
             ffmpeg
-            video
             brotli
             start_windows
