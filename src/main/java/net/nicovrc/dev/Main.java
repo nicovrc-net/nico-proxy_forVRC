@@ -297,8 +297,12 @@ NicoNico_user_session: ""
             int boxHeight = 375;
 
             FontRenderContext frc = g1.getFontRenderContext();
-
-            AttributedString attrStr = new AttributedString("内部処理エラーです。\n再度試していただきもう一度このエラー画面が出たら以下のDiscordに報告お願いします。");
+            String Text =
+                    """
+                    内部処理エラーです。
+                    再度試していただきもう一度このエラー画面が出たら以下のDiscordに報告お願いします。
+                    """;
+            AttributedString attrStr = new AttributedString(Text);
             attrStr.addAttribute(TextAttribute.FONT, g1.getFont());
 
             AttributedCharacterIterator it = attrStr.getIterator();
@@ -336,8 +340,12 @@ NicoNico_user_session: ""
             g2.setColor(Color.BLACK);
 
             frc = g2.getFontRenderContext();
-
-            attrStr = new AttributedString("対応していないサイトです。\n要望は以下のDiscordにお願いします。");
+            Text =
+                    """
+                    対応していないサイトです。
+                    要望は以下のDiscordにお願いします。
+                    """;
+            attrStr = new AttributedString(Text);
             attrStr.addAttribute(TextAttribute.FONT, g2.getFont());
 
             it = attrStr.getIterator();
