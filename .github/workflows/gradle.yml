@@ -332,7 +332,7 @@ jobs:
         shell: bash
 
   autotest6:
-    needs: [build-21 download_ffmpeg, build_br]
+    needs: [build-21, download_ffmpeg, build_br]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
