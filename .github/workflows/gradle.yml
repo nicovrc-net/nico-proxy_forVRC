@@ -134,6 +134,9 @@ jobs:
         with:
           name: ffmpeg
 
+      - name: Make ffmpeg executable
+        run: chmod +x ./ffmpeg
+
       - name: Download brotli File
         uses: actions/download-artifact@v8.0.1
         with:
@@ -183,6 +186,9 @@ jobs:
         with:
           name: ffmpeg
 
+      - name: Make ffmpeg executable
+        run: chmod +x ./ffmpeg
+
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
@@ -226,6 +232,9 @@ jobs:
         uses: actions/download-artifact@v8.0.1
         with:
           name: ffmpeg
+
+      - name: Make ffmpeg executable
+        run: chmod +x ./ffmpeg
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -271,6 +280,9 @@ jobs:
         with:
           name: ffmpeg
 
+      - name: Make ffmpeg executable
+        run: chmod +x ./ffmpeg
+
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
@@ -314,6 +326,9 @@ jobs:
         uses: actions/download-artifact@v8.0.1
         with:
           name: ffmpeg
+
+      - name: Make ffmpeg executable
+        run: chmod +x ./ffmpeg
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -359,6 +374,10 @@ jobs:
         with:
           name: ffmpeg
 
+      - name: Make ffmpeg executable
+        run: chmod +x ./ffmpeg
+
+
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
@@ -403,6 +422,8 @@ jobs:
         with:
           name: ffmpeg
 
+      - name: Make ffmpeg executable
+        run: chmod +x ./ffmpeg
 
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
@@ -447,6 +468,9 @@ jobs:
         with:
           name: ffmpeg
 
+      - name: Make ffmpeg executable
+        run: chmod +x ./ffmpeg
+
       - name: Run the Application
         run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
         shell: bash
@@ -468,20 +492,98 @@ jobs:
           cat /dev/null > ./stop.txt
         shell: bash
 
-      - name: Wait 2s
+      - name: Wait 5s
         run: sleep 5
 
       - name: Not stop.txt Found Check
         run: |
-          if [ -f ./stop.yml ]; then
+          if [ -f ./stop.txt ]; then
             exit 1
           else 
             echo "OK"
           fi
         shell: bash
 
+  autotest9:
+    needs: [build-21, download_ffmpeg, build_br]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK 21
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download brotli File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: brotli
+
+      - name: Download ffmpeg
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make ffmpeg executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: sleep 5
+
+      - name: URL Request Test
+        run: |
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" -H "User-Agent: UnityPlayer/2022.3.22f1-DWR (UnityWebRequest/1.0, libcurl/8.5.0-DEV)" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9)
+          if [ "$HTTP_STATUS" -ne "text/plain" ]; then
+            echo "Expected HTTP status text/plain but got $HTTP_STATUS"
+            exit 1
+          fi
+        shell: bash
+
+      - name: stop.txt Create
+        run: |
+          cat /dev/null > ./stop.txt
+        shell: bash
+
+      - name: Wait 5s
+        run: sleep 5
+
+      - name: Error Video Found Check
+        run: |
+          if [ -d ./error-video ]; then
+            echo "OK"
+          else 
+            exit 1
+          fi
+          if [ -f ./error-video/error_000.mp4 ]; then
+            echo "OK"
+          else 
+            exit 1
+          fi
+          if [ -f ./error-video/error_404.mp4 ]; then
+            echo "OK"
+          else 
+            exit 1
+          fi
+          if [ -f ./error-video/error_404_2.mp4 ]; then
+            echo "OK"
+          else 
+            exit 1
+          fi
+        shell: bash
   release:
-    needs: [autotest1, autotest2, autotest3, autotest4, autotest5, autotest6, autotest7, autotest8]
+    needs: [autotest1, autotest2, autotest3, autotest4, autotest5, autotest6, autotest7, autotest8, autotest9]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
