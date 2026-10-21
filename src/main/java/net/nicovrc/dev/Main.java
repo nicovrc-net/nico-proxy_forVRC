@@ -328,6 +328,7 @@ NicoNico_user_session: ""
             g1.dispose();
             ImageIO.write(image, "png", new File("./error-video/000.png"));
 
+            image = ImageIO.read(new File("./error-video/base.png"));
             Graphics2D g2 = image.createGraphics();
             g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                     RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -365,6 +366,7 @@ NicoNico_user_session: ""
             g2.dispose();
             ImageIO.write(image, "png", new File("./error-video/404.png"));
 
+            image = ImageIO.read(new File("./error-video/base.png"));
             Graphics2D g3 = image.createGraphics();
             g3.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
                     RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
@@ -422,7 +424,7 @@ NicoNico_user_session: ""
 
             String[] command = null;
             final Process[] exec1 = {null};
-            if (Function.isFoundFile("./error-video/error_000.mp4")) {
+            if (!Function.isFoundFile("./error-video/error_000.mp4")) {
                 command = new String[]{ffmpegPass, "-v","quiet","-loop", "1", "-i", "./error-video/000.png", "-i", "./error-video/out.mp3", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "copy", "-map", "0:v:0", "-map", "1:a:0", "-t", "20", "-r", "60", "./error-video/error_000.mp4"};
                 exec1[0] = runtime.exec(command);
                 Thread.ofVirtual().start(() -> {
@@ -441,7 +443,7 @@ NicoNico_user_session: ""
                 Function.deleteCache("./error-video/000.png");
             }
 
-            if (Function.isFoundFile("./error-video/error_404.mp4")) {
+            if (!Function.isFoundFile("./error-video/error_404.mp4")) {
                 command = new String[]{ffmpegPass, "-v","quiet","-loop", "1", "-i", "./error-video/404.png", "-i", "./error-video/out.mp3", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "copy", "-map", "0:v:0", "-map", "1:a:0", "-t", "20", "-r", "60", "./error-video/error_404.mp4"};
                 runtime.exec(command);
                 Thread.ofVirtual().start(() -> {
@@ -459,7 +461,7 @@ NicoNico_user_session: ""
                 Function.deleteCache("./error-video/404.png");
             }
 
-            if (Function.isFoundFile("./error-video/error_404_2.mp4")){
+            if (!Function.isFoundFile("./error-video/error_404_2.mp4")){
                 command = new String[]{ffmpegPass, "-v","quiet","-loop", "1", "-i", "./error-video/404_2.png", "-i", "./error-video/out.mp3", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-c:a", "copy", "-map", "0:v:0", "-map", "1:a:0", "-t", "20", "-r", "60", "./error-video/error_404_2.mp4"};
                 runtime.exec(command);
                 Thread.ofVirtual().start(() -> {
