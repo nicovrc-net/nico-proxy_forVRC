@@ -144,7 +144,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 2
+        run: sleep 5
 
       - name: Create config.yml Test
         run: |
@@ -188,7 +188,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 2
+        run: sleep 5
 
       - name: Create LogFolder Test
         run: |
@@ -232,7 +232,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 2
+        run: sleep 5
 
       - name: URL Request Test
         run: |
@@ -276,7 +276,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 2
+        run: sleep 5
 
       - name: URL Request Test (Old Type 1)
         run: |
@@ -320,7 +320,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 2
+        run: sleep 5
 
       - name: URL Request Test (Old Type 2)
         run: |
@@ -364,7 +364,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 2
+        run: sleep 5
 
       - name: URL Request Test (Error)
         run: |
@@ -409,7 +409,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 2
+        run: sleep 5
 
       - name: URL Request Test (Title)
         run: |
@@ -452,7 +452,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 2
+        run: sleep 5
 
       - name: URL Request Test
         run: |
@@ -469,7 +469,7 @@ jobs:
         shell: bash
 
       - name: Wait 2s
-        run: sleep 2
+        run: sleep 5
 
       - name: Not stop.txt Found Check
         run: |
