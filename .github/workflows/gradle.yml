@@ -147,7 +147,11 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 5
+        run:
+          while [ -n (ss -tl | grep 25252)]; do
+          sleep 1s
+          done
+        shell: bash
 
       - name: Create config.yml Test
         run: |
@@ -194,7 +198,11 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 5
+        run:
+          while [ -n (ss -tl | grep 25252)]; do
+          sleep 1s
+          done
+        shell: bash
 
       - name: Create LogFolder Test
         run: |
@@ -241,7 +249,11 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 5
+        run:
+          while [ -n (ss -tl | grep 25252)]; do
+          sleep 1s
+          done
+        shell: bash
 
       - name: URL Request Test
         run: |
@@ -290,7 +302,11 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 5
+        run:
+          while [ -n (ss -tl | grep 25252)]; do
+          sleep 1s
+          done
+        shell: bash
 
       - name: URL Request Test (Old Type 1)
         run: |
@@ -339,7 +355,11 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 5
+        run:
+          while [ -n (ss -tl | grep 25252)]; do
+          sleep 1s
+          done
+        shell: bash
 
       - name: URL Request Test (Old Type 2)
         run: |
@@ -389,7 +409,11 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 5
+        run:
+          while [ -n (ss -tl | grep 25252)]; do
+          sleep 1s
+          done
+        shell: bash
 
       - name: URL Request Test (Error)
         run: |
@@ -438,7 +462,11 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 5
+        run:
+          while [ -n (ss -tl | grep 25252)]; do
+          sleep 1s
+          done
+        shell: bash
 
       - name: URL Request Test (Title)
         run: |
@@ -486,7 +514,11 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 5
+        run:
+          while [ -n (ss -tl | grep 25252)]; do
+          sleep 1s
+          done
+        shell: bash
 
       - name: URL Request Test
         run: |
@@ -552,7 +584,11 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run: sleep 5
+        run:
+          while [ -n (ss -tl | grep 25252)]; do
+            sleep 1s
+          done
+        shell: bash
 
       - name: URL Request Test
         run: |
