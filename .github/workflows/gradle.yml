@@ -198,7 +198,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run:
+        run: |
           while ! ss -tl | grep -q '25252'; do
             sleep 1s
           done
