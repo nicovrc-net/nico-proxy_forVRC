@@ -148,9 +148,7 @@ jobs:
 
       - name: Wait for the application to start
         run: |
-          while ! ss -tl | grep -q '25252'; do
-            sleep 1s
-          done
+          sleep 2s
         shell: bash
 
       - name: Create config.yml Test
