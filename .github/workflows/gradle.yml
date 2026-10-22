@@ -434,8 +434,8 @@ jobs:
 
       - name: URL Request Test (Title)
         run: |
-          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" -H "User-Agent: UnityPlayer/2022.3.22f1-DWR (UnityWebRequest/1.0, libcurl/8.5.0-DEV)" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9)
-          if [ "$HTTP_STATUS" -ne "text/plain" ]; then
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" -H "User-Agent: UnityPlayer/6000.0.67f1-DWR (UnityWebRequest/1.0, libcurl/8.10.1-DEV))" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9)
+          if [ "$HTTP_STATUS" -ne "text/plain; charset=utf-8" ]; then
             echo "Expected HTTP status text/plain but got $HTTP_STATUS"
             exit 1
           fi
@@ -480,8 +480,8 @@ jobs:
 
       - name: URL Request Test
         run: |
-          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" -H "User-Agent: UnityPlayer/2022.3.22f1-DWR (UnityWebRequest/1.0, libcurl/8.5.0-DEV)" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9)
-          if [ "$HTTP_STATUS" -ne "text/plain" ]; then
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" -H "User-Agent: UnityPlayer/6000.0.67f1-DWR (UnityWebRequest/1.0, libcurl/8.10.1-DEV))" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9)
+          if [ "$HTTP_STATUS" -ne "text/plain; charset=utf-8" ]; then
             echo "Expected HTTP status text/plain but got $HTTP_STATUS"
             exit 1
           fi
@@ -544,8 +544,8 @@ jobs:
 
       - name: URL Request Test
         run: |
-          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" -H "User-Agent: UnityPlayer/2022.3.22f1-DWR (UnityWebRequest/1.0, libcurl/8.5.0-DEV)" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9)
-          if [ "$HTTP_STATUS" -ne "text/plain" ]; then
+          HTTP_STATUS=$(curl -o /dev/null -s -w "%{content_type}" -H "User-Agent: UnityPlayer/6000.0.67f1-DWR (UnityWebRequest/1.0, libcurl/8.10.1-DEV))" http://localhost:25252/?vi=https://www.nicovideo.jp/watch/sm9)
+          if [ "$HTTP_STATUS" -ne "text/plain; charset=utf-8" ]; then
             echo "Expected HTTP status text/plain but got $HTTP_STATUS"
             exit 1
           fi
