@@ -148,8 +148,8 @@ jobs:
 
       - name: Wait for the application to start
         run:
-          while [ -n (ss -tl | grep 25252)]; do
-          sleep 1s
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
           done
         shell: bash
 
@@ -199,8 +199,8 @@ jobs:
 
       - name: Wait for the application to start
         run:
-          while [ -n (ss -tl | grep 25252)]; do
-          sleep 1s
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
           done
         shell: bash
 
@@ -250,8 +250,8 @@ jobs:
 
       - name: Wait for the application to start
         run:
-          while [ -n (ss -tl | grep 25252)]; do
-          sleep 1s
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
           done
         shell: bash
 
@@ -303,8 +303,8 @@ jobs:
 
       - name: Wait for the application to start
         run:
-          while [ -n (ss -tl | grep 25252)]; do
-          sleep 1s
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
           done
         shell: bash
 
@@ -356,8 +356,8 @@ jobs:
 
       - name: Wait for the application to start
         run:
-          while [ -n (ss -tl | grep 25252)]; do
-          sleep 1s
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
           done
         shell: bash
 
@@ -410,8 +410,8 @@ jobs:
 
       - name: Wait for the application to start
         run:
-          while [ -n (ss -tl | grep 25252)]; do
-          sleep 1s
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
           done
         shell: bash
 
@@ -463,8 +463,8 @@ jobs:
 
       - name: Wait for the application to start
         run:
-          while [ -n (ss -tl | grep 25252)]; do
-          sleep 1s
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
           done
         shell: bash
 
@@ -515,8 +515,8 @@ jobs:
 
       - name: Wait for the application to start
         run:
-          while [ -n (ss -tl | grep 25252)]; do
-          sleep 1s
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
           done
         shell: bash
 
@@ -585,7 +585,7 @@ jobs:
 
       - name: Wait for the application to start
         run:
-          while [ -n (ss -tl | grep 25252)]; do
+          while ! ss -tl | grep -q '25252'; do
             sleep 1s
           done
         shell: bash
