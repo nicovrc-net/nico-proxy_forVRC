@@ -249,6 +249,8 @@ jobs:
           if [ "$HTTP_STATUS" -ne 200 ]; then
             echo "Expected HTTP status 200 but got $HTTP_STATUS"
             exit 1
+          else
+            echo "OK"
           fi
         shell: bash
 
@@ -296,6 +298,8 @@ jobs:
           if [ "$HTTP_STATUS" -ne 200 ]; then
             echo "Expected HTTP status 200 but got $HTTP_STATUS"
             exit 1
+          else
+            echo "OK"
           fi
         shell: bash
 
@@ -343,6 +347,8 @@ jobs:
           if [ "$HTTP_STATUS" -ne 200 ]; then
             echo "Expected HTTP status 200 but got $HTTP_STATUS"
             exit 1
+          else
+            echo "OK"
           fi
         shell: bash
 
@@ -391,6 +397,8 @@ jobs:
           if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
             echo "Expected HTTP status video/mp4 but got $HTTP_STATUS"
             exit 1
+          else
+            echo "OK"
           fi
         shell: bash
 
@@ -438,6 +446,8 @@ jobs:
           if [ "$HTTP_STATUS" -ne "text/plain; charset=utf-8" ]; then
             echo "Expected HTTP status text/plain but got $HTTP_STATUS"
             exit 1
+          else
+            echo "OK"
           fi
         shell: bash
   autotest8:
@@ -484,6 +494,8 @@ jobs:
           if [ "$HTTP_STATUS" -ne "text/plain; charset=utf-8" ]; then
             echo "Expected HTTP status text/plain but got $HTTP_STATUS"
             exit 1
+          else
+            echo "OK"
           fi
         shell: bash
 
@@ -548,6 +560,8 @@ jobs:
           if [ "$HTTP_STATUS" -ne "text/plain; charset=utf-8" ]; then
             echo "Expected HTTP status text/plain but got $HTTP_STATUS"
             exit 1
+          else
+            echo "OK"
           fi
         shell: bash
 
