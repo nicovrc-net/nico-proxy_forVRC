@@ -147,7 +147,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run:
+        run: |
           while ! ss -tl | grep -q '25252'; do
             sleep 1s
           done
@@ -249,7 +249,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run:
+        run: |
           while ! ss -tl | grep -q '25252'; do
             sleep 1s
           done
@@ -302,7 +302,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run:
+        run: |
           while ! ss -tl | grep -q '25252'; do
             sleep 1s
           done
@@ -355,7 +355,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run:
+        run: |
           while ! ss -tl | grep -q '25252'; do
             sleep 1s
           done
@@ -409,7 +409,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run:
+        run: |
           while ! ss -tl | grep -q '25252'; do
             sleep 1s
           done
@@ -462,7 +462,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run:
+        run: |
           while ! ss -tl | grep -q '25252'; do
             sleep 1s
           done
@@ -514,11 +514,10 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run:
+        run: |
           while ! ss -tl | grep -q '25252'; do
             sleep 1s
           done
-          ss -tlpn
         shell: bash
 
       - name: URL Request Test
@@ -585,8 +584,7 @@ jobs:
         shell: bash
 
       - name: Wait for the application to start
-        run:
-          ss -tlpn
+        run: |
           while ! ss -tl | grep -q '25252'; do
             sleep 1s
           done
