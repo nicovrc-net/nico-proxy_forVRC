@@ -1,19 +1,53 @@
-if ( -not (Test-Path '.\jdk-26')){
-    $url = "https://api.adoptium.net/v3/assets/latest/26/hotspot?vendor=eclipse"
+if ( -not (Test-Path '.\jdk-27')){
+    $url = "https://api.adoptium.net/v3/assets/latest/27/hotspot?vendor=eclipse"
     $jsonContent = Invoke-RestMethod -Uri $url -Method Get
-    $windowsJdk = $jsonContent | Where-Object {
-        $_.binary.os -eq "windows" -and $_.binary.image_type -eq "jdk"
-    }
-    $zipUrl = $windowsJdk.binary.package.link[0]
-    $package_name = $windowsJdk.release_name[0]
+    $zipUrl = ""
+    $package_name = ""
 
-    Invoke-WebRequest -Uri $zipUrl -OutFile ./jdk-26.zip
-    Expand-Archive -Path ./jdk-26.zip -DestinationPath ./
-    Remove-Item ./jdk-26.zip
-    Rename-Item ./$package_name ./jdk-26
+    foreach ($content in $jsonContent) {
+        if ($content.binary.os -eq "windows" -and $content.binary.image_type -eq "jdk"){
+            $zipUrl = $content.binary.package.link
+            $package_name = $content.version.openjdk_version
+        }
+    }
+
+    if ([System.String]::IsNullOrEmpty($zipUrl) -or [System.String]::IsNullOrEmpty($package_name)){
+        Write-Host "Error! : Not Found JDK"
+        Exit
+    }
+
+    Invoke-WebRequest -Uri $zipUrl -OutFile ./jdk-27.zip
+    Expand-Archive -Path ./jdk-27.zip -DestinationPath ./
+    Remove-Item ./jdk-27.zip
+    Rename-Item ./jdk-$package_name ./jdk-27
 }
 
-./jdk-26/bin/java.exe -jar ./NicoVideoPlayForVRC-4.0-SNAPSHOT-all.jar
+if ( -not (Test-Path '.\brotli.exe')) {
+    $url = "https://github.com/google/brotli/releases/download/v1.2.1/brotli-x64-windows-static.zip"
+    Invoke-WebRequest -Uri $url -OutFile ./brotli-x64-windows-static.zip
+    Expand-Archive -Path ./brotli-x64-windows-static.zip -DestinationPath ./
+    Remove-Item ./brotli-x64-windows-static.zip
+    Remove-Item ./LICENSE.brotli
+}
+
+if ( -not (Test-Path '.\ffmpeg.exe') -and -not ((Get-Command -Name "ffmpeg" -ErrorAction SilentlyContinue) -match "ffmpeg.exe")){
+    $url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z"
+    Invoke-WebRequest -Uri $url -OutFile ./ffmpeg-git-full.7z
+
+    $url = "https://github.com/ip7z/7zip/releases/download/26.05/7zr.exe"
+    Invoke-WebRequest -Uri $url -OutFile ./7zr.exe
+
+    ./7zr.exe x ./ffmpeg-git-full.7z
+    Remove-Item ./ffmpeg-git-full.7z
+    Remove-Item ./7zr.exe
+
+    $path = Get-ChildItem -Directory -Filter "ffmpeg*" | Select-Object -ExpandProperty FullName
+    $path2 = $path + "\bin\ffmpeg.exe"
+    Move-Item $path2 .\ffmpeg.exe
+    Remove-Item $path -Recurse -Force
+}
+
+./jdk-27/bin/java.exe -jar ./NicoVideoPlayForVRC-4.0-SNAPSHOT-all.jar
 
 # SIG # Begin signature block
 # MIIIpQYJKoZIhvcNAQcCoIIIljCCCJICAQExCzAJBgUrDgMCGgUAMGkGCisGAQQB
