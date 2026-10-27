@@ -13,12 +13,31 @@ if ( -not (Test-Path '.\jdk-21')){
     Rename-Item ./$package_name ./jdk-21
 }
 
-if ( -not (Test-Path '.\brotli.exe')){
-    Invoke-WebRequest -Uri https://github.com/google/brotli/releases/download/v1.2.0/brotli-x64-windows-static.zip -OutFile ./brotli-x64-windows-static.zip
+if ( -not (Test-Path '.\brotli.exe')) {
+    $url = "https://github.com/google/brotli/releases/download/v1.2.1/brotli-x64-windows-static.zip"
+    Invoke-WebRequest -Uri $url -OutFile ./brotli-x64-windows-static.zip
     Expand-Archive -Path ./brotli-x64-windows-static.zip -DestinationPath ./
     Remove-Item ./brotli-x64-windows-static.zip
     Remove-Item ./LICENSE.brotli
 }
+
+if ( -not (Test-Path '.\ffmpeg.exe') -and -not ((Get-Command -Name "ffmpeg" -ErrorAction SilentlyContinue) -match "ffmpeg.exe")){
+    $url = "https://www.gyan.dev/ffmpeg/builds/ffmpeg-git-full.7z"
+    Invoke-WebRequest -Uri $url -OutFile ./ffmpeg-git-full.7z
+
+    $url = "https://github.com/ip7z/7zip/releases/download/26.05/7zr.exe"
+    Invoke-WebRequest -Uri $url -OutFile ./7zr.exe
+
+    ./7zr.exe x ./ffmpeg-git-full.7z
+    Remove-Item ./ffmpeg-git-full.7z
+    Remove-Item ./7zr.exe
+
+    $path = Get-ChildItem -Directory -Filter "ffmpeg*" | Select-Object -ExpandProperty FullName
+    $path2 = $path + "\bin\ffmpeg.exe"
+    Move-Item $path2 .\ffmpeg.exe
+    Remove-Item $path -Recurse -Force
+}
+
 
 ./jdk-21/bin/java.exe -jar ./NicoVideoPlayForVRC-3.0-SNAPSHOT-all.jar
 
