@@ -1,0 +1,554 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+# This workflow will build a Java project with Gradle and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-gradle
+
+name: nicovrc-Site Check
+
+on:
+  schedule:
+    - cron: '10 12 * * *'
+      timezone: 'Asia/Tokyo'
+
+jobs:
+  build-27:
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7.0.0
+      - name: Set up JDK 27
+        uses: actions/setup-java@v5.4.0
+        with:
+          java-version: '27'
+          distribution: 'oracle'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6.1.0
+
+      - name: Source Download
+        run: |
+          git clone https://github.com/nicovrc-net/nico-proxy_forVRC.git
+          cd nico-proxy_forVRC
+          git checkout master
+          chmod +x ./gradlew
+          ./gradlew shadowJar
+          mv ./build/libs/*.jar ../NicoVideoPlayForVRC.jar
+        shell: bash
+
+      - name: Upload Jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: jar
+          path: ./NicoVideoPlayForVRC.jar
+
+  download_ffmpeg:
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: write
+    steps:
+      - name: Download ffmpeg
+        run: |
+          wget https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz > null
+          tar -Jxvf ./ffmpeg-master-latest-linux64-gpl.tar.xz > null
+          cp ./ffmpeg-master-latest-linux64-gpl/bin/* ./
+          rm ./ffmpeg-master-latest-linux64-gpl.tar.xz
+          rm ./ffmpeg-master-latest-linux64-gpl -fr
+        shell: bash
+
+      - name: Upload ffmpeg
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg
+          path: ./ffmpeg
+
+  autotest-sitecheck-niconico:
+    needs: [build-27, download_ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '27'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download ffmpeg File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make gradlew executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: |
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
+          done
+        shell: bash
+
+      - name: NicoNico Video Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://www.nicovideo.jp/watch/sm9 )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+      - name: NicoNico Live Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://cas.nicovideo.jp/user/70969122 )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest-sitecheck-bilibili:
+    needs: [build-27, download_ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '27'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download ffmpeg File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make gradlew executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar
+        shell: bash
+
+      - name: Run the Application
+        env:
+          proxy: ${{ secrets.PROXY }}
+        run: |
+          sed -i 's/127.0.0.1:3128/$proxy/' config.yml
+          java -jar ./NicoVideoPlayForVRC.jar &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: |
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
+          done
+        shell: bash
+
+      - name: BiliBili Video Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" https://www.bilibili.com/video/BV1y5411Y7A2/ )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest-sitecheck-XVIDEOS:
+    needs: [build-27, download_ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '27'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download ffmpeg File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make gradlew executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar &
+        shell: bash
+
+      - name: Run the Application
+        env:
+          proxy: ${{ secrets.PROXY }}
+        run: |
+          sed 's/127.0.0.1:3128/$proxy/' config.yml
+          java -jar ./NicoVideoPlayForVRC.jar &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: |
+          java -jar ./NicoVideoPlayForVRC.jar &
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
+          done
+        shell: bash
+
+      - name: XVIDEOS Video Test
+        run: |
+                    
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" https://www.xvideos.com/video.hhmkceo3490/_ )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest-sitecheck-TikTok:
+    needs: [build-27, download_ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '27'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download ffmpeg File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make gradlew executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: |
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
+          done
+        shell: bash
+
+      - name: TikTok Video Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 http://localhost:25252/?url=https://www.tiktok.com/@uni_uni_uta/video/7561752838683086100 -o "mp4.mp4" )
+          SHA256=$( sha256sum mp4.mp4 )
+          if [ "$HTTP_STATUS" -eq "video/mp4" ]; then
+            if [ "$SHA256" -ne "ec474a30ee08bb171d9d2ce49452ead9ed9b282123edd7d58cf0b314d5346e00  mp4.mp4" ]; then
+              echo "OK"
+            else
+              exit 1
+            fi
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest-sitecheck-Twitter:
+    needs: [build-27, download_ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '27'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download ffmpeg File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make gradlew executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: |
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
+          done
+        shell: bash
+
+      - name: Twitter Video Test
+        run: |
+          HTTP_STATUS=$( curl -L -m 5 http://localhost:25252/?url=https://x.com/7mi_vrc/status/1996716145559457976 -o "mp4.mp4" )
+          SHA256=$( sha256sum mp4.mp4 )
+          if [ "$HTTP_STATUS" -eq "video/mp4" ]; then
+            if [ "$SHA256" -ne "ec474a30ee08bb171d9d2ce49452ead9ed9b282123edd7d58cf0b314d5346e00  mp4.mp4" ]; then
+              echo "OK"
+            else
+              exit 1
+            fi
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest-sitecheck-mellow-fan:
+    needs: [build-27, download_ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '27'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download ffmpeg File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make gradlew executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: |
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
+          done
+        shell: bash
+
+      - name: mellow-fan Video Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://www.mellow-fan.com/movie/ovrdvqgx3rj )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest-sitecheck-pornhub:
+    needs: [build-27, download_ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '27'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download ffmpeg File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make gradlew executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar --default-config-mode &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: |
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
+          done
+        shell: bash
+
+      - name: Pornhub Video Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://jp.pornhub.com/view_video.php?viewkey=66b185c79fc62 )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest-sitecheck-Twitcasting:
+    needs: [build-27, download_ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '27'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download ffmpeg File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make gradlew executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar
+        shell: bash
+
+      - name: Run the Application
+        env:
+          ClientID: ${{ secrets.TWITCAST_TOKEN_CLIENTID }}
+          ClientSecret: ${{ secrets.TWITCAST_TOKEN_CLIENTSECRET }}
+        run: |
+          sed -i 's/TwitcastingClientID: ""/TwitcastingClientID: "$ClientID"/' config.yml
+          sed -i 's/TwitcastingClientSecret: ""/TwitcastingClientSecret: "$ClientSecret"/' config.yml
+          java -jar ./NicoVideoPlayForVRC.jar &
+        shell: bash
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: |
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
+          done
+        shell: bash
+
+      - name: Twitcasting Live Archive Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://twitcasting.tv/twitcasting_jp/movie/817612486 )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest-sitecheck-Abema:
+    needs: [build-27, download_ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '27'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download ffmpeg File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make gradlew executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: |
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
+          done
+        shell: bash
+
+      - name: Abema Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://twitcasting.tv/twitcasting_jp/movie/817612486 )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest-after:
+    if: always()
+    needs: [build-27, autotest-sitecheck-niconico, autotest-sitecheck-bilibili, autotest-sitecheck-TikTok, autotest-sitecheck-Twitter, autotest-sitecheck-mellow-fan, autotest-sitecheck-pornhub, autotest-sitecheck-Twitcasting, autotest-sitecheck-Abema]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Delete File
+        uses: geekyeggo/delete-artifact@v5
+        with:
+          name: |
+            jar
+            ffmpeg
