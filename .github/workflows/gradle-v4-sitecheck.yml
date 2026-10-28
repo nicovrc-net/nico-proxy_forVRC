@@ -102,6 +102,7 @@ jobs:
         shell: bash
 
       - name: NicoNico Video Test
+        if: always()
         run: |
           HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://www.nicovideo.jp/watch/sm9 )
           if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
@@ -529,9 +530,182 @@ jobs:
           done
         shell: bash
 
-      - name: Abema Test
+      - name: Abema Video Test
+        if: always()
         run: |
-          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://twitcasting.tv/twitcasting_jp/movie/817612486 )
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://abema.tv/video/episode/25-139_s1_p1 )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+      - name: Abema Live Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://abema.tv/now-on-air/mahjong )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest-sitecheck-TVer:
+    needs: [build-27, download_ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '27'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download ffmpeg File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make gradlew executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: |
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
+          done
+        shell: bash
+
+      - name: TVer Video Test
+        if: always()
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://tver.jp/episodes/ep5ceoaxti )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+      - name: TVer RealTime Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://tver.jp/live/tbs )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+      - name: TVer Special Live Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://tver.jp/live/special/le7gtytdy0 )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest-sitecheck-iwara:
+    needs: [build-27, download_ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '27'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download ffmpeg File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make gradlew executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: |
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
+          done
+        shell: bash
+
+      - name: iwara Video Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://www.iwara.tv/video/4lbqvFBO4n98ZN/sex-1 )
+          if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
+            echo "OK"
+          else
+            exit 1
+          fi
+        shell: bash
+
+  autotest-sitecheck-piapro:
+    needs: [build-27, download_ffmpeg]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6.0.2
+      - name: Set up JDK
+        uses: actions/setup-java@v5.2.0
+        with:
+          java-version: '27'
+          distribution: 'temurin'
+
+      - name: Download JarFile
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: jar
+
+      - name: Download ffmpeg File
+        uses: actions/download-artifact@v8.0.1
+        with:
+          name: ffmpeg
+
+      - name: Make gradlew executable
+        run: chmod +x ./ffmpeg
+
+      - name: Run the Application
+        run: java -jar ./NicoVideoPlayForVRC.jar &
+        shell: bash
+
+      - name: Wait for the application to start
+        run: |
+          while ! ss -tl | grep -q '25252'; do
+            sleep 1s
+          done
+        shell: bash
+
+      - name: piapro Music Test
+        run: |
+          HTTP_STATUS=$( curl -m 5 -o /dev/null -s -w "%{content_type}" http://localhost:25252/?url=https://piapro.jp/t/KQn0 )
           if [ "$HTTP_STATUS" -ne "video/mp4" ]; then
             echo "OK"
           else
@@ -541,7 +715,7 @@ jobs:
 
   autotest-after:
     if: always()
-    needs: [build-27, autotest-sitecheck-niconico, autotest-sitecheck-bilibili, autotest-sitecheck-TikTok, autotest-sitecheck-Twitter, autotest-sitecheck-mellow-fan, autotest-sitecheck-pornhub, autotest-sitecheck-Twitcasting, autotest-sitecheck-Abema]
+    needs: [build-27, autotest-sitecheck-niconico, autotest-sitecheck-bilibili, autotest-sitecheck-TikTok, autotest-sitecheck-Twitter, autotest-sitecheck-mellow-fan, autotest-sitecheck-pornhub, autotest-sitecheck-Twitcasting, autotest-sitecheck-Abema, autotest-sitecheck-TVer, autotest-sitecheck-iwara,autotest-sitecheck-piapro]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
