@@ -247,8 +247,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                     data.setRangeStart(video.getStartRange());
                     data.setRangeEnd(video.getEndRange());
                     data.setData(video.isRange() && video.getEndRange() != (video.getLength() - 1) ? null : (video.isRange() && video.getEndRange() == (video.getLength() - 1) ? video.getVideoData() : null));
-                    String tempUrl = http+httpHostname+"/video/?cacheId="+URLEncoder.encode(data.getCacheId(), StandardCharsets.UTF_8)+"&url="+URLEncoder.encode(originUrl, StandardCharsets.UTF_8);
-                    data.setRedirectURL(video.isRange() && video.getEndRange() != (video.getLength() - 1) ? tempUrl : (video.isRange() && video.getEndRange() == (video.getLength() - 1) ? null : tempUrl));
+                    String tempUrl = http+httpHostname+"/video/"+data.getCacheId()+".mp4";
+                    data.setRedirectURL(tempUrl);
                 }
             }
             data.setURL(URL);
@@ -596,7 +596,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
             }
 
             final HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            System.out.println(new String(response.body(), StandardCharsets.UTF_8));
+            //System.out.println(new String(response.body(), StandardCharsets.UTF_8));
             if (response.statusCode() >= 200 && response.statusCode() < 300){
                 videoData.setVideoData(response.body());
                 return videoData;
