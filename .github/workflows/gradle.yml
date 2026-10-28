@@ -717,7 +717,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: v${{ github.ref }}
           body: |
-            - エラー動画の作成に関して外部依存していたのを自前で用意するようにした
+            - バグ修正
           draft: false
           prerelease: false
 

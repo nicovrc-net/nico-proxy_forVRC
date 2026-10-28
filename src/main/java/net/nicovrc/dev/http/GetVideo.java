@@ -23,7 +23,8 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private String httpHostname = "localhost:"+Function.config_httpPort;
     private String http = "https://";
 
-    private final Pattern matcher_videoURI = Pattern.compile("/video/(.+)/(.+)\\.(m3u8|ts|cmfv|cmfa|key)");
+    private final Pattern matcher_videoURI1 = Pattern.compile("/video/(.+)/(.+)\\.(m3u8|ts|cmfv|cmfa|key)");
+    private final Pattern matcher_videoURI2 = Pattern.compile("/video/(.+)\\.(mp4)");
     private final Pattern matcher_dummyHLS = Pattern.compile("dummy=true");
     private final Pattern matcher_http_range = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
     private final Pattern matcher_tver = Pattern.compile("https://steering-manifest\\.streaks\\.jp");
@@ -45,16 +46,26 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
         // 下準備
         final String httpVersion = Function.getHTTPVersion(httpRequest) != null ? Function.getHTTPVersion(httpRequest) : "1.1";
 
-        final Matcher matcher_uri = matcher_videoURI.matcher(httpRequest);
+        final Matcher matcher_uri1 = matcher_videoURI1.matcher(httpRequest);
+        final Matcher matcher_uri2 = matcher_videoURI2.matcher(httpRequest);
         final Matcher matcher_httpRange = matcher_http_range.matcher(httpRequest);
 
         final String cacherId;
         final String accessUrl;
 
-        if (matcher_uri.find()) {
-            cacherId = matcher_uri.group(1);
-            String videoId = matcher_uri.group(2);
+        boolean isMp4 = false;
+
+        if (matcher_uri1.find()) {
+            cacherId = matcher_uri1.group(1);
+            String videoId = matcher_uri1.group(2);
             accessUrl = Function.getVideoIDListData(videoId).split("\"")[0];
+        } else if (matcher_uri2.find()) {
+            isMp4 = true;
+            cacherId = matcher_uri2.group(1);
+
+            CacheData cache = Function.getCache(Function.getCacheIDDataListData(cacherId));
+            accessUrl = cache.getOriginURL();
+
         } else {
             cacherId = null;
             accessUrl = null;
@@ -88,11 +99,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
             return;
         }
 
-        final String cookieText = cache.getCookieText();
-        final String refererText = cache.getRefererText();
+        final String cookieText = cache != null ? cache.getCookieText() : "";
+        final String refererText = cache != null ? cache.getRefererText() : "";
         final Long rangeStart = tempLong1 == -1 ? null :  tempLong1;
         final Long rangeEnd = tempLong2 == -1 ? null : tempLong2;
-        final Long rangeLength = cache.getRangeLength();
+        final Long rangeLength = cache != null ? cache.getRangeLength() : null;
 
         //System.out.println("cookieText:"+cookieText);
         //System.out.println("refererText:"+refererText);
