@@ -207,6 +207,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         } else if (service.getServiceName().equals("TikTok")) {
             TikTokResult temp = Function.gson.fromJson(json, TikTokResult.class);
             cookieText = temp != null ? temp.getVideoAccessCookie() : null;
+            refererText = "https://www.tiktok.com/";
         }
 
         if (service.getServiceName().equals("TVer")){
@@ -567,6 +568,8 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         if (!matcher_bilibili_com.find()){
             final HttpRequest request;
 
+            System.out.println("Cookie : " + cookieText + " / Referer : " + refererText);
+
             if (cookieText == null && refererText == null) {
                 request = HttpRequest.newBuilder()
                         .uri(new URI(url))
@@ -584,7 +587,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         .headers("Cookie", cookieText)
                         .GET()
                         .build();
-            } else {
+            } else if (cookieText == null) {
                 request = HttpRequest.newBuilder()
                         .uri(new URI(url))
                         .headers("User-Agent", Function.UserAgent)
@@ -593,9 +596,20 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                         .headers("Referer", refererText)
                         .GET()
                         .build();
+            } else {
+                request = HttpRequest.newBuilder()
+                        .uri(new URI(url))
+                        .headers("User-Agent", Function.UserAgent)
+                        .headers("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
+                        .headers("Accept-Language", "ja,en;q=0.7,en-US;q=0.3")
+                        .headers("Cookie", cookieText)
+                        .headers("Referer", refererText)
+                        .GET()
+                        .build();
             }
 
             final HttpResponse<byte[]> response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            System.out.println(response.statusCode());
             //System.out.println(new String(response.body(), StandardCharsets.UTF_8));
             if (response.statusCode() >= 200 && response.statusCode() < 300){
                 videoData.setVideoData(response.body());
