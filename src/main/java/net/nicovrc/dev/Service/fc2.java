@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import net.nicovrc.dev.Function;
 import net.nicovrc.dev.Service.Result.ErrorMessage;
 import net.nicovrc.dev.Service.Result.fc2Result;
+import redis.clients.jedis.RedisClient;
 
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
@@ -293,14 +294,15 @@ public class fc2 implements ServiceAPI {
 
                 if (json.isJsonObject() && json.getAsJsonObject().has("status") && json.getAsJsonObject().get("status").getAsInt() != 11){
 
-                    // ;
+                    int length = HttpClient.Version.values().length;
+                    String ver = length == 3 ? "HTTP_3" : "HTTP_2";
                     HttpClient client2 = proxy == null ? HttpClient.newBuilder()
-                            .version(HttpClient.Version.HTTP_2)
+                            .version(HttpClient.Version.valueOf(ver))
                             .followRedirects(HttpClient.Redirect.NORMAL)
                             .connectTimeout(Duration.ofSeconds(5))
                             .build() :
                             HttpClient.newBuilder()
-                                    .version(HttpClient.Version.HTTP_2)
+                                    .version(HttpClient.Version.valueOf(ver))
                                     .followRedirects(HttpClient.Redirect.NORMAL)
                                     .connectTimeout(Duration.ofSeconds(5))
                                     .proxy(ProxySelector.of(new InetSocketAddress(proxy.split(":")[0], Integer.parseInt(proxy.split(":")[1]))))

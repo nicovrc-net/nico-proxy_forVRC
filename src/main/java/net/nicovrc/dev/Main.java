@@ -213,9 +213,12 @@ NicoNico_user_session: ""
 
         }
 
+        int length = HttpClient.Version.values().length;
+        String ver = length == 3 ? "HTTP_3" : "HTTP_2";
+
         final RedisClient jedis;
         try (HttpClient client = HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_2)
+                .version(HttpClient.Version.valueOf(ver))
                 .followRedirects(HttpClient.Redirect.NORMAL)
                 .connectTimeout(Duration.ofSeconds(5))
                 .build()
@@ -536,7 +539,7 @@ NicoNico_user_session: ""
                                 String[] s = proxy1.string(i).split(":");
 
                                 try (HttpClient client2 = HttpClient.newBuilder()
-                                        .version(HttpClient.Version.HTTP_2)
+                                        .version(HttpClient.Version.valueOf(ver))
                                         .followRedirects(HttpClient.Redirect.NORMAL)
                                         .connectTimeout(Duration.ofSeconds(5))
                                         .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))
@@ -610,8 +613,11 @@ NicoNico_user_session: ""
 
                                 String[] s = proxy2.string(i).split(":");
 
+                                int length1 = HttpClient.Version.values().length;
+                                String ver1 = length1 == 3 ? "HTTP_3" : "HTTP_2";
+
                                 try (HttpClient client2 = HttpClient.newBuilder()
-                                        .version(HttpClient.Version.HTTP_2)
+                                        .version(HttpClient.Version.valueOf(ver1))
                                         .followRedirects(HttpClient.Redirect.NORMAL)
                                         .connectTimeout(Duration.ofSeconds(5))
                                         .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))

@@ -1,6 +1,5 @@
 package net.nicovrc.dev.http;
 
-import java.net.Socket;
 import java.net.http.HttpClient;
 import java.nio.channels.AsynchronousSocketChannel;
 
