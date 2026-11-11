@@ -115,7 +115,7 @@ public class Function {
     public static final Pattern matcher_niconico = Pattern.compile("nicovideo\\.jp");
     public static final Pattern matcher_VLC = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
     public static final Pattern matcher_AVPro = Pattern.compile("(NSPlayer|AVPro|AppleCoreMedia)");
-    public static final Pattern matcher_AVProMobile = Pattern.compile("AVProMobileVideo");
+    public static final Pattern matcher_AVProMobile = Pattern.compile("(AVProMobileVideo|AppleCoreMedia)");
     public static final Pattern matcher_FFMpeg = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
     public static final Pattern matcher_vrcLinux = Pattern.compile("GStreamer");
 

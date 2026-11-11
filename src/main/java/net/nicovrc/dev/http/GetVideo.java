@@ -290,7 +290,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         text = (text != null ? text : "").replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfv");
                     }
 
-                    if (Function.matcher_VLC.matcher(httpRequest).find()) {
+                    if (Function.matcher_VLC.matcher(httpRequest).find() || Function.matcher_AVPro.matcher(httpRequest).find()) {
                         hls_text = hls_text.replaceAll("#EXT-X-ENDLIST", "#EXT-X-DISCONTINUITY\n" + text + "#EXT-X-ENDLIST");
                     } else {
                         hls_text = hls_text.replaceAll("#EXT-X-ENDLIST", text + "#EXT-X-ENDLIST");
@@ -315,7 +315,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                         text = (text != null ? text : "").replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfa");
                     }
 
-                    if (Function.matcher_VLC.matcher(httpRequest).find()) {
+                    if (Function.matcher_VLC.matcher(httpRequest).find() || Function.matcher_AVPro.matcher(httpRequest).find()) {
                         hls_text = hls_text.replaceAll("#EXT-X-ENDLIST", "#EXT-X-DISCONTINUITY\n" + text + "#EXT-X-ENDLIST");
                     } else {
                         hls_text = hls_text.replaceAll("#EXT-X-ENDLIST", text + "#EXT-X-ENDLIST");
