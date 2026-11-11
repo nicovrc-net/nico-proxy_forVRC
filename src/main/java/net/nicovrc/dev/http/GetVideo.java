@@ -270,7 +270,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     // AbemaはHLSの再処理が必要
                     hls = Function.fixAbemaHLS(new String(hls, StandardCharsets.UTF_8), cache.getOriginURL(), http, httpHostname, cacherId).getBytes(StandardCharsets.UTF_8);
                 }
-
+/*
                 if (isNico && matcher8.find()) {
                     String text = Function.getFileByText("./cm-video.txt", StandardCharsets.UTF_8);
                     //System.out.println(text);
@@ -322,7 +322,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     }
 
                     hls = hls_text.getBytes(StandardCharsets.UTF_8);
-                }
+                } */
 
                 Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, hls, null));
                 return;
