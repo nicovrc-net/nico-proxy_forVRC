@@ -5,6 +5,7 @@ import net.nicovrc.dev.data.CacheData;
 import net.nicovrc.dev.data.HttpHeader;
 
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -28,6 +29,10 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
     private final Pattern matcher_dummyHLS = Pattern.compile("dummy=true");
     private final Pattern matcher_http_range = Pattern.compile("[r|R]ange: bytes=(\\d+)-(\\d+)");
     private final Pattern matcher_tver = Pattern.compile("https://steering-manifest\\.streaks\\.jp");
+    private final Pattern matcher_HLSVideo = Pattern.compile("\\.cmfv");
+    private final Pattern matcher_HLSAudio = Pattern.compile("\\.cmfa");
+    private final Pattern matcher_hls_url = Pattern.compile("#EXTINF:(.+),\n(http|https)://(.+)\n");
+    private final Pattern matcher_hls2_url = Pattern.compile("#EXT-X-MAP:URI=\"(.+)\"");
 
     @Override
     public void run() {
@@ -53,14 +58,11 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
         final String cacherId;
         final String accessUrl;
 
-        boolean isMp4 = false;
-
         if (matcher_uri1.find()) {
             cacherId = matcher_uri1.group(1);
             String videoId = matcher_uri1.group(2);
             accessUrl = Function.getVideoIDListData(videoId).split("\"")[0];
         } else if (matcher_uri2.find()) {
-            isMp4 = true;
             cacherId = matcher_uri2.group(1);
 
             CacheData cache = Function.getCache(Function.getCacheIDDataListData(cacherId));
@@ -204,6 +206,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
             if (contentType.toLowerCase(Locale.ROOT).equals("application/vnd.apple.mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("application/x-mpegurl") || contentType.toLowerCase(Locale.ROOT).equals("audio/mpegurl")) {
                 byte[] hls = Function.replaceHLS(response.body(), http, httpHostname, cacherId, request.uri().getHost(), url);
+                String hls_text = new String(hls, StandardCharsets.UTF_8);
 
                 Matcher matcher = Function.matcher_niconico.matcher(request.uri().getHost());
                 Matcher matcher2 = matcher_dummyHLS.matcher(httpRequest);
@@ -211,6 +214,10 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 Matcher matcher4 = Function.matcher_AVProMobile.matcher(httpRequest);
                 Matcher matcher5 = Function.matcher_hls_tver.matcher(httpRequest);
                 Matcher matcher6 = Function.matcher_vrcLinux.matcher(httpRequest);
+                Matcher matcher7 = matcher_tver.matcher(hls_text);
+                Matcher matcher8 = matcher_HLSVideo.matcher(hls_text);
+                Matcher matcher9 = matcher_HLSAudio.matcher(hls_text);
+
 
                 if (matcher5.find() && accessUrl.equals(cache.getOriginURL())) {
                     // TVer
@@ -246,14 +253,13 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
 
                 }
 
-                String s = new String(hls, StandardCharsets.UTF_8);
-                Matcher matcher7 = matcher_tver.matcher(s);
                 if (matcher4.find() || matcher7.find()) {
-                    s = s.replaceAll(",mp4a\\.40\\.2", "");
-                    hls = s.getBytes(StandardCharsets.UTF_8);
+                    hls_text = hls_text.replaceAll(",mp4a\\.40\\.2", "");
+                    hls = hls_text.getBytes(StandardCharsets.UTF_8);
                 }
 
-                if (matcher.find()){
+                boolean isNico = matcher.find();
+                if (isNico) {
                     // VRC かつ ニコ動などは選択できる最高画質/音質のみにする
                     //System.out.println(new String(hls, StandardCharsets.UTF_8));
                     //System.out.println("CacheID : " + cacherId);
@@ -263,6 +269,59 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 } else if (matcher3.find()) {
                     // AbemaはHLSの再処理が必要
                     hls = Function.fixAbemaHLS(new String(hls, StandardCharsets.UTF_8), cache.getOriginURL(), http, httpHostname, cacherId).getBytes(StandardCharsets.UTF_8);
+                }
+
+                if (isNico && matcher8.find()) {
+                    String text = Function.getFileByText("./cm-video.txt", StandardCharsets.UTF_8);
+                    //System.out.println(text);
+                    Matcher m = matcher_hls_url.matcher(text != null ? text : "");
+                    Matcher m2 = matcher_hls2_url.matcher(text != null ? text : "");
+                    if (m.find()) {
+                        String url = m.group(2)+"://"+m.group(3);
+                        String videoId = Function.getVideoID(url);
+                        Function.addVideoIDList(videoId, url);
+                        text = (text != null ? text : "").replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfv");
+                    }
+                    if (m2.find()) {
+                        String url = m2.group(1);
+                        //System.out.println(url);
+                        String videoId = Function.getVideoID(url);
+                        Function.addVideoIDList(videoId, url);
+                        text = (text != null ? text : "").replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfv");
+                    }
+
+                    if (Function.matcher_VLC.matcher(httpRequest).find()) {
+                        hls_text = hls_text.replaceAll("#EXT-X-ENDLIST", "#EXT-X-DISCONTINUITY\n" + text + "#EXT-X-ENDLIST");
+                    } else {
+                        hls_text = hls_text.replaceAll("#EXT-X-ENDLIST", text + "#EXT-X-ENDLIST");
+                    }
+                    hls = hls_text.getBytes(StandardCharsets.UTF_8);
+                }
+                if (isNico && matcher9.find()) {
+                    String text = Function.getFileByText("./cm-audio.txt", StandardCharsets.UTF_8);
+                    Matcher m = matcher_hls_url.matcher(text != null ? text : "");
+                    Matcher m2 = matcher_hls2_url.matcher(text != null ? text : "");
+                    if (m.find()) {
+                        String url = m.group(2)+"://"+m.group(3);
+                        String videoId = Function.getVideoID(url);
+                        Function.addVideoIDList(videoId, url);
+                        text = (text != null ? text : "").replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfa");
+                    }
+                    if (m2.find()) {
+                        String url = m2.group(1);
+                        //System.out.println(url);
+                        String videoId = Function.getVideoID(url);
+                        Function.addVideoIDList(videoId, url);
+                        text = (text != null ? text : "").replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfa");
+                    }
+
+                    if (Function.matcher_VLC.matcher(httpRequest).find()) {
+                        hls_text = hls_text.replaceAll("#EXT-X-ENDLIST", "#EXT-X-DISCONTINUITY\n" + text + "#EXT-X-ENDLIST");
+                    } else {
+                        hls_text = hls_text.replaceAll("#EXT-X-ENDLIST", text + "#EXT-X-ENDLIST");
+                    }
+
+                    hls = hls_text.getBytes(StandardCharsets.UTF_8);
                 }
 
                 Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, hls, null));

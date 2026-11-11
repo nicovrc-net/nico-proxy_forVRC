@@ -567,7 +567,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         if (!matcher_bilibili_com.find()){
             final HttpRequest request;
 
-            System.out.println("Cookie : " + cookieText + " / Referer : " + refererText);
+            //System.out.println("Cookie : " + cookieText + " / Referer : " + refererText);
 
             if (cookieText == null && refererText == null) {
                 request = HttpRequest.newBuilder()
