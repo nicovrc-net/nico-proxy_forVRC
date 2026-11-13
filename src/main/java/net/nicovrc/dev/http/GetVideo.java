@@ -280,10 +280,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     StringBuffer b = new StringBuffer();
                     String[] split = text.split("\n");
                     for (String string : split) {
-                        Matcher m = matcher_hls_url.matcher(string);
                         Matcher m2 = matcher_hls2_url.matcher(string);
-                        if (m.find()) {
-                            String url = m.group(2)+"://"+m.group(3);
+                        if (string.startsWith("http")) {
+                            String url = string;
                             String videoId = Function.getVideoID(url);
                             Function.addVideoIDList(videoId, url);
                             b.append(string.replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfv")).append("\n");
@@ -311,10 +310,9 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     StringBuffer b = new StringBuffer();
                     String[] split = text.split("\n");
                     for (String string : split) {
-                        Matcher m = matcher_hls_url.matcher(string);
                         Matcher m2 = matcher_hls2_url.matcher(string);
-                        if (m.find()) {
-                            String url = m.group(2)+"://"+m.group(3);
+                        if (string.startsWith("http")) {
+                            String url = string;
                             String videoId = Function.getVideoID(url);
                             Function.addVideoIDList(videoId, url);
                             b.append(string.replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfa")).append("\n");
