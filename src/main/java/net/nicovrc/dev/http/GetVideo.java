@@ -274,7 +274,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 if (isNico && matcher8.find()) {
                     String text = Function.getFileByText("./cm-video.txt", StandardCharsets.UTF_8);
                     if (Function.matcher_VLC.matcher(httpRequest).find() || Function.matcher_AVProMobile.matcher(httpRequest).find()) {
-                        Function.getFileByText("./cm-video-vlc.txt", StandardCharsets.UTF_8);
+                        text = Function.getFileByText("./cm-video-vlc.txt", StandardCharsets.UTF_8);
                     }
                     //System.out.println(text);
                     StringBuffer b = new StringBuffer();
@@ -306,7 +306,7 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                 if (isNico && matcher9.find()) {
                     String text = Function.getFileByText("./cm-audio.txt", StandardCharsets.UTF_8);
                     if (Function.matcher_VLC.matcher(httpRequest).find() || Function.matcher_AVProMobile.matcher(httpRequest).find()) {
-                        Function.getFileByText("./cm-audio-vlc.txt", StandardCharsets.UTF_8);
+                        text = Function.getFileByText("./cm-audio-vlc.txt", StandardCharsets.UTF_8);
                     }
                     StringBuffer b = new StringBuffer();
                     String[] split = text.split("\n");
