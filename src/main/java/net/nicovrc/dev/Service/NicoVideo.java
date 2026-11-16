@@ -601,17 +601,20 @@ public class NicoVideo implements ServiceAPI {
                             if (cacheData == null){
                                 String WebsocketURL = json.getAsJsonObject().get("site").getAsJsonObject().get("relive").getAsJsonObject().get("webSocketUrl").getAsString();
 
+                                int length = HttpClient.Version.values().length;
+                                String ver = length == 3 ? "HTTP_3" : "HTTP_2";
+
                                 final HttpClient client1;
                                 if (Proxy == null){
                                     client1 = HttpClient.newBuilder()
-                                            .version(HttpClient.Version.HTTP_2)
+                                            .version(HttpClient.Version.valueOf(ver))
                                             .followRedirects(HttpClient.Redirect.NORMAL)
                                             .connectTimeout(Duration.ofSeconds(5))
                                             .build();
                                 } else {
                                     String[] s = Proxy.split(":");
                                     client1 = HttpClient.newBuilder()
-                                            .version(HttpClient.Version.HTTP_2)
+                                            .version(HttpClient.Version.valueOf(ver))
                                             .followRedirects(HttpClient.Redirect.NORMAL)
                                             .connectTimeout(Duration.ofSeconds(5))
                                             .proxy(ProxySelector.of(new InetSocketAddress(s[0], Integer.parseInt(s[1]))))

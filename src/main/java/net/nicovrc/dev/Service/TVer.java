@@ -107,6 +107,7 @@ public class TVer implements ServiceAPI {
                 String videoRefID = json.getAsJsonObject().get("streaks").getAsJsonObject().get("videoRefID").getAsString();
                 String channel = json.getAsJsonObject().get("video").getAsJsonObject().get("channelID").getAsString();
                 //System.out.println(channel);
+                //System.out.println(videoRefID);
 
                 //System.out.println(json);
                 if (channel.equals("local")){
@@ -172,7 +173,7 @@ public class TVer implements ServiceAPI {
                         channel = "ntv";
                     }
                     if (channel.equals("local")){
-                        if (videoRefID.startsWith("cbc") || videoRefID.startsWith("ctc") || videoRefID.startsWith("mxtv")){
+                        if (videoRefID.startsWith("cbc") || videoRefID.startsWith("ctc") || videoRefID.startsWith("mxtv") || videoRefID.startsWith("bs11")){
                             channel = "mcc";
                         }
                     }

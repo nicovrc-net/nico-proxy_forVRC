@@ -1,11 +1,15 @@
 package net.nicovrc.dev.Service;
 
+import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ServiceList {
 
     public static List<ServiceAPI> getServiceList(){
+
+        int length = HttpClient.Version.values().length;
+
         final List<ServiceAPI> list = new ArrayList<>();
         list.add(new NicoVideo());
         list.add(new bilibili_com());
@@ -18,7 +22,9 @@ public class ServiceList {
         list.add(new Twitcasting());
         list.add(new Abema());
         list.add(new TVer());
-        //list.add(new Iwara());
+        if (length == 3){
+            list.add(new Iwara());
+        }
         list.add(new piapro());
         list.add(new SoundCloud());
         list.add(new Vimeo());
@@ -27,7 +33,9 @@ public class ServiceList {
         list.add(new Sonicbowl());
         list.add(new Mixcloud());
         list.add(new bandcamp());
-        //list.add(new SpankBang());
+        if (length == 3){
+            list.add(new SpankBang());
+        }
 
         return list;
     }

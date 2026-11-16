@@ -16,7 +16,6 @@ import java.net.http.HttpResponse;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -75,7 +74,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
                 e.printStackTrace();
             }
         }
-        final CacheData cache = Function.getCache(URL);
+        final CacheData cache = Function.getCache(URL.split("\\?")[0]);
 
 
         // キャッシュ有無
@@ -581,7 +580,7 @@ public class GetURL implements Runnable, NicoVRCHTTP {
         if (!matcher_bilibili_com.find()){
             final HttpRequest request;
 
-            System.out.println("Cookie : " + cookieText + " / Referer : " + refererText);
+            //System.out.println("Cookie : " + cookieText + " / Referer : " + refererText);
 
             if (cookieText == null && refererText == null) {
                 request = HttpRequest.newBuilder()

@@ -42,9 +42,9 @@ import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
 public class Function {
-    public static final String Version = "3.6.1";
+    public static final String Version = "3.6.2";
     public static final Gson gson = new Gson();
-    public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:158.0) Gecko/20100101 Firefox/158.0 nicovrc-net/" + Version;
+    public static final String UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:159.0) Gecko/20100101 Firefox/159.0 nicovrc-net/" + Version;
     public static final SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     public static final byte[] zeroByte = new byte[0];
@@ -115,7 +115,7 @@ public class Function {
     public static final Pattern matcher_niconico = Pattern.compile("nicovideo\\.jp");
     public static final Pattern matcher_VLC = Pattern.compile("(VLC/(.+) LibVLC/(.+)|LibVLC)");
     public static final Pattern matcher_AVPro = Pattern.compile("(NSPlayer|AVPro|AppleCoreMedia)");
-    public static final Pattern matcher_AVProMobile = Pattern.compile("AVProMobileVideo");
+    public static final Pattern matcher_AVProMobile = Pattern.compile("(AVProMobileVideo|AppleCoreMedia)");
     public static final Pattern matcher_FFMpeg = Pattern.compile("[U|u]ser-[A|a]gent: Lavf/");
     public static final Pattern matcher_vrcLinux = Pattern.compile("GStreamer");
 
