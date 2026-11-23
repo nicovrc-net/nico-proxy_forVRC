@@ -270,68 +270,70 @@ public class GetVideo implements Runnable, NicoVRCHTTP {
                     // AbemaはHLSの再処理が必要
                     hls = Function.fixAbemaHLS(new String(hls, StandardCharsets.UTF_8), cache.getOriginURL(), http, httpHostname, cacherId).getBytes(StandardCharsets.UTF_8);
                 }
-/*
-                if (isNico && matcher8.find()) {
-                    String text = Function.getFileByText("./cm-video.txt", StandardCharsets.UTF_8);
-                    if (Function.matcher_VLC.matcher(httpRequest).find() || Function.matcher_AVProMobile.matcher(httpRequest).find()) {
-                        text = Function.getFileByText("./cm-video-vlc.txt", StandardCharsets.UTF_8);
-                    }
-                    //System.out.println(text);
-                    StringBuffer b = new StringBuffer();
-                    String[] split = text.split("\n");
-                    for (String string : split) {
-                        Matcher m2 = matcher_hls2_url.matcher(string);
-                        if (string.startsWith("http")) {
-                            String url = string;
-                            String videoId = Function.getVideoID(url);
-                            Function.addVideoIDList(videoId, url);
-                            b.append(string.replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfv")).append("\n");
-                        } else if (m2.find()) {
-                            String url = m2.group(1);
-                            //System.out.println(url);
-                            String videoId = Function.getVideoID(url);
-                            Function.addVideoIDList(videoId, url);
-                            b.append(string.replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfv")).append("\n");
-                        } else {
-                            b.append(string).append("\n");
+
+                if (Function.isFoundFile("./cm-video.txt")){
+                    if (isNico && matcher8.find()) {
+                        String text = Function.getFileByText("./cm-video.txt", StandardCharsets.UTF_8);
+                        if (Function.matcher_VLC.matcher(httpRequest).find() || Function.matcher_AVProMobile.matcher(httpRequest).find()) {
+                            text = Function.getFileByText("./cm-video-vlc.txt", StandardCharsets.UTF_8);
                         }
-                    }
-                    text = b.toString();
-
-                    hls_text = hls_text.replaceAll("#EXT-X-ENDLIST", "#EXT-X-DISCONTINUITY\n" + text + "#EXT-X-ENDLIST");
-
-                    hls = hls_text.getBytes(StandardCharsets.UTF_8);
-                }
-                if (isNico && matcher9.find()) {
-                    String text = Function.getFileByText("./cm-audio.txt", StandardCharsets.UTF_8);
-                    if (Function.matcher_VLC.matcher(httpRequest).find() || Function.matcher_AVProMobile.matcher(httpRequest).find()) {
-                        text = Function.getFileByText("./cm-audio-vlc.txt", StandardCharsets.UTF_8);
-                    }
-                    StringBuffer b = new StringBuffer();
-                    String[] split = text.split("\n");
-                    for (String string : split) {
-                        Matcher m2 = matcher_hls2_url.matcher(string);
-                        if (string.startsWith("http")) {
-                            String url = string;
-                            String videoId = Function.getVideoID(url);
-                            Function.addVideoIDList(videoId, url);
-                            b.append(string.replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfa")).append("\n");
-                        } else if (m2.find()) {
-                            String url = m2.group(1);
-                            //System.out.println(url);
-                            String videoId = Function.getVideoID(url);
-                            Function.addVideoIDList(videoId, url);
-                            b.append(string.replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfa")).append("\n");
-                        } else {
-                            b.append(string).append("\n");
+                        //System.out.println(text);
+                        StringBuffer b = new StringBuffer();
+                        String[] split = text.split("\n");
+                        for (String string : split) {
+                            Matcher m2 = matcher_hls2_url.matcher(string);
+                            if (string.startsWith("http")) {
+                                String url = string;
+                                String videoId = Function.getVideoID(url);
+                                Function.addVideoIDList(videoId, url);
+                                b.append(string.replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfv")).append("\n");
+                            } else if (m2.find()) {
+                                String url = m2.group(1);
+                                //System.out.println(url);
+                                String videoId = Function.getVideoID(url);
+                                Function.addVideoIDList(videoId, url);
+                                b.append(string.replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfv")).append("\n");
+                            } else {
+                                b.append(string).append("\n");
+                            }
                         }
-                    }
-                    text = b.toString();
+                        text = b.toString();
 
-                    hls_text = hls_text.replaceAll("#EXT-X-ENDLIST", "#EXT-X-DISCONTINUITY\n" + text + "#EXT-X-ENDLIST");
-                    hls = hls_text.getBytes(StandardCharsets.UTF_8);
+                        hls_text = hls_text.replaceAll("#EXT-X-ENDLIST", "#EXT-X-DISCONTINUITY\n" + text + "#EXT-X-ENDLIST");
+
+                        hls = hls_text.getBytes(StandardCharsets.UTF_8);
+                    }
+                    if (isNico && matcher9.find()) {
+                        String text = Function.getFileByText("./cm-audio.txt", StandardCharsets.UTF_8);
+                        if (Function.matcher_VLC.matcher(httpRequest).find() || Function.matcher_AVProMobile.matcher(httpRequest).find()) {
+                            text = Function.getFileByText("./cm-audio-vlc.txt", StandardCharsets.UTF_8);
+                        }
+                        StringBuffer b = new StringBuffer();
+                        String[] split = text.split("\n");
+                        for (String string : split) {
+                            Matcher m2 = matcher_hls2_url.matcher(string);
+                            if (string.startsWith("http")) {
+                                String url = string;
+                                String videoId = Function.getVideoID(url);
+                                Function.addVideoIDList(videoId, url);
+                                b.append(string.replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfa")).append("\n");
+                            } else if (m2.find()) {
+                                String url = m2.group(1);
+                                //System.out.println(url);
+                                String videoId = Function.getVideoID(url);
+                                Function.addVideoIDList(videoId, url);
+                                b.append(string.replaceAll(url, http+httpHostname+"/video/"+ URLEncoder.encode(cacherId, StandardCharsets.UTF_8)+"/"+videoId+".cmfa")).append("\n");
+                            } else {
+                                b.append(string).append("\n");
+                            }
+                        }
+                        text = b.toString();
+
+                        hls_text = hls_text.replaceAll("#EXT-X-ENDLIST", "#EXT-X-DISCONTINUITY\n" + text + "#EXT-X-ENDLIST");
+                        hls = hls_text.getBytes(StandardCharsets.UTF_8);
+                    }
                 }
-*/
+
                 Function.sendHttpData(ch, new HttpHeader(httpVersion, response.statusCode(), contentType, null, null, hls, null));
                 return;
 
